@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Decision Tree",
+    "f1": 0.9918034714709065,
+    "accuracy": 0.9965417838838199,
+    "train_time": 10.708043098449707,
+    "model_size_mb": 0.029068946838378906,
+    "path": "/Users/thainguyenvu/Desktop/Thesis_IDS/raspberry/model/ids_pipeline_decision_tree"
+  },
+  {
+    "name": "GBT",
+    "f1": 0.9884554867376584,
+    "accuracy": 0.9951401396186536,
+    "train_time": 231.28020787239075,
+    "model_size_mb": 0.8617706298828125,
+    "path": "/Users/thainguyenvu/Desktop/Thesis_IDS/raspberry/model/ids_pipeline_gbt"
+  },
+  {
+    "name": "Random Forest",
+    "f1": 0.9912157786282013,
+    "accuracy": 0.996298666825437,
+    "train_time": 486.1508948802948,
+    "model_size_mb": 2.859377861022949,
+    "path": "/Users/thainguyenvu/Desktop/Thesis_IDS/raspberry/model/ids_pipeline_random_forest"
+  }
+]

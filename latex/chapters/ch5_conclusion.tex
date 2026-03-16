@@ -1,0 +1,24 @@
+\chapter{Kết luận và Hướng phát triển}
+
+\section{Những đóng góp chính của luận văn}
+Sau khi thực hiện luận văn với đề tài \textit{``Phát hiện xâm nhập (IDS) dựa trên Apache Spark cho bảo mật mạng IoT''}, chúng tôi đã đạt được một số kết quả chính tương ứng với các mục tiêu đề ra ban đầu:
+\begin{itemize}
+    \item \textbf{Xây dựng nền tảng xử lý dữ liệu lớn}: Đề xuất và triển khai thành công hệ thống IDS trên nền tảng Apache Spark. Giải pháp này tận dụng khả năng tính toán song song để xử lý các luồng dữ liệu mạng quy mô lớn từ môi trường IoT, đảm bảo tính mở rộng và hiệu năng cao trong việc giám sát bảo mật.
+    \item \textbf{Cải thiện hiệu năng phát hiện với mô hình Ensemble}: Phát triển thành công mô hình Hybrid Bagging Ensemble kết hợp đa thuật toán (Random Forest, XGBoost, MLP). Kết quả thực nghiệm trên bộ dữ liệu RoEduNet/CICIDS2017 cho thấy mô hình đạt F1-score cực cao (0.9994), vượt trội hơn hẳncác thuật toán học máy đơn lẻ truyền thống.
+    \item \textbf{Tối ưu hóa và Giải thích mô hình}: Ứng dụng kỹ thuật SHAP để lựa chọn các đặc trưng quan trọng nhất, giúp giảm số lượng đặc trưng từ 78 xuống còn 30 mà không làm ảnh hưởng đến độ chính xác. Đồng thời, SHAP cung cấp khả năng giải thích chi tiết về lý do mô hình đưa ra quyết định, tăng cường sự tin cậy và khả năng ứng dụng thực tế của hệ thống.
+\end{itemize}
+
+\section{Hạn chế của đề tài}
+Mặc dù đã đạt được những kết quả khả quan, luận văn vẫn tồn tại một số hạn chế cần được khắc phục trong các giai đoạn tiếp theo:
+\begin{itemize}
+    \item \textbf{Phạm vi phân loại}: Thử nghiệm hiện tại chủ yếu tập trung vào bài toán phân loại nhị phân (phát hiện hành vi Tấn công so với Bình thường). Việc đi sâu vào phân loại đa lớp (Multi-class) để xác định chính xác từng chủng loại mã độc cụ thể vẫn còn đang trong giai đoạn phát triển.
+    \item \textbf{Môi trường triển khai}: Hệ thống mới chỉ được đánh giá thông qua các kịch bản mô phỏng trên cụm Spark (local mode). Việc kiểm chứng hiệu năng và độ trễ trên các hạ tầng mạng IoT thực tế với hàng nghìn thiết bị đầu cuối vẫn là một thách thức cần thực hiện.
+\end{itemize}
+
+\section{Hướng phát triển trong tương lai}
+Dựa trên những kết quả đã đạt được và nhận diện các hạn chế hiện có, chúng tôi đề xuất một số hướng phát triển sau:
+\begin{itemize}
+    \item \textbf{Nâng cấp khả năng nhận diện đa lớp}: Mở rộng mô hình để có thể phân loại chi tiết các loại tấn công phổ biến trong mạng IoT như DoS/DDoS, Botnet (Mirai), Infiltration và Heartbleed.
+    \item \textbf{Tích hợp học máy trực tuyến (Online Learning)}: Nghiên cứu các giải pháp cập nhật tham số mô hình theo thời gian thực (real-time stream processing) mà không cần huấn luyện lại toàn bộ dữ liệu, giúp hệ thống thích ứng nhanh với các biến thể tấn công mới.
+    \item \textbf{Triển khai tại biên (Edge Computing)}: Thử nghiệm việc đưa các mô hình đã tối ưu hóa xuống các thiết bị biên có cấu hình phần cứng hạn chế như \textbf{Raspberry Pi} hoặc các IoT Gateway chuyên dụng. Việc xử lý và ngăn chặn tấn công ngay tại nguồn giúp giảm tải cho trung tâm dữ liệu, tối ưu băng thông và giảm thiểu rủi ro rò rỉ thông tin trong quá trình truyền tải.
+\end{itemize}

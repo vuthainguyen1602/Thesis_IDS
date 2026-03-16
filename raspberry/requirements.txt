@@ -1,0 +1,23 @@
+# ==============================================================================
+# Raspberry Pi Edge IDS - Python Dependencies (PySpark)
+# ==============================================================================
+
+# PySpark (includes Spark + Hadoop)
+pyspark==3.4.1
+
+# Kafka
+kafka-python==2.0.2
+
+# Storage
+psycopg2-binary==2.9.9
+influxdb-client==1.38.0
+
+# Alerting
+requests==2.31.0
+
+# System Monitoring
+psutil==5.9.7
+
+# Utilities
+numpy==1.26.4
+python-dotenv==1.0.0

@@ -1,0 +1,21 @@
+\section{Discussion and Conclusion}
+This research investigated the critical vulnerability of modern network infrastructures to stealthy, low-volume cyber-attacks and the consequent failure of solitary machine learning models when faced with extreme data imbalance. We introduced a comprehensively optimized Intrusion Detection System framework that fundamentally resolves this asymmetry.
+
+\subsection{Key Findings and Practical Implications}
+Rather than treating algorithms and data as isolated components, our proposed pipeline mathematically binds them. By executing a novel hybrid sampling strategy—employing \textit{k}-means clustering for intelligent majority under-sampling and ADASYN for boundary-focused extreme minority over-sampling—we successfully neutralized the inherent bias of raw network traffic. When this rebalanced vector space was processed by our Hybrid Ensemble Architecture, the results conclusively demonstrated superiority over traditional models. Base learners (XGBoost and LightGBM) efficiently extracted discrete, structured network features, while the Multi-Layer Perceptron (MLP) meta-classifier successfully mapped these outputs into complex, non-linear decision boundaries.
+
+The practical implications of deploying this framework in enterprise environments are substantial. The achievement of a near-zero False Positive Rate ($0.02\%$) directly mitigates "alert fatigue," a primary operational hurdle in Security Operations Centers (SOCs). Furthermore, the dramatic increase in recall for stealthy classes—such as a $99.85\%$ detection rate for Heartbleed and $96.80\%$ for Infiltration—ensures that critical, network-compromising breaches are not misclassified as benign background noise.
+
+\subsection{Limitations and Future Work}
+While the proposed hybrid architecture achieves state-of-the-art detection accuracy, we acknowledge inherent limitations regarding computational complexity. The integration of gradient-boosted trees with deep neural networks necessitates a higher training time overhead compared to solitary algorithms. Although inference latency remains exceptionally low ($<1$ ms per sample), making real-time deployment viable, the initial offline training phase requires significant computational resources, particularly for hyperparameter optimization of the MLP meta-classifier across high-dimensional data.
+
+Future research vectors will focus on optimizing this computational footprint and expanding empirical validation. Specifically, we intend to:
+\begin{enumerate}
+    \item \textbf{Evaluate the Framework on Newer Datasets}: We plan to benchmark the Hybrid Ensemble on recent, highly heterogeneous datasets such as CICIDS2018, CSE-CIC-IDS2018, and the TON\_IoT dataset to validate its generalization capabilities against evolving zero-day threats and IoT-specific attack vectors.
+    \item \textbf{Edge Computing Deployment}: We aim to explore model distillation techniques to compress the ensemble architecture, facilitating deployment on resource-constrained Edge environments, thereby moving threat detection closer to the network periphery.
+    \item \textbf{Stream Processing Integration}: To adapt to the dynamic velocity of live enterprise traffic, future iterations of this framework will investigate continuous online-learning mechanisms integrated with distributed stream processing platforms (e.g., Apache Kafka).
+\end{enumerate}
+
+\appendix
+\section{Acknowledgements}
+The author would like to thank the Canadian Institute for Cybersecurity for providing the CICIDS2017 dataset, which serves as a vital benchmark for advancing data-driven network security.

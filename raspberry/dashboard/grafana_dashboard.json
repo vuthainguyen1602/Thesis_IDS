@@ -1,0 +1,299 @@
+{
+    "annotations": {
+        "list": []
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 1,
+    "id": null,
+    "links": [],
+    "liveNow": true,
+    "panels": [
+        {
+            "title": "Prediction Throughput (req/s)",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 0
+            },
+            "datasource": {
+                "type": "influxdb",
+                "uid": "influxdb"
+            },
+            "targets": [
+                {
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"prediction_metrics\" and r._field == \"throughput_rps\")",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 15,
+                        "gradientMode": "scheme"
+                    },
+                    "unit": "reqps"
+                }
+            }
+        },
+        {
+            "title": "Attack Detection Count",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 0
+            },
+            "datasource": {
+                "type": "influxdb",
+                "uid": "influxdb"
+            },
+            "targets": [
+                {
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"prediction_metrics\" and r._field == \"attacks_count\")",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "red",
+                        "mode": "fixed"
+                    },
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 30
+                    }
+                }
+            }
+        },
+        {
+            "title": "Avg Inference Latency (ms)",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 8
+            },
+            "datasource": {
+                "type": "influxdb",
+                "uid": "influxdb"
+            },
+            "targets": [
+                {
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"prediction_metrics\" and r._field == \"avg_latency_ms\")",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "fixed"
+                    },
+                    "custom": {
+                        "lineWidth": 2
+                    },
+                    "unit": "ms"
+                }
+            }
+        },
+        {
+            "title": "CPU Usage (%)",
+            "type": "gauge",
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 12,
+                "y": 8
+            },
+            "datasource": {
+                "type": "influxdb",
+                "uid": "influxdb"
+            },
+            "targets": [
+                {
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"system_metrics\" and r._field == \"cpu_percent\") |> last()",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 60
+                            },
+                            {
+                                "color": "red",
+                                "value": 85
+                            }
+                        ]
+                    },
+                    "unit": "percent",
+                    "max": 100
+                }
+            }
+        },
+        {
+            "title": "Memory Usage (%)",
+            "type": "gauge",
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 18,
+                "y": 8
+            },
+            "datasource": {
+                "type": "influxdb",
+                "uid": "influxdb"
+            },
+            "targets": [
+                {
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"system_metrics\" and r._field == \"memory_percent\") |> last()",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "thresholds": {
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 70
+                            },
+                            {
+                                "color": "red",
+                                "value": 90
+                            }
+                        ]
+                    },
+                    "unit": "percent",
+                    "max": 100
+                }
+            }
+        },
+        {
+            "title": "CPU Usage Over Time",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 16
+            },
+            "datasource": {
+                "type": "influxdb",
+                "uid": "influxdb"
+            },
+            "targets": [
+                {
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"system_metrics\" and r._field == \"cpu_percent\")",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "blue",
+                        "mode": "fixed"
+                    },
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 20,
+                        "gradientMode": "scheme"
+                    },
+                    "unit": "percent",
+                    "max": 100
+                }
+            }
+        },
+        {
+            "title": "Memory Usage Over Time",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 16
+            },
+            "datasource": {
+                "type": "influxdb",
+                "uid": "influxdb"
+            },
+            "targets": [
+                {
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"system_metrics\" and (r._field == \"memory_percent\" or r._field == \"memory_used_mb\"))",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 15,
+                        "gradientMode": "scheme"
+                    }
+                }
+            }
+        },
+        {
+            "title": "Recent Alerts",
+            "type": "table",
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 24
+            },
+            "datasource": {
+                "type": "postgres",
+                "uid": "postgres"
+            },
+            "targets": [
+                {
+                    "rawSql": "SELECT created_at, alert_type, confidence, message FROM alerts ORDER BY created_at DESC LIMIT 20",
+                    "format": "table",
+                    "refId": "A"
+                }
+            ]
+        }
+    ],
+    "schemaVersion": 38,
+    "style": "dark",
+    "tags": [
+        "ids",
+        "edge",
+        "raspberry-pi"
+    ],
+    "templating": {
+        "list": []
+    },
+    "time": {
+        "from": "now-3h",
+        "to": "now"
+    },
+    "title": "IDS Edge - Raspberry Pi Dashboard",
+    "uid": "ids-edge-dashboard",
+    "version": 1
+}

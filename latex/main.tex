@@ -1,0 +1,39 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+% --- Preamble ---
+\usepackage[utf8]{inputenc}
+\usepackage[vietnam]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+% --- Custom Commands ---
+\renewcommand{\algorithmicrequire}{\textbf{Đầu vào:}}
+\renewcommand{\algorithmicensure}{\textbf{Đầu ra:}}
+
+\title{Phát triển Hệ thống Phát hiện Xâm nhập dựa trên Machine Learning và Apache Spark}
+\author{Thái Nguyên Vũ}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+% --- Chapters ---
+\include{chapters/ch1_intro}
+\include{chapters/ch2_theory}
+\include{chapters/ch3_methodology}
+\include{chapters/ch4_experiments}
+\include{chapters/ch5_conclusion}
+
+\bibliographystyle{plain}
+%\bibliography{references}
+
+\end{document}

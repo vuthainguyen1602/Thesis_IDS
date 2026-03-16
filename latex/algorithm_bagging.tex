@@ -1,0 +1,46 @@
+% Thêm vào preamble nếu chưa có:
+% \renewcommand{\algorithmicrequire}{\textbf{Đầu vào:}}
+% \renewcommand{\algorithmicensure}{\textbf{Đầu ra:}}
+
+\begin{algorithm}[htbp]
+\caption{Thuật toán Hybrid Bagging Ensemble Learning}
+\label{bagging_ag}
+\begin{algorithmic}[1]
+\Require Tập dữ liệu huấn luyện $D = \{(x_i, y_i)\}_{i=1}^{n}$ với $x_i \in \mathbb{R}^d$, $y_i \in \{1, 2, \dots, C\}$
+\Statex \qquad Tập $K$ thuật toán học cơ sở $\{\mathcal{L}_1, \mathcal{L}_2, \dots, \mathcal{L}_K\}$
+\Statex \qquad Phân bố số bản sao $\mathbf{r} = (r_1, r_2, r_3) = (3, 2, 2)$
+\Ensure Nhãn dự đoán cuối cùng $y_{\text{bag}} \in \{1, 2, \dots, C\}$
+
+\State \textbf{Bước 1: Huấn luyện và đánh giá $K$ mô hình cơ sở}
+\For{$k = 1$ to $K$}
+    \State $M_k \gets \text{Train}(\mathcal{L}_k, D)$ \Comment{Huấn luyện mô hình $M_k$ trên tập $D$}
+    \State $F_k \gets \text{F1-Score}(M_k, D)$ \Comment{Tính điểm F1 của mô hình $M_k$}
+\EndFor
+
+\State \textbf{Bước 2: Chọn Top-3 mô hình có F1 cao nhất}
+\State Sắp xếp $\{M_1, \dots, M_K\}$ theo $F_k$ giảm dần
+\State Chọn 3 mô hình tốt nhất: $M^{(1)}, M^{(2)}, M^{(3)}$ với $F^{(1)} \geq F^{(2)} \geq F^{(3)}$
+
+\State \textbf{Bước 3: Tạo ensemble theo phân bố 3-2-2}
+\State $\mathcal{E} \gets \emptyset$ \Comment{Tập ensemble gồm 7 mô hình}
+\For{$j = 1$ to $3$}
+    \For{$i = 1$ to $r_j$}
+        \State Tạo tập bootstrap $D_{j,i}$ bằng cách lấy ngẫu nhiên $n$ mẫu từ $D$ \textbf{có hoàn lại}
+        \State $h_{j,i} \gets \text{Train}(\mathcal{L}^{(j)}, D_{j,i})$ \Comment{Huấn luyện bản sao thứ $i$ của mô hình hạng $j$}
+        \State Gán trọng số $w_{j,i} \gets F^{(j)}$ \Comment{Trọng số dựa trên F1-Score}
+        \State Thêm $(h_{j,i}, w_{j,i})$ vào $\mathcal{E}$
+    \EndFor
+\EndFor
+\State Chuẩn hóa trọng số: $w_{j,i} \gets \dfrac{w_{j,i}}{\sum_{(h, w) \in \mathcal{E}} w}$
+
+\State \textbf{Bước 4: Dự đoán cho mẫu mới $x$ (Soft Voting có trọng số)}
+\State $T \gets |\mathcal{E}| = 7$ \Comment{Tổng số mô hình trong ensemble}
+\For{mỗi $(h_t, w_t) \in \mathcal{E}$, $t = 1, \dots, T$}
+    \State $\mathbf{p}_t \gets h_t(x)$ \Comment{Lấy vector xác suất dự đoán}
+\EndFor
+\State Tính xác suất có trọng số: $\bar{p}(c \mid x) = \displaystyle\sum_{t=1}^{T} w_t \cdot P_t(c \mid x), \quad \forall c \in \{1, \dots, C\}$
+\State $y_{\text{bag}} \gets \underset{c \in \{1, \dots, C\}}{\arg\max} \ \bar{p}(c \mid x)$
+
+\State \Return $y_{\text{bag}}$
+\end{algorithmic}
+\end{algorithm}

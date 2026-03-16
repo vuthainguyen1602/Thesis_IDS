@@ -1,0 +1,112 @@
+# ==============================================================================
+# Docker Compose - Raspberry Pi Edge IDS Infrastructure
+# ==============================================================================
+# Deploys: Kafka + Zookeeper, PostgreSQL, InfluxDB, Grafana
+# ==============================================================================
+# Usage:
+#   docker compose up -d
+#   docker compose logs -f
+#   docker compose down
+# ==============================================================================
+
+services:
+  # ────────────────────────────────────────────────────────────────────
+  # ZOOKEEPER (required by Kafka)
+  # ────────────────────────────────────────────────────────────────────
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: ids-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    restart: unless-stopped
+
+  # ────────────────────────────────────────────────────────────────────
+  # KAFKA
+  # ────────────────────────────────────────────────────────────────────
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: ids-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://192.168.1.225:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_LOG_RETENTION_HOURS: 24
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    depends_on:
+      - zookeeper
+    restart: unless-stopped
+
+  # ────────────────────────────────────────────────────────────────────
+  # POSTGRESQL
+  # ────────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: ids-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: ids_edge
+      POSTGRES_USER: ids
+      POSTGRES_PASSWORD: ids_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # ────────────────────────────────────────────────────────────────────
+  # INFLUXDB 2.x
+  # ────────────────────────────────────────────────────────────────────
+  influxdb:
+    image: influxdb:2.7
+    container_name: ids-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ids
+      DOCKER_INFLUXDB_INIT_PASSWORD: ids_password
+      DOCKER_INFLUXDB_INIT_ORG: thesis
+      DOCKER_INFLUXDB_INIT_BUCKET: ids_metrics
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ids-edge-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    restart: unless-stopped
+
+  # ────────────────────────────────────────────────────────────────────
+  # GRAFANA
+  # ────────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: ids-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./dashboard:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - influxdb
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  zookeeper_data:
+  kafka_data:
+  postgres_data:
+  influxdb_data:
+  grafana_data:

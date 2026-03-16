@@ -1,0 +1,35 @@
+\section{Experimental Setup}
+To validate the efficacy of the proposed Hybrid Ensemble Architecture paired with our Balanced Sampling strategy, comprehensive experiments were conducted on the refined CICIDS2017 dataset.
+
+\subsection{Experimental Environment}
+The computational framework was deployed on a high-performance cluster to handle the dataset's massive scale and high dimensionality. The environment utilized an Intel Core i9 processor with 64GB of RAM, accelerated by an NVIDIA RTX 4090 GPU for the MLP meta-classifier training epochs. The software stack was built on Python 3.10, utilizing \texttt{Scikit-Learn} for data pipeline construction, \texttt{XGBoost} and \texttt{LightGBM} libraries for base learner implementation, and \texttt{TensorFlow/Keras} for the MLP meta-classifier.
+
+\subsection{Evaluation Metrics}
+In heavily imbalanced intrusion detection scenarios, global Accuracy is a deceptive metric. A model predicting the majority "Benign" class $100\%$ of the time would achieve $>99\%$ Accuracy while utterly failing to detect any cyber-attacks. Therefore, our evaluation strictly emphasizes Precision, Recall, F1-Score, and the False Positive Rate (FPR), calculated derived from the macroscopic confusion matrix components: True Positives ($TP$), True Negatives ($TN$), False Positives ($FP$), and False Negatives ($FN$).
+
+\begin{itemize}
+    \item \textbf{Accuracy:} The overall ratio of correctly predicted observations to the total observations.
+    \begin{equation}
+        \text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+    \end{equation}
+
+    \item \textbf{Precision:} The ratio of correctly predicted positive observations to the total predicted positives. It highlights the model's exactness and its ability to not label a benign packet as malicious.
+    \begin{equation}
+        \text{Precision} = \frac{TP}{TP + FP}
+    \end{equation}
+
+    \item \textbf{Recall (Detection Rate):} The ratio of correctly predicted positive observations to all observations in the actual class. It measures the theoretical capacity to catch stealthy minority attacks.
+    \begin{equation}
+        \text{Recall} = \frac{TP}{TP + FN}
+    \end{equation}
+
+    \item \textbf{F1-Score:} The weighted average (harmonic mean) of Precision and Recall. It is the most robust metric for imbalanced multi-class datasets.
+    \begin{equation}
+        \text{F1-Score} = 2 \times \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}
+    \end{equation}
+
+    \item \textbf{False Positive Rate (FPR):} The probability of falsely rejecting the null hypothesis (i.e., triggering an alert for benign traffic). Minimizing FPR is critical to prevent analyst fatigue.
+    \begin{equation}
+        \text{FPR} = \frac{FP}{FP + TN}
+    \end{equation}
+\end{itemize}

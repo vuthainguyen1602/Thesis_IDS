@@ -1,0 +1,49 @@
+\section{Methodology and Proposed Framework}
+To effectively address the dual challenges of extreme data imbalance and solitary algorithmic bias in NIDS, we propose a comprehensively optimized framework. This section details the data preprocessing pipeline, the advanced balanced sampling strategy, and the mathematical formulation of our novel Hybrid Ensemble Architecture.
+
+\subsection{Dataset Preprocessing \& Feature Engineering}
+The CICIDS2017 dataset is characterized by high dimensionality (over 78 raw features), substantial variance, and the presence of missing (NaN) or infinite values structurally induced by packet flow errors. Prior to algorithmic ingestion, a rigorous preprocessing pipeline is executed.
+
+\subsubsection{Data Cleaning and Imputation} 
+Records containing \texttt{NaN} or \texttt{Infinity} values are systematically isolated. Given the vast volume of the majority class, samples with irreparably corrupted statistical distributions are removed rather than imputed to prevent the introduction of synthetic noise. For continuous flow features (e.g., \textit{Flow Duration}, \textit{Packet Length Variance}), robust statistical imputation using median values grouped by attack class is applied where necessary to preserve the underlying distribution.
+
+\subsubsection{Normalization and Scaling} 
+The disparate scales of network traffic metrics (e.g., byte counts vs. microsecond durations) inherently bias distance-based or gradient-descent algorithms. We apply Min-Max scaling to map all continuous variables $x_i$ into a formalized range $[0, 1]$:
+\begin{equation}
+x_{norm} = \frac{x_i - \min(X)}{\max(X) - \min(X)}
+\end{equation}
+where $X$ represents the vector space of the specific feature.
+
+\subsubsection{Advanced Balanced Sampling Strategy}
+To rectify the extreme minority status of specific attacks (such as Heartbleed and Infiltration, which constitute $<0.01\%$ of the dataset), we implement a hybrid sampling strategy rather than relying on standard Synthetic Minority Over-sampling Technique (SMOTE). Standard SMOTE interpolates linearly between minority samples, often generating feature vectors that cross the decision boundary into the benign class territory within high-dimensional space.
+
+Instead, we employ a sophisticated clustering-based under-sampling of the majority (benign) class combined with localized over-sampling. First, the dense benign distribution $D_{benign}$ is clustered using mini-batch \textit{k}-means to identify structural centroids. We retain representative samples tightly bounded near these centroids, drastically reducing majority volume without losing topological variance. Subsequently, for the extreme minority set $D_{minority}$, we apply Adaptive Synthetic (ADASYN) sampling, which focuses synthesis strictly on minority instances that are harder to learn (i.e., those in the proximity of the decision boundary). This mathematically reconstructs a balanced training vector space $S_{train}$ where the prior probability $P(\text{Class} = k)$ is approximately equalized across both benign and malicious states.
+
+\subsection{The Hybrid Ensemble Architecture}
+Once the multidimensional space is balanced, the data is ingested by our Hybrid Ensemble Architecture. We strategically partition learning mechanisms into base feature extractors (Gradient Boosted Trees) and a meta-classifier (Deep Neural Network).
+
+\subsubsection{Base Learners: XGBoost and LightGBM}
+Tree-based gradient boosting algorithms are demonstrably superior for extracting latent structures from tabular, heterogeneous feature spaces without requiring extensive hyperparameter tuning for feature interactions.
+\begin{itemize}
+    \item \textbf{XGBoost}: Operates by sequentially adding decision trees to correct the residual errors of preceding trees. Let the prediction at step $t$ be $\hat{y}_i^{(t)} = \hat{y}_i^{(t-1)} + f_t(x_i)$. XGBoost minimizes the objective function:
+    \begin{equation}
+        Obj^{(t)} = \sum_{i=1}^{n} l\left(y_i, \hat{y}_i^{(t-1)} + f_t(x_i)\right) + \Omega(f_t)
+    \end{equation}
+    where $l$ is the differentiable convex loss function, and $\Omega$ penalizes model complexity to mitigate variance.
+    \item \textbf{LightGBM}: While fundamentally similar to XGBoost, LightGBM introduces \textit{Gradient-based One-Side Sampling} (GOSS) and \textit{Exclusive Feature Bundling} (EFB). These mechanisms allow LightGBM to process the massive scale of the CICIDS2017 dataset at an accelerated temporal resolution while retaining strict decision boundaries constructed from instances with larger gradients.
+\end{itemize}
+These base learners output highly calibrated predictive probabilities $P_{XGB}(y|x)$ and $P_{LGBM}(y|x)$.
+
+\subsubsection{Meta-Classifier: Multi-Layer Perceptron (MLP)}
+While boosting algorithms excel at discrete categorical bounds, they lack the capacity to map deep, continuous non-linear approximations. To resolve the final classification, we employ an MLP as a meta-classifier in a Stacking configuration.
+
+The outputs of the base learners form a new meta-feature vector $Z_i = [P_{XGB}(y|x_i), P_{LGBM}(y|x_i)]$. The MLP ingests $Z_i$ through a fully connected architecture. For a hidden layer $h$ with weight matrix $W_h$ and bias vector $b_h$, the activation $A_h$ is defined using a Rectified Linear Unit (ReLU) to prevent vanishing gradients:
+\begin{equation}
+    A_h = \text{ReLU}(W_h \cdot Z_i + b_h)
+\end{equation}
+The final output layer utilizes a Softmax function to map the deep features into a normalized probability distribution across the multi-class spectrum:
+\begin{equation}
+    \hat{Y} = \text{Softmax}(W_{out} \cdot A_{h\_final} + b_{out})
+\end{equation}
+
+By training the MLP on the predictive gradients of the ensemble base, the framework dynamically learns to trust specific base learners for distinct attack signatures. This hierarchical stacking architecture effectively bridges the gap between tabular structure extraction and profound non-linear generalization, decisively outperforming solitary mechanisms in multi-class imbalance resolution.
