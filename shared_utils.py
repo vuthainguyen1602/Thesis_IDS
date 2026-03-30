@@ -49,8 +49,9 @@ os.environ['PYSPARK_SUBMIT_ARGS'] = '--master local[4] pyspark-shell'
 import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
-from pyspark.sql.functions import col, when, monotonically_increasing_id, udf
+from pyspark.sql.functions import col, when, monotonically_increasing_id, udf, array
 from pyspark.sql.types import StringType, DoubleType
+from pyspark.ml.linalg import Vectors, VectorUDT
 
 from pyspark.ml import Pipeline
 from pyspark.ml.feature import VectorAssembler, StandardScaler, PCA
@@ -485,19 +486,28 @@ def compute_metrics(
     recall = TP / (TP + FN) if (TP + FN) > 0 else 0
     f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
 
-    # AUC-ROC & AUC-PR (requires rawPrediction column)
+    # AUC-ROC & AUC-PR computation
     auc_roc = None
     auc_pr = None
+    
+    score_col = None
     if "rawPrediction" in predictions.columns:
+        score_col = "rawPrediction"
+    elif "avg_probability" in predictions.columns:
+        score_col = "avg_probability"
+    elif "probability" in predictions.columns:
+        score_col = "probability"
+
+    if score_col:
         try:
             evaluator_roc = BinaryClassificationEvaluator(
-                labelCol=label_col, rawPredictionCol="rawPrediction",
+                labelCol=label_col, rawPredictionCol=score_col,
                 metricName="areaUnderROC"
             )
             auc_roc = evaluator_roc.evaluate(predictions)
 
             evaluator_pr = BinaryClassificationEvaluator(
-                labelCol=label_col, rawPredictionCol="rawPrediction",
+                labelCol=label_col, rawPredictionCol=score_col,
                 metricName="areaUnderPR"
             )
             auc_pr = evaluator_pr.evaluate(predictions)
@@ -678,6 +688,9 @@ class BaggingModel:
         avg_prob_expr = sum(weighted_probs)
         
         final_res = combined_result.withColumn("avg_probability", avg_prob_expr)
+        final_res = final_res.withColumn("rawPrediction", col("avg_probability"))
+        final_res = final_res.withColumn("probability", vector_prob_udf(col("avg_probability")))
+        
         final_res = final_res.withColumn(
             "prediction", 
             when(col("avg_probability") >= 0.5, 1.0).otherwise(0.0)
@@ -1035,28 +1048,46 @@ def ensemble_voting(trained_models, test_df, results=None, label_col="label_bina
     # Add row_id for joining
     test_with_id = test_df.withColumn("_row_id", monotonically_increasing_id())
 
-    # Collect predictions from each model
+    # Collect probabilities from each model
     combined = None
+    extract_prob_udf = udf(lambda v: float(v[1]) if v is not None and len(v) > 1 else 0.0, DoubleType())
+    
     for i, name in enumerate(base_model_names):
         model = trained_models[name]
         preds = model.transform(test_with_id)
-        preds = preds.select(
-            "_row_id", label_col,
-            col("prediction").alias(f"pred_{i}").cast(DoubleType())
-        )
+        
+        if "probability" in preds.columns:
+            preds = preds.select(
+                "_row_id", label_col,
+                extract_prob_udf(col("probability")).alias(f"prob_{i}")
+            )
+        else:
+            preds = preds.select(
+                "_row_id", label_col,
+                col("prediction").alias(f"prob_{i}").cast(DoubleType())
+            )
+            
         if combined is None:
             combined = preds
         else:
             combined = combined.join(
-                preds.select("_row_id", f"pred_{i}"), on="_row_id"
+                preds.select("_row_id", f"prob_{i}"), on="_row_id"
             )
 
-    # Majority voting: sum of predictions > n/2 -> 1, otherwise -> 0
+    # Soft voting: Average of probabilities
     n = len(base_model_names)
-    vote_expr = sum([col(f"pred_{i}") for i in range(n)])
+    avg_prob_expr = sum([col(f"prob_{i}") for i in range(n)]) / float(n)
+    
+    # Vector probability [P(0), P(1)]
+    vector_prob_udf = udf(lambda p: Vectors.dense([1.0 - p, p]), VectorUDT())
+    
+    combined = combined.withColumn("avg_probability", avg_prob_expr)
+    combined = combined.withColumn("rawPrediction", col("avg_probability"))
+    combined = combined.withColumn("probability", vector_prob_udf(col("avg_probability")))
+    
     combined = combined.withColumn(
         "prediction",
-        when(vote_expr > n / 2.0, 1.0).otherwise(0.0)
+        when(col("avg_probability") >= 0.5, 1.0).otherwise(0.0)
     )
 
     # Voting time (this is inference time)
@@ -1278,10 +1309,6 @@ def plot_roc_curves(
     colors = plt.cm.tab10(np.linspace(0, 1, min(len(trained_models), 10)))
 
     for idx, (name, model) in enumerate(trained_models.items()):
-        # Skip ensemble/bagging models (they don't produce standard probability columns)
-        if "Bagging" in name or "Ensemble" in name or "Voting" in name:
-            continue
-
         try:
             preds = model.transform(test_df)
 
@@ -1365,11 +1392,11 @@ def print_summary_table(results: dict, title: str = "") -> None:
     # Format numbers
     for c in available:
         if c not in ["training_time", "prediction_time", "model_size_mb"]:
-            df[c] = df[c].apply(lambda x: f"{x:.6f}" if x is not None else "N/A")
+            df[c] = df[c].apply(lambda x: f"{x:.6f}" if not pd.isna(x) and x is not None else "N/A")
         elif c == "model_size_mb":
-            df[c] = df[c].apply(lambda x: f"{x:.3f} MB" if x is not None else "N/A")
+            df[c] = df[c].apply(lambda x: f"{x:.3f} MB" if not pd.isna(x) and x is not None else "N/A")
         else:
-            df[c] = df[c].apply(lambda x: f"{x:.3f}s" if x is not None else "N/A")
+            df[c] = df[c].apply(lambda x: f"{x:.3f}s" if not pd.isna(x) and x is not None else "N/A")
     print(df[available].to_string())
     print(f"{'=' * 100}")
 
@@ -1674,7 +1701,7 @@ def shap_explain_model(
     print(f"        Collected: {X_test.shape[0]} samples, {X_test.shape[1]} features")
     print(f"        Attack ratio: {y_test.mean():.2%}")
     
-    # ── Step 2: Extract XGBoost booster from Spark Pipeline ──
+    X_test, y_test = prepare_shap_data(test_df, feature_cols)
     print("  [2/5] Extracting XGBoost model from PipelineModel...")
     
     xgb_model = None
@@ -1694,7 +1721,6 @@ def shap_explain_model(
     booster = xgb_model.get_booster()
     print(f"        Extracted booster: {booster.num_boosted_rounds()} rounds")
     
-    # ── Step 3: Compute SHAP values ──
     print("  [3/5] Computing SHAP values (TreeExplainer)...")
     
     explainer = shap.TreeExplainer(booster)
@@ -1705,7 +1731,7 @@ def shap_explain_model(
     
     print(f"        SHAP values computed: shape {shap_values.values.shape}")
     
-    # ── Step 4: Generate Plots ──
+    shap_values.feature_names = feature_cols
     print("  [4/5] Generating SHAP plots...")
     
     # --- Plot 1: Summary Plot (Beeswarm) ---
