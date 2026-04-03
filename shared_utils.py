@@ -1347,9 +1347,17 @@ def plot_roc_curves(
             # Compute AUC using trapezoidal rule
             # Sort by FPR for proper AUC calculation
             sorted_pairs = sorted(zip(fpr_list, tpr_list))
-            fpr_sorted = [p[0] for p in sorted_pairs]
-            tpr_sorted = [p[1] for p in sorted_pairs]
-            auc_val = np.trapz(tpr_sorted, fpr_sorted)
+            fpr_sorted = np.array([p[0] for p in sorted_pairs])
+            tpr_sorted = np.array([p[1] for p in sorted_pairs])
+            
+            # Using a safe fallback for np.trapz which was removed in NumPy 2.0
+            if hasattr(np, "trapezoid"):
+                auc_val = np.trapezoid(tpr_sorted, fpr_sorted)
+            elif hasattr(np, "trapz"):
+                auc_val = np.trapz(tpr_sorted, fpr_sorted)
+            else:
+                # Manual trapezoidal rule calculation
+                auc_val = np.sum((fpr_sorted[1:] - fpr_sorted[:-1]) * (tpr_sorted[1:] + tpr_sorted[:-1]) / 2)
 
             color = colors[idx % len(colors)]
             display_name = name if len(name) <= 20 else name[:17] + "..."

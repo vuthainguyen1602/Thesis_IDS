@@ -44,6 +44,7 @@ from shared_utils import (
     ParamGridBuilder,
     CrossValidator,
     PCA,
+    get_model_size,
 )
 
 # ==============================================================================
@@ -138,8 +139,14 @@ cv_rf = CrossValidator(estimator=pipeline_rf, estimatorParamMaps=rf_grid, evalua
 cv_rf_model = cv_rf.fit(train_df)
 cv_rf_time = time.time() - start
 
-metrics_rf = compute_metrics(cv_rf_model.bestModel.transform(test_df))
+start_pred = time.time()
+predictions_rf = cv_rf_model.bestModel.transform(test_df)
+rf_pred_time = time.time() - start_pred
+
+metrics_rf = compute_metrics(predictions_rf)
 metrics_rf["training_time"] = cv_rf_time
+metrics_rf["prediction_time"] = rf_pred_time
+metrics_rf["model_size_mb"] = get_model_size(cv_rf_model.bestModel)
 cv_results["Random Forest (Tuned)"] = metrics_rf
 report_sections.append({"section_title": "Tuning: Random Forest", "results": {"Random Forest (Tuned)": metrics_rf}})
 
@@ -154,8 +161,14 @@ cv_dt = CrossValidator(estimator=pipeline_dt, estimatorParamMaps=dt_grid, evalua
 cv_dt_model = cv_dt.fit(train_df)
 cv_dt_time = time.time() - start
 
-metrics_dt = compute_metrics(cv_dt_model.bestModel.transform(test_df))
+start_pred = time.time()
+predictions_dt = cv_dt_model.bestModel.transform(test_df)
+dt_pred_time = time.time() - start_pred
+
+metrics_dt = compute_metrics(predictions_dt)
 metrics_dt["training_time"] = cv_dt_time
+metrics_dt["prediction_time"] = dt_pred_time
+metrics_dt["model_size_mb"] = get_model_size(cv_dt_model.bestModel)
 cv_results["Decision Tree (Tuned)"] = metrics_dt
 report_sections.append({"section_title": "Tuning: Decision Tree", "results": {"Decision Tree (Tuned)": metrics_dt}})
 
@@ -170,8 +183,14 @@ cv_gbt = CrossValidator(estimator=pipeline_gbt, estimatorParamMaps=gbt_grid, eva
 cv_gbt_model = cv_gbt.fit(train_df)
 cv_gbt_time = time.time() - start
 
-metrics_gbt = compute_metrics(cv_gbt_model.bestModel.transform(test_df))
+start_pred = time.time()
+predictions_gbt = cv_gbt_model.bestModel.transform(test_df)
+gbt_pred_time = time.time() - start_pred
+
+metrics_gbt = compute_metrics(predictions_gbt)
 metrics_gbt["training_time"] = cv_gbt_time
+metrics_gbt["prediction_time"] = gbt_pred_time
+metrics_gbt["model_size_mb"] = get_model_size(cv_gbt_model.bestModel)
 cv_results["GBT (Tuned)"] = metrics_gbt
 report_sections.append({"section_title": "Tuning: GBT", "results": {"GBT (Tuned)": metrics_gbt}})
 
@@ -186,8 +205,14 @@ cv_lr = CrossValidator(estimator=pipeline_lr, estimatorParamMaps=lr_grid, evalua
 cv_lr_model = cv_lr.fit(train_df)
 cv_lr_time = time.time() - start
 
-metrics_lr = compute_metrics(cv_lr_model.bestModel.transform(test_df))
+start_pred = time.time()
+predictions_lr = cv_lr_model.bestModel.transform(test_df)
+lr_pred_time = time.time() - start_pred
+
+metrics_lr = compute_metrics(predictions_lr)
 metrics_lr["training_time"] = cv_lr_time
+metrics_lr["prediction_time"] = lr_pred_time
+metrics_lr["model_size_mb"] = get_model_size(cv_lr_model.bestModel)
 cv_results["Logistic Regression (Tuned)"] = metrics_lr
 report_sections.append({"section_title": "Tuning: Logistic Regression", "results": {"Logistic Regression (Tuned)": metrics_lr}})
 
