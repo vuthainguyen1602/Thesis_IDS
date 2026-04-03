@@ -124,6 +124,7 @@ evaluator_cv = BinaryClassificationEvaluator(
 # STEP 2: HYPERPARAMETER OPTIMIZATION (GRID SEARCH + CV)
 # ==============================================================================
 cv_results = {}
+cv_models = {}
 report_sections = []
 base_output = "/Users/thainguyenvu/Desktop/Thesis_IDS/exp2_results"
 os.makedirs(base_output, exist_ok=True)
@@ -148,6 +149,7 @@ metrics_rf["training_time"] = cv_rf_time
 metrics_rf["prediction_time"] = rf_pred_time
 metrics_rf["model_size_mb"] = get_model_size(cv_rf_model.bestModel)
 cv_results["Random Forest (Tuned)"] = metrics_rf
+cv_models["Random Forest (Tuned)"] = cv_rf_model.bestModel
 report_sections.append({"section_title": "Tuning: Random Forest", "results": {"Random Forest (Tuned)": metrics_rf}})
 
 # 2b. Decision Tree
@@ -170,6 +172,7 @@ metrics_dt["training_time"] = cv_dt_time
 metrics_dt["prediction_time"] = dt_pred_time
 metrics_dt["model_size_mb"] = get_model_size(cv_dt_model.bestModel)
 cv_results["Decision Tree (Tuned)"] = metrics_dt
+cv_models["Decision Tree (Tuned)"] = cv_dt_model.bestModel
 report_sections.append({"section_title": "Tuning: Decision Tree", "results": {"Decision Tree (Tuned)": metrics_dt}})
 
 # 2c. GBT
@@ -192,6 +195,7 @@ metrics_gbt["training_time"] = cv_gbt_time
 metrics_gbt["prediction_time"] = gbt_pred_time
 metrics_gbt["model_size_mb"] = get_model_size(cv_gbt_model.bestModel)
 cv_results["GBT (Tuned)"] = metrics_gbt
+cv_models["GBT (Tuned)"] = cv_gbt_model.bestModel
 report_sections.append({"section_title": "Tuning: GBT", "results": {"GBT (Tuned)": metrics_gbt}})
 
 # 2d. Logistic Regression
@@ -214,34 +218,172 @@ metrics_lr["training_time"] = cv_lr_time
 metrics_lr["prediction_time"] = lr_pred_time
 metrics_lr["model_size_mb"] = get_model_size(cv_lr_model.bestModel)
 cv_results["Logistic Regression (Tuned)"] = metrics_lr
+cv_models["Logistic Regression (Tuned)"] = cv_lr_model.bestModel
 report_sections.append({"section_title": "Tuning: Logistic Regression", "results": {"Logistic Regression (Tuned)": metrics_lr}})
 
 
-# ==============================================================================
-# STEP 3: COMPARE WITH DEFAULT PARAMS
-# ==============================================================================
-print(f"\n\n{'=' * 70}\n  STEP 3: COMPARE WITH DEFAULT ALGORITHMS\n{'=' * 70}")
+# 2e. XGBoost
+from shared_utils import HAS_XGBOOST
+if HAS_XGBOOST:
+    from shared_utils import SparkXGBClassifier
+    print(f"\n{'━' * 70}\n  2e. Grid Search + CV: XGBOOST\n{'━' * 70}")
+    xgb = SparkXGBClassifier(features_col=features_col, label_col="label_binary", num_workers=4)
+    pipeline_xgb = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [xgb])
+    xgb_grid = ParamGridBuilder().addGrid(xgb.max_depth, [5, 8]).addGrid(xgb.learning_rate, [0.05, 0.1]).build()
+    start = time.time()
+    cv_xgb = CrossValidator(estimator=pipeline_xgb, estimatorParamMaps=xgb_grid, evaluator=evaluator_cv, numFolds=3, parallelism=2, seed=42)
+    cv_xgb_model = cv_xgb.fit(train_df)
+    cv_xgb_time = time.time() - start
+    
+    start_pred = time.time()
+    predictions_xgb = cv_xgb_model.bestModel.transform(test_df)
+    xgb_pred_time = time.time() - start_pred
+    
+    metrics_xgb = compute_metrics(predictions_xgb)
+    metrics_xgb["training_time"] = cv_xgb_time
+    metrics_xgb["prediction_time"] = xgb_pred_time
+    metrics_xgb["model_size_mb"] = get_model_size(cv_xgb_model.bestModel)
+    cv_results["XGBoost (Tuned)"] = metrics_xgb
+    cv_models["XGBoost (Tuned)"] = cv_xgb_model.bestModel
+    report_sections.append({"section_title": "Tuning: XGBoost", "results": {"XGBoost (Tuned)": metrics_xgb}})
 
-default_results, trained_models = run_all_classifiers(
-    assembler=assembler_cv, scaler=scaler_cv, train_df=train_df, test_df=test_df,
-    features_col=features_col, num_features=num_features, extra_stages=extra_stages,
-)
+# 2f. LightGBM
+from shared_utils import HAS_LIGHTGBM
+if HAS_LIGHTGBM:
+    from shared_utils import LightGBMClassifier
+    print(f"\n{'━' * 70}\n  2f. Grid Search + CV: LIGHTGBM\n{'━' * 70}")
+    lgbm = LightGBMClassifier(featuresCol=features_col, labelCol="label_binary", objective="binary")
+    pipeline_lgbm = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [lgbm])
+    lgbm_grid = ParamGridBuilder().addGrid(lgbm.numLeaves, [31, 63]).addGrid(lgbm.learningRate, [0.05, 0.1]).build()
+    start = time.time()
+    cv_lgbm = CrossValidator(estimator=pipeline_lgbm, estimatorParamMaps=lgbm_grid, evaluator=evaluator_cv, numFolds=3, parallelism=2, seed=42)
+    cv_lgbm_model = cv_lgbm.fit(train_df)
+    cv_lgbm_time = time.time() - start
+    
+    start_pred = time.time()
+    predictions_lgbm = cv_lgbm_model.bestModel.transform(test_df)
+    lgbm_pred_time = time.time() - start_pred
+    
+    metrics_lgbm = compute_metrics(predictions_lgbm)
+    metrics_lgbm["training_time"] = cv_lgbm_time
+    metrics_lgbm["prediction_time"] = lgbm_pred_time
+    metrics_lgbm["model_size_mb"] = get_model_size(cv_lgbm_model.bestModel)
+    cv_results["LightGBM (Tuned)"] = metrics_lgbm
+    cv_models["LightGBM (Tuned)"] = cv_lgbm_model.bestModel
+    report_sections.append({"section_title": "Tuning: LightGBM", "results": {"LightGBM (Tuned)": metrics_lgbm}})
 
-# Merge results
-all_results = {}
-for name, m in cv_results.items(): all_results[name] = m
-for name, m in default_results.items():
-    if f"{name} (Tuned)" not in all_results: all_results[f"{name} (Default)"] = m
+# 2g. MLP
+from shared_utils import MultilayerPerceptronClassifier
+print(f"\n{'━' * 70}\n  2g. Grid Search + CV: MLP\n{'━' * 70}")
+layers_opts = [[num_features, 64, 32, 2], [num_features, 128, 64, 32, 2]]
+mlp = MultilayerPerceptronClassifier(featuresCol=features_col, labelCol="label_binary", seed=42)
+pipeline_mlp = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [mlp])
+mlp_grid = ParamGridBuilder().addGrid(mlp.layers, layers_opts).addGrid(mlp.maxIter, [100, 200]).build()
+start = time.time()
+cv_mlp = CrossValidator(estimator=pipeline_mlp, estimatorParamMaps=mlp_grid, evaluator=evaluator_cv, numFolds=3, parallelism=4, seed=42)
+cv_mlp_model = cv_mlp.fit(train_df)
+cv_mlp_time = time.time() - start
+
+start_pred = time.time()
+predictions_mlp = cv_mlp_model.bestModel.transform(test_df)
+mlp_pred_time = time.time() - start_pred
+
+metrics_mlp = compute_metrics(predictions_mlp)
+metrics_mlp["training_time"] = cv_mlp_time
+metrics_mlp["prediction_time"] = mlp_pred_time
+metrics_mlp["model_size_mb"] = get_model_size(cv_mlp_model.bestModel)
+cv_results["MLP (Tuned)"] = metrics_mlp
+cv_models["MLP (Tuned)"] = cv_mlp_model.bestModel
+report_sections.append({"section_title": "Tuning: MLP", "results": {"MLP (Tuned)": metrics_mlp}})
+
+# 2h. Ensemble (Voting) - Like in other experiments
+print(f"\n{'━' * 70}\n  2h. Ensemble Voting (Tuned Models)\n{'━' * 70}")
+from shared_utils import ensemble_voting
+# We use top models for ensemble voting as in other experiments
+ens_metrics = ensemble_voting(cv_models, test_df, results=cv_results)
+if ens_metrics:
+    cv_results["Ensemble Voting (Tuned)"] = ens_metrics
+    report_sections.append({"section_title": "Tuning: Ensemble", "results": {"Ensemble Voting (Tuned)": ens_metrics}})
+
+# 2i. Hybrid Bagging Ensemble (Tuned)
+# Using top models with tuned parameters for bagging as in other experiments
+print(f"\n{'━' * 70}\n  2i. Hybrid Bagging Ensemble (Tuned Models)\n{'━' * 70}")
+from shared_utils import train_hybrid_bagging
+
+# Extract tuned estimators (not fitted models) for bagging
+# RF
+rf_best = cv_rf_model.bestModel.stages[-1]
+rf_tuned = RandomForestClassifier(featuresCol=features_col, labelCol="label_binary", numTrees=rf_best.getNumTrees, maxDepth=rf_best.getMaxDepth, seed=42)
+pipeline_rf_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [rf_tuned])
+
+# Distribution: 3x Tuned RF + 2x Tuned XGB + 2x Tuned LGBM (if available)
+pipeline_dist_tuned = [(pipeline_rf_t, 3)]
+
+if HAS_XGBOOST:
+    from shared_utils import SparkXGBClassifier
+    xgb_best = cv_xgb_model.bestModel.stages[-1]
+    xgb_tuned = SparkXGBClassifier(features_col=features_col, label_col="label_binary", max_depth=xgb_best.getOrDefault("max_depth"), learning_rate=xgb_best.getOrDefault("learning_rate"), num_workers=4)
+    pipeline_xgb_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [xgb_tuned])
+    pipeline_dist_tuned.append((pipeline_xgb_t, 2))
+
+if HAS_LIGHTGBM:
+    from shared_utils import LightGBMClassifier
+    lgbm_best = cv_lgbm_model.bestModel.stages[-1]
+    lgbm_tuned = LightGBMClassifier(featuresCol=features_col, labelCol="label_binary", numLeaves=lgbm_best.getNumLeaves(), learningRate=lgbm_best.getLearningRate(), objective="binary")
+    pipeline_lgbm_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [lgbm_tuned])
+    pipeline_dist_tuned.append((pipeline_lgbm_t, 2))
+
+# Train
+bag_model_tuned = train_hybrid_bagging(pipeline_dist_tuned, train_df)
+if bag_model_tuned:
+    start_pred = time.time()
+    bag_preds_tuned = bag_model_tuned.transform(test_df)
+    # count() triggers execution to get accurate pred time
+    bag_preds_tuned.cache().count()
+    bag_pred_time_tuned = time.time() - start_pred
+    
+    metrics_bag_tuned = compute_metrics(bag_preds_tuned)
+    metrics_bag_tuned["training_time"] = 0.0 # Multi-model training time not easily summed here for report
+    metrics_bag_tuned["prediction_time"] = bag_pred_time_tuned
+    
+    # Calculate model size as sum of base models
+    total_size_bag = 0.0
+    for m in bag_model_tuned.models:
+        total_size_bag += get_model_size(m)
+    metrics_bag_tuned["model_size_mb"] = total_size_bag
+    
+    cv_results["Hybrid Bagging Ensemble (Tuned)"] = metrics_bag_tuned
+    # No fitted model to return as a standard PipelineModel for ROC plotting here (it's a custom BaggingModel)
+    report_sections.append({"section_title": "Tuning: Hybrid Bagging", "results": {"Hybrid Bagging Ensemble (Tuned)": metrics_bag_tuned}})
+
+
+# ==============================================================================
+# STEP 3: CONSOLIDATED RESULTS (TUNED MODELS)
+# ==============================================================================
+print(f"\n\n{'=' * 70}\n  STEP 3: CONSOLIDATED TUNED RESULTS\n{'=' * 70}")
+
+# Use only tuned results
+all_results = cv_results
 
 # Overall Results
 print_summary_table(all_results, title=f"GRID SEARCH ON BEST CONFIG: {best_config['method_name']}")
 
 # Plots
-plot_comparison(all_results, title="Exp 2: Tuned vs Default", save_path=os.path.join(base_output, "exp2_comparison.png"), show=False)
-plot_training_time(all_results, title="Exp 2: Training Time", save_path=os.path.join(base_output, "exp2_train_time.png"), show=False)
-plot_roc_curves(trained_models, test_df, title="Exp 2: ROC Curves", save_path=os.path.join(base_output, "exp2_roc_curves.png"), show=False)
+plot_comparison(all_results, title="Exp 2: Tuned Models Comparison", save_path=os.path.join(base_output, "exp2_comparison.png"), show=False)
+plot_training_time(all_results, title="Exp 2: Tuning Time", save_path=os.path.join(base_output, "exp2_train_time.png"), show=False)
 
-report_sections.append({"section_title": "Final Comparison", "results": all_results, "chart_paths": [os.path.join(base_output, "exp2_comparison.png"), os.path.join(base_output, "exp2_roc_curves.png")]})
+# ROC Curves for Tuned Models
+plot_roc_curves(cv_models, test_df, title="Exp 2: Tuned Models ROC Curves", save_path=os.path.join(base_output, "exp2_roc_curves.png"), show=False)
+
+report_sections.append({
+    "section_title": "Final Comparison (Tuned Models)",
+    "results": all_results,
+    "chart_paths": [
+        os.path.join(base_output, "exp2_comparison.png"),
+        os.path.join(base_output, "exp2_roc_curves.png")
+    ]
+})
+
 export_multi_section_report(report_sections, title=f"Exp 2: Grid Search on {best_config['method_name']}", output_path=os.path.join(base_output, "exp2_report.html"))
 
 print("\n[INFO] Experiment 2 completed!")
