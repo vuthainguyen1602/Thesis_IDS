@@ -313,7 +313,7 @@ from shared_utils import train_hybrid_bagging
 # Extract tuned estimators (not fitted models) for bagging
 # RF
 rf_best = cv_rf_model.bestModel.stages[-1]
-rf_tuned = RandomForestClassifier(featuresCol=features_col, labelCol="label_binary", numTrees=rf_best.getOrDefault("numTrees"), maxDepth=rf_best.getOrDefault("maxDepth"), seed=42)
+rf_tuned = RandomForestClassifier(featuresCol=features_col, labelCol="label_binary", numTrees=rf_best.getOrDefault(rf_best.numTrees), maxDepth=rf_best.getOrDefault(rf_best.maxDepth), seed=42)
 pipeline_rf_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [rf_tuned])
 
 # Distribution: 3x Tuned RF + 2x Tuned XGB + 2x Tuned LGBM (if available)
@@ -322,7 +322,7 @@ pipeline_dist_tuned = [(pipeline_rf_t, 3)]
 if HAS_XGBOOST:
     from shared_utils import SparkXGBClassifier
     xgb_best = cv_xgb_model.bestModel.stages[-1]
-    xgb_tuned = SparkXGBClassifier(features_col=features_col, label_col="label_binary", max_depth=xgb_best.getOrDefault("max_depth"), learning_rate=xgb_best.getOrDefault("learning_rate"), num_workers=4)
+    xgb_tuned = SparkXGBClassifier(features_col=features_col, label_col="label_binary", max_depth=xgb_best.getOrDefault(xgb_best.max_depth), learning_rate=xgb_best.getOrDefault(xgb_best.learning_rate), num_workers=4)
     pipeline_xgb_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [xgb_tuned])
     pipeline_dist_tuned.append((pipeline_xgb_t, 2))
 
