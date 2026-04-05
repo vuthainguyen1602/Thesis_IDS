@@ -373,7 +373,7 @@ The system is designed for a **Split Deployment** architecture:
 ### Features
 - **Real-time Inference**: < 100ms latency per batch.
 - **Performance Monitoring**: Real-time CPU/RAM/Thermal tracking via InfluxDB.
-- **Alerting**: Multi-channel alerts (Mailtrap Email, Slack Incoming Webhooks).
+- **Alerting**: Multi-channel alerts (Email via Mailtrap, Slack Incoming Webhooks).
 - **Dashboards**: Pre-configured Grafana visualizations for both performance and security metrics.
 
 See the **[raspberry/README.md](raspberry/README.md)** for detailed hardware setup and edge-specific commands.

@@ -1,6 +1,23 @@
 # IDS Edge Deployment — Detailed Guide
 
-## Split Deployment Architecture
+This guide covers the deployment of the **PySpark-based IDS** onto a **Raspberry Pi 4B (8GB)** using a **Split Deployment** architecture.
+
+---
+
+## ⚡ Quick Start Checklist
+
+If you are already familiar with the setup, use these commands in order:
+
+1. **Mac**: `cd raspberry && docker compose up -d` (Start Infra)
+2. **Mac**: `python scripts/save_model.py` (Export trained model)
+3. **RPi**: `./scripts/setup_raspberry.sh` (First time only)
+4. **RPi**: `scp -r mac_user@mac_ip:~/path/to/model ~/raspberry/model/`
+5. **RPi**: `python edge/kafka_consumer.py` (Start Detection)
+6. **Mac**: `python sender/data_sender.py` (Send stream)
+
+---
+
+## 🏗️ Split Deployment Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -19,7 +36,7 @@
 │                 RASPBERRY PI 4B                          │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │  Kafka Consumer → Preprocessor → PySpark Model   │   │
-│  │  → Performance Monitor → Alert (Telegram/Email)  │   │
+│  │  → Performance Monitor → Alert (Email/Slack)      │   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -269,7 +286,38 @@ open http://localhost:3000
 
 ---
 
-## PART 4: STOPPING THE SYSTEM
+## PART 4: ALERTING CONFIGURATION (OPTIONAL)
+
+The IDS supports real-time notifications via Email (Mailtrap) and Slack. These are triggered automatically when an attack is detected.
+
+### 4.1: Setup Mailtrap (Email)
+Mailtrap allows you to test SMTP email delivery without sending real emails to your personal inbox.
+
+1.  **Register**: Create a free account at [mailtrap.io](https://mailtrap.io).
+2.  **Get Credentials**: Go to **Inboxes** → **My Inbox** → **SMTP Settings**.
+3.  **Configure `.env`**: Copy the `Username` and `Password` to your `.env` file on the Raspberry Pi:
+    ```env
+    SMTP_USER=your_username
+    SMTP_PASSWORD=your_password
+    SMTP_HOST=sandbox.smtp.mailtrap.io
+    SMTP_PORT=2525
+    ALERT_EMAIL_TO=your-real-email@example.com
+    ```
+
+### 4.2: Setup Slack Webhook
+Slack Webhooks allow the IDS to post messages directly to a Slack channel.
+
+1.  **Create App**: Go to [api.slack.com/apps](https://api.slack.com/apps) → **Create New App** → **From scratch**.
+2.  **Enable Webhooks**: Navigate to **Incoming Webhooks** and toggle it to **On**.
+3.  **Create Webhook**: Click **Add New Webhook to Workspace**, select a channel, and click **Allow**.
+4.  **Configure `.env`**: Copy the **Webhook URL** to your `.env` file:
+    ```env
+    WEBHOOK_URL=https://hooks.slack.com/services/T.../B.../X...
+    ```
+
+---
+
+## PART 5: STOPPING THE SYSTEM
 
 ```bash
 # On RPi: Ctrl+C to stop the pipeline
@@ -284,6 +332,33 @@ open http://localhost:3000
 # On Mac: Ctrl+C to stop the sender, then:
 docker compose down     # Stop all services
 ```
+
+---
+
+## PART 6: ADVANCED OPTIONS
+
+### 6.1: Benchmarking Multiple Models
+If you want to compare different algorithms (Decision Tree, Random Forest, GBT) on the edge, use the "Save All" script:
+
+```bash
+# On Mac
+python scripts/save_all_models.py
+
+# This saves 3 different models to model/
+# Update edge/prediction_engine.py or .env to point to the desired model path
+```
+
+### 6.2: Monitoring Edge Performance
+To monitor the Raspberry Pi's resource usage in real-time, use `htop` via SSH:
+
+```bash
+# On RPi
+htop
+```
+Watch for:
+- **CPU Usage**: PySpark will use multiple cores during batch inference.
+- **Memory**: Ensure the resident set size (RSS) stays within the RPi's physical RAM (leave ~1GB for OS).
+- **Thermal**: If the CPU throttles (> 80°C), consider adding a fan or heat sink.
 
 ---
 
