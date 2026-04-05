@@ -313,7 +313,7 @@ from shared_utils import train_hybrid_bagging
 # Extract tuned estimators (not fitted models) for bagging
 # RF
 rf_best = cv_rf_model.bestModel.stages[-1]
-rf_tuned = RandomForestClassifier(featuresCol=features_col, labelCol="label_binary", numTrees=rf_best.getNumTrees, maxDepth=rf_best.getMaxDepth, seed=42)
+rf_tuned = RandomForestClassifier(featuresCol=features_col, labelCol="label_binary", numTrees=rf_best.getOrDefault("numTrees"), maxDepth=rf_best.getOrDefault("maxDepth"), seed=42)
 pipeline_rf_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [rf_tuned])
 
 # Distribution: 3x Tuned RF + 2x Tuned XGB + 2x Tuned LGBM (if available)

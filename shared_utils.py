@@ -664,8 +664,9 @@ class BaggingModel:
         df_with_id = df.withColumn("_row_id", monotonically_increasing_id()).cache()
         df_with_id.count()
         
-        # UDF to extract probability of positive class
+        # UDF to extract probability of positive class and create vector
         extract_prob_udf = udf(lambda v: float(v[1]) if v is not None and len(v) > 1 else 0.0, DoubleType())
+        vector_prob_udf = udf(lambda p: Vectors.dense([1.0 - p, p]), VectorUDT())
         
         # To avoid a deep join chain, we'll collect predictions in a list and join once if possible
         # or join iteratively but cache intermediate results if the chain gets too long.
