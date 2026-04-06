@@ -140,6 +140,10 @@ cv_rf = CrossValidator(estimator=pipeline_rf, estimatorParamMaps=rf_grid, evalua
 cv_rf_model = cv_rf.fit(train_df)
 cv_rf_time = time.time() - start
 
+# Print best params
+rf_best = cv_rf_model.bestModel.stages[-1]
+print(f"[BEST] RF: numTrees={rf_best.getOrDefault(rf_best.numTrees)}, maxDepth={rf_best.getOrDefault(rf_best.maxDepth)}")
+
 start_pred = time.time()
 predictions_rf = cv_rf_model.bestModel.transform(test_df)
 rf_pred_time = time.time() - start_pred
@@ -162,6 +166,10 @@ start = time.time()
 cv_dt = CrossValidator(estimator=pipeline_dt, estimatorParamMaps=dt_grid, evaluator=evaluator_cv, numFolds=3, parallelism=4, seed=42)
 cv_dt_model = cv_dt.fit(train_df)
 cv_dt_time = time.time() - start
+
+# Print best params
+dt_best = cv_dt_model.bestModel.stages[-1]
+print(f"[BEST] DT: maxDepth={dt_best.getOrDefault(dt_best.maxDepth)}, impurity={dt_best.getOrDefault(dt_best.impurity)}")
 
 start_pred = time.time()
 predictions_dt = cv_dt_model.bestModel.transform(test_df)
@@ -186,6 +194,10 @@ cv_gbt = CrossValidator(estimator=pipeline_gbt, estimatorParamMaps=gbt_grid, eva
 cv_gbt_model = cv_gbt.fit(train_df)
 cv_gbt_time = time.time() - start
 
+# Print best params
+gbt_best = cv_gbt_model.bestModel.stages[-1]
+print(f"[BEST] GBT: maxIter={gbt_best.getOrDefault(gbt_best.maxIter)}, maxDepth={gbt_best.getOrDefault(gbt_best.maxDepth)}")
+
 start_pred = time.time()
 predictions_gbt = cv_gbt_model.bestModel.transform(test_df)
 gbt_pred_time = time.time() - start_pred
@@ -208,6 +220,10 @@ start = time.time()
 cv_lr = CrossValidator(estimator=pipeline_lr, estimatorParamMaps=lr_grid, evaluator=evaluator_cv, numFolds=3, parallelism=4, seed=42)
 cv_lr_model = cv_lr.fit(train_df)
 cv_lr_time = time.time() - start
+
+# Print best params
+lr_best = cv_lr_model.bestModel.stages[-1]
+print(f"[BEST] LR: regParam={lr_best.getOrDefault(lr_best.regParam)}, elasticNetParam={lr_best.getOrDefault(lr_best.elasticNetParam)}")
 
 start_pred = time.time()
 predictions_lr = cv_lr_model.bestModel.transform(test_df)
@@ -235,6 +251,10 @@ if HAS_XGBOOST:
     cv_xgb_model = cv_xgb.fit(train_df)
     cv_xgb_time = time.time() - start
     
+    # Print best params
+    xgb_best = cv_xgb_model.bestModel.stages[-1]
+    print(f"[BEST] XGBoost: max_depth={xgb_best.getOrDefault(xgb_best.max_depth)}, learning_rate={xgb_best.getOrDefault(xgb_best.learning_rate)}")
+    
     start_pred = time.time()
     predictions_xgb = cv_xgb_model.bestModel.transform(test_df)
     xgb_pred_time = time.time() - start_pred
@@ -260,6 +280,10 @@ if HAS_LIGHTGBM:
     cv_lgbm_model = cv_lgbm.fit(train_df)
     cv_lgbm_time = time.time() - start
     
+    # Print best params
+    lgbm_best = cv_lgbm_model.bestModel.stages[-1]
+    print(f"[BEST] LightGBM: numLeaves={lgbm_best.getOrDefault(lgbm_best.numLeaves)}, learningRate={lgbm_best.getOrDefault(lgbm_best.learningRate)}")
+    
     start_pred = time.time()
     predictions_lgbm = cv_lgbm_model.bestModel.transform(test_df)
     lgbm_pred_time = time.time() - start_pred
@@ -283,6 +307,10 @@ start = time.time()
 cv_mlp = CrossValidator(estimator=pipeline_mlp, estimatorParamMaps=mlp_grid, evaluator=evaluator_cv, numFolds=3, parallelism=4, seed=42)
 cv_mlp_model = cv_mlp.fit(train_df)
 cv_mlp_time = time.time() - start
+
+# Print best params
+mlp_best = cv_mlp_model.bestModel.stages[-1]
+print(f"[BEST] MLP: layers={mlp_best.getOrDefault(mlp_best.layers)}, maxIter={mlp_best.getOrDefault(mlp_best.maxIter)}")
 
 start_pred = time.time()
 predictions_mlp = cv_mlp_model.bestModel.transform(test_df)
@@ -329,7 +357,7 @@ if HAS_XGBOOST:
 if HAS_LIGHTGBM:
     from shared_utils import LightGBMClassifier
     lgbm_best = cv_lgbm_model.bestModel.stages[-1]
-    lgbm_tuned = LightGBMClassifier(featuresCol=features_col, labelCol="label_binary", numLeaves=lgbm_best.getNumLeaves(), learningRate=lgbm_best.getLearningRate(), objective="binary")
+    lgbm_tuned = LightGBMClassifier(featuresCol=features_col, labelCol="label_binary", numLeaves=lgbm_best.getOrDefault(lgbm_best.numLeaves), learningRate=lgbm_best.getOrDefault(lgbm_best.learningRate), objective="binary")
     pipeline_lgbm_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [lgbm_tuned])
     pipeline_dist_tuned.append((pipeline_lgbm_t, 2))
 
