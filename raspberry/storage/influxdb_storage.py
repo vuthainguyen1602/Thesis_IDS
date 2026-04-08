@@ -1,14 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-InfluxDB Storage \u2014 Raspberry Pi Edge IDS.
-
-Writes system and prediction time-series metrics to InfluxDB 2.x for
-real-time monitoring via Grafana dashboards.
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import sys
@@ -22,7 +13,6 @@ from config import INFLUXDB_URL, INFLUXDB_TOKEN, INFLUXDB_ORG, INFLUXDB_BUCKET
 
 
 class InfluxDBStorage:
-    """InfluxDB 2.x adapter for time-series metrics storage."""
 
     def __init__(self):
         self.client = InfluxDBClient(
@@ -36,16 +26,8 @@ class InfluxDBStorage:
         print(f"[OK] InfluxDB connected: {INFLUXDB_URL}")
 
     def write_metrics(self, metrics: dict):
-        """
-        Write a combined metrics dict to InfluxDB.
-
-        Expected keys: cpu_percent, memory_percent, memory_used_mb,
-                       throughput_rps, predictions_count, attacks_count,
-                       avg_latency_ms, cpu_temp_celsius
-        """
         now = time.time_ns()
 
-        # System metrics point
         system_point = (
             Point("system_metrics")
             .tag("host", "raspberry-pi")
@@ -61,7 +43,6 @@ class InfluxDBStorage:
                 "cpu_temp_celsius", float(metrics["cpu_temp_celsius"])
             )
 
-        # Prediction metrics point
         prediction_point = (
             Point("prediction_metrics")
             .tag("host", "raspberry-pi")
@@ -79,7 +60,6 @@ class InfluxDBStorage:
         )
 
     def close(self):
-        """Close the InfluxDB client."""
         if self.client:
             self.client.close()
             print("[OK] InfluxDB connection closed")

@@ -1,25 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Experiment 7 — Cross-Experiment Comparison.
-
-Re-runs the best configuration from each prior experiment side-by-side:
-
-1. Baseline — all features (Exp 0)
-2. RF Top-30 — RF importance-based selection (Exp 1)
-3. SHAP Top-30 — SHAP-based selection (Exp 6)
-4. PCA k=35 — PCA dimensionality reduction (Exp 3)
-
-Produces: grouped bar chart, heatmap, summary CSV, and an overall best
-configuration JSON consumed by Experiment 2 (Grid Search).
-
-Requirements:
-  - ``feature_importance.csv`` (from Exp 1)
-  - ``exp6_results_shap/shap_feature_importance.csv`` (from Exp 6)
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import time
@@ -45,17 +25,13 @@ from shared_utils import (
 )
 
 
-# ==============================================================================
-# CONFIGURATION
-# ==============================================================================
-BASE_DIR = "/Users/thainguyenvu/Desktop/Thesis_IDS"
+BASE_DIR = os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(BASE_DIR, "exp7_comparison")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 RF_IMPORTANCE_CSV = os.path.join(BASE_DIR, "feature_importance.csv")
 SHAP_IMPORTANCE_CSV = os.path.join(BASE_DIR, "exp6_results_shap", "shap_feature_importance.csv")
 
-# Methods to compare
 METHODS = {
     "Baseline (All Features)": {"type": "all"},
     "RF Top-30": {"type": "feature_selection", "csv": RF_IMPORTANCE_CSV, "top_k": 30, "col": "feature"},
@@ -64,9 +40,6 @@ METHODS = {
 }
 
 
-# ==============================================================================
-# INITIALIZATION
-# ==============================================================================
 if __name__ == "__main__":
 
     spark = create_spark_session("IDS_Exp7_Comparison")
@@ -80,10 +53,7 @@ if __name__ == "__main__":
     print(f"  Methods to compare: {len(METHODS)}")
 
 
-    # ==========================================================================
-    # STEP 1: RUN ALL METHODS
-    # ==========================================================================
-    all_method_results = {}   # {method_name: {model_name: metrics_dict}}
+    all_method_results = {}
     report_sections = []
 
     for method_name, config in METHODS.items():
@@ -94,7 +64,6 @@ if __name__ == "__main__":
         extra_stages = []
 
         if config["type"] == "all":
-            # Baseline: use all features
             selected_features = feature_cols
             assembler = VectorAssembler(
                 inputCols=selected_features, outputCol="features_raw", handleInvalid="keep",
@@ -106,7 +75,6 @@ if __name__ == "__main__":
             num_features = len(selected_features)
 
         elif config["type"] == "feature_selection":
-            # RF or SHAP Feature Selection
             csv_path = config["csv"]
             top_k = config["top_k"]
             col_name = config["col"]
@@ -129,7 +97,6 @@ if __name__ == "__main__":
             num_features = top_k
 
         elif config["type"] == "pca":
-            # PCA Dimensionality Reduction
             k = config["k"]
             assembler = VectorAssembler(
                 inputCols=feature_cols, outputCol="features_raw", handleInvalid="keep",
@@ -142,7 +109,6 @@ if __name__ == "__main__":
             features_col = "pca_features"
             num_features = k
 
-        # --- Run all classifiers ---
         results, trained_models = run_all_classifiers(
             assembler=assembler,
             scaler=scaler,
@@ -153,7 +119,6 @@ if __name__ == "__main__":
             extra_stages=extra_stages,
         )
 
-        # Ensemble Voting
         ens_metrics = ensemble_voting(trained_models, test_df, results=results)
         if ens_metrics:
             results["Ensemble Voting"] = ens_metrics
@@ -161,7 +126,6 @@ if __name__ == "__main__":
         all_method_results[method_name] = results
         print_summary_table(results, title=f"RESULTS: {method_name}")
 
-        # Save per-method comparison chart
         method_dir = os.path.join(OUTPUT_DIR, method_name.replace(" ", "_").replace("(", "").replace(")", ""))
         os.makedirs(method_dir, exist_ok=True)
 
@@ -178,7 +142,6 @@ if __name__ == "__main__":
             show=False,
         )
 
-        # Collect for report
         report_sections.append({
             "section_title": method_name,
             "results": results,
@@ -189,15 +152,10 @@ if __name__ == "__main__":
         })
 
 
-    # ==========================================================================
-    # STEP 2: CROSS-METHOD COMPARISON CHARTS
-    # ==========================================================================
     print(f"\n\n{'=' * 70}")
     print("  STEP 2: CROSS-METHOD COMPARISON")
     print(f"{'=' * 70}")
 
-    # --- 2a. Grouped Bar Chart: F1 per model across all methods ---
-    # Get union of all model names (only standalone + ensemble, skip duplicates)
     all_models = []
     for method_results in all_method_results.values():
         for model_name in method_results:
@@ -208,13 +166,11 @@ if __name__ == "__main__":
     n_methods = len(method_names)
     n_models = len(all_models)
 
-    # Build F1 matrix
     f1_matrix = np.zeros((n_methods, n_models))
     for i, method in enumerate(method_names):
         for j, model in enumerate(all_models):
             f1_matrix[i, j] = all_method_results[method].get(model, {}).get("f1", 0)
 
-    # Plot grouped bar chart
     fig, ax = plt.subplots(figsize=(18, 10))
     x = np.arange(n_models)
     bar_width = 0.8 / n_methods
@@ -224,7 +180,6 @@ if __name__ == "__main__":
         offset = (i - n_methods / 2 + 0.5) * bar_width
         bars = ax.bar(x + offset, f1_matrix[i], bar_width,
                       label=method, color=colors[i % len(colors)], alpha=0.85)
-        # Add value labels on top
         for bar, val in zip(bars, f1_matrix[i]):
             if val > 0:
                 ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.001,
@@ -246,7 +201,6 @@ if __name__ == "__main__":
     print(f"[INFO] Saved: {cross_f1_path}")
 
 
-    # --- 2b. Best F1 per Method (Summary) ---
     best_per_method = {}
     for method, results in all_method_results.items():
         best_model = max(results, key=lambda k: results[k].get("f1", 0))
@@ -276,7 +230,6 @@ if __name__ == "__main__":
     print(f"[INFO] Saved: {best_f1_path}")
 
 
-    # --- 2c. Cross-Method Summary Table ---
     summary_rows = []
     for method, results in all_method_results.items():
         for model, metrics in results.items():
@@ -292,11 +245,9 @@ if __name__ == "__main__":
     print(f"[INFO] Saved: {csv_path}")
 
 
-    # --- 2d. Heatmap: F1-Score Method × Model ---
     fig, ax = plt.subplots(figsize=(16, 6))
     import seaborn as sns
 
-    # Create pivot table
     heatmap_data = pd.DataFrame(f1_matrix, index=method_names, columns=all_models)
 
     sns.heatmap(
@@ -315,9 +266,6 @@ if __name__ == "__main__":
     print(f"[INFO] Saved: {heatmap_path}")
 
 
-    # ==========================================================================
-    # STEP 3: OVERALL SUMMARY
-    # ==========================================================================
     print(f"\n\n{'=' * 70}")
     print("  EXPERIMENT 7: OVERALL SUMMARY")
     print(f"{'=' * 70}")
@@ -329,14 +277,12 @@ if __name__ == "__main__":
         print(f"  {method:<25} {info['best_model']:<35} {info['best_f1']:>10.6f}")
     print(f"  {'─' * 70}")
 
-    # Find overall winner
     overall_best_method = max(best_per_method, key=lambda m: best_per_method[m]["best_f1"])
     overall_info = best_per_method[overall_best_method]
     print(f"\n  ★ OVERALL BEST: {overall_best_method}")
     print(f"    Model: {overall_info['best_model']}")
     print(f"    F1:    {overall_info['best_f1']:.6f}")
 
-    # --- Step 3b: Save Best Config for Experiment 2 ---
     import json
     best_config = {
         "method_name": overall_best_method,
@@ -350,11 +296,6 @@ if __name__ == "__main__":
     print(f"[INFO] Saved Best Config for Exp 2: {config_path}")
 
 
-    # ==========================================================================
-    # STEP 4: EXPORT HTML REPORT
-    # ==========================================================================
-
-    # Add cross-method comparison section
     report_sections.append({
         "section_title": "Cross-Method Comparison",
         "results": {},

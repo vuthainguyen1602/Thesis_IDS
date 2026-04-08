@@ -4,16 +4,21 @@ This guide provides step-by-step instructions to reproduce the entire pipeline, 
 
 ---
 
-## Stage 1: Data Preparation & Training (PC/Mac)
+### 1. Configure the Environment
+Set the project root and data directory via environment variables to ensure portability.
+```bash
+export IDS_ROOT="$(pwd)"
+export IDS_RAW_DATA_DIR="/path/to/your/ids-2017/csvs"
+```
 
-### 1. Preprocess the Dataset
+### 2. Preprocess the Dataset
 Prepare the CICIDS2017 dataset for Spark.
 ```bash
 python data_preparation.py
 ```
 *Output: `data/train_data.parquet` and `data/test_data.parquet`*
 
-### 2. Run Experiments (Baseline to SHAP)
+### 3. Run Experiments (Baseline to SHAP)
 Each script evaluates models and generates reports in their respective `exp*_results/` folders.
 ```bash
 python exp0_baseline_full.py            # Baseline (all features)
@@ -29,7 +34,7 @@ python exp7_comparison.py               # Final Comparative Analysis
 
 ## Stage 2: Model Export for Edge (PC/Mac)
 
-### 3. Save PySpark Pipeline for RPi
+### 4. Save PySpark Pipeline for RPi
 Export the best-performing models (Decision Tree/RF/GBT) as PipelineModels for the Edge engine.
 ```bash
 python raspberry/scripts/save_model.py      # Save single optimal model (DT)
@@ -41,7 +46,7 @@ python raspberry/scripts/save_all_models.py  # Save multiple models for benchmar
 
 ## Stage 3: Infrastructure Setup (PC/Mac - Docker)
 
-### 4. Start Centralized Services
+### 5. Start Centralized Services
 Kafka, PostgreSQL, and InfluxDB run on the Mac/PC to store results and relay traffic.
 ```bash
 cd raspberry/
@@ -53,7 +58,7 @@ docker compose up -d
 
 ## Stage 4: Edge Deployment (Raspberry Pi)
 
-### 5. Remote Setup
+### 6. Remote Setup
 Connect to the Raspberry Pi and install the environment.
 ```bash
 ssh pi@<rpi-ip>
@@ -62,13 +67,13 @@ chmod +x scripts/setup_raspberry.sh
 ./scripts/setup_raspberry.sh
 ```
 
-### 6. Copy Model to RPi
+### 7. Copy Model to RPi
 From your **PC/Mac**, send the exported model to the Pi.
 ```bash
 scp -r ~/Thesis_IDS/raspberry/model/* pi@<rpi-ip>:~/raspberry/model/
 ```
 
-### 7. Start the IDS Consumer
+### 8. Start the IDS Consumer
 On the **Raspberry Pi**, start the real-time inference engine.
 ```bash
 cd ~/raspberry
@@ -80,21 +85,21 @@ python edge/kafka_consumer.py
 
 ## Stage 5: Evaluation & Monitoring
 
-### 8. Simulate Network Traffic (PC/Mac)
+### 9. Simulate Network Traffic (PC/Mac)
 Stream CSV data rows to the RPi via Kafka.
 ```bash
 cd raspberry/
 python sender/data_sender.py --rate 100
 ```
 
-### 9. Benchmark Performance (Raspberry Pi)
+### 10. Benchmark Performance (Raspberry Pi)
 Measure throughput and latency on the edge device.
 ```bash
 python scripts/benchmark.py --samples 500
 python scripts/benchmark_all.py  # Multi-model comparison
 ```
 
-### 10. Dashboard Monitoring (Browser)
+### 11. Dashboard Monitoring (Browser)
 Open Grafana on your **PC/Mac** to view live metrics.
 - **URL**: `http://localhost:3000` (User: `admin` / `admin`)
 - **Action**: Import JSON from `raspberry/dashboard/grafana_dashboard.json`

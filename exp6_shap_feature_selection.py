@@ -1,19 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Experiment 6 — Feature Selection Based on SHAP Importance.
-
-Ranks features by their mean absolute SHAP value (computed from
-XGBoost), then evaluates all classifiers using only the top-K
-SHAP-selected features (K = 20, 30, 40).  Compares effectiveness
-against RF-based feature selection from Experiment 1.
-
-Algorithms evaluated: DT, LR, SVM, NB, RF, GBT, XGBoost, LightGBM,
-MLP, Hybrid Ensemble, Voting.
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import numpy as np
@@ -42,9 +28,6 @@ from shared_utils import (
     StandardScaler,
 )
 
-# ==============================================================================
-# INITIALIZATION
-# ==============================================================================
 spark = create_spark_session("IDS_Exp6_SHAP_Feature_Selection")
 df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
@@ -53,17 +36,12 @@ print("=" * 70)
 print("  EXPERIMENT 6: FEATURE SELECTION - SHAP IMPORTANCE")
 print("=" * 70)
 
-# Create output directory
-base_output = "/Users/thainguyenvu/Desktop/Thesis_IDS/exp6_results_shap"
+base_output = os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "exp6_results_shap")
 os.makedirs(base_output, exist_ok=True)
 
 
-# ==============================================================================
-# STEP 1: TRAIN XGBOOST & COMPUTE SHAP FEATURE IMPORTANCE
-# ==============================================================================
 print("\n--- Step 1: Train XGBoost & Compute SHAP Feature Ranking ---")
 
-# Train XGBoost on all features
 assembler_all = VectorAssembler(
     inputCols=feature_cols, outputCol="features_raw", handleInvalid="keep",
 )
@@ -85,18 +63,15 @@ model_xgb, _, _ = train_and_evaluate(
     title="XGBoost Baseline (extract SHAP Importance)"
 )
 
-# --- Compute SHAP values ---
 print("\n  Computing SHAP values on test sample...")
 import shap
 
-# Collect sample to Pandas
 sample_size = 2000
 select_cols = feature_cols + ["label_binary"]
 sample_df = test_df.select(select_cols).limit(sample_size)
 pdf = sample_df.toPandas()
 X_test = pdf[feature_cols].values
 
-# Extract XGBoost booster
 xgb_model = None
 for stage in model_xgb.stages:
     if "XGB" in type(stage).__name__:
@@ -106,11 +81,9 @@ for stage in model_xgb.stages:
 booster = xgb_model.get_booster()
 print(f"  Booster extracted: {booster.num_boosted_rounds()} rounds")
 
-# Compute SHAP
 explainer = shap.TreeExplainer(booster)
 shap_values = explainer(X_test)
 
-# Calculate Mean |SHAP| per feature
 mean_abs_shap = np.abs(shap_values.values).mean(axis=0)
 shap_importance_df = pd.DataFrame({
     "feature": feature_cols,
@@ -120,7 +93,6 @@ shap_importance_df = pd.DataFrame({
 print("\nTop 20 most important features (SHAP):")
 print(shap_importance_df.head(20).to_string(index=True))
 
-# --- Plot SHAP Feature Importance ---
 plt.figure(figsize=(12, 8))
 top_n = 30
 top_features = shap_importance_df.head(top_n)
@@ -135,21 +107,15 @@ feat_imp_path = os.path.join(base_output, f"shap_feature_importance_top{top_n}.p
 plt.savefig(feat_imp_path, dpi=150)
 plt.close()
 
-# Save SHAP Feature Importance for comparison
 shap_csv_path = os.path.join(base_output, "shap_feature_importance.csv")
 shap_importance_df.to_csv(shap_csv_path, index=False)
 print(f"[INFO] Saved: {shap_csv_path}")
 
 
-# ==============================================================================
-# STEP 2: EVALUATE ALL ALGORITHMS WITH SHAP TOP-K FEATURES
-# ==============================================================================
-
 all_results = {}
 top_k_values = [20, 30, 40]
 report_sections = []
 
-# Add SHAP importance section first
 report_sections.append({
     "section_title": "SHAP Feature Importance Analysis",
     "results": {},
@@ -170,7 +136,6 @@ for top_k in top_k_values:
         inputCol="features_raw", outputCol="features_scaled", withStd=True, withMean=True,
     )
 
-    # Run all classifiers
     results, trained_models = run_all_classifiers(
         assembler=assembler_sel,
         scaler=scaler_sel,
@@ -180,21 +145,17 @@ for top_k in top_k_values:
         num_features=top_k,
     )
 
-    # Ensemble Voting
     ens_metrics = ensemble_voting(trained_models, test_df, results=results)
     if ens_metrics:
         results["Ensemble Voting"] = ens_metrics
 
     all_results[f"SHAP-Top-{top_k}"] = results
 
-    # Results table
     print_summary_table(results, title=f"RESULTS: SHAP TOP-{top_k} FEATURES")
 
-    # Folder for this Top-K
     k_dir = os.path.join(base_output, f"shap_top{top_k}")
     os.makedirs(k_dir, exist_ok=True)
 
-    # Plots
     plot_comparison(
         results,
         title=f"Exp 6: SHAP Top-{top_k} Features Comparison",
@@ -232,7 +193,6 @@ for top_k in top_k_values:
         show=False,
     )
 
-    # Collect for HTML Report
     report_sections.append({
         "section_title": f"SHAP Top-{top_k} Features Evaluation",
         "results": results,
@@ -247,36 +207,29 @@ for top_k in top_k_values:
     })
 
 
-# ==============================================================================
-# STEP 3: COMPARE SHAP vs RF FEATURE SELECTION
-# ==============================================================================
 print("\n\n" + "=" * 70)
 print("  STEP 3: SHAP vs RF FEATURE SELECTION COMPARISON")
 print("=" * 70)
 
-rf_importance_path = "/Users/thainguyenvu/Desktop/Thesis_IDS/feature_importance.csv"
+rf_importance_path = os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "feature_importance.csv")
 
 if os.path.exists(rf_importance_path):
     rf_imp = pd.read_csv(rf_importance_path)
     
-    # For each Top-K, compare which selection method gives better F1
     print(f"\n  {'─' * 65}")
     print(f"  {'Top-K':<10} {'Method':<20} {'Best Model':<25} {'F1-Score':>10}")
     print(f"  {'─' * 65}")
     
     for top_k in top_k_values:
-        # SHAP result
         shap_results = all_results[f"SHAP-Top-{top_k}"]
         shap_best = max(shap_results, key=lambda k: shap_results[k].get("f1", 0))
         shap_f1 = shap_results[shap_best]["f1"]
         print(f"  {top_k:<10} {'SHAP':<20} {shap_best:<25} {shap_f1:>10.6f}")
         
-        # RF result (try to load from exp1_results if available)
         rf_result_note = "(Run Exp 1 to compare)"
         print(f"  {'':<10} {'RF Importance':<20} {rf_result_note:<25}")
         print(f"  {'─' * 65}")
     
-    # Feature overlap analysis
     print(f"\n  Feature Overlap Analysis (SHAP vs RF):")
     print(f"  {'─' * 50}")
     for top_k in top_k_values:
@@ -295,9 +248,6 @@ else:
     print("  RF Feature Importance not found. Run exp1 first for comparison.")
 
 
-# ==============================================================================
-# EXPERIMENT 6 SUMMARY
-# ==============================================================================
 print("\n\n" + "=" * 70)
 print("  EXPERIMENT 6 SUMMARY (SHAP FEATURE SELECTION)")
 print("=" * 70)
@@ -307,7 +257,6 @@ for top_k_label, results in all_results.items():
     best_f1 = results[best_name]["f1"]
     print(f"\n  {top_k_label}: Best = {best_name} (F1={best_f1:.6f})")
 
-# Export Comprehensive HTML Report
 export_multi_section_report(
     report_sections,
     title="IDS Thesis - Experiment 6: SHAP Feature Selection Analysis",

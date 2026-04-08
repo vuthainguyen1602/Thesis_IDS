@@ -1,18 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Experiment 3 — Dimensionality Reduction Using Principal Component Analysis.
-
-Applies PCA to the full feature set and evaluates the impact of the number
-of principal components (k = 15, 25, 35) on classifier performance.
-Includes explained-variance analysis to determine optimal dimensionality.
-
-Algorithms evaluated: DT, LR, SVM, NB, RF, GBT, XGBoost, LightGBM, MLP,
-Ensemble Voting.
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import pandas as pd
@@ -39,9 +26,6 @@ from shared_utils import (
     PCA,
 )
 
-# ==============================================================================
-# INITIALIZATION
-# ==============================================================================
 spark = create_spark_session("IDS_Exp3_PCA")
 df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
@@ -50,11 +34,7 @@ print("=" * 70)
 print("  EXPERIMENT 3: DIMENSIONALITY REDUCTION USING PCA")
 print("=" * 70)
 
-# ==============================================================================
-# STEP 1: EXPLAINED VARIANCE ANALYSIS
-# ==============================================================================
-# Create results directory
-base_output = "/Users/thainguyenvu/Desktop/Thesis_IDS/exp3_results"
+base_output = os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "exp3_results")
 os.makedirs(base_output, exist_ok=True)
 
 print("\n--- Step 1: Explained Variance Analysis ---")
@@ -66,7 +46,6 @@ scaler_pca = StandardScaler(
     inputCol="features_raw", outputCol="features_scaled", withStd=True, withMean=True,
 )
 
-# PCA with maximum k to get full explained variance
 k_max = min(len(feature_cols), 60)
 pca_full = PCA(k=k_max, inputCol="features_scaled", outputCol="pca_features_full")
 pipeline_full = Pipeline(stages=[assembler_pca, scaler_pca, pca_full])
@@ -76,12 +55,10 @@ pca_model_full = model_full.stages[2]
 explained_var_full = pca_model_full.explainedVariance.toArray()
 cumulative_var_full = np.cumsum(explained_var_full)
 
-# Find k for variance thresholds
 for threshold in [0.90, 0.95, 0.99]:
     k_needed = np.searchsorted(cumulative_var_full, threshold) + 1
     print(f"  Need k={k_needed} components to explain {threshold*100:.0f}% variance")
 
-# --- Plot Explained Variance ---
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
 ax1.bar(range(1, len(explained_var_full) + 1), explained_var_full, color="steelblue", alpha=0.7)
@@ -101,18 +78,13 @@ plt.suptitle("PCA - Explained Variance Analysis", fontsize=14, fontweight="bold"
 plt.tight_layout()
 feat_imp_path = os.path.join(base_output, "exp3_explained_variance.png")
 plt.savefig(feat_imp_path, dpi=150)
-plt.close() # Non-blocking
+plt.close()
 print(f"[INFO] Saved: {feat_imp_path}")
 
-
-# ==============================================================================
-# STEP 2: EVALUATE ALL ALGORITHMS WITH DIFFERENT K VALUES
-# ==============================================================================
 
 all_exp3_results = {}
 report_sections = []
 
-# Add explanation section first
 report_sections.append({
     "section_title": "Explained Variance Analysis",
     "results": {},
@@ -141,11 +113,9 @@ for k in [15, 25, 35]:
     all_exp3_results[k] = results
     print_summary_table(results, title=f"RESULTS: PCA k={k}")
 
-    # Folder for this k
     k_dir = os.path.join(base_output, f"k{k}")
     os.makedirs(k_dir, exist_ok=True)
 
-    # Plot
     plot_comparison(
         results,
         title=f"Experiment 3: Algorithm Comparison (PCA k={k})",
@@ -183,7 +153,6 @@ for k in [15, 25, 35]:
         show=False,
     )
 
-    # Collect for HTML Report
     report_sections.append({
         "section_title": f"PCA Dimensionality Reduction (k={k})",
         "results": results,
@@ -198,9 +167,6 @@ for k in [15, 25, 35]:
     })
 
 
-# ==============================================================================
-# STEP 3: SUMMARY
-# ==============================================================================
 print(f"\n\n{'=' * 70}")
 print("  EXPERIMENT 3 SUMMARY")
 print(f"{'=' * 70}")
@@ -232,7 +198,6 @@ for k, results in all_exp3_results.items():
 if best_config:
     print(f"\n★ Best config: PCA k={best_config[0]}, {best_config[1]} → F1={best_f1:.6f}")
 
-# Export Comprehensive HTML Report
 export_multi_section_report(
     report_sections, 
     title="IDS Thesis - Experiment 3: PCA Dimensionality Reduction",

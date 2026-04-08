@@ -1,21 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Data Preparation — CICIDS2017 Dataset.
-
-One-time preprocessing pipeline that merges all CICIDS2017 CSV files,
-cleans column names, handles Infinity/NaN values, removes duplicates,
-creates binary labels (BENIGN=0, Attack=1), and saves 80/20 train/test
-splits as Parquet files.
-
-Output::
-
-    data/train_data.parquet
-    data/test_data.parquet
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 from shared_utils import (
@@ -26,11 +10,8 @@ from shared_utils import (
     F, col, when, StringType,
 )
 
-# ==============================================================================
-# CONFIGURATION
-# ==============================================================================
-INPUT_PATH = "/Users/thainguyenvu/Desktop/ids-2017"
-OUTPUT_DIR = "/Users/thainguyenvu/Desktop/Thesis_IDS/data"
+INPUT_PATH = os.environ.get("IDS_RAW_DATA_DIR", os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "ids-2017"))
+OUTPUT_DIR = os.environ.get("IDS_DATA_DIR", os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "data"))
 TRAIN_PATH = os.path.join(OUTPUT_DIR, "train_data.parquet")
 TEST_PATH = os.path.join(OUTPUT_DIR, "test_data.parquet")
 
@@ -46,9 +27,6 @@ CSV_FILES = [
 ]
 
 
-# ==============================================================================
-# MAIN
-# ==============================================================================
 if __name__ == "__main__":
 
     spark = create_spark_session("IDS_Data_Preparation")
@@ -97,13 +75,11 @@ if __name__ == "__main__":
     print("MERGE COMPLETED")
     print("=" * 60)
 
-    # --- Remove duplicates and nulls ---
     print(f"\nTotal rows before cleaning: {merged_df.count():,}")
     merged_df = merged_df.dropDuplicates()
     merged_df = merged_df.dropna()
     print(f"Total rows after cleaning:  {merged_df.count():,}")
 
-    # --- Create binary labels: BENIGN=0, Attack=1 ---
     df = merged_df.withColumn(
         "label_binary",
         when(col("label") == "BENIGN", 0).otherwise(1),
@@ -115,7 +91,6 @@ if __name__ == "__main__":
     print("Binary label distribution:")
     df.groupBy("label_binary").count().orderBy("label_binary").show()
 
-    # --- Identify numeric feature columns ---
     exclude_cols = ["label", "label_binary", "source_ip", "destination_ip",
                     "flow_id", "timestamp", "protocol"]
     feature_cols = [
@@ -125,7 +100,6 @@ if __name__ == "__main__":
     ]
     print(f"Number of numeric features: {len(feature_cols)}")
 
-    # --- Split train/test ---
     df = df.cache()
     df.count()
 
@@ -136,7 +110,6 @@ if __name__ == "__main__":
     print(f"\nTraining set: {train_count:,} samples")
     print(f"Test set:     {test_count:,} samples")
 
-    # --- Save to parquet ---
     print(f"\nSaving to parquet...")
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 

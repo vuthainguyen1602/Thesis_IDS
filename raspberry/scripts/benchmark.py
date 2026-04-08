@@ -1,21 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Benchmark Script — Raspberry Pi Edge IDS Performance Measurement.
-
-Measures inference throughput, latency, CPU/memory usage, and optionally
-CPU temperature on the Raspberry Pi 4B.  Outputs summary statistics and
-a LaTeX table fragment suitable for inclusion in the thesis.
-
-Usage (on Raspberry Pi)::
-
-    python scripts/benchmark.py
-    python scripts/benchmark.py --samples 1000
-    python scripts/benchmark.py --samples 5000 --batch-size 10
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import sys
@@ -32,7 +16,6 @@ from config import MODEL_PATH, FEATURES_PATH, SHAP_TOP_FEATURES
 
 
 def get_cpu_temp():
-    """Get Raspberry Pi CPU temperature."""
     try:
         with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
             return float(f.read().strip()) / 1000.0
@@ -41,7 +24,6 @@ def get_cpu_temp():
 
 
 def generate_synthetic_data(feature_columns, n_samples):
-    """Generate random synthetic data matching the feature schema."""
     data = []
     for _ in range(n_samples):
         row = {}
@@ -52,7 +34,6 @@ def generate_synthetic_data(feature_columns, n_samples):
 
 
 def run_benchmark(n_samples=1000, batch_size=10):
-    """Run benchmark and collect performance metrics."""
     from pyspark.sql import SparkSession
     from edge.feature_preprocessor import FeaturePreprocessor
     from edge.prediction_engine import PredictionEngine
@@ -65,7 +46,6 @@ def run_benchmark(n_samples=1000, batch_size=10):
     print(f"  Model:      {MODEL_PATH}")
     print("=" * 60)
 
-    # --- Initialize ---
     print("\n[1/4] Initializing PySpark...")
     spark_start = time.time()
     spark = (
@@ -89,7 +69,6 @@ def run_benchmark(n_samples=1000, batch_size=10):
     model_load_time = time.time() - model_start
     print(f"  Model load: {model_load_time:.1f}s")
 
-    # --- Generate test data ---
     print("\n[3/4] Generating test data...")
     feature_columns = SHAP_TOP_FEATURES
     if os.path.exists(FEATURES_PATH):
@@ -99,7 +78,6 @@ def run_benchmark(n_samples=1000, batch_size=10):
     test_data = generate_synthetic_data(feature_columns, n_samples)
     print(f"  Generated {n_samples} samples x {len(feature_columns)} features")
 
-    # --- Benchmark inference ---
     print(f"\n[4/4] Running inference benchmark...")
 
     batch_latencies = []
@@ -110,7 +88,6 @@ def run_benchmark(n_samples=1000, batch_size=10):
     total_predictions = 0
     total_attacks = 0
 
-    # Warmup (3 batches)
     print("  Warmup...", end="", flush=True)
     for i in range(0, min(30, n_samples), batch_size):
         batch = test_data[i:i + batch_size]
@@ -118,12 +95,10 @@ def run_benchmark(n_samples=1000, batch_size=10):
         engine.predict(spark_df)
     print(" done")
 
-    # Reset stats
     engine.total_predictions = 0
     engine.total_attacks = 0
     engine.total_inference_time = 0
 
-    # Actual benchmark
     benchmark_start = time.time()
     n_batches = 0
 
@@ -131,18 +106,16 @@ def run_benchmark(n_samples=1000, batch_size=10):
         batch = test_data[i:i + batch_size]
         actual_batch_size = len(batch)
 
-        # Record system metrics
         cpu_readings.append(psutil.cpu_percent(interval=None))
         mem_readings.append(psutil.virtual_memory().percent)
         temp = get_cpu_temp()
         if temp:
             temp_readings.append(temp)
 
-        # Inference
         batch_start = time.perf_counter()
         spark_df = preprocessor.preprocess_batch(batch)
         predictions, stats = engine.predict(spark_df)
-        batch_time = (time.perf_counter() - batch_start) * 1000  # ms
+        batch_time = (time.perf_counter() - batch_start) * 1000
 
         batch_latencies.append(batch_time)
         per_sample_latencies.append(batch_time / actual_batch_size)
@@ -150,14 +123,12 @@ def run_benchmark(n_samples=1000, batch_size=10):
         total_attacks += stats["attacks_found"]
         n_batches += 1
 
-        # Progress
         if (i + batch_size) % (n_samples // 10 if n_samples >= 10 else 1) == 0:
             pct = min(100, (i + batch_size) / n_samples * 100)
             print(f"  Progress: {pct:.0f}% ({i + batch_size}/{n_samples})")
 
     total_time = time.time() - benchmark_start
 
-    # --- Calculate statistics ---
     throughput = total_predictions / total_time
     avg_batch_latency = statistics.mean(batch_latencies)
     p50_batch = statistics.median(batch_latencies)
@@ -168,7 +139,6 @@ def run_benchmark(n_samples=1000, batch_size=10):
     avg_mem = statistics.mean(mem_readings) if mem_readings else 0
     avg_temp = statistics.mean(temp_readings) if temp_readings else 0
 
-    # --- Print results ---
     print("\n" + "=" * 60)
     print("  BENCHMARK RESULTS")
     print("=" * 60)
@@ -200,7 +170,6 @@ def run_benchmark(n_samples=1000, batch_size=10):
     print(f"  Model load time:      {model_load_time:.1f}s")
     print(f"  Attack rate:          {total_attacks/total_predictions*100:.1f}%")
 
-    # --- Save results to JSON ---
     results = {
         "device": "Raspberry Pi 4B (4GB)",
         "model": "PySpark RandomForest (200 trees, depth 15)",
@@ -229,7 +198,6 @@ def run_benchmark(n_samples=1000, batch_size=10):
         json.dump(results, f, indent=2)
     print(f"\n  Results saved to: {results_path}")
 
-    # --- LaTeX table ---
     print(f"\n  --- LaTeX Table (for Chapter 4) ---")
     print(r"  \begin{table}[h]")
     print(r"  \centering")

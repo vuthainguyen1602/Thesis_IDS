@@ -50,6 +50,8 @@ This project evaluates **9 classification algorithms** combined with **3 Ensembl
 Thesis_IDS/
 ├── README.md                        # This file
 ├── shared_utils.py                  # Core library (Spark config, models, metrics, plots)
+├── reporting/                       # Modular reporting library [NEW]
+│   └── report_generator.py          # HTML/CSS report generation logic
 ├── data_preparation.py              # CICIDS2017 data preparation script
 ├── exp0_baseline_full.py            # Experiment 0: Baseline
 ├── exp1_rf_feature_importance.py    # Experiment 1: RF Feature Selection
@@ -60,33 +62,37 @@ Thesis_IDS/
 ├── exp7_comparison.py               # Experiment 7: Cross-Experiment Comparison
 ├── feature_importance.csv           # RF Feature Importance (output from Exp 1)
 ├── data/                            # Processed data (parquet format)
-│   ├── train_data.parquet/
-│   └── test_data.parquet/
-├── exp0_results/                    # Exp 0 results (charts + HTML report)
-├── exp1_results/                    # Exp 1 results
-├── exp2_results/                    # Exp 2 results
-├── exp3_results/                    # Exp 3 results
-├── exp5_results/                    # Exp 5 results
-├── exp6_results_shap/               # Exp 6 results
-├── exp7_comparison/                 # Exp 7 results (cross-method comparison)
-├── latex/                           # LaTeX pseudocode for algorithms
-│   ├── algorithm_bagging.tex
-│   └── algorithm_voting.tex
-├── Thesis_IDS_RoEduNet/             # Experiments for RoEduNet dataset
-│   ├── shared_utils.py
-│   ├── data_preparation.py
-│   ├── exp0_baseline_full.py
-│   ├── exp1_rf_feature_importance.py
-│   └── exp2_gridsearch_cv.py
-└── raspberry/                        # Raspberry Pi Edge IDS Component
-    ├── README.md                      # Edge-specific documentation
-    ├── docker-compose.yml             # Kafka, Postgres, InfluxDB infra
-    ├── edge/                          # Core inference engine (PySpark)
-    ├── alerting/                      # Alerting (Email, Slack)
-    ├── storage/                       # Storage (Postgres, InfluxDB)
-    ├── sender/                        # Traffic simulation sender
-    └── scripts/                       # Setup and Benchmark scripts
+├── raspberry/                       # Raspberry Pi Edge IDS Component
+└── ...
 ```
+
+---
+
+## Environment Configuration
+
+The project uses a centralized environment variable system for path management, ensuring portability across different machines without code changes.
+
+| Variable | Description | Default Fallback |
+|----------|-------------|------------------|
+| `IDS_ROOT` | Project root directory | Script directory (`__file__`) |
+| `IDS_RAW_DATA_DIR` | Location of raw CICIDS2017 CSVs | `IDS_ROOT/ids-2017` |
+| `IDS_DATA_DIR` | Location to save/load Parquet | `IDS_ROOT/data` |
+
+### Setting variables (Example)
+```bash
+export IDS_ROOT="/Users/name/Desktop/Thesis_IDS"
+export IDS_RAW_DATA_DIR="/Volumes/ExternalSSD/Dataset/ids-2017"
+```
+
+---
+
+## Project Standards: Scientific Sanitization
+
+This codebase has been refactored to meet **higher scientific standards** for thesis submission:
+
+1.  **Logic-First Architecture**: All redundant comments and legacy docstrings have been removed to ensure the reviewer focuses purely on the technical implementation.
+2.  **Modular Reporting**: HTML/CSS visualization logic has been extracted into the `reporting/` module to keep the core experiment code concise.
+3.  **Portability**: Hardcoded absolute paths have been eliminated in favor of the `IDS_ROOT` dynamic discovery pattern.
 
 ---
 
@@ -213,27 +219,14 @@ print('All dependencies OK!')
 
 Download from: https://www.unb.ca/cic/datasets/ids-2017.html
 
-Extract all CSV files into a directory (default: `/Users/thainguyenvu/Desktop/ids-2017`).
+Extract all CSV files into a directory.
 
-Required CSV files:
+### Step 2: Configure Paths
+Setting the environment variables is the recommended way to configure paths:
+```bash
+export IDS_RAW_DATA_DIR="/path/to/your/csv/directory"
 ```
-Monday-WorkingHours.pcap_ISCX.csv
-Tuesday-WorkingHours.pcap_ISCX.csv
-Wednesday-workingHours.pcap_ISCX.csv
-Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv
-Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv
-Friday-WorkingHours-Morning.pcap_ISCX.csv
-Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv
-Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv
-```
-
-### Step 2: Update Paths
-
-Open `data_preparation.py` and update `INPUT_PATH`:
-
-```python
-INPUT_PATH = "/path/to/your/csv/directory"
-```
+Or you can let the script default to searching for a folder named `ids-2017` inside your project root.
 
 ### Step 3: Run Data Preparation
 
@@ -395,6 +388,10 @@ See the **[raspberry/README.md](raspberry/README.md)** for detailed hardware set
 | **Reporting** | HTML report export |
 | **SHAP** | SHAP Explainability for XGBoost |
 
+### `reporting/` - Visualization Module [NEW]
+- **Modular Design**: Separates complex HTML/CSS templates from experiment logic.
+- **Dynamic Reports**: Generates responsive multi-section reports with embedded performance metrics and SHAP visualizations.
+
 ### Ensemble Algorithms
 
 **Hybrid Bagging:**
@@ -413,11 +410,8 @@ See the **[raspberry/README.md](raspberry/README.md)** for detailed hardware set
 
 ## Notes
 
-1. **Memory:** Spark defaults to `local[4]` (4 cores). If you encounter OutOfMemory errors, adjust in `shared_utils.py`:
-   ```python
-   os.environ['PYSPARK_SUBMIT_ARGS'] = '--master local[2] pyspark-shell'
-   ```
+1. **Memory:** Spark defaults to `local[*]` (all cores). If you encounter OutOfMemory errors, adjust in `shared_utils.py`.
 
-2. **Absolute Paths:** Experiment files use absolute paths. Update them to match your system.
+2. **Portable Paths:** All experiment files are now portable. You do **not** need to modify the code to change paths; simply use the `IDS_ROOT` environment variable.
 
 3. **Runtime:** Each experiment takes approximately **30 minutes to 2 hours** depending on hardware.

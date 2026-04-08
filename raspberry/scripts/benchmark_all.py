@@ -1,19 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Multi-Model Benchmark — Compare DT, GBT, RF on Raspberry Pi.
-
-Runs identical workloads against multiple saved PySpark PipelineModels to
-produce side-by-side throughput, latency, and resource-usage comparisons.
-
-Usage (on Raspberry Pi)::
-
-    python scripts/benchmark_all.py
-    python scripts/benchmark_all.py --samples 500
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import sys
@@ -42,7 +28,6 @@ def generate_data(feature_columns, n):
 
 
 def benchmark_model(spark, model_path, model_name, test_data, feature_columns, batch_size=10):
-    """Benchmark a single model."""
     from pyspark.ml import PipelineModel
     from edge.feature_preprocessor import FeaturePreprocessor
 
@@ -50,7 +35,6 @@ def benchmark_model(spark, model_path, model_name, test_data, feature_columns, b
     print(f"  Benchmarking: {model_name}")
     print(f"{'=' * 50}")
 
-    # Load model
     load_start = time.time()
     preprocessor = FeaturePreprocessor(spark)
     model = PipelineModel.load(model_path)
@@ -59,13 +43,11 @@ def benchmark_model(spark, model_path, model_name, test_data, feature_columns, b
 
     n_samples = len(test_data)
 
-    # Warmup
     for i in range(0, min(30, n_samples), batch_size):
         batch = test_data[i:i + batch_size]
         df = preprocessor.preprocess_batch(batch)
         model.transform(df).count()
 
-    # Benchmark
     batch_latencies = []
     cpu_readings = []
     mem_readings = []
@@ -141,7 +123,6 @@ def main():
     )
     spark.sparkContext.setLogLevel("ERROR")
 
-    # Load feature columns
     feature_columns = SHAP_TOP_FEATURES
     if os.path.exists(FEATURES_PATH):
         with open(FEATURES_PATH, "r") as f:
@@ -149,7 +130,6 @@ def main():
 
     test_data = generate_data(feature_columns, args.samples)
 
-    # Models to benchmark
     model_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "model")
     models = [
         ("Decision Tree", os.path.join(model_dir, "ids_pipeline_decision_tree")),
@@ -165,7 +145,6 @@ def main():
         else:
             print(f"\n  [WARN] Model not found: {path}")
 
-    # Summary table
     print("\n" + "=" * 60)
     print("  COMPARISON RESULTS")
     print("=" * 60)
@@ -174,7 +153,6 @@ def main():
     for r in all_results:
         print(f"  {r['model']:<18} {r['throughput_rps']:>8.1f}/s {r['latency_per_sample_ms']:>8.1f}ms {r['cpu_avg']:>5.1f}% {r['ram_avg']:>5.1f}%")
 
-    # Save
     results_path = os.path.join(model_dir, "benchmark_comparison.json")
     with open(results_path, "w") as f:
         json.dump(all_results, f, indent=2)

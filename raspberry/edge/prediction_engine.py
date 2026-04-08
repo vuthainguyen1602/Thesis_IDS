@@ -1,15 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Prediction Engine \u2014 Raspberry Pi Edge IDS (PySpark).
-
-Loads a trained PySpark PipelineModel from disk and runs batch or
-single-row inference.  Tracks cumulative statistics (predictions,
-attack count, average latency).
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import sys
@@ -22,19 +12,10 @@ from config import MODEL_PATH
 
 
 class PredictionEngine:
-    """
-    PySpark-based prediction engine for edge deployment.
-    Loads the PipelineModel saved from the training experiments.
-    """
 
     LABEL_MAP = {0: "Benign", 1: "Attack"}
 
     def __init__(self, spark, model_path=None):
-        """
-        Args:
-            spark: Active SparkSession
-            model_path: Path to saved PipelineModel directory
-        """
         self.spark = spark
         self.model_path = model_path or MODEL_PATH
         self.model = None
@@ -45,7 +26,6 @@ class PredictionEngine:
         self._load_model()
 
     def _load_model(self):
-        """Load the pre-trained PySpark PipelineModel from disk."""
         if os.path.exists(self.model_path):
             self.model = PipelineModel.load(self.model_path)
             print(f"[OK] PySpark Model loaded from {self.model_path}")
@@ -57,20 +37,10 @@ class PredictionEngine:
             )
 
     def predict(self, spark_df):
-        """
-        Run prediction on a Spark DataFrame.
-
-        Args:
-            spark_df: Spark DataFrame with raw feature columns
-
-        Returns:
-            (predictions_df, stats_dict)
-        """
         start = time.perf_counter()
         predictions = self.model.transform(spark_df)
-        inference_time = (time.perf_counter() - start) * 1000  # ms
+        inference_time = (time.perf_counter() - start) * 1000
 
-        # Count results
         count = predictions.count()
         attack_count = predictions.filter(predictions.prediction == 1.0).count()
 
@@ -88,12 +58,6 @@ class PredictionEngine:
         return predictions, stats
 
     def predict_single(self, spark_df):
-        """
-        Run prediction on a single-row Spark DataFrame.
-
-        Returns:
-            dict with prediction, label, inference_time_ms, is_attack
-        """
         start = time.perf_counter()
         predictions = self.model.transform(spark_df)
         row = predictions.select("prediction").first()
@@ -113,7 +77,6 @@ class PredictionEngine:
         }
 
     def get_stats(self) -> dict:
-        """Return accumulated statistics."""
         avg_time = (self.total_inference_time / self.total_predictions
                     if self.total_predictions > 0 else 0)
         return {

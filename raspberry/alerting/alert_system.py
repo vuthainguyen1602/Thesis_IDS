@@ -1,14 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Alert System \u2014 Raspberry Pi Edge IDS.
-
-Multi-channel notification service triggered when the IDS detects attacks.
-Supports Telegram Bot API, SMTP email, and Slack Incoming Webhooks.
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import sys
@@ -28,10 +19,6 @@ from config import (
 
 
 class AlertSystem:
-    """
-    Multi-channel alert system for IDS attack notifications.
-    Sends alerts via Telegram, Email, and/or Webhook based on configuration.
-    """
 
     def __init__(self):
         self.channels = []
@@ -49,7 +36,6 @@ class AlertSystem:
             print("[WARN] Alert System: No channels configured (check .env)")
 
     def send_all(self, message: str):
-        """Send alert through all configured channels."""
         results = {}
         for channel in self.channels:
             try:
@@ -68,11 +54,7 @@ class AlertSystem:
 
         return results
 
-    # ------------------------------------------------------------------
-    # TELEGRAM
-    # ------------------------------------------------------------------
     def send_telegram(self, message: str):
-        """Send a message via Telegram Bot API."""
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         payload = {
             "chat_id": TELEGRAM_CHAT_ID,
@@ -83,11 +65,7 @@ class AlertSystem:
         response.raise_for_status()
         print(f"  [OK] Telegram alert sent")
 
-    # ------------------------------------------------------------------
-    # EMAIL (SMTP)
-    # ------------------------------------------------------------------
     def send_email(self, subject: str, body: str):
-        """Send an email alert via SMTP."""
         msg = MIMEMultipart()
         msg["From"] = ALERT_EMAIL_FROM or SMTP_USER
         msg["To"] = ALERT_EMAIL_TO
@@ -101,11 +79,7 @@ class AlertSystem:
 
         print(f"  [OK] Email alert sent to {ALERT_EMAIL_TO}")
 
-    # ------------------------------------------------------------------
-    # WEBHOOK (Slack)
-    # ------------------------------------------------------------------
     def send_webhook(self, message: str):
-        """Send alert via Slack Incoming Webhook."""
         payload = {
             "text": f":rotating_light: *IDS ALERT - ATTACK DETECTED*\n```{message}```",
             "username": "IDS Edge - Raspberry Pi",

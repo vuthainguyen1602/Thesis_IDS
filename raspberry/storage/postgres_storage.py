@@ -1,14 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-PostgreSQL Storage \u2014 Raspberry Pi Edge IDS.
-
-Stores prediction results, confidence scores, and alert records in
-PostgreSQL.  Tables are auto-created with appropriate indexes on first run.
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import sys
@@ -23,7 +14,6 @@ from config import POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POS
 
 
 class PostgresStorage:
-    """PostgreSQL adapter for storing IDS predictions and alerts."""
 
     def __init__(self):
         self.conn = psycopg2.connect(
@@ -37,7 +27,6 @@ class PostgresStorage:
         print(f"[OK] PostgreSQL connected: {POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}")
 
     def init_tables(self):
-        """Create tables if they don't exist."""
         with self.conn.cursor() as cur:
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS predictions (
@@ -62,7 +51,6 @@ class PostgresStorage:
                 );
             """)
 
-            # Create indexes for common queries
             cur.execute("""
                 CREATE INDEX IF NOT EXISTS idx_predictions_timestamp
                 ON predictions (timestamp DESC);
@@ -79,7 +67,6 @@ class PostgresStorage:
 
     def store_prediction(self, timestamp, prediction, confidence,
                          label, inference_time_ms, raw_features=None):
-        """Store a single prediction result."""
         with self.conn.cursor() as cur:
             cur.execute(
                 """INSERT INTO predictions
@@ -90,7 +77,6 @@ class PostgresStorage:
             )
 
     def store_alert(self, alert_type, message, confidence=None):
-        """Store an alert record."""
         with self.conn.cursor() as cur:
             cur.execute(
                 """INSERT INTO alerts (alert_type, message, confidence)
@@ -99,7 +85,6 @@ class PostgresStorage:
             )
 
     def get_recent_predictions(self, limit=100):
-        """Retrieve recent predictions for dashboard display."""
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
                 "SELECT * FROM predictions ORDER BY timestamp DESC LIMIT %s",
@@ -108,7 +93,6 @@ class PostgresStorage:
             return cur.fetchall()
 
     def get_attack_count(self, since_seconds=3600):
-        """Count attacks in the last N seconds."""
         since = time.time() - since_seconds
         with self.conn.cursor() as cur:
             cur.execute(
@@ -118,7 +102,6 @@ class PostgresStorage:
             return cur.fetchone()[0]
 
     def close(self):
-        """Close the database connection."""
         if self.conn:
             self.conn.close()
             print("[OK] PostgreSQL connection closed")

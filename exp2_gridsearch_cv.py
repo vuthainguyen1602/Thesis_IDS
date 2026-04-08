@@ -1,16 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Experiment 2 — Hyperparameter Tuning via Grid Search and Cross-Validation.
-
-Loads the best feature-engineering configuration from Experiment 7, then
-applies Spark MLlib's ``CrossValidator`` with exhaustive parameter grids
-for selected classifiers (RF, DT, GBT, LR).  Tuned results are compared
-against the default-parameter baselines.
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import time
@@ -45,41 +34,9 @@ from shared_utils import (
     CrossValidator,
     PCA,
     get_model_size,
+    _get_param,
 )
 
-# ==============================================================================
-# HELPER
-# ==============================================================================
-def _get_param(model, param_name):
-    """Robustly retrieve a param value from any PySpark or SynapseML model.
-
-    Strategy:
-      1. Try the camelCase getter (e.g. getNumLeaves) — used by SynapseML.
-      2. Fall back to extractParamMap() lookup — works for all MLlib Params.
-      3. Last resort: getOrDefault(string) — native MLlib only.
-    """
-    getter = "get" + param_name[0].upper() + param_name[1:]
-    if hasattr(model, getter):
-        try:
-            return getattr(model, getter)()
-        except Exception:
-            pass
-    try:
-        pmap = {p.name: v for p, v in model.extractParamMap().items()}
-        if param_name in pmap:
-            return pmap[param_name]
-    except Exception:
-        pass
-    try:
-        return model.getOrDefault(param_name)
-    except Exception:
-        pass
-    return "N/A"
-
-
-# ==============================================================================
-# INITIALIZATION
-# ==============================================================================
 spark = create_spark_session("IDS_Exp2_GridSearch_CV")
 df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
@@ -88,12 +45,9 @@ print("=" * 70)
 print("  EXPERIMENT 2: GRID SEARCH + CROSS-VALIDATION")
 print("=" * 70)
 
-# ==============================================================================
-# STEP 1: LOAD BEST CONFIG FROM EXP 7
-# ==============================================================================
 print("\n--- Step 1: Loading Best Configuration from Exp 7 ---")
 
-config_path = "/Users/thainguyenvu/Desktop/Thesis_IDS/best_config.json"
+config_path = os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "best_config.json")
 best_config = None
 
 if os.path.exists(config_path):
@@ -103,13 +57,11 @@ if os.path.exists(config_path):
 else:
     print("[WARN] best_config.json not found. Run Exp 7 first.")
     print("Falling back to RF Feature Selection (Top-40) as default.")
-    # Default fallback
     best_config = {
         "method_name": "RF Top-40 (Fallback)",
-        "config": {"type": "feature_selection", "csv": "/Users/thainguyenvu/Desktop/Thesis_IDS/feature_importance.csv", "top_k": 40, "col": "feature"}
+        "config": {"type": "feature_selection", "csv": os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "feature_importance.csv"), "top_k": 40, "col": "feature"}
     }
 
-# Setup Pipeline Stages based on config
 method_cfg = best_config["config"]
 extra_stages = []
 selected_features = feature_cols
@@ -137,29 +89,24 @@ elif method_cfg["type"] == "pca":
     features_col = "pca_features"
     num_features = k
 
-else: # "all"
+else:
     print("Using all features")
     assembler_cv = VectorAssembler(inputCols=feature_cols, outputCol="features_raw", handleInvalid="keep")
     scaler_cv = StandardScaler(inputCol="features_raw", outputCol="features_scaled", withStd=True, withMean=True)
     features_col = "features_scaled"
     num_features = len(feature_cols)
 
-# Evaluate with PR-AUC for Grid Search
 evaluator_cv = BinaryClassificationEvaluator(
     labelCol="label_binary", rawPredictionCol="rawPrediction", metricName="areaUnderPR",
 )
 
 
-# ==============================================================================
-# STEP 2: HYPERPARAMETER OPTIMIZATION (GRID SEARCH + CV)
-# ==============================================================================
 cv_results = {}
 cv_models = {}
 report_sections = []
-base_output = "/Users/thainguyenvu/Desktop/Thesis_IDS/exp2_results"
+base_output = os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "exp2_results")
 os.makedirs(base_output, exist_ok=True)
 
-# 2a. Random Forest
 print(f"\n{'━' * 70}\n  2a. Grid Search + CV: RANDOM FOREST\n{'━' * 70}")
 rf = RandomForestClassifier(featuresCol=features_col, labelCol="label_binary", seed=42)
 pipeline_rf = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [rf])
@@ -170,7 +117,6 @@ cv_rf = CrossValidator(estimator=pipeline_rf, estimatorParamMaps=rf_grid, evalua
 cv_rf_model = cv_rf.fit(train_df)
 cv_rf_time = time.time() - start
 
-# Print best params
 rf_best = cv_rf_model.bestModel.stages[-1]
 print(f"[BEST] RF: numTrees={_get_param(rf_best, 'numTrees')}, maxDepth={_get_param(rf_best, 'maxDepth')}")
 
@@ -186,7 +132,6 @@ cv_results["Random Forest (Tuned)"] = metrics_rf
 cv_models["Random Forest (Tuned)"] = cv_rf_model.bestModel
 report_sections.append({"section_title": "Tuning: Random Forest", "results": {"Random Forest (Tuned)": metrics_rf}})
 
-# 2b. Decision Tree
 print(f"\n{'━' * 70}\n  2b. Grid Search + CV: DECISION TREE\n{'━' * 70}")
 dt = DecisionTreeClassifier(featuresCol=features_col, labelCol="label_binary", seed=42)
 pipeline_dt = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [dt])
@@ -197,7 +142,6 @@ cv_dt = CrossValidator(estimator=pipeline_dt, estimatorParamMaps=dt_grid, evalua
 cv_dt_model = cv_dt.fit(train_df)
 cv_dt_time = time.time() - start
 
-# Print best params
 dt_best = cv_dt_model.bestModel.stages[-1]
 print(f"[BEST] DT: maxDepth={_get_param(dt_best, 'maxDepth')}, impurity={_get_param(dt_best, 'impurity')}")
 
@@ -213,7 +157,6 @@ cv_results["Decision Tree (Tuned)"] = metrics_dt
 cv_models["Decision Tree (Tuned)"] = cv_dt_model.bestModel
 report_sections.append({"section_title": "Tuning: Decision Tree", "results": {"Decision Tree (Tuned)": metrics_dt}})
 
-# 2c. GBT
 print(f"\n{'━' * 70}\n  2c. Grid Search + CV: GBT\n{'━' * 70}")
 gbt = GBTClassifier(featuresCol=features_col, labelCol="label_binary", seed=42)
 pipeline_gbt = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [gbt])
@@ -224,7 +167,6 @@ cv_gbt = CrossValidator(estimator=pipeline_gbt, estimatorParamMaps=gbt_grid, eva
 cv_gbt_model = cv_gbt.fit(train_df)
 cv_gbt_time = time.time() - start
 
-# Print best params
 gbt_best = cv_gbt_model.bestModel.stages[-1]
 print(f"[BEST] GBT: maxIter={_get_param(gbt_best, 'maxIter')}, maxDepth={_get_param(gbt_best, 'maxDepth')}")
 
@@ -240,7 +182,6 @@ cv_results["GBT (Tuned)"] = metrics_gbt
 cv_models["GBT (Tuned)"] = cv_gbt_model.bestModel
 report_sections.append({"section_title": "Tuning: GBT", "results": {"GBT (Tuned)": metrics_gbt}})
 
-# 2d. Logistic Regression
 print(f"\n{'━' * 70}\n  2d. Grid Search + CV: LOGISTIC REGRESSION\n{'━' * 70}")
 lr = LogisticRegression(featuresCol=features_col, labelCol="label_binary", family="binomial")
 pipeline_lr = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [lr])
@@ -251,7 +192,6 @@ cv_lr = CrossValidator(estimator=pipeline_lr, estimatorParamMaps=lr_grid, evalua
 cv_lr_model = cv_lr.fit(train_df)
 cv_lr_time = time.time() - start
 
-# Print best params
 lr_best = cv_lr_model.bestModel.stages[-1]
 print(f"[BEST] LR: regParam={_get_param(lr_best, 'regParam')}, elasticNetParam={_get_param(lr_best, 'elasticNetParam')}")
 
@@ -268,7 +208,6 @@ cv_models["Logistic Regression (Tuned)"] = cv_lr_model.bestModel
 report_sections.append({"section_title": "Tuning: Logistic Regression", "results": {"Logistic Regression (Tuned)": metrics_lr}})
 
 
-# 2e. XGBoost
 from shared_utils import HAS_XGBOOST
 if HAS_XGBOOST:
     from shared_utils import SparkXGBClassifier
@@ -281,7 +220,6 @@ if HAS_XGBOOST:
     cv_xgb_model = cv_xgb.fit(train_df)
     cv_xgb_time = time.time() - start
     
-    # Print best params
     xgb_best = cv_xgb_model.bestModel.stages[-1]
     print(f"[BEST] XGBoost: max_depth={_get_param(xgb_best, 'max_depth')}, learning_rate={_get_param(xgb_best, 'learning_rate')}")
     
@@ -297,7 +235,6 @@ if HAS_XGBOOST:
     cv_models["XGBoost (Tuned)"] = cv_xgb_model.bestModel
     report_sections.append({"section_title": "Tuning: XGBoost", "results": {"XGBoost (Tuned)": metrics_xgb}})
 
-# 2f. LightGBM
 from shared_utils import HAS_LIGHTGBM
 if HAS_LIGHTGBM:
     from shared_utils import LightGBMClassifier
@@ -310,7 +247,6 @@ if HAS_LIGHTGBM:
     cv_lgbm_model = cv_lgbm.fit(train_df)
     cv_lgbm_time = time.time() - start
     
-    # Print best params
     lgbm_best = cv_lgbm_model.bestModel.stages[-1]
     print(f"[BEST] LightGBM: numLeaves={_get_param(lgbm_best, 'numLeaves')}, learningRate={_get_param(lgbm_best, 'learningRate')}")
     
@@ -326,7 +262,6 @@ if HAS_LIGHTGBM:
     cv_models["LightGBM (Tuned)"] = cv_lgbm_model.bestModel
     report_sections.append({"section_title": "Tuning: LightGBM", "results": {"LightGBM (Tuned)": metrics_lgbm}})
 
-# 2g. MLP
 from shared_utils import MultilayerPerceptronClassifier
 print(f"\n{'━' * 70}\n  2g. Grid Search + CV: MLP\n{'━' * 70}")
 layers_opts = [[num_features, 64, 32, 2], [num_features, 128, 64, 32, 2]]
@@ -338,7 +273,6 @@ cv_mlp = CrossValidator(estimator=pipeline_mlp, estimatorParamMaps=mlp_grid, eva
 cv_mlp_model = cv_mlp.fit(train_df)
 cv_mlp_time = time.time() - start
 
-# Print best params
 mlp_best = cv_mlp_model.bestModel.stages[-1]
 print(f"[BEST] MLP: layers={_get_param(mlp_best, 'layers')}, maxIter={_get_param(mlp_best, 'maxIter')}")
 
@@ -354,27 +288,20 @@ cv_results["MLP (Tuned)"] = metrics_mlp
 cv_models["MLP (Tuned)"] = cv_mlp_model.bestModel
 report_sections.append({"section_title": "Tuning: MLP", "results": {"MLP (Tuned)": metrics_mlp}})
 
-# 2h. Ensemble (Voting) - Like in other experiments
 print(f"\n{'━' * 70}\n  2h. Ensemble Voting (Tuned Models)\n{'━' * 70}")
 from shared_utils import ensemble_voting
-# We use top models for ensemble voting as in other experiments
 ens_metrics = ensemble_voting(cv_models, test_df, results=cv_results)
 if ens_metrics:
     cv_results["Ensemble Voting (Tuned)"] = ens_metrics
     report_sections.append({"section_title": "Tuning: Ensemble", "results": {"Ensemble Voting (Tuned)": ens_metrics}})
 
-# 2i. Hybrid Bagging Ensemble (Tuned)
-# Using top models with tuned parameters for bagging as in other experiments
 print(f"\n{'━' * 70}\n  2i. Hybrid Bagging Ensemble (Tuned Models)\n{'━' * 70}")
 from shared_utils import train_hybrid_bagging
 
-# Extract tuned estimators (not fitted models) for bagging
-# RF
 rf_best = cv_rf_model.bestModel.stages[-1]
 rf_tuned = RandomForestClassifier(featuresCol=features_col, labelCol="label_binary", numTrees=_get_param(rf_best, "numTrees"), maxDepth=_get_param(rf_best, "maxDepth"), seed=42)
 pipeline_rf_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [rf_tuned])
 
-# Distribution: 3x Tuned RF + 2x Tuned XGB + 2x Tuned LGBM (if available)
 pipeline_dist_tuned = [(pipeline_rf_t, 3)]
 
 if HAS_XGBOOST:
@@ -391,46 +318,35 @@ if HAS_LIGHTGBM:
     pipeline_lgbm_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [lgbm_tuned])
     pipeline_dist_tuned.append((pipeline_lgbm_t, 2))
 
-# Train
 bag_model_tuned = train_hybrid_bagging(pipeline_dist_tuned, train_df)
 if bag_model_tuned:
     start_pred = time.time()
     bag_preds_tuned = bag_model_tuned.transform(test_df)
-    # count() triggers execution to get accurate pred time
     bag_preds_tuned.cache().count()
     bag_pred_time_tuned = time.time() - start_pred
     
     metrics_bag_tuned = compute_metrics(bag_preds_tuned)
-    metrics_bag_tuned["training_time"] = 0.0 # Multi-model training time not easily summed here for report
+    metrics_bag_tuned["training_time"] = 0.0
     metrics_bag_tuned["prediction_time"] = bag_pred_time_tuned
     
-    # Calculate model size as sum of base models
     total_size_bag = 0.0
     for m in bag_model_tuned.models:
         total_size_bag += get_model_size(m)
     metrics_bag_tuned["model_size_mb"] = total_size_bag
     
     cv_results["Hybrid Bagging Ensemble (Tuned)"] = metrics_bag_tuned
-    # No fitted model to return as a standard PipelineModel for ROC plotting here (it's a custom BaggingModel)
     report_sections.append({"section_title": "Tuning: Hybrid Bagging", "results": {"Hybrid Bagging Ensemble (Tuned)": metrics_bag_tuned}})
 
 
-# ==============================================================================
-# STEP 3: CONSOLIDATED RESULTS (TUNED MODELS)
-# ==============================================================================
 print(f"\n\n{'=' * 70}\n  STEP 3: CONSOLIDATED TUNED RESULTS\n{'=' * 70}")
 
-# Use only tuned results
 all_results = cv_results
 
-# Overall Results
 print_summary_table(all_results, title=f"GRID SEARCH ON BEST CONFIG: {best_config['method_name']}")
 
-# Plots
 plot_comparison(all_results, title="Exp 2: Tuned Models Comparison", save_path=os.path.join(base_output, "exp2_comparison.png"), show=False)
 plot_training_time(all_results, title="Exp 2: Tuning Time", save_path=os.path.join(base_output, "exp2_train_time.png"), show=False)
 
-# ROC Curves for Tuned Models
 plot_roc_curves(cv_models, test_df, title="Exp 2: Tuned Models ROC Curves", save_path=os.path.join(base_output, "exp2_roc_curves.png"), show=False)
 
 report_sections.append({

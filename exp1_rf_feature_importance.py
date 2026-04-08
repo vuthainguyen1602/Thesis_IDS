@@ -1,18 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Experiment 1 — Feature Selection via Random Forest Importance.
-
-Trains a baseline Random Forest to extract Gini-based feature importances,
-then evaluates all classifiers using subsets of the top-K most informative
-features (K = 20, 30, 40).
-
-Algorithms evaluated: DT, LR, SVM, NB, RF, GBT, XGBoost, LightGBM, MLP,
-Ensemble Voting.
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import pandas as pd
@@ -39,9 +26,6 @@ from shared_utils import (
     RandomForestClassifier,
 )
 
-# ==============================================================================
-# INITIALIZATION
-# ==============================================================================
 spark = create_spark_session("IDS_Exp1_RF_Feature_Importance")
 df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
@@ -51,9 +35,6 @@ print("  EXPERIMENT 1: FEATURE SELECTION - RF FEATURE IMPORTANCE")
 print("=" * 70)
 
 
-# ==============================================================================
-# STEP 1: TRAIN RF TO EXTRACT FEATURE IMPORTANCE
-# ==============================================================================
 print("\n--- Step 1: Train RF Baseline to extract Feature Importance ---")
 
 assembler_all = VectorAssembler(
@@ -73,7 +54,6 @@ model_baseline, _, _ = train_and_evaluate(
     title="RF Baseline (extract Feature Importance)"
 )
 
-# --- Extract and rank Feature Importance ---
 rf_model = model_baseline.stages[-1]
 importances = rf_model.featureImportances.toArray()
 
@@ -85,7 +65,6 @@ feature_importance_df = pd.DataFrame({
 print("\nTop 20 most important features:")
 print(feature_importance_df.head(20).to_string(index=True))
 
-# --- Plot Feature Importance ---
 plt.figure(figsize=(12, 8))
 top_n = 30
 top_features = feature_importance_df.head(top_n)
@@ -95,33 +74,26 @@ plt.xlabel("Importance")
 plt.title(f"Top {top_n} Feature Importance (Random Forest)")
 plt.tight_layout()
 
-# Create base results directory
-base_output = "/Users/thainguyenvu/Desktop/Thesis_IDS/exp1_results"
+base_output = os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "exp1_results")
 os.makedirs(base_output, exist_ok=True)
 
 feat_imp_path = os.path.join(base_output, f"feature_importance_top{top_n}.png")
 plt.savefig(feat_imp_path, dpi=150)
-plt.close() # Non-blocking
+plt.close()
 
-# Save Feature Importance for other experiments
 feature_importance_df.to_csv(
-    "/Users/thainguyenvu/Desktop/Thesis_IDS/feature_importance.csv", index=False
+    os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "feature_importance.csv"), index=False
 )
 print("[INFO] Saved: feature_importance.csv")
 
-
-# ==============================================================================
-# STEP 2: EVALUATE ALL ALGORITHMS WITH TOP-K FEATURES
-# ==============================================================================
 
 all_exp1_results = {}
 top_k_values = [20, 30, 40]
 report_sections = []
 
-# Add feature importance section first
 report_sections.append({
     "section_title": "Feature Importance Analysis",
-    "results": {}, # No model results for this intro section
+    "results": {},
     "chart_paths": [feat_imp_path]
 })
 
@@ -139,7 +111,6 @@ for top_k in top_k_values:
         inputCol="features_raw", outputCol="features_scaled", withStd=True, withMean=True,
     )
 
-    # Run all classifiers
     results, trained_models = run_all_classifiers(
         assembler=assembler_sel,
         scaler=scaler_sel,
@@ -149,21 +120,17 @@ for top_k in top_k_values:
         num_features=top_k,
     )
 
-    # Ensemble Voting
     ens_metrics = ensemble_voting(trained_models, test_df, results=results)
     if ens_metrics:
         results["Ensemble Voting"] = ens_metrics
 
     all_exp1_results[f"Top-{top_k}"] = results
 
-    # Results table
     print_summary_table(results, title=f"RESULTS: TOP-{top_k} FEATURES")
 
-    # Folder for this Top-K
     k_dir = os.path.join(base_output, f"top{top_k}")
     os.makedirs(k_dir, exist_ok=True)
 
-    # Plot
     plot_comparison(
         results,
         title=f"Experiment 1: Top-{top_k} Features Comparison",
@@ -201,7 +168,6 @@ for top_k in top_k_values:
         show=False,
     )
 
-    # Collect for HTML Report
     report_sections.append({
         "section_title": f"Top-{top_k} Features Evaluation",
         "results": results,
@@ -216,20 +182,15 @@ for top_k in top_k_values:
     })
 
 
-# ==============================================================================
-# EXPERIMENT 1 SUMMARY
-# ==============================================================================
 print("\n\n" + "=" * 70)
 print("  EXPERIMENT 1 SUMMARY")
 print("=" * 70)
 
-# Compare best algorithm from each Top-K group
 for top_k, results in all_exp1_results.items():
     best_name = max(results, key=lambda k: results[k].get("f1", 0))
     best_f1 = results[best_name]["f1"]
     print(f"\n  {top_k}: Best = {best_name} (F1={best_f1:.6f})")
 
-# Export Comprehensive HTML Report
 export_multi_section_report(
     report_sections, 
     title="IDS Thesis - Experiment 1: RF Feature Importance Analysis",

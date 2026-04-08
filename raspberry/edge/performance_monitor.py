@@ -1,15 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Performance Monitor \u2014 Raspberry Pi Edge IDS.
-
-Background thread that samples system resources (CPU, memory, disk I/O,
-CPU temperature) and prediction throughput at configurable intervals.
-Optionally pushes time-series data to InfluxDB for Grafana dashboards.
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import sys
@@ -22,28 +12,21 @@ from config import METRICS_PUSH_INTERVAL
 
 
 class PerformanceMonitor:
-    """
-    Tracks system performance and prediction throughput on the edge device.
-    Designed for lightweight monitoring on Raspberry Pi.
-    """
 
     def __init__(self, influxdb_storage=None, push_interval=None):
         self.influxdb_storage = influxdb_storage
         self.push_interval = push_interval or METRICS_PUSH_INTERVAL
 
-        # Counters
         self._predictions_count = 0
         self._attacks_count = 0
         self._total_inference_ms = 0.0
         self._window_start = time.time()
 
-        # Background thread
         self._running = False
         self._thread = None
         self._lock = threading.Lock()
 
     def record_prediction(self, inference_time_ms: float, is_attack: bool):
-        """Record a single prediction event."""
         with self._lock:
             self._predictions_count += 1
             self._total_inference_ms += inference_time_ms
@@ -51,12 +34,10 @@ class PerformanceMonitor:
                 self._attacks_count += 1
 
     def get_system_metrics(self) -> dict:
-        """Capture current system resource usage."""
         cpu_percent = psutil.cpu_percent(interval=0.5)
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage("/")
 
-        # CPU temperature (Raspberry Pi specific)
         cpu_temp = None
         try:
             temps = psutil.sensors_temperatures()
@@ -75,7 +56,6 @@ class PerformanceMonitor:
         }
 
     def get_throughput_metrics(self) -> dict:
-        """Calculate throughput metrics for the current window."""
         with self._lock:
             elapsed = time.time() - self._window_start
             throughput = self._predictions_count / elapsed if elapsed > 0 else 0
@@ -90,7 +70,6 @@ class PerformanceMonitor:
                 "window_seconds": round(elapsed, 1),
             }
 
-            # Reset window
             self._predictions_count = 0
             self._attacks_count = 0
             self._total_inference_ms = 0.0
@@ -99,7 +78,6 @@ class PerformanceMonitor:
         return metrics
 
     def _push_metrics_loop(self):
-        """Background loop that periodically pushes metrics."""
         while self._running:
             time.sleep(self.push_interval)
             if not self._running:
@@ -110,7 +88,6 @@ class PerformanceMonitor:
 
             combined = {**system, **throughput}
 
-            # Print to console
             print(f"\n  [MONITOR] CPU: {system['cpu_percent']}% | "
                   f"MEM: {system['memory_percent']}% "
                   f"({system['memory_used_mb']}MB) | "
@@ -121,7 +98,6 @@ class PerformanceMonitor:
             if system.get("cpu_temp_celsius"):
                 print(f"           Temp: {system['cpu_temp_celsius']}°C")
 
-            # Push to InfluxDB if available
             if self.influxdb_storage:
                 try:
                     self.influxdb_storage.write_metrics(combined)
@@ -129,7 +105,6 @@ class PerformanceMonitor:
                     print(f"  [WARN] Failed to push metrics: {e}")
 
     def start(self):
-        """Start the background monitoring thread."""
         if self._running:
             return
         self._running = True
@@ -138,7 +113,6 @@ class PerformanceMonitor:
         print(f"[OK] Performance Monitor started (interval: {self.push_interval}s)")
 
     def stop(self):
-        """Stop the background monitoring thread."""
         self._running = False
         if self._thread:
             self._thread.join(timeout=5)

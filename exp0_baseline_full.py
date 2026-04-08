@@ -1,18 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Experiment 0 — Baseline Evaluation Using All Features.
-
-Trains every classifier on the full CICIDS2017 feature set (no feature
-selection or dimensionality reduction) to establish baseline performance.
-Results serve as the reference point for subsequent experiments.
-
-Algorithms evaluated: DT, LR, SVM, NB, RF, GBT, XGBoost, LightGBM, MLP,
-Bagging Ensemble, Ensemble Voting.
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import time
@@ -34,9 +21,6 @@ from shared_utils import (
     StandardScaler,
 )
 
-# ==============================================================================
-# INITIALIZATION
-# ==============================================================================
 spark = create_spark_session("IDS_Exp0_Baseline_Full")
 df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
@@ -46,14 +30,9 @@ print("  EXPERIMENT 0: BASELINE - FULL FEATURE SET")
 print("=" * 70)
 print(f"  Total Features: {len(feature_cols)}")
 
-# Create output directory
-base_output = "/Users/thainguyenvu/Desktop/Thesis_IDS/exp0_results"
+base_output = os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "exp0_results")
 os.makedirs(base_output, exist_ok=True)
 
-# ==============================================================================
-# STEP 1: RUN ALL CLASSIFIERS
-# ==============================================================================
-# Configure Assembler and Scaler for ALL features
 assembler = VectorAssembler(
     inputCols=feature_cols, outputCol="features_raw", handleInvalid="keep",
 )
@@ -61,9 +40,6 @@ scaler = StandardScaler(
     inputCol="features_raw", outputCol="features_scaled", withStd=True, withMean=True,
 )
 
-# run_all_classifiers includes:
-# - Standalone models (DT, LR, SVM, NB, RF, GBT, XGB, LGBM, MLP)
-# - The new Bagging Ensemble (10x Best Model)
 results, trained_models = run_all_classifiers(
     assembler=assembler,
     scaler=scaler,
@@ -73,19 +49,13 @@ results, trained_models = run_all_classifiers(
     num_features=len(feature_cols),
 )
 
-# Step 2: Majority Voting Ensemble
 print("\n--- Running Ensemble Voting (Majority Voting) ---")
 ens_metrics = ensemble_voting(trained_models, test_df, results=results)
 if ens_metrics:
     results["Ensemble Voting"] = ens_metrics
 
-# ==============================================================================
-# VISUALIZATION & REPORTING
-# ==============================================================================
-# Results table
 print_summary_table(results, title="RESULTS: BASELINE (ALL FEATURES)")
 
-# Plotting
 plot_comparison(
     results,
     title="Experiment 0: Baseline All-Features Comparison",
@@ -123,7 +93,6 @@ plot_roc_curves(
     show=False,
 )
 
-# Export Comprehensive HTML Report
 report_sections = [{
     "section_title": "Baseline Performance Evaluation (Full Features)",
     "results": results,

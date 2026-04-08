@@ -1,19 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Save Multiple Models — Export DT, GBT, RF for RPi Benchmark Comparison.
-
-Trains and saves three PySpark PipelineModels (Decision Tree, GBT,
-Random Forest) with the SHAP Top-30 feature set.  Each model is saved
-to a separate directory under ``model/`` for independent benchmarking.
-
-Usage::
-
-    python scripts/save_all_models.py
-
-Author  : Thai Nguyen Vu
-Thesis  : Machine-Learning-Based Intrusion Detection on Edge Devices
-"""
 
 import os
 import sys
@@ -64,7 +50,6 @@ def main():
     selected_features = [f for f in SHAP_TOP_FEATURES if f in feature_cols]
     print(f"  Using {len(selected_features)} SHAP features\n")
 
-    # Save feature columns once
     os.makedirs(MODEL_DIR, exist_ok=True)
     with open(FEATURES_PATH, "w") as f:
         json.dump(selected_features, f, indent=2)
@@ -102,18 +87,15 @@ def main():
         model = pipeline.fit(train_df)
         train_time = time.time() - start
 
-        # Evaluate
         predictions = model.transform(test_df)
         metrics = compute_metrics(predictions)
 
-        # Save model
         safe_name = model_name.lower().replace(" ", "_")
         model_path = os.path.join(MODEL_DIR, f"ids_pipeline_{safe_name}")
         if os.path.exists(model_path):
             shutil.rmtree(model_path)
         model.save(model_path)
 
-        # Model size
         total_size = 0
         for dirpath, _, filenames in os.walk(model_path):
             for fn in filenames:
@@ -133,7 +115,6 @@ def main():
         print(f"  Train: {train_time:.1f}s | Size: {info['model_size_mb']:.3f} MB")
         print(f"  Saved: {model_path}")
 
-    # Summary
     print("\n" + "=" * 60)
     print("  ALL MODELS SAVED")
     print("=" * 60)
@@ -145,7 +126,6 @@ def main():
     print(f"\n  Copy to RPi:")
     print(f"    scp -r {MODEL_DIR} pi@<rpi-ip>:~/raspberry/model/")
 
-    # Save results JSON
     results_path = os.path.join(MODEL_DIR, "models_info.json")
     with open(results_path, "w") as f:
         json.dump(results, f, indent=2)
