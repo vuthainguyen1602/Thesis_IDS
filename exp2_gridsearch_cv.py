@@ -142,7 +142,7 @@ cv_rf_time = time.time() - start
 
 # Print best params
 rf_best = cv_rf_model.bestModel.stages[-1]
-print(f"[BEST] RF: numTrees={rf_best.getOrDefault(rf.numTrees)}, maxDepth={rf_best.getOrDefault(rf.maxDepth)}")
+print(f"[BEST] RF: numTrees={rf_best.getOrDefault('numTrees')}, maxDepth={rf_best.getOrDefault('maxDepth')}")
 
 start_pred = time.time()
 predictions_rf = cv_rf_model.bestModel.transform(test_df)
@@ -169,7 +169,7 @@ cv_dt_time = time.time() - start
 
 # Print best params
 dt_best = cv_dt_model.bestModel.stages[-1]
-print(f"[BEST] DT: maxDepth={dt_best.getOrDefault(dt.maxDepth)}, impurity={dt_best.getOrDefault(dt.impurity)}")
+print(f"[BEST] DT: maxDepth={dt_best.getOrDefault('maxDepth')}, impurity={dt_best.getOrDefault('impurity')}")
 
 start_pred = time.time()
 predictions_dt = cv_dt_model.bestModel.transform(test_df)
@@ -196,7 +196,7 @@ cv_gbt_time = time.time() - start
 
 # Print best params
 gbt_best = cv_gbt_model.bestModel.stages[-1]
-print(f"[BEST] GBT: maxIter={gbt_best.getOrDefault(gbt.maxIter)}, maxDepth={gbt_best.getOrDefault(gbt.maxDepth)}")
+print(f"[BEST] GBT: maxIter={gbt_best.getOrDefault('maxIter')}, maxDepth={gbt_best.getOrDefault('maxDepth')}")
 
 start_pred = time.time()
 predictions_gbt = cv_gbt_model.bestModel.transform(test_df)
@@ -223,7 +223,7 @@ cv_lr_time = time.time() - start
 
 # Print best params
 lr_best = cv_lr_model.bestModel.stages[-1]
-print(f"[BEST] LR: regParam={lr_best.getOrDefault(lr.regParam)}, elasticNetParam={lr_best.getOrDefault(lr.elasticNetParam)}")
+print(f"[BEST] LR: regParam={lr_best.getOrDefault('regParam')}, elasticNetParam={lr_best.getOrDefault('elasticNetParam')}")
 
 start_pred = time.time()
 predictions_lr = cv_lr_model.bestModel.transform(test_df)
@@ -253,7 +253,7 @@ if HAS_XGBOOST:
     
     # Print best params
     xgb_best = cv_xgb_model.bestModel.stages[-1]
-    print(f"[BEST] XGBoost: max_depth={xgb_best.getOrDefault(xgb.max_depth)}, learning_rate={xgb_best.getOrDefault(xgb.learning_rate)}")
+    print(f"[BEST] XGBoost: max_depth={xgb_best.getOrDefault('max_depth')}, learning_rate={xgb_best.getOrDefault('learning_rate')}")
     
     start_pred = time.time()
     predictions_xgb = cv_xgb_model.bestModel.transform(test_df)
@@ -282,7 +282,7 @@ if HAS_LIGHTGBM:
     
     # Print best params
     lgbm_best = cv_lgbm_model.bestModel.stages[-1]
-    print(f"[BEST] LightGBM: numLeaves={lgbm_best.getOrDefault(lgbm.numLeaves)}, learningRate={lgbm_best.getOrDefault(lgbm.learningRate)}")
+    print(f"[BEST] LightGBM: numLeaves={lgbm_best.getOrDefault('numLeaves')}, learningRate={lgbm_best.getOrDefault('learningRate')}")
     
     start_pred = time.time()
     predictions_lgbm = cv_lgbm_model.bestModel.transform(test_df)
@@ -310,7 +310,7 @@ cv_mlp_time = time.time() - start
 
 # Print best params
 mlp_best = cv_mlp_model.bestModel.stages[-1]
-print(f"[BEST] MLP: layers={mlp_best.getOrDefault(mlp.layers)}, maxIter={mlp_best.getOrDefault(mlp.maxIter)}")
+print(f"[BEST] MLP: layers={mlp_best.getOrDefault('layers')}, maxIter={mlp_best.getOrDefault('maxIter')}")
 
 start_pred = time.time()
 predictions_mlp = cv_mlp_model.bestModel.transform(test_df)
@@ -341,7 +341,7 @@ from shared_utils import train_hybrid_bagging
 # Extract tuned estimators (not fitted models) for bagging
 # RF
 rf_best = cv_rf_model.bestModel.stages[-1]
-rf_tuned = RandomForestClassifier(featuresCol=features_col, labelCol="label_binary", numTrees=rf_best.getOrDefault(rf.numTrees), maxDepth=rf_best.getOrDefault(rf.maxDepth), seed=42)
+rf_tuned = RandomForestClassifier(featuresCol=features_col, labelCol="label_binary", numTrees=rf_best.getOrDefault("numTrees"), maxDepth=rf_best.getOrDefault("maxDepth"), seed=42)
 pipeline_rf_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [rf_tuned])
 
 # Distribution: 3x Tuned RF + 2x Tuned XGB + 2x Tuned LGBM (if available)
@@ -350,14 +350,14 @@ pipeline_dist_tuned = [(pipeline_rf_t, 3)]
 if HAS_XGBOOST:
     from shared_utils import SparkXGBClassifier
     xgb_best = cv_xgb_model.bestModel.stages[-1]
-    xgb_tuned = SparkXGBClassifier(features_col=features_col, label_col="label_binary", max_depth=xgb_best.getOrDefault(xgb.max_depth), learning_rate=xgb_best.getOrDefault(xgb.learning_rate), num_workers=4)
+    xgb_tuned = SparkXGBClassifier(features_col=features_col, label_col="label_binary", max_depth=xgb_best.getOrDefault("max_depth"), learning_rate=xgb_best.getOrDefault("learning_rate"), num_workers=4)
     pipeline_xgb_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [xgb_tuned])
     pipeline_dist_tuned.append((pipeline_xgb_t, 2))
 
 if HAS_LIGHTGBM:
     from shared_utils import LightGBMClassifier
     lgbm_best = cv_lgbm_model.bestModel.stages[-1]
-    lgbm_tuned = LightGBMClassifier(featuresCol=features_col, labelCol="label_binary", numLeaves=lgbm_best.getOrDefault(lgbm.numLeaves), learningRate=lgbm_best.getOrDefault(lgbm.learningRate), objective="binary")
+    lgbm_tuned = LightGBMClassifier(featuresCol=features_col, labelCol="label_binary", numLeaves=lgbm_best.getOrDefault("numLeaves"), learningRate=lgbm_best.getOrDefault("learningRate"), objective="binary")
     pipeline_lgbm_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [lgbm_tuned])
     pipeline_dist_tuned.append((pipeline_lgbm_t, 2))
 
