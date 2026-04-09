@@ -35,6 +35,7 @@ from shared_utils import (
     PCA,
     get_model_size,
     _get_param,
+    _get_best_params,
 )
 
 spark = create_spark_session("IDS_Exp2_GridSearch_CV")
@@ -117,8 +118,8 @@ cv_rf = CrossValidator(estimator=pipeline_rf, estimatorParamMaps=rf_grid, evalua
 cv_rf_model = cv_rf.fit(train_df)
 cv_rf_time = time.time() - start
 
-rf_best = cv_rf_model.bestModel.stages[-1]
-print(f"[BEST] RF: numTrees={_get_param(rf_best, 'numTrees')}, maxDepth={_get_param(rf_best, 'maxDepth')}")
+rf_best_params = _get_best_params(cv_rf_model, rf_grid)
+print(f"[BEST] RF: numTrees={rf_best_params.get('numTrees')}, maxDepth={rf_best_params.get('maxDepth')}")
 
 start_pred = time.time()
 predictions_rf = cv_rf_model.bestModel.transform(test_df)
@@ -219,9 +220,9 @@ if HAS_XGBOOST:
     cv_xgb = CrossValidator(estimator=pipeline_xgb, estimatorParamMaps=xgb_grid, evaluator=evaluator_cv, numFolds=3, parallelism=2, seed=42)
     cv_xgb_model = cv_xgb.fit(train_df)
     cv_xgb_time = time.time() - start
-    
-    xgb_best = cv_xgb_model.bestModel.stages[-1]
-    print(f"[BEST] XGBoost: max_depth={_get_param(xgb_best, 'max_depth')}, learning_rate={_get_param(xgb_best, 'learning_rate')}")
+
+    xgb_best_params = _get_best_params(cv_xgb_model, xgb_grid)
+    print(f"[BEST] XGBoost: max_depth={xgb_best_params.get('max_depth')}, learning_rate={xgb_best_params.get('learning_rate')}")
     
     start_pred = time.time()
     predictions_xgb = cv_xgb_model.bestModel.transform(test_df)
@@ -246,9 +247,9 @@ if HAS_LIGHTGBM:
     cv_lgbm = CrossValidator(estimator=pipeline_lgbm, estimatorParamMaps=lgbm_grid, evaluator=evaluator_cv, numFolds=3, parallelism=2, seed=42)
     cv_lgbm_model = cv_lgbm.fit(train_df)
     cv_lgbm_time = time.time() - start
-    
-    lgbm_best = cv_lgbm_model.bestModel.stages[-1]
-    print(f"[BEST] LightGBM: numLeaves={_get_param(lgbm_best, 'numLeaves')}, learningRate={_get_param(lgbm_best, 'learningRate')}")
+
+    lgbm_best_params = _get_best_params(cv_lgbm_model, lgbm_grid)
+    print(f"[BEST] LightGBM: numLeaves={lgbm_best_params.get('numLeaves')}, learningRate={lgbm_best_params.get('learningRate')}")
     
     start_pred = time.time()
     predictions_lgbm = cv_lgbm_model.bestModel.transform(test_df)
@@ -298,23 +299,36 @@ if ens_metrics:
 print(f"\n{'━' * 70}\n  2i. Hybrid Bagging Ensemble (Tuned Models)\n{'━' * 70}")
 from shared_utils import train_hybrid_bagging
 
-rf_best = cv_rf_model.bestModel.stages[-1]
-rf_tuned = RandomForestClassifier(featuresCol=features_col, labelCol="label_binary", numTrees=_get_param(rf_best, "numTrees"), maxDepth=_get_param(rf_best, "maxDepth"), seed=42)
+# Lấy best params trực tiếp từ avgMetrics index - đáng tin cậy 100%
+rf_tuned = RandomForestClassifier(
+    featuresCol=features_col, labelCol="label_binary",
+    numTrees=int(rf_best_params.get("numTrees", 200)),
+    maxDepth=int(rf_best_params.get("maxDepth", 15)),
+    seed=42,
+)
 pipeline_rf_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [rf_tuned])
 
 pipeline_dist_tuned = [(pipeline_rf_t, 3)]
 
 if HAS_XGBOOST:
     from shared_utils import SparkXGBClassifier
-    xgb_best = cv_xgb_model.bestModel.stages[-1]
-    xgb_tuned = SparkXGBClassifier(features_col=features_col, label_col="label_binary", max_depth=_get_param(xgb_best, "max_depth"), learning_rate=_get_param(xgb_best, "learning_rate"), num_workers=4)
+    xgb_tuned = SparkXGBClassifier(
+        features_col=features_col, label_col="label_binary",
+        max_depth=int(xgb_best_params.get("max_depth", 8)),
+        learning_rate=float(xgb_best_params.get("learning_rate", 0.05)),
+        num_workers=4,
+    )
     pipeline_xgb_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [xgb_tuned])
     pipeline_dist_tuned.append((pipeline_xgb_t, 2))
 
 if HAS_LIGHTGBM:
     from shared_utils import LightGBMClassifier
-    lgbm_best = cv_lgbm_model.bestModel.stages[-1]
-    lgbm_tuned = LightGBMClassifier(featuresCol=features_col, labelCol="label_binary", numLeaves=_get_param(lgbm_best, "numLeaves"), learningRate=_get_param(lgbm_best, "learningRate"), objective="binary")
+    lgbm_tuned = LightGBMClassifier(
+        featuresCol=features_col, labelCol="label_binary",
+        numLeaves=int(lgbm_best_params.get("numLeaves", 63)),
+        learningRate=float(lgbm_best_params.get("learningRate", 0.05)),
+        objective="binary",
+    )
     pipeline_lgbm_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [lgbm_tuned])
     pipeline_dist_tuned.append((pipeline_lgbm_t, 2))
 

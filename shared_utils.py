@@ -387,24 +387,64 @@ def get_model_size(model) -> float:
                 pass
 
 
-def _get_param(model, param_name: str):
+def _get_param(model, param_name: str, default=None):
+    """
+    Robust parameter extraction from PySpark, XGBoost, or SynapseML models.
+    Tries multiple naming conventions and fallback mechanisms.
+    """
+    # 1. Try standard getter (e.g., getNumTrees)
     getter = "get" + param_name[0].upper() + param_name[1:]
     if hasattr(model, getter):
         try:
-            return getattr(model, getter)()
+            val = getattr(model, getter)()
+            if val is not None: return val
         except Exception:
             pass
+
+    # 2. Try variations of the name (camelCase vs snake_case)
+    variations = [param_name]
+    if "_" in param_name:
+        parts = param_name.split("_")
+        variations.append(parts[0] + "".join(p.capitalize() for p in parts[1:]))
+    else:
+        import re
+        s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", param_name)
+        variations.append(re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower())
+
+    # Remove duplicates
+    variations = list(dict.fromkeys(variations))
+
+    # 3. Try extractParamMap
     try:
         pmap = {p.name: v for p, v in model.extractParamMap().items()}
-        if param_name in pmap:
-            return pmap[param_name]
+        for var in variations:
+            if var in pmap:
+                return pmap[var]
     except Exception:
         pass
-    try:
-        return model.getOrDefault(param_name)
-    except Exception:
-        pass
-    return "N/A"
+
+    # 4. Try getOrDefault with variations
+    for var in variations:
+        try:
+            val = model.getOrDefault(var)
+            if val is not None: return val
+        except Exception:
+            pass
+
+    # 5. Try direct attribute access
+    for var in variations:
+        if hasattr(model, var):
+            val = getattr(model, var)
+            if "pyspark.ml.param.Param" not in str(type(val)):
+                return val
+
+    return default if default is not None else "N/A"
+
+
+def _get_best_params(cv_model, param_grid):
+    best_idx = int(np.argmax(cv_model.avgMetrics))
+    best_param_map = param_grid[best_idx]
+    return {p.name: v for p, v in best_param_map.items()}
 
 
 def train_and_evaluate(pipeline, train_df, test_df, title: str = "") -> tuple:
