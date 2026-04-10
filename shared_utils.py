@@ -1075,13 +1075,6 @@ def print_summary_table(results: dict, title: str = "") -> None:
     print(df[available].to_string())
     print(f"{'=' * 100}")
 
-
-from reporting.report_generator import (
-    export_results_to_html,
-    export_multi_section_report,
-)
-
-
 def shap_explain_model(
     spark_model, test_df, feature_cols: list, output_dir: str,
     sample_size: int = 1000, label_col: str = "label_binary",
