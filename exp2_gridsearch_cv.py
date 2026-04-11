@@ -6,6 +6,7 @@ import time
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
+from reporting import export_multi_section_report
 
 from shared_utils import (
     create_spark_session,
@@ -21,7 +22,6 @@ from shared_utils import (
     plot_confusion_matrices,
     plot_roc_curves,
     print_summary_table,
-    export_multi_section_report,
     Pipeline,
     VectorAssembler,
     StandardScaler,
@@ -40,6 +40,10 @@ from shared_utils import (
 
 spark = create_spark_session("IDS_Exp2_GridSearch_CV")
 df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
+
+# TEMPORARY LIMIT
+train_df = train_df.limit(500)
+test_df = test_df.limit(500)
 
 print("\n")
 print("=" * 70)

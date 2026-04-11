@@ -4,6 +4,7 @@
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+from reporting import export_multi_section_report, export_results_to_html
 
 from shared_utils import (
     create_spark_session,
@@ -18,8 +19,6 @@ from shared_utils import (
     plot_confusion_matrices,
     plot_roc_curves,
     print_summary_table,
-    export_results_to_html,
-    export_multi_section_report,
     Pipeline,
     VectorAssembler,
     StandardScaler,

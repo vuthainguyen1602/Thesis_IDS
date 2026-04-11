@@ -8,6 +8,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
+from reporting import export_multi_section_report, export_results_to_html
+
 from shared_utils import (
     create_spark_session,
     load_and_prepare_data,
@@ -17,7 +19,6 @@ from shared_utils import (
     print_metrics,
     print_summary_table,
     shap_explain_model,
-    export_multi_section_report,
     Pipeline,
     VectorAssembler,
     StandardScaler,

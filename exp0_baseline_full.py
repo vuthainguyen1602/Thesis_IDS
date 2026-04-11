@@ -3,6 +3,7 @@
 
 import os
 import time
+from reporting import export_multi_section_report
 from shared_utils import (
     create_spark_session,
     load_and_prepare_data,
@@ -15,7 +16,6 @@ from shared_utils import (
     plot_confusion_matrices,
     plot_roc_curves,
     print_summary_table,
-    export_multi_section_report,
     Pipeline,
     VectorAssembler,
     StandardScaler,
