@@ -116,9 +116,13 @@ print(f"\n{'━' * 70}\n  2a. Grid Search + CV: RANDOM FOREST\n{'━' * 70}")
 rf = RandomForestClassifier(featuresCol=features_col, labelCol="label_binary", seed=42)
 pipeline_rf = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [rf])
 
-rf_grid = ParamGridBuilder().addGrid(rf.numTrees, [200, 300]).addGrid(rf.maxDepth, [15, 20]).build()
+rf_grid = ParamGridBuilder() \
+    .addGrid(rf.numTrees, [200, 300]) \
+    .addGrid(rf.maxDepth, [10, 15, 20]) \
+    .addGrid(rf.minInstancesPerNode, [1, 5]) \
+    .build()
 start = time.time()
-cv_rf = CrossValidator(estimator=pipeline_rf, estimatorParamMaps=rf_grid, evaluator=evaluator_cv, numFolds=3, parallelism=4, seed=42)
+cv_rf = CrossValidator(estimator=pipeline_rf, estimatorParamMaps=rf_grid, evaluator=evaluator_cv, numFolds=5, parallelism=4, seed=42)
 cv_rf_model = cv_rf.fit(train_df)
 cv_rf_time = time.time() - start
 
@@ -141,9 +145,13 @@ print(f"\n{'━' * 70}\n  2b. Grid Search + CV: DECISION TREE\n{'━' * 70}")
 dt = DecisionTreeClassifier(featuresCol=features_col, labelCol="label_binary", seed=42)
 pipeline_dt = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [dt])
 
-dt_grid = ParamGridBuilder().addGrid(dt.maxDepth, [15, 20]).addGrid(dt.impurity, ["gini", "entropy"]).build()
+dt_grid = ParamGridBuilder() \
+    .addGrid(dt.maxDepth, [10, 15, 20]) \
+    .addGrid(dt.impurity, ["gini", "entropy"]) \
+    .addGrid(dt.minInstancesPerNode, [1, 5]) \
+    .build()
 start = time.time()
-cv_dt = CrossValidator(estimator=pipeline_dt, estimatorParamMaps=dt_grid, evaluator=evaluator_cv, numFolds=3, parallelism=4, seed=42)
+cv_dt = CrossValidator(estimator=pipeline_dt, estimatorParamMaps=dt_grid, evaluator=evaluator_cv, numFolds=5, parallelism=4, seed=42)
 cv_dt_model = cv_dt.fit(train_df)
 cv_dt_time = time.time() - start
 
@@ -166,9 +174,13 @@ print(f"\n{'━' * 70}\n  2c. Grid Search + CV: GBT\n{'━' * 70}")
 gbt = GBTClassifier(featuresCol=features_col, labelCol="label_binary", seed=42)
 pipeline_gbt = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [gbt])
 
-gbt_grid = ParamGridBuilder().addGrid(gbt.maxIter, [100, 150]).addGrid(gbt.maxDepth, [5, 8]).build()
+gbt_grid = ParamGridBuilder() \
+    .addGrid(gbt.maxIter, [100, 150]) \
+    .addGrid(gbt.maxDepth, [5, 6, 8]) \
+    .addGrid(gbt.stepSize, [0.05, 0.1]) \
+    .build()
 start = time.time()
-cv_gbt = CrossValidator(estimator=pipeline_gbt, estimatorParamMaps=gbt_grid, evaluator=evaluator_cv, numFolds=3, parallelism=2, seed=42)
+cv_gbt = CrossValidator(estimator=pipeline_gbt, estimatorParamMaps=gbt_grid, evaluator=evaluator_cv, numFolds=5, parallelism=2, seed=42)
 cv_gbt_model = cv_gbt.fit(train_df)
 cv_gbt_time = time.time() - start
 
@@ -191,9 +203,12 @@ print(f"\n{'━' * 70}\n  2d. Grid Search + CV: LOGISTIC REGRESSION\n{'━' * 70
 lr = LogisticRegression(featuresCol=features_col, labelCol="label_binary", family="binomial")
 pipeline_lr = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [lr])
 
-lr_grid = ParamGridBuilder().addGrid(lr.regParam, [0.01, 0.1]).addGrid(lr.elasticNetParam, [0.0, 0.5, 0.8]).build()
+lr_grid = ParamGridBuilder() \
+    .addGrid(lr.regParam, [0.001, 0.01, 0.1]) \
+    .addGrid(lr.elasticNetParam, [0.0, 0.5, 0.8]) \
+    .build()
 start = time.time()
-cv_lr = CrossValidator(estimator=pipeline_lr, estimatorParamMaps=lr_grid, evaluator=evaluator_cv, numFolds=3, parallelism=4, seed=42)
+cv_lr = CrossValidator(estimator=pipeline_lr, estimatorParamMaps=lr_grid, evaluator=evaluator_cv, numFolds=5, parallelism=4, seed=42)
 cv_lr_model = cv_lr.fit(train_df)
 cv_lr_time = time.time() - start
 
@@ -219,9 +234,13 @@ if HAS_XGBOOST:
     print(f"\n{'━' * 70}\n  2e. Grid Search + CV: XGBOOST\n{'━' * 70}")
     xgb = SparkXGBClassifier(features_col=features_col, label_col="label_binary", num_workers=4)
     pipeline_xgb = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [xgb])
-    xgb_grid = ParamGridBuilder().addGrid(xgb.max_depth, [5, 8]).addGrid(xgb.learning_rate, [0.05, 0.1]).build()
+    xgb_grid = ParamGridBuilder() \
+        .addGrid(xgb.n_estimators, [100, 300]) \
+        .addGrid(xgb.max_depth, [5, 8]) \
+        .addGrid(xgb.learning_rate, [0.05, 0.1]) \
+        .build()
     start = time.time()
-    cv_xgb = CrossValidator(estimator=pipeline_xgb, estimatorParamMaps=xgb_grid, evaluator=evaluator_cv, numFolds=3, parallelism=2, seed=42)
+    cv_xgb = CrossValidator(estimator=pipeline_xgb, estimatorParamMaps=xgb_grid, evaluator=evaluator_cv, numFolds=5, parallelism=2, seed=42)
     cv_xgb_model = cv_xgb.fit(train_df)
     cv_xgb_time = time.time() - start
 
@@ -246,9 +265,13 @@ if HAS_LIGHTGBM:
     print(f"\n{'━' * 70}\n  2f. Grid Search + CV: LIGHTGBM\n{'━' * 70}")
     lgbm = LightGBMClassifier(featuresCol=features_col, labelCol="label_binary", objective="binary")
     pipeline_lgbm = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [lgbm])
-    lgbm_grid = ParamGridBuilder().addGrid(lgbm.numLeaves, [31, 63]).addGrid(lgbm.learningRate, [0.05, 0.1]).build()
+    lgbm_grid = ParamGridBuilder() \
+        .addGrid(lgbm.numIterations, [100, 300]) \
+        .addGrid(lgbm.numLeaves, [31, 63]) \
+        .addGrid(lgbm.learningRate, [0.05, 0.1]) \
+        .build()
     start = time.time()
-    cv_lgbm = CrossValidator(estimator=pipeline_lgbm, estimatorParamMaps=lgbm_grid, evaluator=evaluator_cv, numFolds=3, parallelism=2, seed=42)
+    cv_lgbm = CrossValidator(estimator=pipeline_lgbm, estimatorParamMaps=lgbm_grid, evaluator=evaluator_cv, numFolds=5, parallelism=2, seed=42)
     cv_lgbm_model = cv_lgbm.fit(train_df)
     cv_lgbm_time = time.time() - start
 
@@ -272,9 +295,13 @@ print(f"\n{'━' * 70}\n  2g. Grid Search + CV: MLP\n{'━' * 70}")
 layers_opts = [[num_features, 64, 32, 2], [num_features, 128, 64, 32, 2]]
 mlp = MultilayerPerceptronClassifier(featuresCol=features_col, labelCol="label_binary", seed=42)
 pipeline_mlp = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [mlp])
-mlp_grid = ParamGridBuilder().addGrid(mlp.layers, layers_opts).addGrid(mlp.maxIter, [100, 200]).build()
+mlp_grid = ParamGridBuilder() \
+    .addGrid(mlp.layers, layers_opts) \
+    .addGrid(mlp.maxIter, [100, 200]) \
+    .addGrid(mlp.stepSize, [0.01, 0.05]) \
+    .build()
 start = time.time()
-cv_mlp = CrossValidator(estimator=pipeline_mlp, estimatorParamMaps=mlp_grid, evaluator=evaluator_cv, numFolds=3, parallelism=4, seed=42)
+cv_mlp = CrossValidator(estimator=pipeline_mlp, estimatorParamMaps=mlp_grid, evaluator=evaluator_cv, numFolds=5, parallelism=4, seed=42)
 cv_mlp_model = cv_mlp.fit(train_df)
 cv_mlp_time = time.time() - start
 
@@ -336,7 +363,10 @@ if HAS_LIGHTGBM:
     pipeline_lgbm_t = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [lgbm_tuned])
     pipeline_dist_tuned.append((pipeline_lgbm_t, 2))
 
+start_bag_train = time.time()
 bag_model_tuned = train_hybrid_bagging(pipeline_dist_tuned, train_df)
+bag_train_time = time.time() - start_bag_train
+
 if bag_model_tuned:
     start_pred = time.time()
     bag_preds_tuned = bag_model_tuned.transform(test_df)
@@ -344,7 +374,7 @@ if bag_model_tuned:
     bag_pred_time_tuned = time.time() - start_pred
     
     metrics_bag_tuned = compute_metrics(bag_preds_tuned)
-    metrics_bag_tuned["training_time"] = 0.0
+    metrics_bag_tuned["training_time"] = bag_train_time
     metrics_bag_tuned["prediction_time"] = bag_pred_time_tuned
     
     total_size_bag = 0.0
