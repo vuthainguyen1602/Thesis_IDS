@@ -118,7 +118,7 @@ pipeline_rf = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [rf])
 
 rf_grid = ParamGridBuilder() \
     .addGrid(rf.numTrees, [200, 300]) \
-    .addGrid(rf.maxDepth, [10, 15, 20]) \
+    .addGrid(rf.maxDepth, [15, 20]) \
     .addGrid(rf.minInstancesPerNode, [1, 5]) \
     .build()
 start = time.time()
@@ -146,7 +146,7 @@ dt = DecisionTreeClassifier(featuresCol=features_col, labelCol="label_binary", s
 pipeline_dt = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [dt])
 
 dt_grid = ParamGridBuilder() \
-    .addGrid(dt.maxDepth, [10, 15, 20]) \
+    .addGrid(dt.maxDepth, [15, 20]) \
     .addGrid(dt.impurity, ["gini", "entropy"]) \
     .addGrid(dt.minInstancesPerNode, [1, 5]) \
     .build()
@@ -176,7 +176,7 @@ pipeline_gbt = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [gbt])
 
 gbt_grid = ParamGridBuilder() \
     .addGrid(gbt.maxIter, [100, 150]) \
-    .addGrid(gbt.maxDepth, [5, 6, 8]) \
+    .addGrid(gbt.maxDepth, [6, 8]) \
     .addGrid(gbt.stepSize, [0.05, 0.1]) \
     .build()
 start = time.time()
@@ -204,8 +204,8 @@ lr = LogisticRegression(featuresCol=features_col, labelCol="label_binary", famil
 pipeline_lr = Pipeline(stages=[assembler_cv, scaler_cv] + extra_stages + [lr])
 
 lr_grid = ParamGridBuilder() \
-    .addGrid(lr.regParam, [0.001, 0.01, 0.1]) \
-    .addGrid(lr.elasticNetParam, [0.0, 0.5, 0.8]) \
+    .addGrid(lr.regParam, [0.01, 0.1]) \
+    .addGrid(lr.elasticNetParam, [0.5, 0.8]) \
     .build()
 start = time.time()
 cv_lr = CrossValidator(estimator=pipeline_lr, estimatorParamMaps=lr_grid, evaluator=evaluator_cv, numFolds=5, parallelism=4, seed=42)
@@ -330,7 +330,6 @@ if ens_metrics:
 print(f"\n{'━' * 70}\n  2i. Hybrid Bagging Ensemble (Tuned Models)\n{'━' * 70}")
 from shared_utils import train_hybrid_bagging
 
-# Lấy best params trực tiếp từ avgMetrics index - đáng tin cậy 100%
 rf_tuned = RandomForestClassifier(
     featuresCol=features_col, labelCol="label_binary",
     numTrees=int(rf_best_params.get("numTrees", 200)),
