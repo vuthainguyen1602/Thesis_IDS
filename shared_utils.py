@@ -22,9 +22,7 @@ os.environ["JAVA_HOME"] = "/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents
 os.environ["PATH"] = os.environ["JAVA_HOME"] + "/bin:" + os.environ["PATH"]
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--master local[4] pyspark-shell'
 
-import pyspark
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
+from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.functions import col, when, monotonically_increasing_id, udf, array
 from pyspark.sql.types import StringType, DoubleType
 from pyspark.ml.linalg import Vectors, VectorUDT
@@ -171,6 +169,7 @@ def get_classifiers(
     label_col: str = "label_binary",
     num_features: int = 50,
     scale_pos_weight: float = None,
+    seed: int = 42,
 ) -> OrderedDict:
     classifiers = OrderedDict()
 
@@ -180,7 +179,7 @@ def get_classifiers(
         maxDepth=15,
         minInstancesPerNode=5,
         impurity="entropy",
-        seed=42,
+        seed=seed,
     )
 
     classifiers["Logistic Regression"] = LogisticRegression(
@@ -216,7 +215,7 @@ def get_classifiers(
         minInstancesPerNode=5,
         featureSubsetStrategy="sqrt",
         subsamplingRate=1.0,
-        seed=42,
+        seed=seed,
     )
 
     classifiers["GBT"] = GBTClassifier(
@@ -226,7 +225,7 @@ def get_classifiers(
         maxDepth=6,
         stepSize=0.05,
         subsamplingRate=0.8,
-        seed=42,
+        seed=seed,
     )
 
     if HAS_XGBOOST:
@@ -274,7 +273,7 @@ def get_classifiers(
         maxIter=200,
         blockSize=128,
         stepSize=0.01,
-        seed=42,
+        seed=seed,
     )
 
     return classifiers
@@ -477,9 +476,6 @@ class BaggingModel:
             self.weights = [1.0 / len(models)] * len(models)
 
     def transform(self, df):
-        from pyspark.sql.functions import col, when, monotonically_increasing_id, udf
-        from pyspark.sql.types import DoubleType
-
         df_with_id = df.withColumn("_row_id", monotonically_increasing_id()).cache()
         df_with_id.count()
         
@@ -560,6 +556,7 @@ def train_hybrid_bagging(
     label_col: str = "label_binary",
     benign_ratio: float = 0.7, balanced: bool = True,
     feature_list: list = None, feature_subset_rate: float = 1.0,
+    seed_base: int = 42,
 ) -> BaggingModel:
     total_models = sum([count for _, count in pipeline_distribution])
     models = []
@@ -583,17 +580,17 @@ def train_hybrid_bagging(
             print(f"   - Building hybrid model {current_idx}/{total_models} (Balanced={balanced})...")
             
             if balanced:
-                attack_sample = attack_df.sample(withReplacement=True, fraction=1.0, seed=42 + current_idx)
-                benign_sample = benign_df.sample(withReplacement=True, fraction=min(benign_fraction, 10.0), seed=100 + current_idx)
+                attack_sample = attack_df.sample(withReplacement=True, fraction=1.0, seed=seed_base + current_idx)
+                benign_sample = benign_df.sample(withReplacement=True, fraction=min(benign_fraction, 10.0), seed=seed_base + 100 + current_idx)
                 bag_df = attack_sample.unionAll(benign_sample)
             else:
-                bag_df = full_train_df.sample(withReplacement=True, fraction=1.0, seed=42 + current_idx)
+                bag_df = full_train_df.sample(withReplacement=True, fraction=1.0, seed=seed_base + current_idx)
             
             bag_pipeline = base_pipeline.copy()
             
             if feature_list and feature_subset_rate < 1.0:
                 k = max(1, int(len(feature_list) * feature_subset_rate))
-                random.seed(42 + current_idx)
+                random.seed(seed_base + current_idx)
                 selected_features = random.sample(feature_list, k)
                 print(f"     * Feature Bagging: {k}/{len(feature_list)} random features selected")
                 
@@ -625,6 +622,7 @@ def run_all_classifiers(
     num_features: int,
     label_col: str = "label_binary",
     extra_stages=None,
+    seed: int = 42,
 ) -> tuple:
     class_counts = (
         train_df.groupBy(label_col).count().collect()
@@ -635,7 +633,9 @@ def run_all_classifiers(
     scale_pos_weight = float(benign_count) / float(attack_count) if attack_count > 0 else 1.0
     print(f"  Class ratio (Benign/Attack): {scale_pos_weight:.4f}")
 
-    classifiers = get_classifiers(features_col, label_col, num_features, scale_pos_weight=scale_pos_weight)
+    classifiers = get_classifiers(
+        features_col, label_col, num_features, scale_pos_weight=scale_pos_weight, seed=seed
+    )
 
     base_stages = [assembler, scaler]
     if extra_stages:
@@ -694,7 +694,7 @@ def run_all_classifiers(
         
         start_time = time.time()
         ensemble_model = train_hybrid_bagging(
-            pipeline_dist, train_df, balanced=False, feature_subset_rate=1.0
+            pipeline_dist, train_df, balanced=False, feature_subset_rate=1.0, seed_base=seed
         )
         ensemble_model.weights = [w / sum(total_weights) for w in total_weights]
         
@@ -1075,8 +1075,51 @@ def print_summary_table(results: dict, title: str = "") -> None:
     print(df[available].to_string())
     print(f"{'=' * 100}")
 
+
+def summarize_metric_runs(run_metrics: list, metric_keys: list = None) -> dict:
+    if metric_keys is None:
+        metric_keys = ["accuracy", "precision", "recall", "f1", "auc_roc", "auc_pr"]
+
+    if not run_metrics:
+        return {}
+
+    summary = {}
+    for key in metric_keys:
+        vals = [m.get(key) for m in run_metrics if m.get(key) is not None]
+        if not vals:
+            continue
+        arr = np.array(vals, dtype=float)
+        mean_val = float(np.mean(arr))
+        std_val = float(np.std(arr, ddof=1)) if len(arr) > 1 else 0.0
+        ci95_half = float(1.96 * std_val / np.sqrt(len(arr))) if len(arr) > 1 else 0.0
+        summary[f"{key}_mean"] = mean_val
+        summary[f"{key}_std"] = std_val
+        summary[f"{key}_ci95_low"] = mean_val - ci95_half
+        summary[f"{key}_ci95_high"] = mean_val + ci95_half
+        summary[f"{key}_n"] = len(arr)
+    return summary
+
+
+def permutation_pvalue(scores_a: list, scores_b: list, n_permutations: int = 2000, seed: int = 42) -> float:
+    if len(scores_a) != len(scores_b) or len(scores_a) < 2:
+        return 1.0
+
+    arr_a = np.array(scores_a, dtype=float)
+    arr_b = np.array(scores_b, dtype=float)
+    diffs = arr_a - arr_b
+    observed = abs(float(np.mean(diffs)))
+
+    rng = np.random.default_rng(seed)
+    extreme = 0
+    for _ in range(n_permutations):
+        signs = rng.choice([-1.0, 1.0], size=len(diffs))
+        perm_stat = abs(float(np.mean(diffs * signs)))
+        if perm_stat >= observed:
+            extreme += 1
+    return (extreme + 1.0) / (n_permutations + 1.0)
+
 def shap_explain_model(
-    spark_model, test_df, feature_cols: list, output_dir: str,
+    spark_model, df_to_explain, feature_cols: list, output_dir: str,
     sample_size: int = 1000, label_col: str = "label_binary",
 ) -> dict:
     import shap
@@ -1092,17 +1135,17 @@ def shap_explain_model(
     print("  SHAP EXPLAINABILITY ANALYSIS")
     print(f"{'─' * 60}")
     
-    print(f"  [1/5] Collecting {sample_size} test samples to Pandas...")
+    print(f"  [1/5] Collecting {sample_size} samples to Pandas for explanation...")
     
     select_cols = feature_cols + [label_col]
-    sample_df = test_df.select(select_cols).limit(sample_size)
+    sample_df = df_to_explain.select(select_cols).limit(sample_size)
     pdf = sample_df.toPandas()
     
-    X_test = pdf[feature_cols].values
-    y_test = pdf[label_col].values
+    X_explain = pdf[feature_cols].values
+    y_explain = pdf[label_col].values
     
-    print(f"        Collected: {X_test.shape[0]} samples, {X_test.shape[1]} features")
-    print(f"        Attack ratio: {y_test.mean():.2%}")
+    print(f"        Collected: {X_explain.shape[0]} samples, {X_explain.shape[1]} features")
+    print(f"        Attack ratio: {y_explain.mean():.2%}")
     
     print("  [2/5] Extracting XGBoost model from PipelineModel...")
     
@@ -1124,7 +1167,7 @@ def shap_explain_model(
     print("  [3/5] Computing SHAP values (TreeExplainer)...")
     
     explainer = shap.TreeExplainer(booster)
-    shap_values = explainer(X_test)
+    shap_values = explainer(X_explain)
     
     shap_values.feature_names = feature_cols
     
@@ -1152,7 +1195,7 @@ def shap_explain_model(
     saved_plots["importance_bar"] = path_bar
     print(f"        [INFO] Saved: {path_bar}")
     
-    attack_indices = np.where(y_test == 1)[0]
+    attack_indices = np.where(y_explain == 1)[0]
     if len(attack_indices) > 0:
         attack_idx = attack_indices[0]
         plt.figure(figsize=(12, 8))
@@ -1166,7 +1209,7 @@ def shap_explain_model(
         saved_plots["waterfall_attack"] = path_wf_attack
         print(f"        [INFO] Saved: {path_wf_attack}")
     
-    benign_indices = np.where(y_test == 0)[0]
+    benign_indices = np.where(y_explain == 0)[0]
     if len(benign_indices) > 0:
         benign_idx = benign_indices[0]
         plt.figure(figsize=(12, 8))

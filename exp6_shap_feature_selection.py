@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from reporting import export_multi_section_report, export_results_to_html
+from reporting import export_multi_section_report
 
 from shared_utils import (
     create_spark_session,
@@ -29,7 +29,7 @@ from shared_utils import (
 )
 
 spark = create_spark_session("IDS_Exp6_SHAP_Feature_Selection")
-df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
+_, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
 print("\n")
 print("=" * 70)
@@ -63,14 +63,14 @@ model_xgb, _, _ = train_and_evaluate(
     title="XGBoost Baseline (extract SHAP Importance)"
 )
 
-print("\n  Computing SHAP values on test sample...")
+print("\n  Computing SHAP values on training sample (to avoid data leakage)...")
 import shap
 
 sample_size = 2000
 select_cols = feature_cols + ["label_binary"]
-sample_df = test_df.select(select_cols).limit(sample_size)
+sample_df = train_df.select(select_cols).limit(sample_size)
 pdf = sample_df.toPandas()
-X_test = pdf[feature_cols].values
+X_sample = pdf[feature_cols].values
 
 xgb_model = None
 for stage in model_xgb.stages:
@@ -82,7 +82,7 @@ booster = xgb_model.get_booster()
 print(f"  Booster extracted: {booster.num_boosted_rounds()} rounds")
 
 explainer = shap.TreeExplainer(booster)
-shap_values = explainer(X_test)
+shap_values = explainer(X_sample)
 
 mean_abs_shap = np.abs(shap_values.values).mean(axis=0)
 shap_importance_df = pd.DataFrame({

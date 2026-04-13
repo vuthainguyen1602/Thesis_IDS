@@ -4,7 +4,7 @@
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
-from reporting import export_multi_section_report, export_results_to_html
+from reporting import export_multi_section_report
 
 from shared_utils import (
     create_spark_session,
@@ -26,7 +26,7 @@ from shared_utils import (
 )
 
 spark = create_spark_session("IDS_Exp1_RF_Feature_Importance")
-df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
+_, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
 print("\n")
 print("=" * 70)

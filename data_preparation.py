@@ -7,7 +7,7 @@ from shared_utils import (
     clean_column_names,
     handle_infinity_values,
     align_schema,
-    F, col, when, StringType,
+    F, col, when,
 )
 
 INPUT_PATH = os.environ.get("IDS_RAW_DATA_DIR", os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "ids-2017"))

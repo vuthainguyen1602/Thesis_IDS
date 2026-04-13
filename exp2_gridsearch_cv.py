@@ -12,14 +12,8 @@ from shared_utils import (
     create_spark_session,
     load_and_prepare_data,
     compute_metrics,
-    print_metrics,
-    run_all_classifiers,
-    ensemble_voting,
     plot_comparison,
     plot_training_time,
-    plot_prediction_time,
-    plot_model_size,
-    plot_confusion_matrices,
     plot_roc_curves,
     print_summary_table,
     Pipeline,
@@ -39,11 +33,7 @@ from shared_utils import (
 )
 
 spark = create_spark_session("IDS_Exp2_GridSearch_CV")
-df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
-
-# TEMPORARY LIMIT
-train_df = train_df.limit(500)
-test_df = test_df.limit(500)
+_, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
 print("\n")
 print("=" * 70)
@@ -75,6 +65,11 @@ if method_cfg["type"] == "feature_selection":
     csv_path = method_cfg["csv"]
     top_k = method_cfg["top_k"]
     col_name = method_cfg["col"]
+    if not os.path.exists(csv_path):
+        raise FileNotFoundError(
+            f"Feature selection file not found: {csv_path}\n"
+            "Run exp1_rf_feature_importance.py (or exp6_shap_feature_selection.py) first."
+        )
     importance_df = pd.read_csv(csv_path)
     selected_features = importance_df.head(top_k)[col_name].tolist()
     print(f"Using {len(selected_features)} features from {os.path.basename(csv_path)}")

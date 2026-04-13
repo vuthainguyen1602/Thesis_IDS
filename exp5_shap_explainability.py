@@ -8,7 +8,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
-from reporting import export_multi_section_report, export_results_to_html
+from reporting import export_multi_section_report
 
 from shared_utils import (
     create_spark_session,
@@ -25,7 +25,7 @@ from shared_utils import (
 )
 
 spark = create_spark_session("IDS_Exp5_SHAP_Explainability")
-df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
+_, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
 print("\n")
 print("=" * 70)
@@ -67,7 +67,7 @@ print("\n--- Step 2: SHAP Explainability Analysis ---")
 shap_output_dir = os.path.join(base_output, "shap_analysis")
 shap_plots = shap_explain_model(
     spark_model=xgb_model,
-    test_df=test_df,
+    df_to_explain=train_df,
     feature_cols=feature_cols,
     output_dir=shap_output_dir,
     sample_size=2000,

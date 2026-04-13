@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import time
+
 from reporting import export_multi_section_report
 from shared_utils import (
     create_spark_session,
@@ -22,7 +22,7 @@ from shared_utils import (
 )
 
 spark = create_spark_session("IDS_Exp0_Baseline_Full")
-df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
+_, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
 print("\n")
 print("=" * 70)

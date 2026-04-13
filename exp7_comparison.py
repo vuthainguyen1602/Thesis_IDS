@@ -5,16 +5,22 @@ import os
 import time
 import numpy as np
 import pandas as pd
+from pyspark.sql import functions as F
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from reporting import export_multi_section_report, export_results_to_html
+from reporting import export_multi_section_report
 
 from shared_utils import (
     create_spark_session,
     load_and_prepare_data,
     run_all_classifiers,
     ensemble_voting,
+    compute_metrics,
+    get_classifiers,
+    train_and_evaluate,
+    summarize_metric_runs,
+    permutation_pvalue,
     plot_comparison,
     plot_training_time,
     print_summary_table,
@@ -36,8 +42,83 @@ METHODS = {
     "Baseline (All Features)": {"type": "all"},
     "RF Top-30": {"type": "feature_selection", "csv": RF_IMPORTANCE_CSV, "top_k": 30, "col": "feature"},
     "SHAP Top-30": {"type": "feature_selection", "csv": SHAP_IMPORTANCE_CSV, "top_k": 30, "col": "feature"},
-    "PCA k=35": {"type": "pca", "k": 35},
+    "PCA k=40": {"type": "pca", "k": 40},
 }
+
+STAT_SEEDS = [42, 52, 62]
+
+
+def _method_slug(name: str) -> str:
+    return name.replace(" ", "_").replace("(", "").replace(")", "").replace("=", "_")
+
+
+def _build_method_transform(config, feature_cols):
+    extra_stages = []
+    if config["type"] == "all":
+        selected_features = feature_cols
+        assembler = VectorAssembler(inputCols=selected_features, outputCol="features_raw", handleInvalid="keep")
+        scaler = StandardScaler(inputCol="features_raw", outputCol="features_scaled", withStd=True, withMean=True)
+        return assembler, scaler, extra_stages, "features_scaled", len(selected_features)
+
+    if config["type"] == "feature_selection":
+        csv_path = config["csv"]
+        top_k = config["top_k"]
+        col_name = config["col"]
+        if not os.path.exists(csv_path):
+            raise FileNotFoundError(f"{csv_path} not found")
+        importance_df = pd.read_csv(csv_path)
+        selected_features = importance_df.head(top_k)[col_name].tolist()
+        assembler = VectorAssembler(inputCols=selected_features, outputCol="features_raw", handleInvalid="keep")
+        scaler = StandardScaler(inputCol="features_raw", outputCol="features_scaled", withStd=True, withMean=True)
+        return assembler, scaler, extra_stages, "features_scaled", top_k
+
+    if config["type"] == "pca":
+        k = config["k"]
+        assembler = VectorAssembler(inputCols=feature_cols, outputCol="features_raw", handleInvalid="keep")
+        scaler = StandardScaler(inputCol="features_raw", outputCol="features_scaled", withStd=True, withMean=True)
+        pca = PCA(k=k, inputCol="features_scaled", outputCol="pca_features")
+        extra_stages = [pca]
+        return assembler, scaler, extra_stages, "pca_features", k
+
+    raise ValueError(f"Unknown method type: {config['type']}")
+
+
+def _train_single_named_model(method_cfg, model_name, feature_cols, train_df, test_df, seed: int):
+    assembler, scaler, extra_stages, features_col, num_features = _build_method_transform(method_cfg, feature_cols)
+    class_counts = train_df.groupBy("label_binary").count().collect()
+    count_map = {row["label_binary"]: row["count"] for row in class_counts}
+    benign = count_map.get(0, 0)
+    attack = count_map.get(1, 0)
+    scale_pos_weight = float(benign) / float(attack) if attack > 0 else 1.0
+
+    clf_dict = get_classifiers(
+        features_col=features_col, label_col="label_binary",
+        num_features=num_features, scale_pos_weight=scale_pos_weight, seed=seed,
+    )
+    if model_name not in clf_dict:
+        raise ValueError(f"Model '{model_name}' not available for method.")
+    pipeline = Pipeline(stages=[assembler, scaler] + extra_stages + [clf_dict[model_name]])
+    model, preds, metrics = train_and_evaluate(
+        pipeline, train_df, test_df, title=f"{model_name} | Seed={seed}"
+    )
+    return model, preds, metrics
+
+
+def _build_drift_windows(df):
+    if "timestamp" in df.columns:
+        ts_df = (
+            df.withColumn("_ts_num", F.unix_timestamp("timestamp").cast("double"))
+            .filter(F.col("_ts_num").isNotNull())
+        )
+        if ts_df.count() > 0:
+            q60, q80 = ts_df.approxQuantile("_ts_num", [0.6, 0.8], 0.01)
+            train_early = ts_df.filter(F.col("_ts_num") <= q60).drop("_ts_num")
+            test_mid = ts_df.filter((F.col("_ts_num") > q60) & (F.col("_ts_num") <= q80)).drop("_ts_num")
+            test_late = ts_df.filter(F.col("_ts_num") > q80).drop("_ts_num")
+            return train_early, test_mid, test_late, "timestamp"
+
+    train_early, test_mid, test_late = df.randomSplit([0.6, 0.2, 0.2], seed=2026)
+    return train_early, test_mid, test_late, "random_split_fallback"
 
 
 if __name__ == "__main__":
@@ -54,6 +135,7 @@ if __name__ == "__main__":
 
 
     all_method_results = {}
+    all_method_models = {}
     report_sections = []
 
     for method_name, config in METHODS.items():
@@ -126,7 +208,9 @@ if __name__ == "__main__":
         all_method_results[method_name] = results
         print_summary_table(results, title=f"RESULTS: {method_name}")
 
-        method_dir = os.path.join(OUTPUT_DIR, method_name.replace(" ", "_").replace("(", "").replace(")", ""))
+        all_method_models[method_name] = trained_models
+
+        method_dir = os.path.join(OUTPUT_DIR, _method_slug(method_name))
         os.makedirs(method_dir, exist_ok=True)
 
         plot_comparison(
@@ -295,11 +379,180 @@ if __name__ == "__main__":
         json.dump(best_config, f, indent=4)
     print(f"[INFO] Saved Best Config for Exp 2: {config_path}")
 
+    print(f"\n\n{'=' * 70}")
+    print("  STEP 3: ROBUSTNESS TRACK (ADDITIONAL HOLDOUT)")
+    print(f"{'=' * 70}")
+
+    robust_data_dir = os.environ.get("IDS_ROBUST_DATA_DIR")
+    if robust_data_dir:
+        robust_test_path = os.path.join(robust_data_dir, "test_data.parquet")
+        if os.path.exists(robust_test_path):
+            robust_test_df = spark.read.parquet(robust_test_path)
+            print(f"[INFO] Loaded external robustness test set: {robust_test_path}")
+        else:
+            print(f"[WARN] IDS_ROBUST_DATA_DIR set, but test_data.parquet not found. Using fallback split.")
+            _, robust_test_df = df.randomSplit([0.8, 0.2], seed=2026)
+    else:
+        print("[INFO] IDS_ROBUST_DATA_DIR not set. Using in-domain alternative split for robustness.")
+        _, robust_test_df = df.randomSplit([0.8, 0.2], seed=2026)
+
+    robustness_rows = []
+    for method_name, info in best_per_method.items():
+        best_model_name = info["best_model"]
+        best_model = all_method_models[method_name][best_model_name]
+        robust_preds = best_model.transform(robust_test_df)
+        robust_metrics = compute_metrics(robust_preds)
+        robustness_rows.append({
+            "Method": method_name,
+            "Best_Model": best_model_name,
+            "robust_f1": robust_metrics.get("f1"),
+            "robust_auc_pr": robust_metrics.get("auc_pr"),
+            "robust_auc_roc": robust_metrics.get("auc_roc"),
+        })
+    robustness_df = pd.DataFrame(robustness_rows).sort_values("robust_f1", ascending=False)
+    robustness_csv = os.path.join(OUTPUT_DIR, "robustness_holdout_summary.csv")
+    robustness_df.to_csv(robustness_csv, index=False)
+    print(f"[INFO] Saved: {robustness_csv}")
+
+    plt.figure(figsize=(12, 6))
+    plt.barh(robustness_df["Method"], robustness_df["robust_f1"], color="#1f77b4", alpha=0.85)
+    plt.xlabel("F1 on Robustness Holdout")
+    plt.title("Robustness Track: Best Model per Method")
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+    robustness_plot = os.path.join(OUTPUT_DIR, "robustness_holdout_f1.png")
+    plt.savefig(robustness_plot, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"[INFO] Saved: {robustness_plot}")
+
+    print(f"\n\n{'=' * 70}")
+    print("  STEP 4: DRIFT SIMULATION TRACK")
+    print(f"{'=' * 70}")
+
+    drift_train, drift_mid, drift_late, drift_mode = _build_drift_windows(df)
+    print(f"[INFO] Drift split mode: {drift_mode}")
+    print(f"  Train(Early): {drift_train.count():,} | Mid: {drift_mid.count():,} | Late: {drift_late.count():,}")
+
+    drift_method = overall_best_method
+    drift_model_name = overall_info["best_model"]
+    drift_cfg = METHODS[drift_method]
+
+    model_early, pred_mid, metrics_mid = _train_single_named_model(
+        drift_cfg, drift_model_name, feature_cols, drift_train, drift_mid, seed=42
+    )
+    pred_late_no_update = model_early.transform(drift_late)
+    metrics_late_no_update = compute_metrics(pred_late_no_update)
+
+    drift_retrain_df = drift_train.unionByName(drift_mid)
+    _, pred_late_retrained, metrics_late_retrained = _train_single_named_model(
+        drift_cfg, drift_model_name, feature_cols, drift_retrain_df, drift_late, seed=42
+    )
+
+    drift_rows = [
+        {"Scenario": "Early->Mid", "f1": metrics_mid.get("f1"), "auc_pr": metrics_mid.get("auc_pr")},
+        {"Scenario": "Early->Late (No Update)", "f1": metrics_late_no_update.get("f1"), "auc_pr": metrics_late_no_update.get("auc_pr")},
+        {"Scenario": "Early+Mid->Late (Retrained)", "f1": metrics_late_retrained.get("f1"), "auc_pr": metrics_late_retrained.get("auc_pr")},
+    ]
+    drift_df = pd.DataFrame(drift_rows)
+    drift_csv = os.path.join(OUTPUT_DIR, "drift_simulation_summary.csv")
+    drift_df.to_csv(drift_csv, index=False)
+    print(f"[INFO] Saved: {drift_csv}")
+
+    plt.figure(figsize=(10, 5))
+    plt.bar(drift_df["Scenario"], drift_df["f1"], color=["#42A5F5", "#EF5350", "#66BB6A"])
+    plt.ylabel("F1-Score")
+    plt.title(f"Drift Simulation ({drift_method} / {drift_model_name})")
+    plt.xticks(rotation=20, ha="right")
+    plt.ylim(0, 1.0)
+    plt.tight_layout()
+    drift_plot = os.path.join(OUTPUT_DIR, "drift_simulation_f1.png")
+    plt.savefig(drift_plot, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"[INFO] Saved: {drift_plot}")
+
+    print(f"\n\n{'=' * 70}")
+    print("  STEP 5: STATISTICAL VALIDITY TRACK (MULTI-SEED)")
+    print(f"{'=' * 70}")
+
+    sorted_methods = sorted(best_per_method.keys(), key=lambda m: best_per_method[m]["best_f1"], reverse=True)
+    top_methods = sorted_methods[:2]
+    stats_records = []
+    method_seed_scores = {}
+
+    for method_name in top_methods:
+        model_name = best_per_method[method_name]["best_model"]
+        cfg = METHODS[method_name]
+        seed_metrics = []
+        seed_f1_scores = []
+        for s in STAT_SEEDS:
+            _, _, m = _train_single_named_model(cfg, model_name, feature_cols, train_df, test_df, seed=s)
+            seed_metrics.append(m)
+            seed_f1_scores.append(float(m.get("f1", 0.0)))
+        agg = summarize_metric_runs(seed_metrics, metric_keys=["f1", "auc_pr", "accuracy"])
+        method_seed_scores[method_name] = seed_f1_scores
+        stats_records.append({
+            "Method": method_name,
+            "Model": model_name,
+            "Seeds": ",".join([str(s) for s in STAT_SEEDS]),
+            "f1_scores": ",".join([f"{v:.6f}" for v in seed_f1_scores]),
+            "f1_mean": agg.get("f1_mean"),
+            "f1_std": agg.get("f1_std"),
+            "f1_ci95_low": agg.get("f1_ci95_low"),
+            "f1_ci95_high": agg.get("f1_ci95_high"),
+        })
+
+    pvalue = 1.0
+    if len(top_methods) == 2:
+        pvalue = permutation_pvalue(
+            method_seed_scores[top_methods[0]],
+            method_seed_scores[top_methods[1]],
+            n_permutations=2000,
+            seed=42,
+        )
+        print(f"[INFO] Permutation p-value ({top_methods[0]} vs {top_methods[1]}): {pvalue:.6f}")
+
+    stats_df = pd.DataFrame(stats_records)
+    stats_df["pvalue_vs_other_top_method"] = pvalue
+    stats_csv = os.path.join(OUTPUT_DIR, "statistical_validity_multiseed.csv")
+    stats_df.to_csv(stats_csv, index=False)
+    print(f"[INFO] Saved: {stats_csv}")
+
+    plt.figure(figsize=(10, 5))
+    for method_name in top_methods:
+        plt.plot(STAT_SEEDS, method_seed_scores[method_name], marker="o", label=method_name)
+    plt.xlabel("Seed")
+    plt.ylabel("F1-Score")
+    plt.title("Multi-Seed Stability (Top Methods)")
+    plt.ylim(0, 1.0)
+    plt.grid(alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    stats_plot = os.path.join(OUTPUT_DIR, "multiseed_stability.png")
+    plt.savefig(stats_plot, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"[INFO] Saved: {stats_plot}")
+
 
     report_sections.append({
         "section_title": "Cross-Method Comparison",
         "results": {},
         "chart_paths": [cross_f1_path, best_f1_path, heatmap_path],
+    })
+
+    report_sections.append({
+        "section_title": "Robustness Track",
+        "results": {},
+        "chart_paths": [robustness_plot],
+    })
+    report_sections.append({
+        "section_title": "Drift Simulation Track",
+        "results": {},
+        "chart_paths": [drift_plot],
+    })
+    report_sections.append({
+        "section_title": "Statistical Validity Track",
+        "results": {},
+        "chart_paths": [stats_plot],
     })
 
     export_multi_section_report(

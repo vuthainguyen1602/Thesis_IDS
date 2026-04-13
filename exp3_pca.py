@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-from reporting import export_multi_section_report, export_results_to_html
+from reporting import export_multi_section_report
 from shared_utils import (
     create_spark_session,
     load_and_prepare_data,
@@ -26,7 +26,7 @@ from shared_utils import (
 )
 
 spark = create_spark_session("IDS_Exp3_PCA")
-df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
+_, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
 print("\n")
 print("=" * 70)
@@ -90,7 +90,7 @@ report_sections.append({
     "chart_paths": [feat_imp_path]
 })
 
-for k in [15, 25, 35]:
+for k in [20, 30, 40]:
     print(f"\n\n{'=' * 70}")
     print(f"  EVALUATING ALL ALGORITHMS WITH PCA k={k}")
     print(f"{'=' * 70}")
@@ -177,7 +177,7 @@ for k in all_exp3_results:
 summary_data = {}
 for algo in sorted(all_algos):
     row = {}
-    for k in [15, 25, 35]:
+    for k in [20, 30, 40]:
         if algo in all_exp3_results.get(k, {}):
             row[f"k={k} F1"] = all_exp3_results[k][algo].get("f1", 0)
             row[f"k={k} AUC"] = all_exp3_results[k][algo].get("auc_roc", None)
