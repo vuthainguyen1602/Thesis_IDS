@@ -13,8 +13,10 @@ from pyspark.sql import SparkSession
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import (
     KAFKA_BOOTSTRAP_SERVERS, KAFKA_TOPIC, KAFKA_GROUP_ID, ALERT_COOLDOWN,
+    ANOMALY_ENABLED, ANOMALY_MODEL_PATH, ANOMALY_SCALER_PATH, ANOMALY_THRESHOLD_PATH, FEATURES_PATH,
 )
 from edge.feature_preprocessor import FeaturePreprocessor
+from edge.anomaly_scorer import AnomalyScorer
 from edge.prediction_engine import PredictionEngine
 from edge.performance_monitor import PerformanceMonitor
 
@@ -66,6 +68,17 @@ class IDSEdgePipeline:
         self.spark = create_spark_session()
 
         self.preprocessor = FeaturePreprocessor(self.spark)
+        self.anomaly = None
+        if ANOMALY_ENABLED:
+            try:
+                self.anomaly = AnomalyScorer(
+                    features_path=FEATURES_PATH,
+                    model_path=ANOMALY_MODEL_PATH,
+                    scaler_path=ANOMALY_SCALER_PATH,
+                    threshold_path=ANOMALY_THRESHOLD_PATH,
+                )
+            except Exception as e:
+                print(f"[WARN] AnomalyScorer disabled: {e}")
         self.engine = PredictionEngine(self.spark)
 
         self.postgres = None
@@ -118,16 +131,56 @@ class IDSEdgePipeline:
     def process_batch(self, messages: list):
         timestamp = time.time()
 
-        spark_df = self.preprocessor.preprocess_batch(messages)
+        anomaly_time_ms = 0.0
+        messages_to_classify = messages
+        skipped_benign = 0
+        anomaly_scores = None
+        anomaly_flags = None
+        anomaly_threshold = None
+        suspicious_items = []
+        if self.anomaly:
+            r = self.anomaly.score_batch(messages)
+            anomaly_time_ms = r.inference_time_ms
+            anomaly_scores = r.scores
+            anomaly_flags = r.is_anomaly
+            anomaly_threshold = float(r.threshold)
+            flags = r.is_anomaly.tolist()
+            suspicious_items = [
+                (m, i, float(anomaly_scores[i]))
+                for i, (m, f) in enumerate(zip(messages, flags))
+                if f
+            ]
+            messages_to_classify = [t[0] for t in suspicious_items]
+            skipped_benign = len(messages) - len(messages_to_classify)
 
-        predictions_df, stats = self.engine.predict(spark_df)
+        predictions_df = None
+        stats = {
+            "batch_size": len(messages),
+            "attacks_found": 0,
+            "inference_time_ms": 0.0,
+            "avg_time_ms": 0.0,
+            "anomaly_time_ms": round(anomaly_time_ms, 3),
+            "classified_size": len(messages_to_classify),
+            "skipped_benign": skipped_benign,
+        }
 
-        avg_time = stats["avg_time_ms"]
+        if messages_to_classify:
+            spark_df = self.preprocessor.preprocess_batch(messages_to_classify)
+            predictions_df, clf_stats = self.engine.predict(spark_df)
+            stats["attacks_found"] = clf_stats["attacks_found"]
+            stats["inference_time_ms"] = clf_stats["inference_time_ms"]
+            stats["avg_time_ms"] = clf_stats["avg_time_ms"]
+
+        if (not self.anomaly) and messages_to_classify:
+            suspicious_items = [(m, i, None) for i, m in enumerate(messages_to_classify)]
+
+        avg_time = float(stats["avg_time_ms"])
+        per_item_time = avg_time
+        if stats["batch_size"] > 0 and anomaly_time_ms > 0:
+            per_item_time = (stats["inference_time_ms"] + anomaly_time_ms) / stats["batch_size"]
+
         for _ in range(stats["batch_size"]):
-            self.monitor.record_prediction(
-                inference_time_ms=avg_time,
-                is_attack=False,
-            )
+            self.monitor.record_prediction(inference_time_ms=per_item_time, is_attack=False)
 
         if stats["attacks_found"] > 0:
             for _ in range(stats["attacks_found"]):
@@ -140,18 +193,50 @@ class IDSEdgePipeline:
 
         if self.postgres:
             try:
-                results = predictions_df.select("prediction", "probability").collect()
-                for row in results:
-                    pred = int(row["prediction"])
-                    prob = row["probability"]
-                    confidence = float(prob[int(pred)]) if prob else 0.0
-                    self.postgres.store_prediction(
-                        timestamp=timestamp,
-                        prediction=pred,
-                        confidence=confidence,
-                        label="Attack" if pred == 1 else "Benign",
-                        inference_time_ms=avg_time,
-                    )
+                if predictions_df is not None:
+                    results = predictions_df.select("prediction", "probability").collect()
+                    for (msg, idx, score), row in zip(suspicious_items, results):
+                        pred = int(row["prediction"])
+                        prob = row["probability"]
+                        confidence = float(prob[int(pred)]) if prob else 0.0
+                        raw_features = None
+                        if self.anomaly is not None and anomaly_scores is not None and anomaly_flags is not None:
+                            raw_features = {
+                                "route": "spark_classifier",
+                                "anomaly_score": float(score),
+                                "anomaly_flag": bool(anomaly_flags[idx]),
+                                "anomaly_threshold": float(anomaly_threshold),
+                            }
+                        self.postgres.store_prediction(
+                            timestamp=timestamp + (idx * 1e-6),
+                            prediction=pred,
+                            confidence=confidence,
+                            label="Attack" if pred == 1 else "Benign",
+                            inference_time_ms=avg_time,
+                            raw_features=raw_features,
+                        )
+
+                if self.anomaly is not None and anomaly_scores is not None and anomaly_flags is not None:
+                    for i, msg in enumerate(messages):
+                        if bool(anomaly_flags[i]):
+                            continue
+                        s = float(anomaly_scores[i])
+                        thr = float(anomaly_threshold)
+                        conf = max(0.0, min(1.0, 1.0 - (s / thr))) if thr > 0 else 0.0
+                        raw_features = {
+                            "route": "anomaly_gate_only",
+                            "anomaly_score": s,
+                            "anomaly_flag": False,
+                            "anomaly_threshold": thr,
+                        }
+                        self.postgres.store_prediction(
+                            timestamp=timestamp + (i * 1e-6),
+                            prediction=0,
+                            confidence=conf,
+                            label="Benign (Gate)",
+                            inference_time_ms=avg_time,
+                            raw_features=raw_features,
+                        )
             except Exception as e:
                 print(f"  [WARN] DB store error: {e}")
 

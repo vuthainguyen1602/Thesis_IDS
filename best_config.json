@@ -1,0 +1,8 @@
+{
+    "method_name": "Baseline (All Features)",
+    "config": {
+        "type": "all"
+    },
+    "best_model": "Decision Tree",
+    "best_f1": 1.0
+}

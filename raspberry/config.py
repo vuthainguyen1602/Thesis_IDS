@@ -13,6 +13,20 @@ KAFKA_GROUP_ID = os.getenv("KAFKA_GROUP_ID", "ids-edge-consumer")
 MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(os.path.dirname(__file__), "model", "ids_pipeline_model"))
 FEATURES_PATH = os.getenv("FEATURES_PATH", os.path.join(os.path.dirname(__file__), "model", "feature_columns.json"))
 
+ANOMALY_ENABLED = os.getenv("ANOMALY_ENABLED", "0").strip() in ("1", "true", "True", "yes", "YES")
+ANOMALY_MODEL_PATH = os.getenv(
+    "ANOMALY_MODEL_PATH",
+    os.path.join(os.path.dirname(__file__), "model", "anomaly_autoencoder.pkl"),
+)
+ANOMALY_SCALER_PATH = os.getenv(
+    "ANOMALY_SCALER_PATH",
+    os.path.join(os.path.dirname(__file__), "model", "anomaly_scaler.pkl"),
+)
+ANOMALY_THRESHOLD_PATH = os.getenv(
+    "ANOMALY_THRESHOLD_PATH",
+    os.path.join(os.path.dirname(__file__), "model", "anomaly_threshold.json"),
+)
+
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
 POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
 POSTGRES_DB = os.getenv("POSTGRES_DB", "ids_edge")

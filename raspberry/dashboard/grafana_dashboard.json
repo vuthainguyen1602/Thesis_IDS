@@ -277,6 +277,85 @@
                     "refId": "A"
                 }
             ]
+        },
+        {
+            "title": "Prediction Routes (Postgres, 5m buckets)",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 32
+            },
+            "datasource": {
+                "type": "postgres",
+                "uid": "postgres"
+            },
+            "targets": [
+                {
+                    "rawSql": "SELECT\n  $__timeGroupAlias(created_at, '5m') AS \"time\",\n  COALESCE(raw_features->>'route', 'legacy') AS metric,\n  COUNT(*) AS value\nFROM predictions\nWHERE $__timeFilter(created_at)\nGROUP BY 1, 2\nORDER BY 1",
+                    "format": "time_series",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 15
+                    }
+                }
+            }
+        },
+        {
+            "title": "Attack vs Benign (Postgres, 5m buckets)",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 12,
+                "y": 32
+            },
+            "datasource": {
+                "type": "postgres",
+                "uid": "postgres"
+            },
+            "targets": [
+                {
+                    "rawSql": "SELECT\n  $__timeGroupAlias(created_at, '5m') AS \"time\",\n  CASE WHEN prediction = 1 THEN 'attack' ELSE 'benign_total' END AS metric,\n  COUNT(*) AS value\nFROM predictions\nWHERE $__timeFilter(created_at)\nGROUP BY 1, 2\nORDER BY 1",
+                    "format": "time_series",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 15
+                    }
+                }
+            }
+        },
+        {
+            "title": "Recent Predictions (Postgres)",
+            "type": "table",
+            "gridPos": {
+                "h": 10,
+                "w": 24,
+                "x": 0,
+                "y": 40
+            },
+            "datasource": {
+                "type": "postgres",
+                "uid": "postgres"
+            },
+            "targets": [
+                {
+                    "rawSql": "SELECT\n  created_at,\n  label,\n  prediction,\n  confidence,\n  inference_time_ms,\n  raw_features->>'route' AS route,\n  (raw_features->>'anomaly_score')::double precision AS anomaly_score,\n  (raw_features->>'anomaly_threshold')::double precision AS anomaly_threshold\nFROM predictions\nORDER BY created_at DESC\nLIMIT 50",
+                    "format": "table",
+                    "refId": "A"
+                }
+            ]
         }
     ],
     "schemaVersion": 38,
