@@ -52,6 +52,7 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
 
 DATA_CSV_PATH = os.getenv("DATA_CSV_PATH", "")
 SEND_RATE = int(os.getenv("SEND_RATE", "100"))
+EDGE_BATCH_SIZE = int(os.getenv("EDGE_BATCH_SIZE", "20"))
 
 METRICS_PUSH_INTERVAL = int(os.getenv("METRICS_PUSH_INTERVAL", "10"))
 ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "60"))

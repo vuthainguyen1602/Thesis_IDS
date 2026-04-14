@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import (
     KAFKA_BOOTSTRAP_SERVERS, KAFKA_TOPIC, KAFKA_GROUP_ID, ALERT_COOLDOWN,
     ANOMALY_ENABLED, ANOMALY_MODEL_PATH, ANOMALY_SCALER_PATH, ANOMALY_THRESHOLD_PATH, FEATURES_PATH,
+    EDGE_BATCH_SIZE,
 )
 from edge.feature_preprocessor import FeaturePreprocessor
 from edge.anomaly_scorer import AnomalyScorer
@@ -55,7 +56,7 @@ def create_spark_session():
 
 class IDSEdgePipeline:
 
-    BATCH_SIZE = 10
+    BATCH_SIZE = EDGE_BATCH_SIZE
 
     def __init__(self):
         self.running = True

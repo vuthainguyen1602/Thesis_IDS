@@ -96,7 +96,7 @@ class PerformanceMonitor:
                   f"Attacks: {throughput['attacks_count']}")
 
             if system.get("cpu_temp_celsius"):
-                print(f"           Temp: {system['cpu_temp_celsius']}°C")
+                print(f"           Temp: {system['cpu_temp_celsius']} C")
 
             if self.influxdb_storage:
                 try:

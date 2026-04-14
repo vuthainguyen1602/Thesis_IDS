@@ -115,7 +115,7 @@ python exp8_autoencoder_anomaly.py
 
 ```bash
 # Get the Mac's LAN IP address
-ifconfig | grep "inet " | grep -v 127.0.0.1
+ifconfig | grep "inet " | grep -v 127.0.0.1if
 
 # Example output: inet 192.168.1.100 netmask 0xffffff00
 # Note this IP (e.g. 192.168.1.100)

@@ -293,7 +293,7 @@
             },
             "targets": [
                 {
-                    "rawSql": "SELECT\n  $__timeGroupAlias(created_at, '5m') AS \"time\",\n  COALESCE(raw_features->>'route', 'legacy') AS metric,\n  COUNT(*) AS value\nFROM predictions\nWHERE $__timeFilter(created_at)\nGROUP BY 1, 2\nORDER BY 1",
+                    "rawSql": "SELECT\n  $__timeGroupAlias(created_at, '5m'),\n  COALESCE(raw_features->>'route', 'legacy') AS metric,\n  COUNT(*) AS value\nFROM predictions\nWHERE $__timeFilter(created_at)\nGROUP BY 1, 2\nORDER BY 1",
                     "format": "time_series",
                     "refId": "A"
                 }
@@ -322,7 +322,7 @@
             },
             "targets": [
                 {
-                    "rawSql": "SELECT\n  $__timeGroupAlias(created_at, '5m') AS \"time\",\n  CASE WHEN prediction = 1 THEN 'attack' ELSE 'benign_total' END AS metric,\n  COUNT(*) AS value\nFROM predictions\nWHERE $__timeFilter(created_at)\nGROUP BY 1, 2\nORDER BY 1",
+                    "rawSql": "SELECT\n  $__timeGroupAlias(created_at, '5m'),\n  CASE WHEN prediction = 1 THEN 'attack' ELSE 'benign_total' END AS metric,\n  COUNT(*) AS value\nFROM predictions\nWHERE $__timeFilter(created_at)\nGROUP BY 1, 2\nORDER BY 1",
                     "format": "time_series",
                     "refId": "A"
                 }
@@ -351,7 +351,7 @@
             },
             "targets": [
                 {
-                    "rawSql": "SELECT\n  created_at,\n  label,\n  prediction,\n  confidence,\n  inference_time_ms,\n  raw_features->>'route' AS route,\n  (raw_features->>'anomaly_score')::double precision AS anomaly_score,\n  (raw_features->>'anomaly_threshold')::double precision AS anomaly_threshold\nFROM predictions\nORDER BY created_at DESC\nLIMIT 50",
+                    "rawSql": "SELECT\n  created_at,\n  label,\n  prediction,\n  confidence,\n  inference_time_ms,\n  COALESCE(raw_features->>'route', 'legacy') AS route,\n  COALESCE((raw_features->>'anomaly_score')::double precision, 0.0) AS anomaly_score,\n  COALESCE((raw_features->>'anomaly_threshold')::double precision, 0.0) AS anomaly_threshold\nFROM predictions\nORDER BY created_at DESC\nLIMIT 50",
                     "format": "table",
                     "refId": "A"
                 }
