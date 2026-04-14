@@ -35,8 +35,8 @@ If you are already familiar with the setup, use these commands in order:
 ┌─────────────────────┴───────────────────────────────────┐
 │                 RASPBERRY PI 4B                          │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │  Kafka Consumer → Preprocessor → PySpark Model   │   │
-│  │  → Performance Monitor → Alert (Email/Slack)      │   │
+│  │  Kafka Consumer → (Optional) Anomaly Gate (AE)    │   │
+│  │  → Preprocessor → PySpark Model → Monitor → Alert │   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -88,6 +88,27 @@ python scripts/save_model.py
 # Result: the model/ directory will contain:
 #   model/ids_pipeline_model/    (PySpark PipelineModel)
 #   model/feature_columns.json   (list of 30 features)
+```
+
+### (Optional) Step 1.3b: Train & Export the Anomaly Gate (Autoencoder)
+
+This project supports a **two-stage edge IDS**:
+
+- **Stage A (Anomaly Gate)**: lightweight sklearn autoencoder (filters suspicious flows)
+- **Stage B (Classifier)**: existing PySpark PipelineModel (final Attack/Benign decision)
+
+Train/export the anomaly gate on your Mac/PC (project root):
+
+```bash
+cd /Users/thainguyenvu/Desktop/Thesis_IDS
+
+# Requires feature list to be exported first (Step 1.3)
+python exp8_autoencoder_anomaly.py
+
+# Result: these new files will be created under raspberry/model/
+#   raspberry/model/anomaly_autoencoder.pkl
+#   raspberry/model/anomaly_scaler.pkl
+#   raspberry/model/anomaly_threshold.json
 ```
 
 ### Step 1.4: Find the Mac's IP Address
@@ -186,6 +207,11 @@ ls -la ~/raspberry/model/
 # Should contain:
 #   ids_pipeline_model/    (PySpark model directory)
 #   feature_columns.json   (JSON file)
+#
+# If you enabled the anomaly gate, it should also contain:
+#   anomaly_autoencoder.pkl
+#   anomaly_scaler.pkl
+#   anomaly_threshold.json
 ```
 
 ### Step 2.7: Test Connectivity
@@ -231,6 +257,21 @@ python edge/kafka_consumer.py
 
 # Note: Spark Session initialization takes ~20–30 seconds on RPi
 ```
+
+#### (Optional) Enable the anomaly gate on RPi
+
+By default, the anomaly gate is disabled (pipeline runs exactly as before).
+
+To enable:
+
+```bash
+export ANOMALY_ENABLED=1
+python edge/kafka_consumer.py
+```
+
+When enabled, you should see an additional line at startup:
+
+- `[OK] AnomalyScorer loaded ... Threshold: ...`
 
 ### Step 3.2: Send Data from Mac
 
@@ -282,6 +323,11 @@ open http://localhost:3000
 # - RPi CPU / Memory usage
 # - RPi CPU temperature
 # - Recent alerts table
+#
+# If you imported the updated dashboard JSON, it also includes Postgres panels:
+# - Prediction Routes (anomaly_gate_only vs spark_classifier)
+# - Attack vs Benign counts from Postgres `predictions`
+# - Recent Predictions table (route + anomaly score/threshold)
 ```
 
 ---
@@ -359,6 +405,18 @@ Watch for:
 - **CPU Usage**: PySpark will use multiple cores during batch inference.
 - **Memory**: Ensure the resident set size (RSS) stays within the RPi's physical RAM (leave ~1GB for OS).
 - **Thermal**: If the CPU throttles (> 80°C), consider adding a fan or heat sink.
+
+### 6.3: Understanding the Two-Stage Mode (Anomaly Gate + Spark Classifier)
+
+When `ANOMALY_ENABLED=1`:
+
+- Most flows are classified as **Benign (Gate)** and will **skip Spark inference** to reduce load.
+- Only flows flagged by the gate are sent into the PySpark model for final classification.
+
+All flows are still stored in PostgreSQL:
+
+- `raw_features->>'route' = 'anomaly_gate_only'` for skipped flows
+- `raw_features->>'route' = 'spark_classifier'` for flows processed by Spark
 
 ---
 

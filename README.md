@@ -37,10 +37,10 @@ This project evaluates **9 classification algorithms** combined with **3 Ensembl
 | **Exp 0** | Baseline - All features (no dimensionality reduction) |
 | **Exp 1** | Feature Selection using RF Feature Importance (Top-20/30/40) |
 | **Exp 2** | Hyperparameter Optimization with Grid Search + Cross-Validation |
-| **Exp 3** | Dimensionality Reduction using PCA (k=15/25/35) |
+| **Exp 3** | Dimensionality Reduction using PCA (k=20/30/40) |
 | **Exp 5** | SHAP Explainability - XGBoost model interpretation |
 | **Exp 6** | Feature Selection using SHAP Importance (Top-20/30/40) |
-| **Exp 7** | Cross-Experiment Comparison (Baseline vs RF vs SHAP vs PCA) |
+| **Exp 7** | Cross-Experiment + Robustness + Drift + Statistical Comparison |
 
 ---
 
@@ -273,23 +273,24 @@ python exp0_baseline_full.py
 # Step 2: Feature Selection with RF Importance
 python exp1_rf_feature_importance.py
 
-# Step 3: Hyperparameter Optimization (Grid Search + CV)
-python exp2_gridsearch_cv.py
-
-# Step 4: Dimensionality Reduction with PCA
+# Step 3: Dimensionality Reduction with PCA
 python exp3_pca.py
 
-# Step 5: SHAP Explainability
+# Step 4: SHAP Explainability
 python exp5_shap_explainability.py
 
-# Step 6: Feature Selection with SHAP
+# Step 5: Feature Selection with SHAP
 python exp6_shap_feature_selection.py
 
-# Step 7: Cross-Experiment Comparison
+# Step 6: Cross-Experiment + Robustness + Drift + Statistical tracks
 python exp7_comparison.py
+
+# Step 7: Hyperparameter Optimization on best config from Exp7
+python exp2_gridsearch_cv.py
 ```
 
-> **Important:** Run `exp1` before `exp2` because exp2 needs `feature_importance.csv` from exp1. Run `exp5` before `exp6` for SHAP vs RF comparison.
+> **Important:** Run `exp7` before `exp2` because `exp2` reads `best_config.json` from `exp7`.  
+> Optional robustness dataset: set `IDS_ROBUST_DATA_DIR` containing `test_data.parquet` before running `exp7`.
 
 ### Running on RoEduNet Dataset
 
@@ -321,7 +322,7 @@ python exp2_gridsearch_cv.py
 
 ### Experiment 3: PCA Dimensionality Reduction
 - Analyzes Explained Variance to determine optimal number of components
-- Evaluates all algorithms with **PCA k=15, 25, 35**
+- Evaluates all algorithms with **PCA k=20, 30, 40**
 - Compares PCA with Feature Selection approach (Exp 1)
 
 ### Experiment 5: SHAP Explainability (XAI)
@@ -335,8 +336,12 @@ python exp2_gridsearch_cv.py
 - Compares effectiveness: SHAP vs RF Feature Selection
 
 ### Experiment 7: Cross-Experiment Comparison
-- Runs **4 methods** side-by-side: Baseline, RF Top-30, SHAP Top-30, PCA k=35
-- Generates: Grouped F1 bar chart, F1 heatmap, Best-F1 summary, CSV export
+- Runs **4 methods** side-by-side: Baseline, RF Top-30, SHAP Top-30, PCA k=40
+- Adds 3 advanced tracks:
+  - Robustness holdout evaluation (external test split via `IDS_ROBUST_DATA_DIR` or fallback split)
+  - Drift simulation (`Early -> Mid -> Late` and retrain recovery)
+  - Multi-seed stability + permutation significance test (top methods)
+- Generates: Grouped F1 bar chart, F1 heatmap, Best-F1 summary, robustness/drift/statistical CSV exports
 - Comprehensive HTML report comparing all dimensionality reduction approaches
 
 ---

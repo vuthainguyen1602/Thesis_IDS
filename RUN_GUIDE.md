@@ -9,6 +9,8 @@ Set the project root and data directory via environment variables to ensure port
 ```bash
 export IDS_ROOT="$(pwd)"
 export IDS_RAW_DATA_DIR="/path/to/your/ids-2017/csvs"
+# Optional: additional holdout dataset for Exp7 robustness track
+# export IDS_ROBUST_DATA_DIR="/path/to/robustness_parquet_dir"
 ```
 
 ### 2. Preprocess the Dataset
@@ -23,11 +25,11 @@ Each script evaluates models and generates reports in their respective `exp*_res
 ```bash
 python exp0_baseline_full.py            # Baseline (all features)
 python exp1_rf_feature_importance.py    # Random Forest Feature Importance (generates importance.csv)
-python exp2_gridsearch_cv.py            # Hyperparameter Tuning (requires importance.csv)
 python exp3_pca.py                      # PCA Dimensionality Reduction
 python exp5_shap_explainability.py      # SHAP XAI Analysis
 python exp6_shap_feature_selection.py   # SHAP Feature Selection (Top-K)
-python exp7_comparison.py               # Final Comparative Analysis
+python exp7_comparison.py               # Cross-method + Robustness + Drift + Statistical validity
+python exp2_gridsearch_cv.py            # Hyperparameter Tuning on best_config.json from Exp7
 ```
 
 ---
