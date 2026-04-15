@@ -974,10 +974,10 @@ def plot_roc_curves(
     label_col: str = "label_binary",
     title: str = "ROC Curves",
     save_path: str = None, show: bool = True,
-    max_points: int = 200,
 ) -> None:
     from pyspark.sql.functions import col, udf
     from pyspark.sql.types import DoubleType
+    from pyspark.ml.evaluation import BinaryClassificationEvaluator
 
     extract_prob = udf(lambda v: float(v[1]) if v is not None and len(v) > 1 else 0.0, DoubleType())
 
@@ -1001,9 +1001,12 @@ def plot_roc_curves(
             labels = prob_df["label"].values
             probs = prob_df["prob_pos"].values
 
-            thresholds = np.linspace(0, 1, max_points)
-            tpr_list = []
-            fpr_list = []
+            valid_mask = np.isfinite(probs) & np.isfinite(labels)
+            labels = labels[valid_mask]
+            probs = probs[valid_mask]
+
+            if len(labels) == 0:
+                continue
 
             total_pos = np.sum(labels == 1)
             total_neg = np.sum(labels == 0)
@@ -1011,28 +1014,53 @@ def plot_roc_curves(
             if total_pos == 0 or total_neg == 0:
                 continue
 
-            for t in thresholds:
-                predicted_pos = probs >= t
-                tp = np.sum((predicted_pos) & (labels == 1))
-                fp = np.sum((predicted_pos) & (labels == 0))
-                tpr_list.append(tp / total_pos)
-                fpr_list.append(fp / total_neg)
+            # Keep AUC computation consistent with table metrics.
+            auc_val = None
+            score_col = None
+            if "rawPrediction" in preds.columns:
+                score_col = "rawPrediction"
+            elif "avg_probability" in preds.columns:
+                score_col = "avg_probability"
+            elif "probability" in preds.columns:
+                score_col = "probability"
 
-            sorted_pairs = sorted(zip(fpr_list, tpr_list))
-            fpr_sorted = np.array([p[0] for p in sorted_pairs])
-            tpr_sorted = np.array([p[1] for p in sorted_pairs])
-            
-            if hasattr(np, "trapezoid"):
-                auc_val = np.trapezoid(tpr_sorted, fpr_sorted)
-            elif hasattr(np, "trapz"):
-                auc_val = np.trapz(tpr_sorted, fpr_sorted)
-            else:
-                auc_val = np.sum((fpr_sorted[1:] - fpr_sorted[:-1]) * (tpr_sorted[1:] + tpr_sorted[:-1]) / 2)
+            if score_col is not None:
+                try:
+                    evaluator_roc = BinaryClassificationEvaluator(
+                        labelCol=label_col,
+                        rawPredictionCol=score_col,
+                        metricName="areaUnderROC",
+                    )
+                    auc_val = evaluator_roc.evaluate(preds)
+                except Exception:
+                    auc_val = None
+
+            # ROC curve points from unique thresholds (descending score order).
+            order = np.argsort(-probs, kind="mergesort")
+            labels_sorted = labels[order]
+            probs_sorted = probs[order]
+
+            distinct_idx = np.where(np.diff(probs_sorted))[0]
+            threshold_idx = np.r_[distinct_idx, labels_sorted.size - 1]
+
+            tps = np.cumsum(labels_sorted == 1)[threshold_idx]
+            fps = (threshold_idx + 1) - tps
+
+            tpr_sorted = np.r_[0.0, tps / total_pos]
+            fpr_sorted = np.r_[0.0, fps / total_neg]
+
+            if auc_val is None:
+                if hasattr(np, "trapezoid"):
+                    auc_val = np.trapezoid(tpr_sorted, fpr_sorted)
+                elif hasattr(np, "trapz"):
+                    auc_val = np.trapz(tpr_sorted, fpr_sorted)
+                else:
+                    auc_val = np.sum((fpr_sorted[1:] - fpr_sorted[:-1]) * (tpr_sorted[1:] + tpr_sorted[:-1]) / 2)
 
             color = colors[idx % len(colors)]
             display_name = name if len(name) <= 20 else name[:17] + "..."
             plt.plot(fpr_sorted, tpr_sorted, color=color, linewidth=1.5,
-                     label=f"{display_name} (AUC={auc_val:.4f})")
+                     label=f"{display_name} (AUC={auc_val:.6f})")
 
         except Exception as e:
             print(f"  [WARN] Skipping {name}: {str(e)}")
