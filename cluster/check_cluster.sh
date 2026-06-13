@@ -38,15 +38,20 @@ fi
 check_data() {
     local ssh_target="$1"
     local path="${IDS_CLUSTER_DATA_DIR:-/home/jetson/Thesis_IDS/data}"
-    if ssh "$ssh_target" "test -f '${path}/train_data.parquet'"; then
+    # shellcheck disable=SC2086
+    if ssh ${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10} "$ssh_target" \
+        "test -d '${path}/train_data.parquet' && ls '${path}/train_data.parquet'/part-*.parquet 1>/dev/null 2>&1"; then
         echo "[OK] Parquet on $ssh_target: $path"
     else
         echo "[ERR] Missing parquet on $ssh_target — run ./cluster/sync_workspace.sh"
     fi
 }
 
-for h in "${JETSON1_SSH:-}" "${JETSON2_SSH:-}"; do
+for h in "${JETSON1_SSH:-}"; do
     [ -n "$h" ] && check_data "$h"
 done
+if [ "${JETSON2_ENABLED:-0}" = "1" ] && [ -n "${JETSON2_SSH:-}" ]; then
+    check_data "$JETSON2_SSH"
+fi
 
 echo ""

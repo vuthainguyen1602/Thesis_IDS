@@ -1,8 +1,16 @@
 #!/bin/bash
 # Source cluster/spark_cluster.env — required for all reproduce / ML runs.
+# Works when sourced from bash or zsh: source cluster/load_cluster_env.sh
 set -euo pipefail
 
-CLUSTER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -n "${BASH_VERSION:-}" ]; then
+    _cluster_script="${BASH_SOURCE[0]}"
+elif [ -n "${ZSH_VERSION:-}" ]; then
+    _cluster_script="${(%):-%x}"
+else
+    _cluster_script="$0"
+fi
+CLUSTER_DIR="$(cd "$(dirname "$_cluster_script")" && pwd)"
 ENV_FILE="$CLUSTER_DIR/spark_cluster.env"
 
 if [ ! -f "$ENV_FILE" ]; then
@@ -26,3 +34,6 @@ if [ -z "${IDS_CLUSTER_DATA_DIR:-}" ] || [ -z "${CLUSTER_DRIVER:-}" ]; then
     echo "[ERR] Set IDS_CLUSTER_DATA_DIR and CLUSTER_DRIVER in cluster/spark_cluster.env"
     exit 1
 fi
+
+# Auto-trust new host keys (avoids interactive "yes/no" on first SSH).
+export CLUSTER_SSH_OPTS="${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10}"

@@ -58,10 +58,10 @@ Thesis_IDS/
 ├── data/                            # Processed data (parquet format)
 ├── raspberry/                       # Edge IDS (RPi / Jetson Nano)
 │
-├── thesis/                          # Sản phẩm #1 — Luận văn (manuscript + reproduce)
+├── thesis/                          # Deliverable #1 — thesis (manuscript + reproduce)
 ├── papers/
-│   ├── fair2026/                    # Sản phẩm #2 — FAIR'2026 paper
-│   └── soict2026/                   # Sản phẩm #3 — SOICT 2026 paper
+│   ├── fair2026/                    # Deliverable #2 — FAIR'2026 paper
+│   └── soict2026/                   # Deliverable #3 — SOICT 2026 paper
 └── ...
 ```
 
@@ -69,16 +69,16 @@ Thesis_IDS/
 
 | Folder | Deliverable | Reproduce |
 |--------|-------------|-----------|
-| `thesis/` | Luận văn tổng hợp | `./thesis/reproduce.sh` |
-| `papers/fair2026/` | Bài báo ML / FAIR'2026 | `./papers/fair2026/reproduce.sh` |
-| `papers/soict2026/` | Bài báo edge / SOICT 2026 | `./papers/soict2026/reproduce.sh` |
+| `thesis/` | Full thesis | `./thesis/reproduce.sh` |
+| `papers/fair2026/` | ML paper / FAIR'2026 | `./papers/fair2026/reproduce.sh` |
+| `papers/soict2026/` | Edge paper / SOICT 2026 | `./papers/soict2026/reproduce.sh` |
 
-Code thực thi dùng chung ở root (`ml_*.py`, `raspberry/`). Mỗi thư mục trên chỉ chứa manuscript, figures, tables và script thu kết quả.
+Shared execution code lives at the repo root (`ml_*.py`, `raspberry/`). Each folder above holds manuscript, figures, tables, and result-collection scripts.
 
-### ML scripts (thứ tự chạy)
+### ML scripts (run order)
 
-| Script | Nội dung |
-|--------|----------|
+| Script | Description |
+|--------|-------------|
 | `ml_00_prepare_cicids2017.py` | CSV → parquet |
 | `ml_01_baseline_all_features.py` | Baseline |
 | `ml_02_feature_selection_rf.py` | RF Top-K |
@@ -86,25 +86,99 @@ Code thực thi dùng chung ở root (`ml_*.py`, `raspberry/`). Mỗi thư mục
 | `ml_04_dimensionality_reduction_pca.py` | PCA |
 | `ml_05_shap_explainability.py` | SHAP XAI |
 | `ml_06_feature_selection_shap.py` | SHAP Top-K |
-| `ml_07_cross_method_comparison.py` | So sánh + drift |
+| `ml_07_cross_method_comparison.py` | Cross-method + drift |
 | `ml_08_anomaly_gate_autoencoder.py` | Anomaly gate (edge) |
 
-### Distributed cluster (Mac + 2× Jetson Nano) — **bắt buộc**
+### Distributed cluster (Mac + 2× Jetson Nano) — **required**
 
-Mọi `./papers/*/reproduce.sh` và `./thesis/reproduce.sh` **chỉ chạy phân tán**. Cần `cluster/spark_cluster.env`:
+All `./papers/*/reproduce.sh` and `./thesis/reproduce.sh` run **only in distributed mode** via Spark cluster:
 
-```bash
-cp cluster/spark_cluster.env.example cluster/spark_cluster.env   # sửa IP
-./cluster/start_master_mac.sh          # Mac
-./cluster/start_worker.sh              # mỗi Jetson
-./papers/fair2026/reproduce.sh         # tự sync + chạy ML trên cluster
+```
+Mac (192.168.1.x)     → Spark Master :7077, Docker (Kafka/Postgres/Grafana)
+Jetson #1             → Spark Worker + PySpark driver (ML scripts)
+Jetson #2 (optional)  → Second Spark Worker (+ edge classifier for SOICT)
 ```
 
-Hoặc: `./cluster/reproduce_cluster.sh fair|thesis|soict`
+**Full guide:** [cluster/DISTRIBUTED_CLUSTER.md](cluster/DISTRIBUTED_CLUSTER.md)
 
-Chi tiết: [cluster/DISTRIBUTED_CLUSTER.md](cluster/DISTRIBUTED_CLUSTER.md)
+#### Phase 1 — Try 1 Jetson first (recommended)
 
-Ngoại lệ Mac-only (tự gọi trong reproduce): `ml_00` (CSV→parquet), `save_model.py` — dùng `IDS_ALLOW_LOCAL_SPARK=1`.
+```bash
+cp cluster/spark_cluster.env.example cluster/spark_cluster.env
+# Edit: MAC_IP, JETSON1_IP, JETSON_SSH_USER, IDS_MAC_ROOT, IDS_RAW_DATA_DIR
+export JETSON2_ENABLED=0          # in spark_cluster.env — skip Jetson #2
+
+# Mac — one-time setup
+source cluster/load_cluster_env.sh
+./cluster/start_master_mac.sh
+cd raspberry && docker compose up -d
+python scripts/init_kafka_topics.py --partitions 2 --bootstrap localhost:9092
+
+# Jetson #1 — SSH, one-time setup
+ssh-copy-id <user>@<JETSON1_IP>
+cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh
+cd ~/Thesis_IDS && source cluster/load_cluster_env.sh && ./cluster/start_worker.sh
+
+# Mac — sync + run ML
+./cluster/sync_workspace.sh
+./cluster/run_ml_remote.sh ml_01_baseline_all_features.py
+```
+
+Verify: http://`<MAC_IP>`:8080 → **1 worker ALIVE**
+
+#### Phase 2 — Add Jetson #2
+
+1. Get Jetson #2 IP: `hostname -I` on the second device  
+2. Edit `cluster/spark_cluster.env`:
+
+```bash
+export JETSON2_IP=192.168.1.XXX
+export JETSON2_ENABLED=1
+```
+
+3. SSH + setup (same as Jetson #1):
+
+```bash
+ssh-copy-id <user>@<JETSON2_IP>
+rsync -avz ~/Desktop/Thesis_IDS/ <user>@<JETSON2_IP>:~/Thesis_IDS/
+scp cluster/spark_cluster.env <user>@<JETSON2_IP>:~/Thesis_IDS/cluster/
+# On Jetson #2:
+cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh
+cd ~/Thesis_IDS && source cluster/load_cluster_env.sh && ./cluster/start_worker.sh
+```
+
+4. Mac — sync both + verify:
+
+```bash
+source cluster/load_cluster_env.sh
+./cluster/sync_workspace.sh      # rsync → Jetson #1 and #2
+./cluster/check_cluster.sh       # 2 workers ALIVE, parquet OK
+```
+
+5. Edge SOICT (pipeline split): Jetson1 `anomaly_gate`, Jetson2 `classifier` — see [raspberry/JETSON_DISTRIBUTED.md](raspberry/JETSON_DISTRIBUTED.md)
+
+#### Reproduce papers / thesis
+
+```bash
+./cluster/reproduce_cluster.sh fair    # FAIR'2026 ML track
+./cluster/reproduce_cluster.sh soict   # SOICT edge track
+./cluster/reproduce_cluster.sh thesis  # Full thesis
+```
+
+**Mac-only** exceptions: `ml_00_prepare_cicids2017.py`, `save_model.py` (`IDS_ALLOW_LOCAL_SPARK=1`).
+
+#### Cluster environment variables (summary)
+
+| Variable | Mac | Jetson |
+|----------|-----|--------|
+| `MAC_IP` | Mac WiFi IP (`ipconfig getifaddr en0`) | — |
+| `JETSON1_IP` / `JETSON2_IP` | in `spark_cluster.env` | device IP |
+| `JETSON_SSH_USER` | SSH user (e.g. `bvdung`) | — |
+| `JETSON2_ENABLED` | `0` = 1 Jetson, `1` = 2 Jetsons | — |
+| `IDS_MAC_ROOT` | project path on Mac | — |
+| `CLUSTER_DRIVER_IDS_ROOT` | — | `/home/<user>/Thesis_IDS` |
+| `SPARK_MASTER` | `spark://<MAC_IP>:7077` | same value |
+| `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9092` (init/sender) | `<MAC_IP>:9092` |
 
 ---
 
@@ -114,14 +188,18 @@ The project uses a centralized environment variable system for path management, 
 
 | Variable | Description | Default Fallback |
 |----------|-------------|------------------|
-| `IDS_ROOT` | Project root directory | Script directory (`__file__`) |
+| `IDS_MAC_ROOT` | Project root **on Mac** (for sync) | Script directory |
+| `IDS_ROOT` | Project root on **Jetson driver** | Script directory |
 | `IDS_RAW_DATA_DIR` | Location of raw CICIDS2017 CSVs | `IDS_ROOT/ids-2017` |
-| `IDS_DATA_DIR` | Location to save/load Parquet | `IDS_ROOT/data` |
+| `IDS_DATA_DIR` | Location to save/load Parquet **on Mac** | `IDS_MAC_ROOT/data` |
+| `IDS_CLUSTER_DATA_DIR` | Parquet path on **Jetsons** | `/home/<user>/Thesis_IDS/data` |
 
-### Setting variables (Example)
+### Setting variables (Example — Mac)
 ```bash
-export IDS_ROOT="/Users/name/Desktop/Thesis_IDS"
-export IDS_RAW_DATA_DIR="/Volumes/ExternalSSD/Dataset/ids-2017"
+# In cluster/spark_cluster.env (copy from cluster/spark_cluster.env.example)
+export IDS_MAC_ROOT="/Users/name/Desktop/Thesis_IDS"
+export IDS_RAW_DATA_DIR="/Users/name/Desktop/Thesis_IDS/ids-2017"
+export IDS_DATA_DIR="/Users/name/Desktop/Thesis_IDS/data"
 ```
 
 ---
@@ -138,10 +216,25 @@ This codebase has been refactored to meet **higher scientific standards** for th
 
 ## System Requirements
 
+### Mac (Spark master + Docker)
 - **Python**: 3.9+
-- **Java JDK**: 17 (required for Apache Spark)
-- **RAM**: minimum 8GB (16GB recommended)
-- **Disk**: ~5GB for CICIDS2017 dataset
+- **Java JDK**: 17 (`brew install openjdk@17`)
+- **Docker Desktop**: Kafka, PostgreSQL, InfluxDB, Grafana
+- **RAM**: 8GB+ (16GB recommended for data prep)
+
+### Jetson Nano (Spark worker + ML driver / edge)
+- **JetPack** / Ubuntu 18.04+ (aarch64)
+- **Java**: `default-jdk` (Java 11 OK — auto-detected by `shared_utils.py`)
+- **Swap**: 4GB (`setup_jetson.sh` creates it automatically)
+- **SSH**: passwordless from Mac (`ssh-copy-id user@jetson-ip`)
+- **Disk**: ~5GB for CICIDS2017 parquet (synced from Mac)
+
+### Cluster sizing
+
+| Setup | ML training | Edge SOICT |
+|----------|-------------|------------|
+| Mac + 1 Jetson | ✅ Trial / debug (`JETSON2_ENABLED=0`) | ✅ `full` mode on one Jetson |
+| Mac + 2 Jetsons | ✅ Recommended (2 executors) | ✅ Split `anomaly_gate` + `classifier` |
 
 ---
 
@@ -217,22 +310,16 @@ SynapseML requires additional Spark packages at runtime. Add the following to yo
 pip install shap
 ```
 
-### 6. Configure JAVA_HOME
+### 6. JAVA_HOME
 
-Open `shared_utils.py` and update the Java path if needed:
+`shared_utils.py` auto-detects `JAVA_HOME` on Mac and Jetson. Install Java only:
 
-```python
-# Lines 27-28 in shared_utils.py
-os.environ["JAVA_HOME"] = "/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home"
-os.environ["PATH"] = os.environ["JAVA_HOME"] + "/bin:" + os.environ["PATH"]
-```
+| Host | Command |
+|-----|---------|
+| Mac | `brew install openjdk@17` |
+| Jetson | `sudo apt install -y default-jdk` |
 
-Common paths:
-| OS | Path |
-|----|------|
-| macOS (Homebrew) | `/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home` |
-| macOS (Oracle) | `/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home` |
-| Ubuntu | `/usr/lib/jvm/java-17-openjdk-amd64` |
+Verify: `java -version` and `echo $JAVA_HOME`
 
 ### Quick Verification
 
@@ -405,19 +492,19 @@ Each experiment generates:
 
 ---
 
-## Edge Deployment (Raspberry Pi)
+## Edge Deployment (Jetson / Raspberry Pi)
 
-The system is designed for a **Split Deployment** architecture:
-- **Cloud/PC**: Runs the training pipeline (PySpark) and central infrastructure (Kafka, PostgreSQL, InfluxDB, Grafana).
-- **Edge (RPi 4B)**: Runs the real-time inference engine, preprocessing JSON network flows and making predictions using a pre-trained `PipelineModel`.
+**Split deployment:**
+- **Mac**: Spark master, Docker (Kafka, PostgreSQL, InfluxDB, Grafana), `ml_00`, `save_model.py`
+- **Jetson #1**: Spark worker, PySpark ML driver, edge pipeline (`full` or `anomaly_gate`)
+- **Jetson #2** (optional): Spark worker, edge `classifier` (SOICT split mode)
 
-### Features
-- **Real-time Inference**: < 100ms latency per batch.
-- **Performance Monitoring**: Real-time CPU/RAM/Thermal tracking via InfluxDB.
-- **Alerting**: Multi-channel alerts (Email via Mailtrap, Slack Incoming Webhooks).
-- **Dashboards**: Pre-configured Grafana visualizations for both performance and security metrics.
+Jetson **does not need Docker** — set `.env` `KAFKA_BOOTSTRAP_SERVERS`, `POSTGRES_HOST`, `INFLUXDB_URL` to **MAC_IP**.
 
-See the **[raspberry/README.md](raspberry/README.md)** for detailed hardware setup and edge-specific commands.
+See:
+- **[cluster/DISTRIBUTED_CLUSTER.md](cluster/DISTRIBUTED_CLUSTER.md)** — Spark cluster + distributed ML
+- **[raspberry/JETSON_DISTRIBUTED.md](raspberry/JETSON_DISTRIBUTED.md)** — 2-Jetson edge modes
+- **[raspberry/README.md](raspberry/README.md)** — Docker, Kafka, Grafana
 
 ---
 

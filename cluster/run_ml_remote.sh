@@ -31,10 +31,33 @@ echo "  Master:  ${SPARK_MASTER:?}"
 echo "  Script:  $SCRIPT_BASE"
 echo "================================================================"
 
-ssh "$DRIVER" bash -s <<EOF
+# shellcheck disable=SC2086
+ssh ${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10} "$DRIVER" bash -s <<EOF
 set -euo pipefail
 cd "$REMOTE_ROOT"
 if [ -d raspberry/venv/bin ]; then source raspberry/venv/bin/activate; elif [ -d venv/bin ]; then source venv/bin/activate; fi
+if ! python -c "import pandas" 2>/dev/null; then
+    echo "[INFO] Installing ML driver deps (minimal set, may take a few minutes)..."
+    PIP_OPTS="--retries 10 --timeout 120 --default-timeout=120"
+    REQ_MIN="cluster/requirements_ml_driver_min.txt"
+    REQ_FULL="cluster/requirements_ml_driver.txt"
+    if [ -f "\$REQ_MIN" ]; then
+        pip install \$PIP_OPTS -r "\$REQ_MIN" || {
+            echo "[WARN] Batch install failed — trying one package at a time..."
+            pip install \$PIP_OPTS pandas
+            pip install \$PIP_OPTS matplotlib
+            pip install \$PIP_OPTS seaborn
+        }
+    elif [ -f "\$REQ_FULL" ]; then
+        pip install \$PIP_OPTS -r "\$REQ_FULL"
+    else
+        pip install \$PIP_OPTS pandas matplotlib seaborn
+    fi
+fi
+python -c "import pandas, matplotlib, seaborn; print('[OK] ML deps ready')"
+export JAVA_HOME="\${JAVA_HOME:-\$(dirname "\$(dirname "\$(readlink -f "\$(which java)")")")}"
+export PATH="\$JAVA_HOME/bin:\$PATH"
+echo "[INFO] JAVA_HOME=\$JAVA_HOME"
 export IDS_SPARK_CLUSTER=1
 export IDS_ROOT="$REMOTE_ROOT"
 export IDS_CLUSTER_DATA_DIR="${IDS_CLUSTER_DATA_DIR:-$REMOTE_ROOT/data}"

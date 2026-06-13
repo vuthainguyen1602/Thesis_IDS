@@ -1,0 +1,7 @@
+# ML driver dependencies on Jetson — full set (ml_05 SHAP, XGBoost)
+# For ml_01 start with requirements_ml_driver_min.txt only.
+pandas>=2.0,<3
+matplotlib>=3.7,<4
+seaborn>=0.13,<1
+xgboost>=2.0,<3
+shap>=0.44,<1

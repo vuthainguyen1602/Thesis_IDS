@@ -39,12 +39,12 @@ from shared_utils import (
 spark = create_spark_session("IDS_Exp2_GridSearch_CV")
 _, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
-# ── Tuning profile (mặc định: FAST — set IDS_EXP2_FULL=1 để chạy đầy đủ) ──
-# Mặc định fast: 15% train, 3 folds, DT+RF+LR (~20–45 phút)
-# IDS_EXP2_FULL=1        → full train, 3 folds, +GBT (+ IDS_EXP2_EXTENDED=1 cho XGB/LGBM/MLP)
-# IDS_CV_FOLDS=3         → số fold
-# IDS_CV_FRACTION=0.15   → subsample cho CV (fast mặc định 0.15)
-# IDS_EXP2_EXTENDED=1    → thêm XGBoost, LightGBM, MLP (chỉ với IDS_EXP2_FULL=1)
+# ── Tuning profile (default: FAST — set IDS_EXP2_FULL=1 for full run) ──
+# Default fast: 15% train, 3 folds, DT+RF+LR (~20–45 min)
+# IDS_EXP2_FULL=1        → full train, 3 folds, +GBT (+ IDS_EXP2_EXTENDED=1 for XGB/LGBM/MLP)
+# IDS_CV_FOLDS=3         → number of folds
+# IDS_CV_FRACTION=0.15   → CV subsample fraction (fast default 0.15)
+# IDS_EXP2_EXTENDED=1    → add XGBoost, LightGBM, MLP (requires IDS_EXP2_FULL=1)
 FULL_MODE = os.environ.get("IDS_EXP2_FULL", "0").strip().lower() in ("1", "true", "yes")
 FAST_MODE = not FULL_MODE
 if os.environ.get("IDS_EXP2_FAST") is not None:

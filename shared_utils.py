@@ -20,17 +20,39 @@ os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
 
 def _configure_java_home() -> None:
-    if os.environ.get("JAVA_HOME"):
+    def _java_home_valid(path: str) -> bool:
+        return bool(path) and os.path.isfile(os.path.join(path, "bin", "java"))
+
+    if _java_home_valid(os.environ.get("JAVA_HOME", "")):
         java_home = os.environ["JAVA_HOME"]
     elif sys.platform == "darwin":
         candidates = [
             "/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home",
             "/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home",
         ]
-        java_home = next((p for p in candidates if os.path.isdir(p)), candidates[-1])
+        java_home = next((p for p in candidates if _java_home_valid(p)), candidates[-1])
         os.environ["JAVA_HOME"] = java_home
     else:
-        java_home = os.environ.get("JAVA_HOME", "/usr/lib/jvm/java-17-openjdk-amd64")
+        import shutil
+
+        java_bin = shutil.which("java")
+        if java_bin:
+            java_home = os.path.dirname(os.path.dirname(os.path.realpath(java_bin)))
+        else:
+            java_home = ""
+        if not _java_home_valid(java_home):
+            candidates = [
+                "/usr/lib/jvm/java-17-openjdk-arm64",
+                "/usr/lib/jvm/java-11-openjdk-arm64",
+                "/usr/lib/jvm/default-java",
+                "/usr/lib/jvm/java-17-openjdk-amd64",
+                "/usr/lib/jvm/java-11-openjdk-amd64",
+            ]
+            java_home = next((p for p in candidates if _java_home_valid(p)), "")
+        if not _java_home_valid(java_home):
+            raise RuntimeError(
+                "JAVA_HOME not found. On Jetson run: sudo apt-get install -y default-jdk"
+            )
         os.environ["JAVA_HOME"] = java_home
     os.environ["PATH"] = os.environ["JAVA_HOME"] + "/bin:" + os.environ.get("PATH", "")
 

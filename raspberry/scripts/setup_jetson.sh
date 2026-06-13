@@ -63,6 +63,9 @@ python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
+if [ -f ../cluster/requirements_ml_driver_min.txt ]; then
+    pip install --retries 10 --timeout 120 -r ../cluster/requirements_ml_driver_min.txt
+fi
 echo "  [OK] Python venv created"
 
 echo "[7/7] Environment file..."

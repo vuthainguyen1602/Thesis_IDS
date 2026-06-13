@@ -16,6 +16,8 @@ WORKER_CORES="${SPARK_WORKER_CORES:-2}"
 WORKER_MEMORY="${SPARK_WORKER_MEMORY:-768m}"
 
 echo "[INFO] Starting Spark worker -> ${MASTER_URL}"
+# Avoid Spark sbin rsync hook (SPARK_MASTER env = host:path, not spark:// URL).
+unset SPARK_MASTER
 "${WORKER_SCRIPT}" \
     --cores "${WORKER_CORES}" \
     --memory "${WORKER_MEMORY}" \

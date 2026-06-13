@@ -10,6 +10,9 @@ if [ -f "$CLUSTER_DIR/spark_cluster.env" ]; then
     source "$CLUSTER_DIR/load_cluster_env.sh"
 fi
 
+# shellcheck disable=SC1091
+source "$CLUSTER_DIR/resolve_spark_home.sh"
+
 export JAVA_HOME="${JAVA_HOME:-$(dirname "$(dirname "$(readlink -f "$(which java)")")")}"
 
 if [ -d "$ROOT/raspberry/venv/bin" ]; then
@@ -20,17 +23,15 @@ elif [ -d "$ROOT/venv/bin" ]; then
     source "$ROOT/venv/bin/activate"
 fi
 
-export SPARK_HOME="${SPARK_HOME:-$(python -c "import pyspark; import os; print(os.path.dirname(pyspark.__path__[0]))")}"
-MASTER_URL="${SPARK_MASTER:?Set SPARK_MASTER in cluster/spark_cluster.env}"
-WORKER_SCRIPT="$SPARK_HOME/sbin/start-worker.sh"
-if [ ! -f "$WORKER_SCRIPT" ]; then
-    WORKER_SCRIPT="$SPARK_HOME/sbin/start-slave.sh"
-fi
+export_spark_home
 
+MASTER_URL="${SPARK_MASTER:?Set SPARK_MASTER in cluster/spark_cluster.env}"
 NODE_ID="${EDGE_NODE_ID:-$(hostname)}"
 CORES="${SPARK_WORKER_CORES:-2}"
 MEMORY="${SPARK_WORKER_MEMORY:-768m}"
 
 echo "[INFO] Spark worker ($NODE_ID) -> $MASTER_URL (${CORES} cores, ${MEMORY})"
-"$WORKER_SCRIPT" --cores "$CORES" --memory "$MEMORY" "$MASTER_URL"
+echo "[INFO] SPARK_HOME=$SPARK_HOME"
+
+start_spark_worker "$MASTER_URL" "$CORES" "$MEMORY"
 echo "[OK] Worker started"

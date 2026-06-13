@@ -21,7 +21,9 @@ if [ -d "$ROOT/venv/bin" ]; then
     source "$ROOT/venv/bin/activate"
 fi
 
-export SPARK_HOME="${SPARK_HOME:-$(python -c "import pyspark; import os; print(os.path.dirname(pyspark.__path__[0]))")}"
+# shellcheck disable=SC1091
+source "$CLUSTER_DIR/resolve_spark_home.sh"
+export_spark_home
 MASTER_HOST="${SPARK_MASTER_HOST:-${MAC_IP:-$(ipconfig getifaddr en0 2>/dev/null || hostname)}}"
 MASTER_PORT="${SPARK_MASTER_PORT:-7077}"
 WEBUI_PORT="${SPARK_MASTER_WEBUI_PORT:-8080}"
@@ -31,6 +33,9 @@ echo "  Spark Master (Mac)"
 echo "  Host: ${MASTER_HOST}:${MASTER_PORT}"
 echo "  UI:   http://${MASTER_HOST}:${WEBUI_PORT}"
 echo "================================================================"
+
+# Spark sbin treats SPARK_MASTER as rsync host:path (legacy HOD), not spark:// URL.
+unset SPARK_MASTER
 
 "$SPARK_HOME/sbin/start-master.sh" \
     --host "$MASTER_HOST" \

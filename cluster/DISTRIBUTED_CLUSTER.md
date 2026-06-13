@@ -1,6 +1,6 @@
-# Triển khai phân tán: 1× Mac + 2× Jetson Nano
+# Distributed deployment: 1× Mac + 2× Jetson Nano
 
-Toàn bộ pipeline (huấn luyện ML **và** inference edge) dùng **Spark standalone cluster** 3 node.
+All ML pipelines (`ml_01`–`ml_07`) and edge inference use a **Spark standalone cluster**.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -14,137 +14,203 @@ Toàn bộ pipeline (huấn luyện ML **và** inference edge) dùng **Spark sta
      │  Jetson Nano #1       │ │  Jetson Nano #2   │
      │  Spark Worker         │ │  Spark Worker     │
      │  PySpark Driver (ML)  │ │  edge classifier  │
-     │  anomaly_gate (opt.)  │ │  (SOICT mode A)   │
+     │  anomaly_gate (opt.)  │ │  (SOICT split)    │
      └───────────────────────┘ └───────────────────┘
 ```
 
-## Bước 0 — Cấu hình một lần
+---
+
+## Step 0 — Configure `cluster/spark_cluster.env`
 
 ```bash
 cd /path/to/Thesis_IDS
 cp cluster/spark_cluster.env.example cluster/spark_cluster.env
-# Sửa MAC_IP, JETSON1_IP, JETSON2_IP, SSH user, đường dẫn CSV
 ```
 
-Trên **mỗi Jetson** (một lần):
+Edit the following:
 
-```bash
-cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh
+| Variable | Example | Notes |
+|----------|---------|-------|
+| `MAC_IP` | `192.168.1.101` | Mac: `ipconfig getifaddr en0` |
+| `JETSON1_IP` | `192.168.1.50` | Jetson #1: `hostname -I` |
+| `JETSON2_IP` | `192.168.1.102` | Jetson #2 (when available) |
+| `JETSON_SSH_USER` | `bvdung` | Not always `jetson` |
+| `JETSON2_ENABLED` | `0` or `1` | `0` = single-Jetson trial |
+| `IDS_MAC_ROOT` | `/Users/you/Desktop/Thesis_IDS` | Project path on **Mac** |
+| `IDS_RAW_DATA_DIR` | `.../ids-2017` | CSV on Mac |
+| `IDS_DATA_DIR` | `.../data` | Parquet on Mac |
+
+**Important:** Do not set `IDS_ROOT` to a Jetson path on Mac — use `IDS_MAC_ROOT` for sync.
+
+Update Kafka Docker on Mac — `raspberry/docker-compose.yml`:
+
+```yaml
+KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://<MAC_IP>:9092
 ```
 
-## Bước 1 — Khởi động cluster
+---
 
-**Mac:**
+## Phase 1 — Mac + 1 Jetson (trial)
+
+### Mac
 
 ```bash
-source cluster/spark_cluster.env
+source cluster/load_cluster_env.sh   # works in zsh and bash
+
 ./cluster/start_master_mac.sh
 cd raspberry && docker compose up -d
-python scripts/init_kafka_topics.py --partitions 2
+python scripts/init_kafka_topics.py --partitions 2 --bootstrap localhost:9092
 ```
 
-**Jetson #1 và #2** (SSH vào từng máy):
+Spark UI: http://`<MAC_IP>`:8080
+
+### Jetson #1
 
 ```bash
+# From Mac — SSH key (one-time)
+ssh-copy-id <user>@<JETSON1_IP>
+
+# Initial code sync
+rsync -avz --exclude venv --exclude .git \
+  ~/Desktop/Thesis_IDS/ <user>@<JETSON1_IP>:~/Thesis_IDS/
+scp cluster/spark_cluster.env <user>@<JETSON1_IP>:~/Thesis_IDS/cluster/
+
+# On Jetson
+ssh <user>@<JETSON1_IP>
+cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh
 cd ~/Thesis_IDS
-source cluster/spark_cluster.env
+unset SPARK_HOME    # if previously set to wrong /opt/spark
+source cluster/load_cluster_env.sh
 ./cluster/start_worker.sh
 ```
 
-Kiểm tra:
+### Mac — sync data + ML
 
 ```bash
-./cluster/check_cluster.sh
-# Master UI: http://<MAC_IP>:8080 — phải thấy 2 workers ALIVE
-```
-
-## Bước 2 — Đồng bộ code + data
-
-Parquet phải tồn tại trên **cả 2 Jetson** (cùng đường dẫn):
-
-```bash
-# Mac — tạo parquet nếu chưa có
-source venv/bin/activate
-python ml_00_prepare_cicids2017.py
-
-# Mac — sync sang Jetsons
-source cluster/spark_cluster.env
+python ml_00_prepare_cicids2017.py   # Mac-only, one-time
 ./cluster/sync_workspace.sh
-```
-
-`IDS_CLUSTER_DATA_DIR` (mặc định `/home/jetson/Thesis_IDS/data`) phải khớp trên mọi worker.
-
-## Bước 3 — Huấn luyện ML phân tán (FAIR / luận văn)
-
-Driver chạy trên **Jetson #1**, executors trên **Jetson #1 + #2**, master trên **Mac**:
-
-```bash
-# Toàn bộ FAIR track
-./cluster/reproduce_cluster.sh fair
-
-# Hoặc từng script
+./cluster/check_cluster.sh           # 1 worker, parquet OK
 ./cluster/run_ml_remote.sh ml_01_baseline_all_features.py
-./cluster/run_ml_remote.sh ml_07_cross_method_comparison.py
 ```
 
-SOICT / edge prep:
+---
+
+## Phase 2 — Add Jetson #2
+
+### 1. Update config (Mac)
 
 ```bash
+# cluster/spark_cluster.env
+export JETSON2_IP=192.168.1.XXX
+export JETSON2_ENABLED=1
+```
+
+### 2. Setup Jetson #2 (same as Jetson #1)
+
+```bash
+ssh-copy-id <user>@<JETSON2_IP>
+rsync -avz --exclude venv --exclude .git \
+  ~/Desktop/Thesis_IDS/ <user>@<JETSON2_IP>:~/Thesis_IDS/
+scp cluster/spark_cluster.env <user>@<JETSON2_IP>:~/Thesis_IDS/cluster/
+
+ssh <user>@<JETSON2_IP>
+cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh
+cd ~/Thesis_IDS && source cluster/load_cluster_env.sh && ./cluster/start_worker.sh
+```
+
+### 3. Mac — sync + verify
+
+```bash
+source cluster/load_cluster_env.sh
+./cluster/sync_workspace.sh    # sync to Jetson #1 and #2
+./cluster/check_cluster.sh     # 2 workers ALIVE
+```
+
+Spark UI should show **Alive Workers: 2**.
+
+### 4. Edge SOICT (2 Jetsons)
+
+| Jetson | `.env` | Role |
+|--------|--------|------|
+| #1 | `.env.jetson1.example` | `EDGE_NODE_ROLE=anomaly_gate` |
+| #2 | `.env.jetson2.example` | `EDGE_NODE_ROLE=classifier` |
+
+Both point Kafka/DB to `MAC_IP`. Details: [raspberry/JETSON_DISTRIBUTED.md](../raspberry/JETSON_DISTRIBUTED.md)
+
+---
+
+## ML dependencies on Jetson
+
+`setup_jetson.sh` installs edge deps. ML driver also needs (auto-installed on first `run_ml_remote.sh`):
+
+```bash
+cd ~/Thesis_IDS/raspberry && source venv/bin/activate
+pip install -r ../cluster/requirements_ml_driver_min.txt   # ml_01–ml_04, ml_07
+pip install -r ../cluster/requirements_ml_driver.txt       # + xgboost, shap (ml_05–ml_06)
+```
+
+---
+
+## Reproduce scripts
+
+```bash
+./cluster/reproduce_cluster.sh fair
 ./cluster/reproduce_cluster.sh soict
-```
-
-Luận văn đầy đủ:
-
-```bash
 ./cluster/reproduce_cluster.sh thesis
 ```
 
-## Bước 4 — Edge inference phân tán (SOICT)
-
-Cập nhật `raspberry/.env` trên Jetsons:
-
-```env
-SPARK_MASTER=spark://<MAC_IP>:7077
-KAFKA_BOOTSTRAP_SERVERS=<MAC_IP>:9092
-```
-
-**Mode A** (khuyến nghị): Jetson1 `anomaly_gate`, Jetson2 `classifier` — xem `raspberry/JETSON_DISTRIBUTED.md`.
-
-Spark classifier trên Jetson #2 dùng cluster (executors trên cả 2 Jetson).
-
-## Biến môi trường quan trọng
-
-| Biến | Vai trò |
-|------|---------|
-| `IDS_SPARK_CLUSTER=1` | Bật chế độ cluster trong `shared_utils.py` |
-| `SPARK_MASTER` | `spark://<MAC_IP>:7077` |
-| `SPARK_DRIVER_HOST` | IP Jetson #1 (nơi chạy driver Python) |
-| `IDS_CLUSTER_DATA_DIR` | Parquet path trên mọi worker |
-| `SPARK_EXECUTOR_MEMORY` | `768m` (Jetson 4GB) |
-
-## Bắt buộc phân tán
-
-**Không còn chế độ local Spark** cho `ml_01`–`ml_07`. Nếu chạy trực tiếp:
+Or run individual scripts:
 
 ```bash
-source cluster/load_cluster_env.sh   # hoặc dùng reproduce_cluster.sh
-./cluster/run_ml_remote.sh ml_01_baseline_all_features.py
+./cluster/run_ml_remote.sh ml_07_cross_method_comparison.py
 ```
 
-Chỉ `ml_00` và `save_model.py` trên Mac được phép local (`IDS_ALLOW_LOCAL_SPARK=1`).
+---
+
+## Key environment variables
+
+| Variable | Role |
+|----------|------|
+| `IDS_SPARK_CLUSTER=1` | Enable cluster mode in `shared_utils.py` |
+| `SPARK_MASTER` | `spark://<MAC_IP>:7077` |
+| `SPARK_DRIVER_HOST` | Jetson #1 IP |
+| `JETSON2_ENABLED` | `0` = skip SSH/sync/stop for Jetson #2 |
+| `IDS_MAC_ROOT` | Project root on Mac (sync source) |
+| `IDS_CLUSTER_DATA_DIR` | Parquet path on Jetson (`.../data`) |
+| `SPARK_EXECUTOR_MEMORY` | `768m` (Jetson 4GB) |
+
+**Mac-only** (local Spark OK): `ml_00`, `save_model.py` with `IDS_ALLOW_LOCAL_SPARK=1`.
+
+---
 
 ## Troubleshooting
 
-| Lỗi | Cách xử lý |
-|-----|------------|
-| Worker không xuất hiện trên UI | Firewall Mac port 7077; đúng `MAC_IP` |
-| FileNotFound parquet trên worker | Chạy `./cluster/sync_workspace.sh` |
-| OOM trên Jetson | Giảm `SPARK_EXECUTOR_MEMORY`, `EDGE_BATCH_SIZE` |
-| Driver timeout | Tăng `spark.network.timeout` (đã set 800s) |
-| SHAP chậm | SHAP chạy trên driver (Jetson1) — bình thường |
+| Issue | Fix |
+|-------|-----|
+| `BASH_SOURCE parameter not set` | Use `source cluster/load_cluster_env.sh` (zsh fix applied) |
+| `rsync from spark://...` | Old scripts; master/worker now `unset SPARK_MASTER` |
+| SSH `Permission denied` | Correct `JETSON_SSH_USER`, `ssh-copy-id`, enable `PasswordAuthentication yes` on Jetson |
+| 0 workers on UI | Run `./cluster/start_worker.sh` **on Jetson**; check Mac firewall :7077 |
+| `SPARK_HOME=/opt/spark` | `unset SPARK_HOME` before starting worker |
+| `Spark sbin not found` | Install pyspark in venv; script uses `pyspark.__path__[0]` |
+| `Java gateway exited` | `sudo apt install default-jdk`; verify `java -version` on Jetson |
+| `No module named pandas` | `pip install -r cluster/requirements_ml_driver_min.txt` |
+| pip `IncompleteRead` on Jetson | Install packages one-by-one; use `_min.txt` first |
+| `Missing parquet on Jetson` | `./cluster/sync_workspace.sh`; verify `IDS_MAC_ROOT` on Mac |
+| Kafka `NoBrokersAvailable` | Wait 30s after `docker compose up`; use `--bootstrap localhost:9092` on Mac |
+| OOM on Jetson | Reduce `SPARK_EXECUTOR_MEMORY`; increase swap |
 
-## Kiến trúc code
+---
 
-- `shared_utils.py` — `create_spark_session()` đọc `SPARK_MASTER`, `IDS_SPARK_CLUSTER`
-- `cluster/run_ml_remote.sh` — SSH driver trên Jetson1
-- `cluster/sync_workspace.sh` — rsync Mac → 2 Jetsons
+## Code layout
+
+| File | Role |
+|------|------|
+| `shared_utils.py` | `create_spark_session()` — cluster + auto JAVA_HOME |
+| `cluster/load_cluster_env.sh` | Load config (zsh + bash) |
+| `cluster/sync_workspace.sh` | rsync Mac → Jetson(s) |
+| `cluster/run_ml_remote.sh` | SSH driver on Jetson #1 |
+| `cluster/start_master_mac.sh` | Spark master on Mac |
+| `cluster/start_worker.sh` | Spark worker on Jetson |
+| `cluster/stop_cluster.sh` | Stop master + workers |
+| `cluster/check_cluster.sh` | Health check |

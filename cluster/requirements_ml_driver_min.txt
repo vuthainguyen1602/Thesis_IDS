@@ -1,0 +1,4 @@
+# Minimal ML deps for ml_01–ml_04, ml_07 (Jetson driver)
+pandas>=2.0,<3
+matplotlib>=3.7,<4
+seaborn>=0.13,<1
