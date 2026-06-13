@@ -1,0 +1,22 @@
+% English comparison table — \input from SOICT main.tex
+\begin{table}[htbp]
+  \caption{Comparison with related edge and streaming IDS deployments.}
+  \label{tab:related-work}
+  \centering
+  \small
+  \begin{tabular}{|p{2.2cm}|p{2.5cm}|p{1.5cm}|p{2.0cm}|p{2.5cm}|}
+    \hline
+    \textbf{Work} & \textbf{Focus} & \textbf{Platform} & \textbf{Streaming} & \textbf{Our difference} \\
+    \hline
+    Shi et al.~\cite{shi2016edge} & Edge vision & Generic & --- & Kafka + PySpark IDS on Jetson \\
+    Ten et al.~\cite{ten2019edge} & Edge ML perf. & RPi / edge & Batch & End-to-end Kafka replay + 3 deploy modes \\
+    Khanna et al.~\cite{khanna2023edge} & Edge IoT survey & Generic & Partial & Measured 2-node Jetson cluster \\
+    Mohammadi et al.~\cite{mohammadi2023federated} & Federated IDS & Edge nodes & --- & Split anomaly gate + classifier \\
+    Kreps et al.~\cite{kreps2011kafka} & Log streaming & Server & Kafka & Suspicious-flow topic forwarding \\
+    Al-Rawashdeh \& Purdy~\cite{alrawashdeh2016toward} & Online RF IDS & Cloud VM & Near-line & Lightweight AE gate on Nano \\
+    L{\'o}pez-Mart{\'i}n et al.~\cite{lopez2020autoencoder} & AE detection & GPU server & Offline & AE on gate, Spark only on suspicious \\
+    NVIDIA Jetson~\cite{nvidia2019jetson} & Embedded GPU & Jetson Nano & --- & Role-based pipelines + Influx metrics \\
+    \textbf{This work} & \textbf{Distributed edge IDS} & \textbf{2$\times$ Jetson} & \textbf{Kafka} & \textbf{Modes A/B/C + open scripts} \\
+    \hline
+  \end{tabular}
+\end{table}

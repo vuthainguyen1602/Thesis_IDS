@@ -14,7 +14,8 @@ from config import INFLUXDB_URL, INFLUXDB_TOKEN, INFLUXDB_ORG, INFLUXDB_BUCKET
 
 class InfluxDBStorage:
 
-    def __init__(self):
+    def __init__(self, node_id: str = "edge-node-1"):
+        self.node_id = node_id
         self.client = InfluxDBClient(
             url=INFLUXDB_URL,
             token=INFLUXDB_TOKEN,
@@ -30,7 +31,7 @@ class InfluxDBStorage:
 
         system_point = (
             Point("system_metrics")
-            .tag("host", "raspberry-pi")
+            .tag("host", self.node_id)
             .field("cpu_percent", float(metrics.get("cpu_percent", 0)))
             .field("memory_percent", float(metrics.get("memory_percent", 0)))
             .field("memory_used_mb", float(metrics.get("memory_used_mb", 0)))
@@ -45,7 +46,7 @@ class InfluxDBStorage:
 
         prediction_point = (
             Point("prediction_metrics")
-            .tag("host", "raspberry-pi")
+            .tag("host", self.node_id)
             .field("throughput_rps", float(metrics.get("throughput_rps", 0)))
             .field("predictions_count", int(metrics.get("predictions_count", 0)))
             .field("attacks_count", int(metrics.get("attacks_count", 0)))

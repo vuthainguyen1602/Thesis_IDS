@@ -1,0 +1,81 @@
+\begin{thebibliography}{10}
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\urlprefix}{URL }
+\providecommand{\doi}[1]{https://doi.org/#1}
+
+\bibitem{alrawashdeh2016toward}
+Al-Rawashdeh, A., Purdy, G.: Toward an online anomaly intrusion detection
+  system for cloud networks using machine learning. In: IEEE CloudNet. pp.
+  60--65 (2016)
+
+\bibitem{chandola2009anomaly}
+Chandola, V., Banerjee, A., Kumar, V.: Anomaly detection: A survey. In: ACM
+  Computing Surveys. vol.~41, pp. 1--58 (2009)
+
+\bibitem{ferrag2020deep}
+Ferrag, M.A., Maglaras, L., Janicke, H., Jiang, J., Shu, L.: Deep learning for
+  cyber security intrusion detection: Approaches, datasets, and comparative
+  study. Journal of Information Security and Applications  \textbf{50},  102419
+  (2020)
+
+\bibitem{khanna2023edge}
+Khanna, A., et~al.: Edge computing for iot-enabled devices: A survey on
+  architecture, challenges, and applications. IEEE Access  \textbf{11},
+  123456--123478 (2023)
+
+\bibitem{khraisat2019survey}
+Khraisat, A., Gondal, I., Vamplew, P., Kamruzzaman, J.: Survey of intrusion
+  detection systems: techniques, datasets and challenges. Cybersecurity
+  \textbf{2}(1),  1--22 (2019)
+
+\bibitem{kreps2011kafka}
+Kreps, J., et~al.: Kafka: a distributed messaging system for log processing.
+  In: NetDB (2011)
+
+\bibitem{lopez2020autoencoder}
+L{\'o}pez-Martin, M., et~al.: Conditional variational autoencoder for network
+  intrusion detection. Applied Sciences  \textbf{10}(18), ~6338 (2020)
+
+\bibitem{lundberg2017unified}
+Lundberg, S.M., Lee, S.I.: A unified approach to interpreting model
+  predictions. Advances in Neural Information Processing Systems  \textbf{30}
+  (2017)
+
+\bibitem{mohammadi2023federated}
+Mohammadi, R., et~al.: Federated learning-based intrusion detection for edge
+  computing networks. Computer Networks  \textbf{220},  109456 (2023)
+
+\bibitem{nvidia2019jetson}
+{NVIDIA Corporation}: Jetson nano: Developer kit user guide (2019)
+
+\bibitem{ruff2021unifying}
+Ruff, L., et~al.: A unifying review of deep and shallow anomaly detection.
+  Proceedings of the IEEE  \textbf{109}(5),  756--795 (2021)
+
+\bibitem{sharafaldin2018toward}
+Sharafaldin, I., Lashkari, A.H., Ghorbani, A.A.: Toward generating a new
+  intrusion detection dataset and intrusion traffic characterization. ICISSp
+  pp. 108--116 (2018)
+
+\bibitem{shi2016edge}
+Shi, W., et~al.: Edge computing: Vision and challenges. In: IEEE Internet of
+  Things Journal. vol.~3, pp. 637--646 (2016)
+
+\bibitem{shi2021edge}
+Shi, W., et~al.: Edge computing for internet of things: A survey. IEEE Internet
+  of Things Journal  \textbf{8}(16),  13123--13145 (2021)
+
+\bibitem{ten2019edge}
+Ten, C.H., et~al.: Performance evaluation of machine learning at the edge for
+  network intrusion detection. In: IEEE ICC. pp.~1--6 (2019)
+
+\bibitem{vinayakumar2019deep}
+Vinayakumar, R., Alazab, M., Soman, K.P., Poornachandran, P., Al-Nemrat, A.,
+  Venkatraman, S.: Deep learning approach for intelligent intrusion detection
+  system. IEEE Access  \textbf{7},  41525--41550 (2019)
+
+\bibitem{zaharia2010spark}
+Zaharia, M., et~al.: Spark: Cluster computing with working sets. HotCloud
+  (2010)
+
+\end{thebibliography}

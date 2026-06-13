@@ -8,7 +8,18 @@ load_dotenv()
 
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "ids-network-flow")
+KAFKA_SUSPICIOUS_TOPIC = os.getenv("KAFKA_SUSPICIOUS_TOPIC", "ids-suspicious-flow")
 KAFKA_GROUP_ID = os.getenv("KAFKA_GROUP_ID", "ids-edge-consumer")
+KAFKA_CLASSIFIER_GROUP_ID = os.getenv("KAFKA_CLASSIFIER_GROUP_ID", "ids-classifier-consumer")
+
+# Distributed edge deployment (Jetson Nano cluster)
+# Roles: full | anomaly_gate | classifier
+#   full          - complete pipeline on each node (Kafka consumer group scales horizontally)
+#   anomaly_gate  - Jetson #1: anomaly filter, forward suspicious flows to KAFKA_SUSPICIOUS_TOPIC
+#   classifier    - Jetson #2: Spark classifier on suspicious flows only
+EDGE_NODE_ID = os.getenv("EDGE_NODE_ID", "edge-node-1")
+EDGE_NODE_ROLE = os.getenv("EDGE_NODE_ROLE", "full").strip().lower()
+ALERT_ENABLED = os.getenv("ALERT_ENABLED", "1").strip() in ("1", "true", "True", "yes", "YES")
 
 MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(os.path.dirname(__file__), "model", "ids_pipeline_model"))
 FEATURES_PATH = os.getenv("FEATURES_PATH", os.path.join(os.path.dirname(__file__), "model", "feature_columns.json"))
@@ -53,10 +64,17 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
 DATA_CSV_PATH = os.getenv("DATA_CSV_PATH", "")
 SEND_RATE = int(os.getenv("SEND_RATE", "100"))
 EDGE_BATCH_SIZE = int(os.getenv("EDGE_BATCH_SIZE", "20"))
-SPARK_MASTER = os.getenv("SPARK_MASTER", "local[1]")
+SPARK_MASTER = os.getenv("SPARK_MASTER", "")
+if not SPARK_MASTER:
+    SPARK_MASTER = os.getenv("SPARK_MASTER_URL", "")
+# Edge / ML: set SPARK_MASTER=spark://<MAC_IP>:7077 in .env (see cluster/spark_cluster.env.example)
+SPARK_DRIVER_HOST = os.getenv("SPARK_DRIVER_HOST", "")
 SPARK_EXECUTOR_MEMORY = os.getenv("SPARK_EXECUTOR_MEMORY", "512m")
 SPARK_DRIVER_MEMORY = os.getenv("SPARK_DRIVER_MEMORY", "512m")
 SPARK_SHUFFLE_PARTITIONS = os.getenv("SPARK_SHUFFLE_PARTITIONS", "2")
+SPARK_APP_NAME = os.getenv("SPARK_APP_NAME", f"IDS_Edge_{EDGE_NODE_ID}")
+SPARK_WORKER_MEMORY = os.getenv("SPARK_WORKER_MEMORY", "768m")
+SPARK_WORKER_CORES = os.getenv("SPARK_WORKER_CORES", "2")
 
 METRICS_PUSH_INTERVAL = int(os.getenv("METRICS_PUSH_INTERVAL", "10"))
 ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "60"))

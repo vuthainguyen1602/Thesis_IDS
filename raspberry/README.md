@@ -103,7 +103,7 @@ Train/export the anomaly gate on your Mac/PC (project root):
 cd /Users/thainguyenvu/Desktop/Thesis_IDS
 
 # Requires feature list to be exported first (Step 1.3)
-python exp8_autoencoder_anomaly.py
+python ml_08_anomaly_gate_autoencoder.py
 
 # Result: these new files will be created under raspberry/model/
 #   raspberry/model/anomaly_autoencoder.pkl

@@ -36,9 +36,14 @@ class PostgresStorage:
                     confidence REAL,
                     label VARCHAR(20),
                     inference_time_ms REAL,
+                    node_id VARCHAR(64),
                     raw_features JSONB,
                     created_at TIMESTAMP DEFAULT NOW()
                 );
+            """)
+            cur.execute("""
+                ALTER TABLE predictions
+                ADD COLUMN IF NOT EXISTS node_id VARCHAR(64);
             """)
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
@@ -46,9 +51,14 @@ class PostgresStorage:
                     alert_type VARCHAR(50) NOT NULL,
                     message TEXT,
                     confidence REAL,
+                    node_id VARCHAR(64),
                     acknowledged BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMP DEFAULT NOW()
                 );
+            """)
+            cur.execute("""
+                ALTER TABLE alerts
+                ADD COLUMN IF NOT EXISTS node_id VARCHAR(64);
             """)
 
             cur.execute("""
@@ -66,22 +76,23 @@ class PostgresStorage:
         print("[OK] PostgreSQL tables initialized")
 
     def store_prediction(self, timestamp, prediction, confidence,
-                         label, inference_time_ms, raw_features=None):
+                         label, inference_time_ms, raw_features=None, node_id=None):
         with self.conn.cursor() as cur:
             cur.execute(
                 """INSERT INTO predictions
-                   (timestamp, prediction, confidence, label, inference_time_ms, raw_features)
-                   VALUES (%s, %s, %s, %s, %s, %s)""",
+                   (timestamp, prediction, confidence, label, inference_time_ms, node_id, raw_features)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s)""",
                 (timestamp, prediction, confidence, label,
-                 inference_time_ms, json.dumps(raw_features) if raw_features else None),
+                 inference_time_ms, node_id,
+                 json.dumps(raw_features) if raw_features else None),
             )
 
-    def store_alert(self, alert_type, message, confidence=None):
+    def store_alert(self, alert_type, message, confidence=None, node_id=None):
         with self.conn.cursor() as cur:
             cur.execute(
-                """INSERT INTO alerts (alert_type, message, confidence)
-                   VALUES (%s, %s, %s)""",
-                (alert_type, message, confidence),
+                """INSERT INTO alerts (alert_type, message, confidence, node_id)
+                   VALUES (%s, %s, %s, %s)""",
+                (alert_type, message, confidence, node_id),
             )
 
     def get_recent_predictions(self, limit=100):

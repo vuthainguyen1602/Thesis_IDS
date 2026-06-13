@@ -38,6 +38,7 @@ SHAP_TOP_FEATURES = [
 
 
 def main():
+    os.environ.setdefault("IDS_ALLOW_LOCAL_SPARK", "1")
     print("\n" + "=" * 60)
     print("  SAVE PYSPARK MODEL FOR RASPBERRY PI DEPLOYMENT")
     print("=" * 60 + "\n")

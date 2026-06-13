@@ -1,0 +1,37 @@
+\chapter{Thí nghiệm và kết quả huấn luyện ML}
+
+\section{Môi trường thí nghiệm}
+
+% TODO: phần cứng PC, Java 17, PySpark 3.4.1
+
+\section{Kết quả baseline (Exp 0)}
+
+% TODO: bảng + hình từ results/ml_01_baseline/
+
+\section{So sánh giảm chiều (Exp 1, 3, 6, 7)}
+
+\begin{figure}[htbp]
+  \centering
+  \IfFileExists{../../results/ml_07_cross_method_comparison/f1_heatmap.png}{%
+    \includegraphics[width=0.95\textwidth]{f1_heatmap.png}%
+  }{%
+    \fbox{\parbox{0.9\textwidth}{\centering [Chạy thesis/collect\_results.sh]}}%
+  }
+  \caption{Heatmap F1 theo phương pháp và thuật toán.}
+\end{figure}
+
+\section{SHAP explainability (Exp 5)}
+
+% TODO
+
+\section{Grid Search (Exp 2)}
+
+% TODO: best\_config.json
+
+\section{Robustness, drift và kiểm định thống kê}
+
+% TODO: drift\_simulation\_summary.csv
+
+\section{Thảo luận}
+
+% TODO: chọn DT / SHAP Top-30 cho edge

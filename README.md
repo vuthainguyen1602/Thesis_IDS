@@ -50,21 +50,61 @@ This project evaluates **9 classification algorithms** combined with **3 Ensembl
 Thesis_IDS/
 ├── README.md                        # This file
 ├── shared_utils.py                  # Core library (Spark config, models, metrics, plots)
-├── reporting/                       # Modular reporting library [NEW]
+├── reporting/                       # Modular reporting library
 │   └── report_generator.py          # HTML/CSS report generation logic
-├── data_preparation.py              # CICIDS2017 data preparation script
-├── exp0_baseline_full.py            # Experiment 0: Baseline
-├── exp1_rf_feature_importance.py    # Experiment 1: RF Feature Selection
-├── exp2_gridsearch_cv.py            # Experiment 2: Grid Search + CV
-├── exp3_pca.py                      # Experiment 3: PCA
-├── exp5_shap_explainability.py      # Experiment 5: SHAP XAI
-├── exp6_shap_feature_selection.py   # Experiment 6: SHAP Feature Selection
-├── exp7_comparison.py               # Experiment 7: Cross-Experiment Comparison
-├── feature_importance.csv           # RF Feature Importance (output from Exp 1)
+├── cluster/                         # Spark cluster Mac + 2× Jetson (DISTRIBUTED_CLUSTER.md)
+├── ml_00_prepare_cicids2017.py      # CICIDS2017 data preparation
+├── ml_01_baseline_all_features.py … ml_08_*.py  # ML experiments
 ├── data/                            # Processed data (parquet format)
-├── raspberry/                       # Raspberry Pi Edge IDS Component
+├── raspberry/                       # Edge IDS (RPi / Jetson Nano)
+│
+├── thesis/                          # Sản phẩm #1 — Luận văn (manuscript + reproduce)
+├── papers/
+│   ├── fair2026/                    # Sản phẩm #2 — FAIR'2026 paper
+│   └── soict2026/                   # Sản phẩm #3 — SOICT 2026 paper
 └── ...
 ```
+
+### Three deliverables (one codebase)
+
+| Folder | Deliverable | Reproduce |
+|--------|-------------|-----------|
+| `thesis/` | Luận văn tổng hợp | `./thesis/reproduce.sh` |
+| `papers/fair2026/` | Bài báo ML / FAIR'2026 | `./papers/fair2026/reproduce.sh` |
+| `papers/soict2026/` | Bài báo edge / SOICT 2026 | `./papers/soict2026/reproduce.sh` |
+
+Code thực thi dùng chung ở root (`ml_*.py`, `raspberry/`). Mỗi thư mục trên chỉ chứa manuscript, figures, tables và script thu kết quả.
+
+### ML scripts (thứ tự chạy)
+
+| Script | Nội dung |
+|--------|----------|
+| `ml_00_prepare_cicids2017.py` | CSV → parquet |
+| `ml_01_baseline_all_features.py` | Baseline |
+| `ml_02_feature_selection_rf.py` | RF Top-K |
+| `ml_03_hyperparameter_tuning.py` | Grid search |
+| `ml_04_dimensionality_reduction_pca.py` | PCA |
+| `ml_05_shap_explainability.py` | SHAP XAI |
+| `ml_06_feature_selection_shap.py` | SHAP Top-K |
+| `ml_07_cross_method_comparison.py` | So sánh + drift |
+| `ml_08_anomaly_gate_autoencoder.py` | Anomaly gate (edge) |
+
+### Distributed cluster (Mac + 2× Jetson Nano) — **bắt buộc**
+
+Mọi `./papers/*/reproduce.sh` và `./thesis/reproduce.sh` **chỉ chạy phân tán**. Cần `cluster/spark_cluster.env`:
+
+```bash
+cp cluster/spark_cluster.env.example cluster/spark_cluster.env   # sửa IP
+./cluster/start_master_mac.sh          # Mac
+./cluster/start_worker.sh              # mỗi Jetson
+./papers/fair2026/reproduce.sh         # tự sync + chạy ML trên cluster
+```
+
+Hoặc: `./cluster/reproduce_cluster.sh fair|thesis|soict`
+
+Chi tiết: [cluster/DISTRIBUTED_CLUSTER.md](cluster/DISTRIBUTED_CLUSTER.md)
+
+Ngoại lệ Mac-only (tự gọi trong reproduce): `ml_00` (CSV→parquet), `save_model.py` — dùng `IDS_ALLOW_LOCAL_SPARK=1`.
 
 ---
 
@@ -231,7 +271,7 @@ Or you can let the script default to searching for a folder named `ids-2017` ins
 ### Step 3: Run Data Preparation
 
 ```bash
-python data_preparation.py
+python ml_00_prepare_cicids2017.py
 ```
 
 This script will:
@@ -251,7 +291,7 @@ For common execution workflows, following the steps in order:
 
 👉 **[RUN_GUIDE.md](RUN_GUIDE.md)**
 
-1. **PC Training**: Data Prep -> exp0 to exp7
+1. **PC Training**: Data prep → ml_01 … ml_07
 2. **Model Export**: Save models for RPi
 3. **Infrastructure**: Start Docker services
 4. **Edge Deployment**: RPi Setup -> Kafka Consumer
@@ -265,41 +305,41 @@ For common execution workflows, following the steps in order:
 
 ```bash
 # Step 0: Data preparation (run once)
-python data_preparation.py
+python ml_00_prepare_cicids2017.py
 
 # Step 1: Baseline - evaluate all features
-python exp0_baseline_full.py
+python ml_01_baseline_all_features.py
 
 # Step 2: Feature Selection with RF Importance
-python exp1_rf_feature_importance.py
+python ml_02_feature_selection_rf.py
 
 # Step 3: Dimensionality Reduction with PCA
-python exp3_pca.py
+python ml_04_dimensionality_reduction_pca.py
 
 # Step 4: SHAP Explainability
-python exp5_shap_explainability.py
+python ml_05_shap_explainability.py
 
 # Step 5: Feature Selection with SHAP
-python exp6_shap_feature_selection.py
+python ml_06_feature_selection_shap.py
 
 # Step 6: Cross-Experiment + Robustness + Drift + Statistical tracks
-python exp7_comparison.py
+python ml_07_cross_method_comparison.py
 
 # Step 7: Hyperparameter Optimization on best config from Exp7
-python exp2_gridsearch_cv.py
+python ml_03_hyperparameter_tuning.py
 ```
 
-> **Important:** Run `exp7` before `exp2` because `exp2` reads `best_config.json` from `exp7`.  
-> Optional robustness dataset: set `IDS_ROBUST_DATA_DIR` containing `test_data.parquet` before running `exp7`.
+> **Important:** Run `ml_07` before `ml_03` because `ml_03` reads `best_config.json` from `ml_07`.  
+> Optional robustness dataset: set `IDS_ROBUST_DATA_DIR` containing `test_data.parquet` before running `ml_07`.
 
 ### Running on RoEduNet Dataset
 
 ```bash
 cd Thesis_IDS_RoEduNet/
-python data_preparation.py
-python exp0_baseline_full.py
-python exp1_rf_feature_importance.py
-python exp2_gridsearch_cv.py
+python ml_00_prepare_cicids2017.py
+python ml_01_baseline_all_features.py
+python ml_02_feature_selection_rf.py
+python ml_03_hyperparameter_tuning.py
 ```
 
 ---
@@ -317,6 +357,9 @@ python exp2_gridsearch_cv.py
 
 ### Experiment 2: Grid Search + Cross-Validation
 - Optimizes hyperparameters for **RF, GBT, Decision Tree, Logistic Regression** using Grid Search + 3-Fold CV
+- **Default: fast mode** (~15% CV sample, DT+RF+LR) — ~20–45 min
+- Full tuning: `IDS_EXP2_FULL=1 python ml_03_hyperparameter_tuning.py`
+- Extended (XGB/LGBM/MLP): `IDS_EXP2_FULL=1 IDS_EXP2_EXTENDED=1 python ml_03_hyperparameter_tuning.py`
 - Evaluation metric: **PR-AUC** (correlated with F1 for binary classification)
 - Compares Tuned vs Default model performance
 

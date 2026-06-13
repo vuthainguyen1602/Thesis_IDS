@@ -18,9 +18,51 @@ import sys
 os.environ["PYSPARK_PYTHON"] = sys.executable
 os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
-os.environ["JAVA_HOME"] = "/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home"
-os.environ["PATH"] = os.environ["JAVA_HOME"] + "/bin:" + os.environ["PATH"]
-os.environ['PYSPARK_SUBMIT_ARGS'] = '--master local[4] pyspark-shell'
+
+def _configure_java_home() -> None:
+    if os.environ.get("JAVA_HOME"):
+        java_home = os.environ["JAVA_HOME"]
+    elif sys.platform == "darwin":
+        candidates = [
+            "/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home",
+            "/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home",
+        ]
+        java_home = next((p for p in candidates if os.path.isdir(p)), candidates[-1])
+        os.environ["JAVA_HOME"] = java_home
+    else:
+        java_home = os.environ.get("JAVA_HOME", "/usr/lib/jvm/java-17-openjdk-amd64")
+        os.environ["JAVA_HOME"] = java_home
+    os.environ["PATH"] = os.environ["JAVA_HOME"] + "/bin:" + os.environ.get("PATH", "")
+
+
+_configure_java_home()
+
+
+def _allow_local_spark() -> bool:
+    return os.environ.get("IDS_ALLOW_LOCAL_SPARK", "").strip().lower() in ("1", "true", "yes")
+
+
+def require_distributed_spark(context: str = "this script") -> None:
+    master = os.environ.get("SPARK_MASTER", "")
+    if master.startswith("spark://"):
+        return
+    if _allow_local_spark():
+        return
+    raise RuntimeError(
+        f"Distributed Spark required for {context}.\n"
+        "  1. cp cluster/spark_cluster.env.example cluster/spark_cluster.env\n"
+        "  2. Edit IPs, then: ./cluster/reproduce_cluster.sh fair|thesis|soict\n"
+        "  Or: source cluster/load_cluster_env.sh (Mac/Jetson with cluster up)\n"
+        f"  Current SPARK_MASTER={master!r}"
+    )
+
+
+_SPARK_MASTER = os.environ.get("SPARK_MASTER", "")
+if _SPARK_MASTER.startswith("spark://") or _allow_local_spark():
+    if _SPARK_MASTER and not _SPARK_MASTER.startswith("spark://"):
+        os.environ["PYSPARK_SUBMIT_ARGS"] = f"--master {_SPARK_MASTER} pyspark-shell"
+else:
+    _SPARK_MASTER = ""
 
 from pyspark.sql import SparkSession, functions as F
 from pyspark.sql.functions import col, when, monotonically_increasing_id, udf, array
@@ -65,24 +107,99 @@ _DEFAULT_DATA_DIR: str = os.environ.get(
     os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "data")
 )
 
+ML01_DIR = "ml_01_baseline"
+ML02_DIR = "ml_02_feature_selection_rf"
+ML03_DIR = "ml_03_hyperparameter_tuning"
+ML04_DIR = "ml_04_pca"
+ML05_DIR = "ml_05_shap_explainability"
+ML06_DIR = "ml_06_feature_selection_shap"
+ML07_DIR = "ml_07_cross_method_comparison"
+
+
+def ids_root() -> str:
+    return os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__)))
+
+
+def ml_results_dir(experiment_dir: str, *parts: str, mkdir: bool = True) -> str:
+    """Build path under results/<experiment_dir>/ and optionally create parent dirs."""
+    path = os.path.join(ids_root(), "results", experiment_dir, *parts)
+    if mkdir:
+        os.makedirs(os.path.dirname(path) if parts else path, exist_ok=True)
+    return path
+
+
+def shared_results_path(filename: str) -> str:
+    path = os.path.join(ids_root(), "results", "shared", filename)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    return path
+
+
+def is_cluster_mode(master=None) -> bool:
+    master = master or os.environ.get("SPARK_MASTER", "")
+    return master.startswith("spark://")
+
+
+def resolve_data_dir() -> str:
+    """Return parquet directory visible to Spark executors on all cluster nodes."""
+    if is_cluster_mode() and not _allow_local_spark():
+        cluster_dir = os.environ.get("IDS_CLUSTER_DATA_DIR")
+        if not cluster_dir:
+            raise ValueError(
+                "IDS_CLUSTER_DATA_DIR is required in distributed mode. "
+                "Set it in cluster/spark_cluster.env and run cluster/sync_workspace.sh."
+            )
+        return cluster_dir
+    return _DEFAULT_DATA_DIR
+
 
 def create_spark_session(app_name: str = "IDS_Binary_Prediction") -> SparkSession:
-    spark = (
+    require_distributed_spark(app_name)
+    master = os.environ.get("SPARK_MASTER", "")
+    if _allow_local_spark() and not master.startswith("spark://"):
+        master = master or "local[*]"
+    cluster = is_cluster_mode(master)
+
+    builder = (
         SparkSession.builder
         .appName(app_name)
-        .master("local[*]")
-        .config("spark.executor.memory", "8g")
-        .config("spark.driver.memory", "8g")
-        .config("spark.memory.fraction", "0.8")
-        .config("spark.driver.maxResultSize", "4g")
+        .master(master)
         .config("spark.sql.adaptive.enabled", "true")
         .config("spark.network.timeout", "800s")
         .config("spark.executor.heartbeatInterval", "100s")
-        .config("spark.sql.shuffle.partitions", "16")
-        .getOrCreate()
     )
+
+    if cluster:
+        driver_host = os.environ.get("SPARK_DRIVER_HOST")
+        if driver_host:
+            builder = (
+                builder
+                .config("spark.driver.host", driver_host)
+                .config("spark.driver.bindAddress", "0.0.0.0")
+            )
+        builder = (
+            builder
+            .config("spark.executor.memory", os.environ.get("SPARK_EXECUTOR_MEMORY", "768m"))
+            .config("spark.driver.memory", os.environ.get("SPARK_DRIVER_MEMORY", "2g"))
+            .config("spark.executor.cores", os.environ.get("SPARK_EXECUTOR_CORES", "2"))
+            .config("spark.driver.maxResultSize", os.environ.get("SPARK_DRIVER_MAX_RESULT_SIZE", "2g"))
+            .config("spark.sql.shuffle.partitions", os.environ.get("SPARK_SHUFFLE_PARTITIONS", "8"))
+            .config("spark.memory.fraction", "0.75")
+        )
+        print(f"[INFO] Spark cluster mode | master={master}")
+    else:
+        builder = (
+            builder
+            .config("spark.executor.memory", os.environ.get("SPARK_EXECUTOR_MEMORY", "8g"))
+            .config("spark.driver.memory", os.environ.get("SPARK_DRIVER_MEMORY", "8g"))
+            .config("spark.memory.fraction", "0.8")
+            .config("spark.driver.maxResultSize", "4g")
+            .config("spark.sql.shuffle.partitions", os.environ.get("SPARK_SHUFFLE_PARTITIONS", "16"))
+        )
+
+    spark = builder.getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
-    print(f"[INFO] Spark {spark.version} | UI: {spark.sparkContext.uiWebUrl}")
+    ui = spark.sparkContext.uiWebUrl or "(cluster — see master UI)"
+    print(f"[INFO] Spark {spark.version} | UI: {ui}")
     return spark
 
 
@@ -121,15 +238,15 @@ def align_schema(df, ref_columns: list):
 
 
 def load_and_prepare_data(
-    spark, data_dir: str = _DEFAULT_DATA_DIR
+    spark, data_dir=None
 ) -> tuple:
-    output_dir = data_dir
+    output_dir = data_dir or resolve_data_dir()
     train_path = os.path.join(output_dir, "train_data.parquet")
     test_path = os.path.join(output_dir, "test_data.parquet")
 
     if not os.path.exists(train_path) or not os.path.exists(test_path):
         raise FileNotFoundError(
-            "Parquet data not found. Run data_preparation.py first!\n"
+            "Parquet data not found. Run ml_00_prepare_cicids2017.py first!\n"
             f"  Expected: {train_path}\n"
             f"  Expected: {test_path}"
         )

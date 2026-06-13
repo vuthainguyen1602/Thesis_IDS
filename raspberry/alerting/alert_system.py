@@ -20,7 +20,8 @@ from config import (
 
 class AlertSystem:
 
-    def __init__(self):
+    def __init__(self, node_id: str = "edge-node-1"):
+        self.node_id = node_id
         self.channels = []
 
         if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
@@ -82,7 +83,7 @@ class AlertSystem:
     def send_webhook(self, message: str):
         payload = {
             "text": f":rotating_light: *IDS ALERT - ATTACK DETECTED*\n```{message}```",
-            "username": "IDS Edge - Raspberry Pi",
+            "username": f"IDS Edge - {self.node_id}",
             "icon_emoji": ":shield:",
         }
         response = requests.post(

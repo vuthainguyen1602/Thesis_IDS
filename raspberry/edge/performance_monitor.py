@@ -13,9 +13,10 @@ from config import METRICS_PUSH_INTERVAL
 
 class PerformanceMonitor:
 
-    def __init__(self, influxdb_storage=None, push_interval=None):
+    def __init__(self, influxdb_storage=None, push_interval=None, node_id="edge-node-1"):
         self.influxdb_storage = influxdb_storage
         self.push_interval = push_interval or METRICS_PUSH_INTERVAL
+        self.node_id = node_id
 
         self._predictions_count = 0
         self._attacks_count = 0
@@ -41,8 +42,10 @@ class PerformanceMonitor:
         cpu_temp = None
         try:
             temps = psutil.sensors_temperatures()
-            if "cpu_thermal" in temps:
-                cpu_temp = temps["cpu_thermal"][0].current
+            for key in ("cpu_thermal", "soc_thermal", "gpu-thermal", "thermal-fan-est", "tj-thermal"):
+                if key in temps:
+                    cpu_temp = temps[key][0].current
+                    break
         except (AttributeError, KeyError, IndexError):
             pass
 
@@ -88,7 +91,7 @@ class PerformanceMonitor:
 
             combined = {**system, **throughput}
 
-            print(f"\n  [MONITOR] CPU: {system['cpu_percent']}% | "
+            print(f"\n  [MONITOR:{self.node_id}] CPU: {system['cpu_percent']}% | "
                   f"MEM: {system['memory_percent']}% "
                   f"({system['memory_used_mb']}MB) | "
                   f"Throughput: {throughput['throughput_rps']} rps | "

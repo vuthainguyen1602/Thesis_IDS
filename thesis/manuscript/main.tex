@@ -1,0 +1,68 @@
+% Luận văn — dựa trên Springer splncs04.bst cho tài liệu tham khảo
+% Nội dung bám cấu trúc LNCS; document class report cho luận văn dài
+%
+% Compile: ./compile.sh
+%
+\documentclass[12pt,a4paper]{report}
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{vietnamese}
+\setotherlanguage{english}
+\input{../../papers/latex/fonts-xelatex-vi.tex}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\graphicspath{{../../results/ml_07_cross_method_comparison/}{../../results/ml_05_shap_explainability/}}
+
+\title{%
+  HỆ THỐNG PHÁT HIỆN XÂM NHẬP MẠNG\\
+  SỬ DỤNG HỌC MÁY TRÊN APACHE SPARK\\
+  VÀ TRIỂN KHAI PHÂN TÁN TRÊN THIẾT BỊ BIÊN
+}
+\author{%
+  \begin{tabular}[t]{c}
+    Nguyễn Vũ Thái\\[0.4em]
+    {\small Sinh viên thực hiện}\\[0.2em]
+    {\small Trường Đại học Giao thông Vận tải, Phân hiệu tại TP. Hồ Chí Minh}\\[0.2em]
+    {\small \texttt{nvthai@utc2.edu.vn}}\\[1.2em]
+    Bùi Văn Dũng\\[0.4em]
+    {\small Giảng viên hướng dẫn}\\[0.2em]
+    {\small Trường Đại học Công nghệ Thông tin, ĐHQG TP. Hồ Chí Minh}\\[0.2em]
+    {\small \texttt{dungbv.17@grad.uit.edu.vn}}
+  \end{tabular}%
+}
+\date{Năm 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Luận văn nghiên cứu xây dựng hệ thống phát hiện xâm nhập mạng (IDS) nhị phân trên dataset CICIDS2017,
+sử dụng Apache Spark ML với chín thuật toán phân loại và phương pháp ensemble.
+So sánh bốn chiến lược giảm chiều: baseline, RF Importance, SHAP và PCA,
+kèm đánh giá robustness, concept drift và kiểm định thống kê.
+Triển khai edge realtime trên Raspberry Pi và cụm hai Jetson Nano với Kafka, PySpark và anomaly gate autoencoder.
+Kết quả cho thấy [TODO: tóm tắt kết quả chính].
+\end{abstract}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\include{chapters/01_introduction}
+\include{chapters/02_related_work}
+\include{chapters/03_methodology}
+\include{chapters/04_ml_experiments}
+\include{chapters/05_edge_deployment}
+\include{chapters/06_conclusion}
+
+\bibliographystyle{../../papers/latex/splncs04}
+\bibliography{references}
+
+\end{document}

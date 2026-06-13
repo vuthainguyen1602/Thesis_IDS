@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+venv/
+.venv/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.blg
+*.out
+*.toc
+*.lof
+*.lot
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+missfont.log
+papers/*/manuscript/main.pdf
+thesis/manuscript/main.pdf
+
+# Keep exported PDFs here
+!output/pdfs/*.pdf
+
+# Data & large artifacts (keep local, do not commit)
+data/
+data_smoke/
+*.parquet
+*.parquet.crc
+
+# Experiment outputs (regenerate via reproduce.sh)
+results/
+exp*_results/
+exp7_comparison/
+feature_importance.csv
+best_config.json
+
+# Edge runtime / models
+raspberry/model/ids_pipeline*/
+raspberry/model/*.pkl
+raspberry/.env
+cluster/spark_cluster.env
+
+!results/.gitkeep
+papers/fair2026/tables/
+papers/fair2026/results/
+papers/soict2026/results/benchmarks/

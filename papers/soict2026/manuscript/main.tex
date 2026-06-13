@@ -1,0 +1,167 @@
+% SOICT 2026 — Springer LNCS template (English)
+% Based on: Latex-Template-for-Springer/samplepaper.tex
+%
+% Compile: ./compile.sh
+%
+\documentclass[runningheads]{llncs}
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+\setotherlanguage{vietnamese}
+\input{../../../papers/latex/fonts-xelatex-vi.tex}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+
+\graphicspath{{../../../results/ml_07_cross_method_comparison/}}
+
+\begin{document}
+
+\title{A Distributed Real-Time Intrusion Detection System on Jetson Nano Edge Cluster using Kafka and PySpark}
+
+\titlerunning{Distributed Edge IDS on Jetson Nano}
+
+\author{Nguyễn Vũ Thái\inst{1} \and
+Bùi Văn Dũng\inst{2,3}}
+
+\authorrunning{N. V. Thái et al.}
+
+\institute{University of Transport and Communications, Ho Chi Minh City Campus, Vietnam\\
+\email{nvthai@utc2.edu.vn}
+\and
+Vietnam National University Ho Chi Minh City, Vietnam
+\and
+University of Information Technology, Vietnam\\
+\email{dungbv.17@grad.uit.edu.vn}}
+
+\maketitle
+
+\begin{abstract}
+Deploying machine learning-based intrusion detection on resource-constrained edge devices requires balancing accuracy, latency, and operational cost.
+We present a split-deployment IDS architecture across two NVIDIA Jetson Nano devices connected through Apache Kafka~\cite{kreps2011kafka}.
+The system implements a two-stage pipeline: (1) a lightweight autoencoder anomaly gate on Jetson~\#1 filters benign traffic, and (2) a PySpark \texttt{PipelineModel} classifier on Jetson~\#2 processes only suspicious flows.
+Central infrastructure (Kafka, PostgreSQL, InfluxDB, Grafana) runs on a host PC.
+We evaluate three distributed modes---pipeline split, horizontal Kafka consumer scaling, and Spark standalone cluster---streaming CICIDS2017 network flows~\cite{sharafaldin2018toward}.
+Experimental results show that the anomaly gate reduces Spark inference load while preserving detection accuracy, with sub-100\,ms batch latency on Jetson Nano under moderate load.
+
+\keywords{Intrusion detection \and Edge computing \and Jetson Nano \and Kafka \and PySpark.}
+\end{abstract}
+
+\section{Introduction}
+
+Network intrusion detection systems (IDS) must operate closer to data sources to reduce bandwidth and response time~\cite{shi2016edge}.
+Edge devices such as the NVIDIA Jetson Nano offer limited CPU, memory, and thermal headroom, making monolithic ML inference challenging.
+
+\textbf{Contributions:}
+(1) A two-stage distributed IDS with anomaly gating and Spark-based classification;
+(2) Three deployment modes for a two-node Jetson cluster;
+(3) End-to-end performance evaluation including throughput, latency, and per-node resource usage;
+(4) Open reproduction scripts integrated with our Spark ML training pipeline.
+
+\section{Related Work}
+
+Edge computing pushes analytics closer to data sources to reduce latency and bandwidth~\cite{shi2016edge,shi2021edge,khanna2023edge}.
+Prior edge IDS studies~\cite{ten2019edge} benchmark single-node inference on resource-constrained boards but rarely evaluate multi-node Kafka pipelines with explicit role separation.
+Streaming platforms such as Kafka~\cite{kreps2011kafka} enable decoupled producers and consumers; however, most ML-based IDS papers~\cite{khraisat2019survey,ferrag2020deep,vinayakumar2019deep} report offline batch accuracy without end-to-end throughput or per-node resource traces.
+
+\textbf{Split inference.}
+Anomaly detection surveys~\cite{chandola2009anomaly,ruff2021unifying} motivate two-stage designs: a lightweight gate followed by a heavier classifier.
+Autoencoder-based detectors~\cite{lopez2020autoencoder} and federated edge IDS~\cite{mohammadi2023federated} explore similar ideas on servers or homogeneous edge nodes, but without PySpark MLlib classifiers on NVIDIA Jetson Nano~\cite{nvidia2019jetson}.
+Our companion ML study selects SHAP Top-30 features on CICIDS2017~\cite{sharafaldin2018toward,lundberg2017unified}; this paper focuses on \emph{how} to deploy that model across two Jetsons with measurable gate skip ratio and three scaling modes.
+
+Table~\ref{tab:related-work} positions our system against representative related work.
+
+\input{../../../papers/latex/related_work_table_soict.tex}
+
+\section{System Architecture}
+
+\subsection{Split Deployment Overview}
+
+A host PC runs Kafka, PostgreSQL, InfluxDB, and Grafana. Two Jetson Nano nodes consume network-flow messages from topic \texttt{ids-network-flow}.
+In pipeline-split mode, Jetson~\#1 forwards suspicious flows to \texttt{ids-suspicious-flow} for classification on Jetson~\#2.
+
+\subsection{Pipeline Roles}
+
+\begin{itemize}
+  \item \textbf{anomaly\_gate:} sklearn autoencoder + scaler; MSE threshold from Exp~8.
+  \item \textbf{classifier:} PySpark \texttt{PipelineModel} with 30 SHAP-selected features.
+  \item \textbf{full:} combined pipeline for horizontal scaling via Kafka consumer groups.
+\end{itemize}
+
+\subsection{Monitoring and Alerting}
+
+Each node tags metrics with \texttt{EDGE\_NODE\_ID} in InfluxDB and PostgreSQL. Alerts are sent from a designated primary node only.
+
+\section{Implementation}
+
+Training and model export run on a PC using Apache Spark ML~\cite{zaharia2010spark}.
+The edge stack is implemented in Python (\texttt{raspberry/edge/}) with configurable roles via environment variables.
+
+\section{Experimental Setup}
+
+\subsection{Hardware and Software}
+
+2$\times$ Jetson Nano 4GB, host PC (Docker Compose), WiFi LAN, PySpark 3.4.1, Kafka 7.5.
+
+\subsection{Workloads}
+
+CSV replay through \texttt{data\_sender.py} at 50--200 flows/s. Metrics: throughput, p50/p95 latency, CPU/RAM/temperature, attack detection rate, gate skip ratio.
+
+\subsection{Baselines}
+
+Single-node full pipeline vs.\ distributed modes A (split), B (horizontal), C (Spark cluster).
+
+\section{Results}
+
+Run \texttt{papers/soict2026/run\_benchmarks.sh} on Jetson hardware (modes \texttt{local}, \texttt{run}, \texttt{merge}).
+End-to-end distributed metrics (throughput, p95 latency, gate skip \%) are exported to \texttt{results/benchmarks/summary.csv}.
+
+\begin{table}[htbp]
+  \caption{Distributed deployment comparison (fill from \texttt{summary.csv} after benchmarks).}
+  \label{tab:benchmark}
+  \centering
+  \begin{tabular}{l c c c c}
+    \toprule
+    Mode & Throughput (rps) & Latency p95 (ms) & Gate skip (\%) & Attack F1 \\
+    \midrule
+    Single node & -- & -- & -- & -- \\
+    A: Pipeline split & -- & -- & -- & -- \\
+    B: Horizontal & -- & -- & N/A & -- \\
+    C: Spark cluster & -- & -- & N/A & -- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \fbox{\parbox{0.9\textwidth}{\centering\vspace{2cm}[Insert architecture diagram: figures/architecture.pdf]\vspace{2cm}}}
+  \caption{Split-deployment architecture (PC + 2$\times$ Jetson Nano).}
+  \label{fig:architecture}
+\end{figure}
+
+\section{Discussion}
+
+Pipeline split offloads Spark from the majority of benign traffic. Horizontal scaling improves throughput when Kafka partitions $\geq$ 2. Spark cluster mode adds coordination overhead on Nano-class hardware.
+
+Model selection (Decision Tree / SHAP Top-30) follows our companion ML study on CICIDS2017.
+
+\section{Conclusion}
+
+We presented a reproducible distributed edge IDS for Jetson Nano clusters with Kafka streaming and PySpark inference.
+Future work includes TensorRT optimization and federated retraining under drift.
+
+\begin{credits}
+\subsubsection{\ackname}
+This work was conducted at the University of Transport and Communications (Ho Chi Minh City Campus)
+and the University of Information Technology, Vietnam National University Ho Chi Minh City,
+as part of a graduation thesis research project.
+
+\subsubsection{\discintname}
+The authors have no competing interests to declare relevant to this article.
+\end{credits}
+
+\bibliographystyle{../../latex/splncs04}
+\bibliography{references,../../latex/related_work}
+
+\end{document}

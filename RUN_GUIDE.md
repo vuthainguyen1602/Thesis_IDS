@@ -16,20 +16,20 @@ export IDS_RAW_DATA_DIR="/path/to/your/ids-2017/csvs"
 ### 2. Preprocess the Dataset
 Prepare the CICIDS2017 dataset for Spark.
 ```bash
-python data_preparation.py
+python ml_00_prepare_cicids2017.py
 ```
 *Output: `data/train_data.parquet` and `data/test_data.parquet`*
 
 ### 3. Run Experiments (Baseline to SHAP)
 Each script evaluates models and generates reports in their respective `exp*_results/` folders.
 ```bash
-python exp0_baseline_full.py            # Baseline (all features)
-python exp1_rf_feature_importance.py    # Random Forest Feature Importance (generates importance.csv)
-python exp3_pca.py                      # PCA Dimensionality Reduction
-python exp5_shap_explainability.py      # SHAP XAI Analysis
-python exp6_shap_feature_selection.py   # SHAP Feature Selection (Top-K)
-python exp7_comparison.py               # Cross-method + Robustness + Drift + Statistical validity
-python exp2_gridsearch_cv.py            # Hyperparameter Tuning on best_config.json from Exp7
+python ml_01_baseline_all_features.py            # Baseline (all features)
+python ml_02_feature_selection_rf.py           # Random Forest Feature Importance (generates importance.csv)
+python ml_04_dimensionality_reduction_pca.py   # PCA Dimensionality Reduction
+python ml_05_shap_explainability.py            # SHAP XAI Analysis
+python ml_06_feature_selection_shap.py         # SHAP Feature Selection (Top-K)
+python ml_07_cross_method_comparison.py        # Cross-method + Robustness + Drift + Statistical validity
+python ml_03_hyperparameter_tuning.py          # Hyperparameter Tuning on best_config.json from ml_07
 ```
 
 ---
