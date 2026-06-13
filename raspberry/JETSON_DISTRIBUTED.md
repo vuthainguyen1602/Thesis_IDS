@@ -1,8 +1,20 @@
-# Triển khai phân tán IDS trên 2 Jetson Nano
+# Triển khai phân tán IDS trên 2 Jetson Nano Super Kit (8GB)
 
-Hướng dẫn chạy hệ thống IDS edge trên **2 Jetson Nano Developer Kit**, kết nối với hạ tầng Kafka/PostgreSQL/InfluxDB trên PC/Mac.
+Hướng dẫn chạy hệ thống IDS edge trên **2 Jetson Nano Super Kit (8GB RAM, 256GB SSD)**, kết nối với hạ tầng Kafka/PostgreSQL/InfluxDB trên Mac.
+
+**Huấn luyện ML phân tán (Spark):** xem [../cluster/DISTRIBUTED_CLUSTER.md](../cluster/DISTRIBUTED_CLUSTER.md)
 
 ---
+
+## IP lab (tham chiếu)
+
+| Node | IP | Ghi chú |
+|------|-----|---------|
+| Mac | `192.168.1.165` | Spark Master, Docker — `MAC_IP` |
+| Jetson #1 | `192.168.1.50` | Driver + Worker, `anomaly_gate` |
+| Jetson #2 | `192.168.1.205` | Worker, `classifier` |
+
+Kiểm tra IP Mac: `ipconfig getifaddr en0` — phải khớp `MAC_IP` trong `cluster/spark_cluster.env` và `KAFKA_ADVERTISED_LISTENERS` trong `docker-compose.yml`.
 
 ## Kiến trúc
 
@@ -33,10 +45,10 @@ Hệ thống hỗ trợ **3 chế độ phân tán**:
 
 ## Yêu cầu phần cứng & mạng
 
-- 2x Jetson Nano Developer Kit (4GB RAM, khuyến nghị 8GB nếu có)
-- PC/Mac cùng mạng LAN với 2 Jetson
-- SD card ≥ 32GB, nguồn 5V/4A ổn định cho mỗi Jetson
-- Swap 4GB (script setup tự cấu hình)
+- 2× Jetson Nano Super Kit (**8GB RAM**, **256GB SSD** khuyến nghị)
+- Mac/PC cùng mạng LAN WiFi với 2 Jetson (`192.168.1.x`)
+- Nguồn 5V/4A ổn định cho mỗi Jetson
+- Swap 4GB (tùy chọn trên 8GB — `setup_jetson.sh` tự cấu hình)
 
 ---
 
@@ -53,7 +65,7 @@ source venv/bin/activate   # hoặc pip install kafka-python
 python scripts/init_kafka_topics.py --partitions 2
 ```
 
-Cập nhật IP trong `docker-compose.yml` (dòng `KAFKA_ADVERTISED_LISTENERS`) cho đúng IP LAN của PC.
+Cập nhật IP Mac (`192.168.1.165`) trong `docker-compose.yml` (dòng `KAFKA_ADVERTISED_LISTENERS`).
 
 Xuất model (nếu chưa có):
 
@@ -132,27 +144,22 @@ Kafka tự phân chia partitions cho 2 consumer → throughput gấp đôi.
 
 ---
 
-### Chế độ C — Spark standalone cluster
+### Chế độ C — Spark cluster (huấn luyện ML)
 
-**Jetson #1** (master + có thể chạy worker):
+**Dùng Mac làm Spark Master**, 2 Jetson làm Worker. Không dùng Jetson làm master.
 
-```bash
-./scripts/start_spark_master.sh
-# SPARK_MASTER=spark://<jetson1-ip>:7077
-```
-
-**Jetson #2** (worker):
+Xem hướng dẫn đầy đủ: [../cluster/DISTRIBUTED_CLUSTER.md](../cluster/DISTRIBUTED_CLUSTER.md)
 
 ```bash
-export SPARK_MASTER=spark://<jetson1-ip>:7077
-./scripts/start_spark_worker.sh
-```
+# Mac
+./cluster/start_master_mac.sh
 
-Cả 2 Jetson chạy consumer với:
+# Mỗi Jetson
+./cluster/start_worker.sh
 
-```env
-SPARK_MASTER=spark://<jetson1-ip>:7077
-EDGE_NODE_ROLE=full
+# Mac — train
+./cluster/run_ml_remote.sh ml_01_baseline_all_features.py
+./cluster/pull_results.sh
 ```
 
 ---
@@ -204,7 +211,7 @@ Biến cấu hình mới trong `config.py`:
 |-----|-------------|-----------|
 | Chỉ 1 Jetson nhận message | Topic có 1 partition | `python scripts/init_kafka_topics.py --partitions 2` |
 | Jetson #2 không có data | Gate chưa chạy / topic sai | Kiểm tra Jetson #1 log "Forwarded: ..." |
-| PySpark OOM | RAM 4GB không đủ | Tăng swap, giảm `EDGE_BATCH_SIZE`, dùng chế độ A |
+| PySpark OOM | RAM không đủ | Giảm `SPARK_EXECUTOR_MEMORY`; tăng swap; dùng chế độ A |
 | Spark cluster không kết nối | Firewall port 7077 | `sudo ufw allow 7077` trên Jetson #1 |
 | Nhiệt độ cao | Jetson không tản nhiệt | `sudo jetson_clocks`, thêm quạt |
 

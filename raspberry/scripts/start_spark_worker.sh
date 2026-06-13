@@ -11,9 +11,9 @@ WORKER_SCRIPT="${SPARK_HOME}/sbin/start-worker.sh"
 if [ ! -f "${WORKER_SCRIPT}" ]; then
     WORKER_SCRIPT="${SPARK_HOME}/sbin/start-slave.sh"
 fi
-MASTER_URL="${SPARK_MASTER:-spark://192.168.1.101:7077}"
-WORKER_CORES="${SPARK_WORKER_CORES:-2}"
-WORKER_MEMORY="${SPARK_WORKER_MEMORY:-768m}"
+MASTER_URL="${SPARK_MASTER:-spark://192.168.1.165:7077}"
+WORKER_CORES="${SPARK_WORKER_CORES:-4}"
+WORKER_MEMORY="${SPARK_WORKER_MEMORY:-4g}"
 
 echo "[INFO] Starting Spark worker -> ${MASTER_URL}"
 # Avoid Spark sbin rsync hook (SPARK_MASTER env = host:path, not spark:// URL).

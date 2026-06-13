@@ -45,7 +45,7 @@ else
     echo "  [WARN] jetson_clocks not found (skip on non-Jetson systems)"
 fi
 
-echo "[5/7] Configuring swap (4GB recommended for PySpark)..."
+echo "[5/7] Configuring swap (optional safety net on 8GB; 4GB recommended on 4GB boards)..."
 if [ ! -f /swapfile ]; then
     sudo fallocate -l 4G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=4096
     sudo chmod 600 /swapfile

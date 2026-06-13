@@ -200,11 +200,11 @@ def create_spark_session(app_name: str = "IDS_Binary_Prediction") -> SparkSessio
             )
         builder = (
             builder
-            .config("spark.executor.memory", os.environ.get("SPARK_EXECUTOR_MEMORY", "768m"))
-            .config("spark.driver.memory", os.environ.get("SPARK_DRIVER_MEMORY", "2g"))
-            .config("spark.executor.cores", os.environ.get("SPARK_EXECUTOR_CORES", "2"))
+            .config("spark.executor.memory", os.environ.get("SPARK_EXECUTOR_MEMORY", "2g"))
+            .config("spark.driver.memory", os.environ.get("SPARK_DRIVER_MEMORY", "3g"))
+            .config("spark.executor.cores", os.environ.get("SPARK_EXECUTOR_CORES", "4"))
             .config("spark.driver.maxResultSize", os.environ.get("SPARK_DRIVER_MAX_RESULT_SIZE", "2g"))
-            .config("spark.sql.shuffle.partitions", os.environ.get("SPARK_SHUFFLE_PARTITIONS", "8"))
+            .config("spark.sql.shuffle.partitions", os.environ.get("SPARK_SHUFFLE_PARTITIONS", "16"))
             .config("spark.memory.fraction", "0.75")
         )
         print(f"[INFO] Spark cluster mode | master={master}")

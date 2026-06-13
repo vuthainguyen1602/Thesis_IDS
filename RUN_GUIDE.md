@@ -1,8 +1,61 @@
 # Execution Guide — IDS Thesis Project
 
-This guide provides step-by-step instructions to reproduce the entire pipeline, from data preparation and training on a PC/Mac to deployment and evaluation on a Raspberry Pi.
+This guide covers **distributed cluster mode** (Mac + 2× Jetson, recommended) and legacy local/RPi paths.
+
+**Cluster guide:** [cluster/DISTRIBUTED_CLUSTER.md](cluster/DISTRIBUTED_CLUSTER.md)
 
 ---
+
+## Distributed cluster (Mac + 2× Jetson Super Kit 8GB)
+
+| Node | IP (lab) | Role |
+|------|----------|------|
+| Mac | `192.168.1.165` | Spark Master, Docker, `ml_00`, sync/pull |
+| Jetson #1 | `192.168.1.50` | Worker + ML driver, `results/` |
+| Jetson #2 | `192.168.1.205` | Worker, edge classifier |
+
+### 1. Configure cluster
+
+```bash
+cp cluster/spark_cluster.env.example cluster/spark_cluster.env
+# Edit MAC_IP (ipconfig getifaddr en0), JETSON IPs, JETSON_SSH_USER, IDS_MAC_ROOT
+source cluster/load_cluster_env.sh
+```
+
+### 2. Start cluster
+
+```bash
+# Mac
+./cluster/start_master_mac.sh
+cd raspberry && docker compose up -d
+
+# Each Jetson (SSH)
+cd ~/Thesis_IDS && source cluster/load_cluster_env.sh && ./cluster/start_worker.sh
+
+# Mac — verify: http://192.168.1.165:8080 → 2 workers ALIVE
+./cluster/check_cluster.sh
+```
+
+### 3. Preprocess + sync + train
+
+```bash
+python ml_00_prepare_cicids2017.py          # Mac only
+./cluster/sync_workspace.sh
+./cluster/run_ml_remote.sh ml_01_baseline_all_features.py
+./cluster/pull_results.sh                   # Jetson #1 → Mac
+```
+
+Full pipeline:
+
+```bash
+./cluster/reproduce_cluster.sh fair    # or thesis / soict
+./cluster/pull_results.sh
+./papers/fair2026/collect_results.sh
+```
+
+---
+
+## Local mode (Mac only — debug)
 
 ### 1. Configure the Environment
 Set the project root and data directory via environment variables to ensure portability.
@@ -21,7 +74,7 @@ python ml_00_prepare_cicids2017.py
 *Output: `data/train_data.parquet` and `data/test_data.parquet`*
 
 ### 3. Run Experiments (Baseline to SHAP)
-Each script evaluates models and generates reports in their respective `exp*_results/` folders.
+Each script evaluates models and generates reports under `results/<experiment_name>/` (local) or on Jetson #1 driver (cluster).
 ```bash
 python ml_01_baseline_all_features.py            # Baseline (all features)
 python ml_02_feature_selection_rf.py           # Random Forest Feature Importance (generates importance.csv)

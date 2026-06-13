@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import shutil
 from shared_utils import (
     create_spark_session,
     clean_column_names,
@@ -14,6 +15,7 @@ INPUT_PATH = os.environ.get("IDS_RAW_DATA_DIR", os.path.join(os.environ.get("IDS
 OUTPUT_DIR = os.environ.get("IDS_DATA_DIR", os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "data"))
 TRAIN_PATH = os.path.join(OUTPUT_DIR, "train_data.parquet")
 TEST_PATH = os.path.join(OUTPUT_DIR, "test_data.parquet")
+PARQUET_PARTITIONS = int(os.environ.get("IDS_PARQUET_PARTITIONS", "8"))
 
 CSV_FILES = [
     "Monday-WorkingHours.pcap_ISCX.csv",
@@ -49,7 +51,6 @@ if __name__ == "__main__":
                 spark.read.option("header", True)
                 .option("inferSchema", True)
                 .option("escape", '"')
-                .option("multiLine", True)
                 .csv(file_path)
             )
 
@@ -115,10 +116,14 @@ if __name__ == "__main__":
     print(f"\nSaving to parquet...")
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    train_df.write.mode("overwrite").parquet(TRAIN_PATH)
+    for path in (TRAIN_PATH, TEST_PATH):
+        if os.path.exists(path):
+            shutil.rmtree(path)
+
+    train_df.coalesce(PARQUET_PARTITIONS).write.mode("overwrite").parquet(TRAIN_PATH)
     print(f"  Saved: {TRAIN_PATH}")
 
-    test_df.write.mode("overwrite").parquet(TEST_PATH)
+    test_df.coalesce(PARQUET_PARTITIONS).write.mode("overwrite").parquet(TEST_PATH)
     print(f"  Saved: {TEST_PATH}")
 
     print("\n" + "=" * 60)

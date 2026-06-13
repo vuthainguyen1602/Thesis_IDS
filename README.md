@@ -89,14 +89,14 @@ Shared execution code lives at the repo root (`ml_*.py`, `raspberry/`). Each fol
 | `ml_07_cross_method_comparison.py` | Cross-method + drift |
 | `ml_08_anomaly_gate_autoencoder.py` | Anomaly gate (edge) |
 
-### Distributed cluster (Mac + 2× Jetson Nano) — **required**
+### Distributed cluster (Mac + 2× Jetson Nano Super Kit 8GB) — **required**
 
 All `./papers/*/reproduce.sh` and `./thesis/reproduce.sh` run **only in distributed mode** via Spark cluster:
 
 ```
-Mac (192.168.1.x)     → Spark Master :7077, Docker (Kafka/Postgres/Grafana)
-Jetson #1             → Spark Worker + PySpark driver (ML scripts)
-Jetson #2 (optional)  → Second Spark Worker (+ edge classifier for SOICT)
+Mac (192.168.1.165)   → Spark Master :7077, Docker (Kafka/Postgres/Grafana)
+Jetson #1 (.50)       → Spark Worker + PySpark driver (ML scripts, results/)
+Jetson #2 (.205)      → Spark Worker (+ edge classifier for SOICT)
 ```
 
 **Full guide:** [cluster/DISTRIBUTED_CLUSTER.md](cluster/DISTRIBUTED_CLUSTER.md)
@@ -105,7 +105,7 @@ Jetson #2 (optional)  → Second Spark Worker (+ edge classifier for SOICT)
 
 ```bash
 cp cluster/spark_cluster.env.example cluster/spark_cluster.env
-# Edit: MAC_IP, JETSON1_IP, JETSON_SSH_USER, IDS_MAC_ROOT, IDS_RAW_DATA_DIR
+# Edit: MAC_IP (ipconfig getifaddr en0), JETSON1_IP, JETSON2_IP, JETSON_SSH_USER, IDS_MAC_ROOT
 export JETSON2_ENABLED=0          # in spark_cluster.env — skip Jetson #2
 
 # Mac — one-time setup
@@ -122,6 +122,7 @@ cd ~/Thesis_IDS && source cluster/load_cluster_env.sh && ./cluster/start_worker.
 # Mac — sync + run ML
 ./cluster/sync_workspace.sh
 ./cluster/run_ml_remote.sh ml_01_baseline_all_features.py
+./cluster/pull_results.sh            # results/ from Jetson #1 → Mac
 ```
 
 Verify: http://`<MAC_IP>`:8080 → **1 worker ALIVE**
@@ -132,7 +133,7 @@ Verify: http://`<MAC_IP>`:8080 → **1 worker ALIVE**
 2. Edit `cluster/spark_cluster.env`:
 
 ```bash
-export JETSON2_IP=192.168.1.XXX
+export JETSON2_IP=192.168.1.205
 export JETSON2_ENABLED=1
 ```
 
@@ -222,19 +223,19 @@ This codebase has been refactored to meet **higher scientific standards** for th
 - **Docker Desktop**: Kafka, PostgreSQL, InfluxDB, Grafana
 - **RAM**: 8GB+ (16GB recommended for data prep)
 
-### Jetson Nano (Spark worker + ML driver / edge)
+### Jetson Nano Super Kit (8GB RAM, Spark worker + ML driver / edge)
 - **JetPack** / Ubuntu 18.04+ (aarch64)
 - **Java**: `default-jdk` (Java 11 OK — auto-detected by `shared_utils.py`)
-- **Swap**: 4GB (`setup_jetson.sh` creates it automatically)
+- **Swap**: optional on 8GB (`setup_jetson.sh` can add 4GB safety swap)
 - **SSH**: passwordless from Mac (`ssh-copy-id user@jetson-ip`)
-- **Disk**: ~5GB for CICIDS2017 parquet (synced from Mac)
+- **Disk**: 256GB SSD recommended; ~5GB for CICIDS2017 parquet (synced from Mac)
 
 ### Cluster sizing
 
 | Setup | ML training | Edge SOICT |
 |----------|-------------|------------|
-| Mac + 1 Jetson | ✅ Trial / debug (`JETSON2_ENABLED=0`) | ✅ `full` mode on one Jetson |
-| Mac + 2 Jetsons | ✅ Recommended (2 executors) | ✅ Split `anomaly_gate` + `classifier` |
+| Mac + 1 Jetson | ✅ Debug (`JETSON2_ENABLED=0`) | ✅ `full` mode on one Jetson |
+| Mac + 2 Jetsons | ✅ Recommended (2× 8GB workers) | ✅ Split `anomaly_gate` + `classifier` |
 
 ---
 
@@ -478,7 +479,7 @@ python ml_03_hyperparameter_tuning.py
 
 ## Output
 
-Each experiment generates:
+Each experiment generates under `results/<experiment_name>/`:
 
 | Output | Description |
 |--------|-------------|
@@ -488,16 +489,39 @@ Each experiment generates:
 | `model_size.png` | Model size comparison (MB) |
 | `confusion_matrices.png` | Confusion matrices |
 | `roc_curves.png` | ROC curves |
-| `exp*_report.html` | Comprehensive HTML report (open in browser) |
+| `report.html` | Comprehensive HTML report (open in browser) |
+
+### Cluster mode (Mac + 2 Jetsons)
+
+Training via `./cluster/run_ml_remote.sh` writes output on **Jetson #1** (`192.168.1.50`):
+
+```
+~/Thesis_IDS/results/ml_01_baseline/
+~/Thesis_IDS/results/ml_07_cross_method_comparison/
+~/Thesis_IDS/results/shared/best_config.json
+```
+
+Pull back to Mac:
+
+```bash
+./cluster/pull_results.sh
+```
+
+Then collect paper/thesis artifacts:
+
+```bash
+./papers/fair2026/collect_results.sh
+./thesis/collect_results.sh
+```
 
 ---
 
 ## Edge Deployment (Jetson / Raspberry Pi)
 
-**Split deployment:**
-- **Mac**: Spark master, Docker (Kafka, PostgreSQL, InfluxDB, Grafana), `ml_00`, `save_model.py`
-- **Jetson #1**: Spark worker, PySpark ML driver, edge pipeline (`full` or `anomaly_gate`)
-- **Jetson #2** (optional): Spark worker, edge `classifier` (SOICT split mode)
+**Split deployment (lab IPs):**
+- **Mac** (`192.168.1.165`): Spark master, Docker (Kafka, PostgreSQL, InfluxDB, Grafana), `ml_00`, `save_model.py`
+- **Jetson #1** (`192.168.1.50`): Spark worker, PySpark ML driver, `results/`, edge `anomaly_gate`
+- **Jetson #2** (`192.168.1.205`): Spark worker, edge `classifier`
 
 Jetson **does not need Docker** — set `.env` `KAFKA_BOOTSTRAP_SERVERS`, `POSTGRES_HOST`, `INFLUXDB_URL` to **MAC_IP**.
 
