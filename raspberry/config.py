@@ -12,7 +12,7 @@ KAFKA_SUSPICIOUS_TOPIC = os.getenv("KAFKA_SUSPICIOUS_TOPIC", "ids-suspicious-flo
 KAFKA_GROUP_ID = os.getenv("KAFKA_GROUP_ID", "ids-edge-consumer")
 KAFKA_CLASSIFIER_GROUP_ID = os.getenv("KAFKA_CLASSIFIER_GROUP_ID", "ids-classifier-consumer")
 
-# Distributed edge deployment (Jetson Nano cluster)
+# Distributed edge deployment (Jetson Orin Nano Super cluster)
 # Roles: full | anomaly_gate | classifier
 #   full          - complete pipeline on each node (Kafka consumer group scales horizontally)
 #   anomaly_gate  - Jetson #1: anomaly filter, forward suspicious flows to KAFKA_SUSPICIOUS_TOPIC
@@ -73,12 +73,17 @@ SPARK_EXECUTOR_MEMORY = os.getenv("SPARK_EXECUTOR_MEMORY", "512m")
 SPARK_DRIVER_MEMORY = os.getenv("SPARK_DRIVER_MEMORY", "512m")
 SPARK_SHUFFLE_PARTITIONS = os.getenv("SPARK_SHUFFLE_PARTITIONS", "2")
 SPARK_APP_NAME = os.getenv("SPARK_APP_NAME", f"IDS_Edge_{EDGE_NODE_ID}")
-SPARK_WORKER_MEMORY = os.getenv("SPARK_WORKER_MEMORY", "4g")
+SPARK_WORKER_MEMORY = os.getenv("SPARK_WORKER_MEMORY", "5g")
 SPARK_WORKER_CORES = os.getenv("SPARK_WORKER_CORES", "2")
 
 METRICS_PUSH_INTERVAL = int(os.getenv("METRICS_PUSH_INTERVAL", "10"))
 ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "60"))
 
+# NOTE: destination_port was removed — it is now excluded from training as a
+# label-leakage feature (see shared_utils._leaky_port_cols). After re-running
+# the SHAP selection (ml_06) on the leak-free feature set, regenerate this list
+# from shap_feature_importance.csv so it again holds the true Top-30 and stays
+# in sync with the exported model.
 SHAP_TOP_FEATURES = [
     "flow_duration", "total_fwd_packets", "total_backward_packets",
     "total_length_of_fwd_packets", "total_length_of_bwd_packets",
@@ -89,5 +94,4 @@ SHAP_TOP_FEATURES = [
     "bwd_iat_total", "bwd_iat_mean", "fwd_psh_flags", "bwd_packets_s",
     "min_packet_length", "max_packet_length", "packet_length_mean",
     "packet_length_std", "packet_length_variance", "average_packet_size",
-    "destination_port",
 ]

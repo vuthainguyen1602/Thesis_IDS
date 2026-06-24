@@ -15,7 +15,6 @@ from shared_utils import (
     load_and_prepare_data,
     get_classifiers,
     train_and_evaluate,
-    compute_metrics,
     print_metrics,
     print_summary_table,
     shap_explain_model,

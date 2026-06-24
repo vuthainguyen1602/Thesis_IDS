@@ -16,6 +16,7 @@ from shared_utils import (
     get_classifiers,
     run_all_classifiers,
     ensemble_voting,
+    stratified_sample,
     plot_comparison,
     plot_training_time,
     plot_prediction_time,
@@ -70,9 +71,12 @@ import shap
 
 sample_size = 2000
 select_cols = feature_cols + ["label_binary"]
-sample_df = train_df.select(select_cols).limit(sample_size)
+# Class-stratified random sample (not an arbitrary .limit slice) so the SHAP
+# ranking reflects both benign and attack flows.
+sample_df = stratified_sample(train_df, select_cols, "label_binary", sample_size)
 pdf = sample_df.toPandas()
 X_sample = pdf[feature_cols].values
+print(f"  SHAP sample: {len(pdf)} rows, attack ratio {pdf['label_binary'].mean():.2%}")
 
 xgb_model = None
 for stage in model_xgb.stages:

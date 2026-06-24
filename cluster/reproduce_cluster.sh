@@ -19,7 +19,7 @@ run_local_mac() {
     export IDS_ROOT="$ROOT"
     export IDS_DATA_DIR="${IDS_DATA_DIR:-$ROOT/data}"
     export IDS_ALLOW_LOCAL_SPARK=1
-    unset IDS_SPARK_CLUSTER
+    unset IDS_SPARK_CLUSTER SPARK_MASTER SPARK_DRIVER_HOST
     python "$@"
 }
 

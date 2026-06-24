@@ -31,30 +31,31 @@ echo "  Master:  ${SPARK_MASTER:?}"
 echo "  Script:  $SCRIPT_BASE"
 echo "================================================================"
 
+SSH_OPTS="${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10}"
+INSTALL_SCRIPT="$CLUSTER_DIR/install_ml_deps.sh"
+
+install_ml_deps_remote() {
+    local host="$1"
+    echo ""
+    echo "[INFO] Ensuring ML deps on executor host: $host"
+    # shellcheck disable=SC2086
+    ssh $SSH_OPTS "$host" "IDS_ROOT='$REMOTE_ROOT' bash -s" < "$INSTALL_SCRIPT"
+}
+
+# Executors run Python on every Spark worker — not only the driver.
+install_ml_deps_remote "$DRIVER"
+if [ "${JETSON2_ENABLED:-0}" = "1" ] && [ -n "${JETSON2_SSH:-}" ]; then
+    install_ml_deps_remote "$JETSON2_SSH"
+fi
+
 # shellcheck disable=SC2086
-ssh ${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10} "$DRIVER" bash -s <<EOF
+ssh $SSH_OPTS "$DRIVER" bash -s <<EOF
 set -euo pipefail
 cd "$REMOTE_ROOT"
 if [ -d raspberry/venv/bin ]; then source raspberry/venv/bin/activate; elif [ -d venv/bin ]; then source venv/bin/activate; fi
-if ! python -c "import pandas" 2>/dev/null; then
-    echo "[INFO] Installing ML driver deps (minimal set, may take a few minutes)..."
-    PIP_OPTS="--retries 10 --timeout 120 --default-timeout=120"
-    REQ_MIN="cluster/requirements_ml_driver_min.txt"
-    REQ_FULL="cluster/requirements_ml_driver.txt"
-    if [ -f "\$REQ_MIN" ]; then
-        pip install \$PIP_OPTS -r "\$REQ_MIN" || {
-            echo "[WARN] Batch install failed — trying one package at a time..."
-            pip install \$PIP_OPTS pandas
-            pip install \$PIP_OPTS matplotlib
-            pip install \$PIP_OPTS seaborn
-        }
-    elif [ -f "\$REQ_FULL" ]; then
-        pip install \$PIP_OPTS -r "\$REQ_FULL"
-    else
-        pip install \$PIP_OPTS pandas matplotlib seaborn
-    fi
-fi
-python -c "import pandas, matplotlib, seaborn; print('[OK] ML deps ready')"
+python -c "import pandas, matplotlib, seaborn, pyarrow, xgboost, shap; print('[OK] Core ML deps ready on driver')"
+python -c "from synapse.ml.lightgbm import LightGBMClassifier; print('[OK] LightGBM ready')" \
+    || echo "[WARN] LightGBM not ready (synapseml or Java backend missing)"
 export JAVA_HOME="\${JAVA_HOME:-\$(dirname "\$(dirname "\$(readlink -f "\$(which java)")")")}"
 export PATH="\$JAVA_HOME/bin:\$PATH"
 echo "[INFO] JAVA_HOME=\$JAVA_HOME"
@@ -63,11 +64,14 @@ export IDS_ROOT="$REMOTE_ROOT"
 export IDS_CLUSTER_DATA_DIR="${IDS_CLUSTER_DATA_DIR:-$REMOTE_ROOT/data}"
 export SPARK_MASTER="${SPARK_MASTER}"
 export SPARK_DRIVER_HOST="${SPARK_DRIVER_HOST:-$(echo "$DRIVER" | cut -d@ -f2)}"
-export SPARK_EXECUTOR_MEMORY="${SPARK_EXECUTOR_MEMORY:-2g}"
+export SPARK_EXECUTOR_MEMORY="${SPARK_EXECUTOR_MEMORY:-3g}"
 export SPARK_DRIVER_MEMORY="${SPARK_DRIVER_MEMORY:-3g}"
+export SPARK_DRIVER_MAX_RESULT_SIZE="${SPARK_DRIVER_MAX_RESULT_SIZE:-3g}"
 export SPARK_EXECUTOR_CORES="${SPARK_EXECUTOR_CORES:-4}"
-export SPARK_SHUFFLE_PARTITIONS="${SPARK_SHUFFLE_PARTITIONS:-16}"
+export SPARK_SHUFFLE_PARTITIONS="${SPARK_SHUFFLE_PARTITIONS:-32}"
 unset IDS_ALLOW_LOCAL_SPARK
+export IDS_EXP7_START_STEP="${IDS_EXP7_START_STEP:-1}"
+export IDS_EXP7_AGGREGATE_ONLY="${IDS_EXP7_AGGREGATE_ONLY:-0}"
 python "$SCRIPT_BASE" "$@"
 EOF
 

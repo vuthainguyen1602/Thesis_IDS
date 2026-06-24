@@ -23,6 +23,11 @@ MODEL_DIR = os.path.join(PROJECT_ROOT, "model")
 MODEL_PATH = os.path.join(MODEL_DIR, "ids_pipeline_model")
 FEATURES_PATH = os.path.join(MODEL_DIR, "feature_columns.json")
 
+# NOTE: destination_port removed — excluded from training as a label-leakage
+# feature (shared_utils._leaky_port_cols). Regenerate this list from the SHAP
+# ranking (ml_06) after re-running experiments on the leak-free feature set.
+# save_model already guards with `if f in feature_cols`, so any stale entry is
+# dropped automatically, but keep the list in sync for an honest Top-30.
 SHAP_TOP_FEATURES = [
     "flow_duration", "total_fwd_packets", "total_backward_packets",
     "total_length_of_fwd_packets", "total_length_of_bwd_packets",
@@ -33,7 +38,6 @@ SHAP_TOP_FEATURES = [
     "bwd_iat_total", "bwd_iat_mean", "fwd_psh_flags", "bwd_packets_s",
     "min_packet_length", "max_packet_length", "packet_length_mean",
     "packet_length_std", "packet_length_variance", "average_packet_size",
-    "destination_port",
 ]
 
 
@@ -44,7 +48,7 @@ def main():
     print("=" * 60 + "\n")
 
     spark = create_spark_session("IDS_SaveModel")
-    df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
+    _df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
     selected_features = [f for f in SHAP_TOP_FEATURES if f in feature_cols]
     print(f"  Using {len(selected_features)} SHAP features")
@@ -71,6 +75,8 @@ def main():
     pipeline = Pipeline(stages=[assembler, scaler, best_model])
 
     print("\n  Training Decision Tree pipeline...")
+    from shared_utils import add_class_weights
+    train_df = add_class_weights(train_df)  # weightCol-aware model needs this
     model = pipeline.fit(train_df)
     print("  [OK] Training complete")
 
@@ -89,7 +95,7 @@ def main():
     print(f"\n  [INFO] Model saved to: {MODEL_PATH}")
 
     total_size = 0
-    for dirpath, dirnames, filenames in os.walk(MODEL_PATH):
+    for dirpath, _dirnames, filenames in os.walk(MODEL_PATH):
         for f in filenames:
             total_size += os.path.getsize(os.path.join(dirpath, f))
     print(f"  Model size: {total_size / (1024*1024):.1f} MB")

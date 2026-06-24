@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import (
     average_precision_score,
-    precision_recall_fscore_support,
     roc_auc_score,
 )
 from sklearn.neural_network import MLPRegressor
@@ -79,6 +78,16 @@ def main():
     with open(FEATURES_PATH, "r") as f:
         feature_cols = json.load(f)
     print(f"[OK] Loaded feature list: {len(feature_cols)} features")
+
+    # Guard against train/serve skew: the exported feature set must already be
+    # leakage-aware (no port columns). Fail loudly if a stale JSON sneaks them in.
+    _LEAKY_PORTS = {"destination_port", "source_port", "src_port", "dst_port"}
+    _leaky_in_json = [c for c in feature_cols if c.lower() in _LEAKY_PORTS]
+    if _leaky_in_json:
+        raise ValueError(
+            f"feature_columns.json contains leaky port features {_leaky_in_json}. "
+            "Re-export with the leakage-aware save_model.py before training the gate."
+        )
 
     train_df = pd.read_parquet(TRAIN_PARQUET)
     test_df = pd.read_parquet(TEST_PARQUET)
@@ -157,6 +166,51 @@ def main():
         thr = float(np.quantile(benign_mse, q))
         m = _eval_at_threshold(y_test, test_mse, thr)
         print(f"  @FPR≈{target_fpr:.1%}: threshold={m['threshold']:.6f} | Recall={m['recall']:.4f} | Precision={m['precision']:.4f} | F1={m['f1']:.4f}")
+
+    # ── Operating-point sweep ────────────────────────────────────────────────
+    # The gate is a TUNABLE filter, not a single point. We sweep the threshold
+    # over quantiles of the benign-train MSE and report, for each, the detection
+    # metrics AND the gate-skip ratio (fraction of test flows the gate marks
+    # benign and thus removes from Spark inference). This characterises the
+    # recall vs. offloading trade-off that a single threshold hides.
+    results_dir = os.path.join(BASE_DIR, "results", "ml_08_anomaly_gate")
+    os.makedirs(results_dir, exist_ok=True)
+    sweep_q = [0.90, 0.95, 0.975, 0.99, 0.995, 0.999]
+    sweep_rows = []
+    for q in sweep_q:
+        thr = float(np.quantile(train_mse, q))
+        m = _eval_at_threshold(y_test, test_mse, thr)
+        gate_skip = float(np.mean(test_mse < thr))  # flows filtered as benign
+        m.update({"train_quantile": q, "gate_skip_ratio": round(gate_skip, 4)})
+        sweep_rows.append(m)
+    sweep_df = pd.DataFrame(sweep_rows)[
+        ["train_quantile", "threshold", "recall", "precision", "f1", "fpr", "gate_skip_ratio"]
+    ]
+    sweep_csv = os.path.join(results_dir, "gate_operating_points.csv")
+    sweep_df.to_csv(sweep_csv, index=False)
+    print("\n[Eval] Gate operating-point sweep (saved):")
+    print(sweep_df.to_string(index=False))
+
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        fig, ax1 = plt.subplots(figsize=(8, 5))
+        ax1.plot(sweep_df["gate_skip_ratio"], sweep_df["recall"], "o-", color="#1f77b4", label="Recall")
+        ax1.set_xlabel("Gate skip ratio (benign offloaded from Spark)")
+        ax1.set_ylabel("Attack recall", color="#1f77b4")
+        ax1.set_ylim(0, 1.02)
+        ax2 = ax1.twinx()
+        ax2.plot(sweep_df["gate_skip_ratio"], sweep_df["fpr"], "s--", color="#d62728", label="FPR")
+        ax2.set_ylabel("False positive rate", color="#d62728")
+        plt.title("Anomaly-gate operating points: recall vs. offload (and FPR)")
+        fig.tight_layout()
+        plot_path = os.path.join(results_dir, "gate_operating_points.png")
+        plt.savefig(plot_path, dpi=150, bbox_inches="tight")
+        plt.close()
+        print(f"[OK] Saved: {plot_path}")
+    except Exception as e:
+        print(f"[WARN] Operating-point plot skipped: {e}")
 
     os.makedirs(RPI_MODEL_DIR, exist_ok=True)
     joblib.dump(ae, AE_MODEL_PATH, compress=3)

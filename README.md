@@ -27,7 +27,7 @@ This project evaluates **9 classification algorithms** combined with **3 Ensembl
 
 | Type | Algorithms |
 |------|-----------|
-| **Standalone** | Decision Tree, Logistic Regression, SVM, Naive Bayes, Random Forest, GBT, XGBoost, LightGBM, MLP |
+| **Standalone** | Decision Tree, Logistic Regression, SVM, Naive Bayes, Random Forest, GBT, XGBoost, MLP |
 | **Ensemble** | Hybrid Bagging (Top-3, 3-2-2 Weighted), Majority Voting (Top-3 by F1), Stacking |
 
 ### Experiments
@@ -56,7 +56,7 @@ Thesis_IDS/
 ├── ml_00_prepare_cicids2017.py      # CICIDS2017 data preparation
 ├── ml_01_baseline_all_features.py … ml_08_*.py  # ML experiments
 ├── data/                            # Processed data (parquet format)
-├── raspberry/                       # Edge IDS (RPi / Jetson Nano)
+├── raspberry/                       # Edge IDS (RPi / Jetson Orin Nano Super)
 │
 ├── thesis/                          # Deliverable #1 — thesis (manuscript + reproduce)
 ├── papers/
@@ -86,12 +86,19 @@ Shared execution code lives at the repo root (`ml_*.py`, `raspberry/`). Each fol
 | `ml_04_dimensionality_reduction_pca.py` | PCA |
 | `ml_05_shap_explainability.py` | SHAP XAI |
 | `ml_06_feature_selection_shap.py` | SHAP Top-K |
-| `ml_07_cross_method_comparison.py` | Cross-method + drift |
-| `ml_08_anomaly_gate_autoencoder.py` | Anomaly gate (edge) |
+| `ml_07_cross_method_comparison.py` | Cross-method + drift + F1 heatmap |
+| `ml_08_anomaly_gate_autoencoder.py` | Anomaly gate (edge) + operating curve |
+| `ml_09_multiclass_eval.py` | Per-attack multiclass + confusion matrix |
+| `ml_10_leakage_ablation.py` | `destination_port` leakage ablation (+ bar plot) |
+| `ml_11_cross_dataset_eval.py` | Cross-dataset generalization (train A → test B, both ways) |
+| `papers/soict2026/plot_edge_modes.py` | Edge-mode throughput/latency bars (from benchmark CSV) |
+| `raspberry/edge/power_monitor.py` | Jetson energy sampling (tegrastats) for energy-per-inference |
 
-### Distributed cluster (Mac + 2× Jetson Nano Super Kit 8GB) — **required**
+### Distributed cluster (Mac + 2× Jetson Orin Nano Super 8GB) — **required**
 
-All `./papers/*/reproduce.sh` and `./thesis/reproduce.sh` run **only in distributed mode** via Spark cluster:
+All `./papers/*/reproduce.sh` and `./thesis/reproduce.sh` run **only in distributed mode** via Spark cluster.
+
+> **Network:** Mac and both Jetsons must be on the **same LAN** (e.g. `192.168.1.x`) and able to `ping` each other. If the Mac changes WiFi/network, update `MAC_IP` in `cluster/spark_cluster.env` and `KAFKA_ADVERTISED_LISTENERS` in `raspberry/docker-compose.yml`, then re-sync and restart.
 
 ```
 Mac (192.168.1.165)   → Spark Master :7077, Docker (Kafka/Postgres/Grafana)
@@ -99,64 +106,89 @@ Jetson #1 (.50)       → Spark Worker + PySpark driver (ML scripts, results/)
 Jetson #2 (.205)      → Spark Worker (+ edge classifier for SOICT)
 ```
 
-**Full guide:** [cluster/DISTRIBUTED_CLUSTER.md](cluster/DISTRIBUTED_CLUSTER.md)
+**Full step-by-step guide:** [cluster/DISTRIBUTED_CLUSTER.md](cluster/DISTRIBUTED_CLUSTER.md)  
+**Quick run reference:** [RUN_GUIDE.md](RUN_GUIDE.md)
 
-#### Phase 1 — Try 1 Jetson first (recommended)
+#### One-time setup
 
 ```bash
 cp cluster/spark_cluster.env.example cluster/spark_cluster.env
 # Edit: MAC_IP (ipconfig getifaddr en0), JETSON1_IP, JETSON2_IP, JETSON_SSH_USER, IDS_MAC_ROOT
-export JETSON2_ENABLED=0          # in spark_cluster.env — skip Jetson #2
+# Trial with 1 Jetson: JETSON2_ENABLED=0
 
-# Mac — one-time setup
 source cluster/load_cluster_env.sh
-./cluster/start_master_mac.sh
+ssh-copy-id <user>@<JETSON1_IP>
+# Jetson #1 — one-time:
+ssh <user>@<JETSON1_IP> "cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh"
+
+# Optional Jetson #2 (set JETSON2_ENABLED=1 first):
+ssh-copy-id <user>@<JETSON2_IP>
+ssh <user>@<JETSON2_IP> "cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh"
+
+# Mac — data + Docker (one-time)
+python ml_00_prepare_cicids2017.py
 cd raspberry && docker compose up -d
 python scripts/init_kafka_topics.py --partitions 2 --bootstrap localhost:9092
-
-# Jetson #1 — SSH, one-time setup
-ssh-copy-id <user>@<JETSON1_IP>
-cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh
-cd ~/Thesis_IDS && source cluster/load_cluster_env.sh && ./cluster/start_worker.sh
-
-# Mac — sync + run ML
-./cluster/sync_workspace.sh
-./cluster/run_ml_remote.sh ml_01_baseline_all_features.py
-./cluster/pull_results.sh            # results/ from Jetson #1 → Mac
 ```
 
-Verify: http://`<MAC_IP>`:8080 → **1 worker ALIVE**
+#### Daily run — step by step (every training session)
 
-#### Phase 2 — Add Jetson #2
-
-1. Get Jetson #2 IP: `hostname -I` on the second device  
-2. Edit `cluster/spark_cluster.env`:
+**Step 1 — Mac: start master + verify IP**
 
 ```bash
-export JETSON2_IP=192.168.1.205
-export JETSON2_ENABLED=1
-```
-
-3. SSH + setup (same as Jetson #1):
-
-```bash
-ssh-copy-id <user>@<JETSON2_IP>
-rsync -avz ~/Desktop/Thesis_IDS/ <user>@<JETSON2_IP>:~/Thesis_IDS/
-scp cluster/spark_cluster.env <user>@<JETSON2_IP>:~/Thesis_IDS/cluster/
-# On Jetson #2:
-cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh
-cd ~/Thesis_IDS && source cluster/load_cluster_env.sh && ./cluster/start_worker.sh
-```
-
-4. Mac — sync both + verify:
-
-```bash
+cd ~/Desktop/Thesis_IDS
 source cluster/load_cluster_env.sh
-./cluster/sync_workspace.sh      # rsync → Jetson #1 and #2
-./cluster/check_cluster.sh       # 2 workers ALIVE, parquet OK
+ipconfig getifaddr en0    # must match MAC_IP in spark_cluster.env
+
+./cluster/stop_cluster.sh          # clean stale apps from last session
+./cluster/start_master_mac.sh
+sleep 3
 ```
 
-5. Edge SOICT (pipeline split): Jetson1 `anomaly_gate`, Jetson2 `classifier` — see [raspberry/JETSON_DISTRIBUTED.md](raspberry/JETSON_DISTRIBUTED.md)
+**Step 2 — Each Jetson: start worker** (SSH into **each** device separately)
+
+```bash
+# On Jetson #1 (192.168.1.50) — also kills zombie ML drivers
+export SPARK_HOME=$(python3 -c "import pyspark; print(pyspark.__path__[0])")
+unset SPARK_MASTER SPARK_HOME
+$SPARK_HOME/sbin/stop-worker.sh 2>/dev/null || true
+pkill -f SparkSubmit 2>/dev/null || true
+
+cd ~/Thesis_IDS
+source cluster/load_cluster_env.sh
+./cluster/start_worker.sh
+# Expect: [OK] Worker started  →  spark://<MAC_IP>:7077 (4 cores, 5g)
+```
+
+Repeat the same block on **Jetson #2** (`192.168.1.205`). Commands are identical; only the SSH target differs.
+
+**Step 3 — Mac: health check**
+
+```bash
+./cluster/check_cluster.sh
+# Expect: Workers ALIVE: 2, parquet OK on both Jetsons
+# UI: http://<MAC_IP>:8080 → 2 workers, 8 cores, 0 running apps
+```
+
+**Step 4 — Mac: sync code (if changed) + run ML**
+
+```bash
+./cluster/sync_workspace.sh        # skip if nothing changed on Mac
+./cluster/run_ml_remote.sh ml_01_baseline_all_features.py
+# ...run each experiment the same way, e.g.:
+./cluster/run_ml_remote.sh ml_07_cross_method_comparison.py
+./cluster/run_ml_remote.sh ml_08_anomaly_gate_autoencoder.py
+./cluster/run_ml_remote.sh ml_09_multiclass_eval.py
+./cluster/run_ml_remote.sh ml_10_leakage_ablation.py
+```
+
+`run_ml_remote.sh` auto-installs on Jetson #1 driver: `xgboost`, `shap`, `scipy`. (LightGBM/SynapseML removed — not runnable on ARM64 Jetson.) `plot_edge_modes.py` is a plain `python` script (no Spark) — run it on the Mac after pulling `summary.csv`.
+
+**Step 5 — Mac: pull results**
+
+```bash
+./cluster/pull_results.sh
+```
 
 #### Reproduce papers / thesis
 
@@ -167,6 +199,15 @@ source cluster/load_cluster_env.sh
 ```
 
 **Mac-only** exceptions: `ml_00_prepare_cicids2017.py`, `save_model.py` (`IDS_ALLOW_LOCAL_SPARK=1`).
+
+#### Common issues (quick fix)
+
+| Symptom | Fix |
+|---------|-----|
+| App `WAITING` / **0 cores** on Spark UI | Kill old apps on http://`<MAC_IP>`:8080; `pkill -f SparkSubmit` on Jetson #1; restart workers |
+| `No route to host :7077` | Wrong `MAC_IP` or Mac on different network — same LAN required |
+| No XGBoost in results | XGBoost needs `pyarrow`: `pip install pyarrow xgboost`. (LightGBM was removed — not deployable on ARM64 Jetson.) |
+| MLP very slow | Expected on cluster; MLP uses smaller net (`[64,32,2]`, 80 iter) — RF/GBT/XGBoost are faster |
 
 #### Cluster environment variables (summary)
 
@@ -223,7 +264,7 @@ This codebase has been refactored to meet **higher scientific standards** for th
 - **Docker Desktop**: Kafka, PostgreSQL, InfluxDB, Grafana
 - **RAM**: 8GB+ (16GB recommended for data prep)
 
-### Jetson Nano Super Kit (8GB RAM, Spark worker + ML driver / edge)
+### Jetson Orin Nano Super Developer Kit (8GB RAM, Spark worker + ML driver / edge)
 - **JetPack** / Ubuntu 18.04+ (aarch64)
 - **Java**: `default-jdk` (Java 11 OK — auto-detected by `shared_utils.py`)
 - **Swap**: optional on 8GB (`setup_jetson.sh` can add 4GB safety swap)
@@ -279,31 +320,12 @@ pip install xgboost
 > python -c "from xgboost.spark import SparkXGBClassifier; print('XGBoost Spark OK')"
 > ```
 
-### 4. Install LightGBM (via SynapseML)
+### 4. (LightGBM removed)
 
-LightGBM runs on Spark through **SynapseML** (formerly MMLSpark), which provides a Java/Scala backend.
-
-```bash
-pip install synapseml
-```
-
-SynapseML requires additional Spark packages at runtime. Add the following to your Spark configuration (already configured in `shared_utils.py`):
-
-```python
-# In shared_utils.py → create_spark_session()
-.config("spark.jars.packages", "com.microsoft.azure:synapseml_2.12:1.0.4")
-.config("spark.jars.repositories", "https://mmlspark.azureedge.net/maven")
-```
-
-> **Verify installation:**
-> ```bash
-> python -c "from synapse.ml.lightgbm import LightGBMClassifier; print('LightGBM Spark OK')"
-> ```
->
-> **Troubleshooting:** If you get a Java error, ensure:
-> 1. `JAVA_HOME` is set correctly
-> 2. Spark can download the SynapseML JAR (requires internet on first run)
-> 3. If behind a proxy, pre-download the JAR and use `spark.jars` instead of `spark.jars.packages`
+LightGBM (via SynapseML) has been **removed** from the algorithm set: its native
+libraries are **x86_64-only** and cannot run on the **ARM64 Jetson Orin Nano Super** edge
+target, so a LightGBM model could never be deployed in this pipeline. Gradient
+boosting is covered by **XGBoost** and **GBT**. No SynapseML install is needed.
 
 ### 5. Install SHAP (for Experiments 5 & 6)
 
@@ -332,9 +354,7 @@ import pyspark; print(f'PySpark: {pyspark.__version__}')
 import xgboost; print(f'XGBoost: {xgboost.__version__}')
 import shap; print(f'SHAP: {shap.__version__}')
 from xgboost.spark import SparkXGBClassifier; print('  → XGBoost Spark: OK')
-try:
-    from synapse.ml.lightgbm import LightGBMClassifier; print('  → LightGBM Spark: OK')
-except: print('  → LightGBM Spark: Not available (optional)')
+import scipy; print(f'SciPy: {scipy.__version__}')
 print('All dependencies OK!')
 "
 ```
@@ -375,15 +395,14 @@ This script will:
 
 ## Execution Guide
 
-For common execution workflows, following the steps in order:
+**Step-by-step cluster run:** [RUN_GUIDE.md](RUN_GUIDE.md)  
+**Detailed cluster docs:** [cluster/DISTRIBUTED_CLUSTER.md](cluster/DISTRIBUTED_CLUSTER.md)
 
-👉 **[RUN_GUIDE.md](RUN_GUIDE.md)**
-
-1. **PC Training**: Data prep → ml_01 … ml_07
-2. **Model Export**: Save models for RPi
-3. **Infrastructure**: Start Docker services
-4. **Edge Deployment**: RPi Setup -> Kafka Consumer
-5. **Monitoring**: Grafana Dashboards
+1. **Cluster training**: Mac master → Jetson workers → `run_ml_remote.sh` → `pull_results.sh`
+2. **Model Export**: `save_model.py` on Mac
+3. **Infrastructure**: Docker on Mac (Kafka, Postgres, InfluxDB)
+4. **Edge Deployment**: Jetson pipelines — [raspberry/JETSON_DISTRIBUTED.md](raspberry/JETSON_DISTRIBUTED.md)
+5. **Monitoring**: Grafana dashboards
 
 ---
 
@@ -410,15 +429,40 @@ python ml_05_shap_explainability.py
 # Step 5: Feature Selection with SHAP
 python ml_06_feature_selection_shap.py
 
-# Step 6: Cross-Experiment + Robustness + Drift + Statistical tracks
+# Step 6: Cross-Experiment + Robustness + Drift + Statistical tracks (+ f1_heatmap.png)
 python ml_07_cross_method_comparison.py
 
 # Step 7: Hyperparameter Optimization on best config from Exp7
 python ml_03_hyperparameter_tuning.py
+
+# Step 8: Anomaly gate (edge) — threshold sweep → gate_operating_points.csv + .png
+python ml_08_anomaly_gate_autoencoder.py
+
+# Step 9: Per-attack multiclass eval → per_class_metrics.csv + confusion_matrix.png
+python ml_09_multiclass_eval.py
+
+# Step 10: Leakage ablation (destination_port) → leakage_ablation.csv + .png
+python ml_10_leakage_ablation.py
+
+# Step 10b (optional): Cross-dataset generalization.
+# CSE-CIC-IDS2018 is ~16M flows (~6 GB) — heavy for 8GB Jetsons. Use
+# IDS_SAMPLE_FRAC to prepare a class-proportional subset that fits the hardware:
+#   IDS_DATASET=cicids2018 IDS_DATA_DIR=$PWD/data_2018 IDS_RAW_DATA_DIR=... \
+#   IDS_CSV_GLOB='*.csv' IDS_SAMPLE_FRAC=0.15 python ml_00_prepare_cicids2017.py
+# Prepare BOTH datasets (data_2017/, data_2018/), then:
+IDS_XD_DIR_A=$PWD/data_2017 IDS_XD_NAME_A=CICIDS2017 \
+IDS_XD_DIR_B=$PWD/data_2018 IDS_XD_NAME_B=CSE-CIC-IDS2018 \
+    python ml_11_cross_dataset_eval.py   # → cross_dataset_results.csv + .png
+
+# Step 11 (SOICT edge bench): run on Jetson, then plot
+# (energy-per-inference is auto-captured via tegrastats when run on a Jetson)
+#   papers/soict2026/run_benchmarks.sh  (local | run | merge)  → summary.csv
+python papers/soict2026/plot_edge_modes.py   # → edge_modes.png
 ```
 
 > **Important:** Run `ml_07` before `ml_03` because `ml_03` reads `best_config.json` from `ml_07`.  
-> Optional robustness dataset: set `IDS_ROBUST_DATA_DIR` containing `test_data.parquet` before running `ml_07`.
+> Optional robustness dataset: set `IDS_ROBUST_DATA_DIR` containing `test_data.parquet` before running `ml_07`.  
+> **Paper figures** (`f1_heatmap`, `train_predict_time`, `confusion_matrix`, `leakage_ablation`, `gate_operating_points`, `edge_modes`) are produced by steps 6–11 and auto-included by the manuscripts via `\IfFileExists` — no manual copying needed.
 
 ### Running on RoEduNet Dataset
 
@@ -447,7 +491,7 @@ python ml_03_hyperparameter_tuning.py
 - Optimizes hyperparameters for **RF, GBT, Decision Tree, Logistic Regression** using Grid Search + 3-Fold CV
 - **Default: fast mode** (~15% CV sample, DT+RF+LR) — ~20–45 min
 - Full tuning: `IDS_EXP2_FULL=1 python ml_03_hyperparameter_tuning.py`
-- Extended (XGB/LGBM/MLP): `IDS_EXP2_FULL=1 IDS_EXP2_EXTENDED=1 python ml_03_hyperparameter_tuning.py`
+- Extended (XGB/MLP): `IDS_EXP2_FULL=1 IDS_EXP2_EXTENDED=1 python ml_03_hyperparameter_tuning.py`
 - Evaluation metric: **PR-AUC** (correlated with F1 for binary classification)
 - Compares Tuned vs Default model performance
 

@@ -4,9 +4,19 @@
 \providecommand{\doi}[1]{https://doi.org/#1}
 
 \bibitem{alrawashdeh2016toward}
-Al-Rawashdeh, A., Purdy, G.: Toward an online anomaly intrusion detection
-  system for cloud networks using machine learning. In: IEEE CloudNet. pp.
-  60--65 (2016)
+Alrawashdeh, K., Purdy, C.: Toward an online anomaly intrusion detection system
+  based on deep learning. In: Proc. 15th IEEE Int. Conf. on Machine Learning
+  and Applications (ICMLA). pp. 195--200 (2016). \doi{10.1109/ICMLA.2016.0040}
+
+\bibitem{asghar2026hedid}
+Asghar, M.Z., et~al.: {HED-ID}: an edge-deployable and explainable intrusion
+  detection system optimized via metaheuristic learning. Scientific Reports
+  \textbf{16}, ~2313 (2026). \doi{10.1038/s41598-025-32183-8}
+
+\bibitem{baalaji2025ensemble}
+Baalaji, K., et~al.: Deep learning-based ensemble stacking for enhanced
+  intrusion detection in {IoT}-edge platforms. Discover Applied Sciences
+  \textbf{7}, ~928 (2025). \doi{10.1007/s42452-025-06871-z}
 
 \bibitem{chandola2009anomaly}
 Chandola, V., Banerjee, A., Kumar, V.: Anomaly detection: A survey. In: ACM
@@ -18,10 +28,15 @@ Ferrag, M.A., Maglaras, L., Janicke, H., Jiang, J., Shu, L.: Deep learning for
   study. Journal of Information Security and Applications  \textbf{50},  102419
   (2020)
 
-\bibitem{khanna2023edge}
-Khanna, A., et~al.: Edge computing for iot-enabled devices: A survey on
-  architecture, challenges, and applications. IEEE Access  \textbf{11},
-  123456--123478 (2023)
+\bibitem{hamdan2020edge}
+Hamdan, S., Ayyash, M., Almajali, S.: Edge-computing architectures for internet
+  of things applications: A survey. Sensors  \textbf{20}(22), ~6441 (2020).
+  \doi{10.3390/s20226441}
+
+\bibitem{hasan2025iiot}
+Hasan, T., Hossain, A., Ansari, M.Q., Syed, T.H.: Enhanced intrusion detection
+  in {IIoT} networks: A lightweight approach with autoencoder-based feature
+  learning (2025), arXiv:2501.15266
 
 \bibitem{khraisat2019survey}
 Khraisat, A., Gondal, I., Vamplew, P., Kamruzzaman, J.: Survey of intrusion
@@ -32,25 +47,44 @@ Khraisat, A., Gondal, I., Vamplew, P., Kamruzzaman, J.: Survey of intrusion
 Kreps, J., et~al.: Kafka: a distributed messaging system for log processing.
   In: NetDB (2011)
 
+\bibitem{lanvin2023errors}
+Lanvin, M., Gimenez, P.F., Han, Y., Majorczyk, F., M{\'e}, L., Totel, {\'E}.:
+  Errors in the {CICIDS2017} dataset and the significant differences in
+  detection performances it makes. In: Risks and Security of Internet and
+  Systems (CRiSIS 2022), Revised Selected Papers. pp. 18--33. Lecture Notes in
+  Computer Science, Springer (2023). \doi{10.1007/978-3-031-31108-6_2}
+
 \bibitem{lopez2020autoencoder}
-L{\'o}pez-Martin, M., et~al.: Conditional variational autoencoder for network
-  intrusion detection. Applied Sciences  \textbf{10}(18), ~6338 (2020)
+Lopez-Martin, M., Carro, B., Sanchez-Esguevillas, A., Lloret, J.: Conditional
+  variational autoencoder for prediction and feature recovery applied to
+  intrusion detection in iot. Sensors  \textbf{17}(9), ~1967 (2017).
+  \doi{10.3390/s17091967}
 
 \bibitem{lundberg2017unified}
 Lundberg, S.M., Lee, S.I.: A unified approach to interpreting model
   predictions. Advances in Neural Information Processing Systems  \textbf{30}
   (2017)
 
-\bibitem{mohammadi2023federated}
-Mohammadi, R., et~al.: Federated learning-based intrusion detection for edge
-  computing networks. Computer Networks  \textbf{220},  109456 (2023)
+\bibitem{nguyen2019diot}
+Nguyen, T.D., Marchal, S., Miettinen, M., Fereidooni, H., Asokan, N., Sadeghi,
+  A.R.: {D{\"I}oT}: A federated self-learning anomaly detection system for
+  {IoT}. In: Proc. IEEE 39th Int. Conf. on Distributed Computing Systems
+  (ICDCS). pp. 756--767 (2019). \doi{10.1109/ICDCS.2019.00080}
 
 \bibitem{nvidia2019jetson}
-{NVIDIA Corporation}: Jetson nano: Developer kit user guide (2019)
+{NVIDIA Corporation}: Jetson orin nano super developer kit (2024),
+  \url{https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/}
 
 \bibitem{ruff2021unifying}
 Ruff, L., et~al.: A unifying review of deep and shallow anomaly detection.
   Proceedings of the IEEE  \textbf{109}(5),  756--795 (2021)
+
+\bibitem{sforzin2016rpids}
+Sforzin, A., G{\'o}mez~M{\'a}rmol, F., Conti, M., Bohli, J.M.: {RPiDS}:
+  Raspberry pi {IDS} --- a fruitful intrusion detection system for {IoT}. In:
+  Proc. Int. IEEE Conf. on Ubiquitous Intelligence \& Computing
+  (UIC/ATC/ScalCom). pp. 440--448 (2016).
+  \doi{10.1109/UIC-ATC-ScalCom-CBDCom-IoP-SmartWorld.2016.0080}
 
 \bibitem{sharafaldin2018toward}
 Sharafaldin, I., Lashkari, A.H., Ghorbani, A.A.: Toward generating a new
@@ -60,14 +94,6 @@ Sharafaldin, I., Lashkari, A.H., Ghorbani, A.A.: Toward generating a new
 \bibitem{shi2016edge}
 Shi, W., et~al.: Edge computing: Vision and challenges. In: IEEE Internet of
   Things Journal. vol.~3, pp. 637--646 (2016)
-
-\bibitem{shi2021edge}
-Shi, W., et~al.: Edge computing for internet of things: A survey. IEEE Internet
-  of Things Journal  \textbf{8}(16),  13123--13145 (2021)
-
-\bibitem{ten2019edge}
-Ten, C.H., et~al.: Performance evaluation of machine learning at the edge for
-  network intrusion detection. In: IEEE ICC. pp.~1--6 (2019)
 
 \bibitem{vinayakumar2019deep}
 Vinayakumar, R., Alazab, M., Soman, K.P., Poornachandran, P., Al-Nemrat, A.,

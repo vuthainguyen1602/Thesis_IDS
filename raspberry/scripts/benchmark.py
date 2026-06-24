@@ -13,6 +13,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import MODEL_PATH, FEATURES_PATH, SHAP_TOP_FEATURES
+from edge.power_monitor import PowerMonitor
 
 
 def get_cpu_temp():
@@ -99,6 +100,7 @@ def run_benchmark(n_samples=1000, batch_size=10):
     engine.total_attacks = 0
     engine.total_inference_time = 0
 
+    power = PowerMonitor().start()  # tegrastats power sampling (no-op off-Jetson)
     benchmark_start = time.time()
     n_batches = 0
 
@@ -114,7 +116,7 @@ def run_benchmark(n_samples=1000, batch_size=10):
 
         batch_start = time.perf_counter()
         spark_df = preprocessor.preprocess_batch(batch)
-        predictions, stats = engine.predict(spark_df)
+        _predictions, stats = engine.predict(spark_df)
         batch_time = (time.perf_counter() - batch_start) * 1000
 
         batch_latencies.append(batch_time)
@@ -128,6 +130,10 @@ def run_benchmark(n_samples=1000, batch_size=10):
             print(f"  Progress: {pct:.0f}% ({i + batch_size}/{n_samples})")
 
     total_time = time.time() - benchmark_start
+    power_stats = power.stop()
+    energy_per_inf_mj = None
+    if power_stats.get("energy_j") is not None and total_predictions > 0:
+        energy_per_inf_mj = round(power_stats["energy_j"] * 1000.0 / total_predictions, 3)
 
     throughput = total_predictions / total_time
     avg_batch_latency = statistics.mean(batch_latencies)
@@ -164,6 +170,14 @@ def run_benchmark(n_samples=1000, batch_size=10):
     print(f"  Avg Memory:           {avg_mem:.1f}%")
     if avg_temp:
         print(f"  Avg Temperature:      {avg_temp:.1f} C")
+    if power_stats.get("power_available"):
+        print(f"\n  --- Energy (tegrastats) ---")
+        print(f"  Avg power:            {power_stats['avg_power_w']:.2f} W")
+        print(f"  Peak power:           {power_stats['peak_power_w']:.2f} W")
+        print(f"  Energy (window):      {power_stats['energy_j']:.2f} J")
+        print(f"  Energy/inference:     {energy_per_inf_mj:.3f} mJ")
+    else:
+        print("\n  [INFO] Power: tegrastats unavailable (not a Jetson?) — energy skipped.")
 
     print(f"\n  --- Model Info ---")
     print(f"  Spark init time:      {spark_init_time:.1f}s")
@@ -171,7 +185,7 @@ def run_benchmark(n_samples=1000, batch_size=10):
     print(f"  Attack rate:          {total_attacks/total_predictions*100:.1f}%")
 
     results = {
-        "device": "Raspberry Pi 4B (4GB)",
+        "device": "NVIDIA Jetson Orin Nano Super (8GB)",
         "model": "PySpark RandomForest (200 trees, depth 15)",
         "features": f"SHAP Top-{len(feature_columns)}",
         "total_samples": total_predictions,
@@ -186,6 +200,11 @@ def run_benchmark(n_samples=1000, batch_size=10):
         "avg_cpu_percent": round(avg_cpu, 1),
         "avg_memory_percent": round(avg_mem, 1),
         "avg_temp_celsius": round(avg_temp, 1) if avg_temp else None,
+        "avg_power_w": power_stats.get("avg_power_w"),
+        "peak_power_w": power_stats.get("peak_power_w"),
+        "energy_j": power_stats.get("energy_j"),
+        "energy_per_inference_mj": energy_per_inf_mj,
+        "power_available": power_stats.get("power_available", False),
         "spark_init_time_s": round(spark_init_time, 1),
         "model_load_time_s": round(model_load_time, 1),
     }

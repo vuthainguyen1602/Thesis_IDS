@@ -1,7 +1,11 @@
-# ML driver dependencies on Jetson — full set (ml_05 SHAP, XGBoost)
-# For ml_01 start with requirements_ml_driver_min.txt only.
+# ML driver dependencies on Jetson — full set (ml_01–ml_09, XGBoost, SHAP)
+# run_ml_remote.sh auto-installs this file on first run.
+# NOTE: synapseml/LightGBM removed — x86_64-only native libs, not runnable on
+# the ARM64 Jetson Orin Nano Super target. Gradient boosting is covered by XGBoost / GBT.
 pandas>=2.0,<3
 matplotlib>=3.7,<4
 seaborn>=0.13,<1
+pyarrow>=14.0,<18
 xgboost>=2.0,<3
 shap>=0.44,<1
+scipy>=1.10,<2

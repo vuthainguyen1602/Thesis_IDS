@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import time
 import numpy as np
 import pandas as pd
 from pyspark.sql import functions as F
@@ -18,6 +17,7 @@ from shared_utils import (
     ensemble_voting,
     compute_metrics,
     get_classifiers,
+    add_class_weights,
     train_and_evaluate,
     summarize_metric_runs,
     permutation_pvalue,
@@ -47,7 +47,182 @@ METHODS = {
     "PCA k=40": {"type": "pca", "k": 40},
 }
 
-STAT_SEEDS = [42, 52, 62]
+# Statistical-validity design: variance comes from repeated DATA resampling
+# (paired train/test splits), not from classifier-init seeds on a fixed split.
+# The paired test is TWO-SIDED (uses |mean diff|), so the smallest reachable
+# p-value is 2/2^N. N=6 -> 2/64 = 0.031 is the minimum that can still cross 0.05;
+# a fixed single split / 3 seeds could never go below ~0.125. Override with IDS_STAT_SPLITS
+# (use >=6 to keep significance reachable; lower N is fine if you lead with the
+# CI + effect size instead of a hard p<0.05 claim). Classifier seed is fixed so
+# the only varying factor is the data split.
+STAT_N_SPLITS = int(os.environ.get("IDS_STAT_SPLITS", "6"))
+STAT_SPLIT_SEED_BASE = 1000
+STAT_CLF_SEED = 42
+
+_META_ENSEMBLE_MARKERS = ("Bagging", "Ensemble", "Voting")
+
+
+def _is_meta_ensemble(model_name: str) -> bool:
+    return any(marker in model_name for marker in _META_ENSEMBLE_MARKERS)
+
+
+def _pick_best_model(results: dict, single_classifiers_only: bool = False):
+    candidates = results
+    if single_classifiers_only:
+        filtered = {k: v for k, v in results.items() if not _is_meta_ensemble(k)}
+        if filtered:
+            candidates = filtered
+    best_model = max(candidates, key=lambda k: candidates[k].get("f1", 0))
+    return best_model, candidates[best_model].get("f1", 0)
+
+
+def _build_best_per_method(all_method_results: dict) -> dict:
+    best_per_method = {}
+    for method, results in all_method_results.items():
+        best_model, best_f1 = _pick_best_model(results, single_classifiers_only=True)
+        overall_best, overall_f1 = _pick_best_model(results, single_classifiers_only=False)
+        if _is_meta_ensemble(overall_best) and overall_best != best_model:
+            print(
+                f"  [INFO] {method}: ensemble '{overall_best}' (F1={overall_f1:.6f}) "
+                f"excluded from downstream tracks; using '{best_model}' (F1={best_f1:.6f})"
+            )
+        best_per_method[method] = {"best_model": best_model, "best_f1": best_f1}
+    return best_per_method
+
+
+_METRIC_KEYS = [
+    "accuracy", "precision", "recall", "f1", "auc_roc", "auc_pr",
+    "training_time", "prediction_time", "model_size_mb",
+]
+
+
+def _load_results_from_summary_csv(csv_path: str) -> dict:
+    summary_df = pd.read_csv(csv_path)
+    all_method_results = {}
+    for _, row in summary_df.iterrows():
+        method = row["Method"]
+        model = row["Model"]
+        all_method_results.setdefault(method, {})
+        all_method_results[method][model] = {
+            key: (row[key] if key in row and pd.notna(row[key]) else None)
+            for key in _METRIC_KEYS
+        }
+    return all_method_results
+
+
+def _trainable_model_name(method_name: str, model_name: str, all_method_results: dict) -> str:
+    if not _is_meta_ensemble(model_name):
+        return model_name
+    if method_name not in all_method_results:
+        raise ValueError(f"Unknown method '{method_name}' when resolving trainable model.")
+    resolved, f1 = _pick_best_model(all_method_results[method_name], single_classifiers_only=True)
+    print(
+        f"  [WARN] Cannot retrain ensemble '{model_name}'; "
+        f"using single classifier '{resolved}' (F1={f1:.6f})"
+    )
+    return resolved
+
+
+def _run_statistical_validity_track(
+    best_per_method, all_method_results, feature_cols, df, output_dir,
+):
+    print(f"\n\n{'=' * 70}")
+    print(f"  STEP 5: STATISTICAL VALIDITY TRACK ({STAT_N_SPLITS} REPEATED SPLITS, PAIRED)")
+    print(f"{'=' * 70}")
+    print("  Variance source: repeated stratified train/test resampling of the")
+    print("  full dataset. Both top methods are trained on the SAME split each")
+    print("  iteration (paired design); classifier seed is fixed.")
+    if STAT_N_SPLITS < 6:
+        print(f"  [WARN] STAT_N_SPLITS={STAT_N_SPLITS} is low — the two-sided paired "
+              f"permutation test can only reach p>=2/2^{STAT_N_SPLITS}="
+              f"{2.0/(2**STAT_N_SPLITS):.3f}. Use >=6 for p<0.05, or rely on the CI.")
+
+    sorted_methods = sorted(best_per_method.keys(), key=lambda m: best_per_method[m]["best_f1"], reverse=True)
+    top_methods = sorted_methods[:2]
+
+    # Resolve the (fixed, a-priori) model per method once.
+    method_model = {
+        m: _trainable_model_name(m, best_per_method[m]["best_model"], all_method_results)
+        for m in top_methods
+    }
+
+    # method -> list of F1 across splits (index-aligned => paired across methods).
+    method_split_f1 = {m: [] for m in top_methods}
+    method_split_metrics = {m: [] for m in top_methods}
+
+    df = df.cache()  # scanned once per split below; materialise the union once
+    df.count()
+
+    for i in range(STAT_N_SPLITS):
+        split_seed = STAT_SPLIT_SEED_BASE + i
+        # Fresh stratified-ish resample of the whole labelled dataset. Using the
+        # full df (not the fixed train_df) is what injects data-sampling
+        # variance; randomSplit on a large set preserves the class ratio well.
+        train_s, test_s = df.randomSplit([0.8, 0.2], seed=split_seed)
+        train_s = train_s.cache(); test_s = test_s.cache()
+        train_s.count(); test_s.count()
+        print(f"\n  ── Split {i + 1}/{STAT_N_SPLITS} (seed={split_seed}) ──")
+        for method_name in top_methods:
+            cfg = METHODS[method_name]
+            _, _, m = _train_single_named_model(
+                cfg, method_model[method_name], feature_cols, train_s, test_s, seed=STAT_CLF_SEED,
+            )
+            method_split_f1[method_name].append(float(m.get("f1", 0.0)))
+            method_split_metrics[method_name].append(m)
+        train_s.unpersist(); test_s.unpersist()
+
+    df.unpersist()
+    stats_records = []
+    for method_name in top_methods:
+        agg = summarize_metric_runs(
+            method_split_metrics[method_name], metric_keys=["f1", "auc_pr", "accuracy"]
+        )
+        stats_records.append({
+            "Method": method_name,
+            "Model": method_model[method_name],
+            "N_splits": STAT_N_SPLITS,
+            "f1_scores": ",".join(f"{v:.6f}" for v in method_split_f1[method_name]),
+            "f1_mean": agg.get("f1_mean"),
+            "f1_std": agg.get("f1_std"),
+            "f1_ci95_low": agg.get("f1_ci95_low"),
+            "f1_ci95_high": agg.get("f1_ci95_high"),
+        })
+
+    pvalue = 1.0
+    if len(top_methods) == 2:
+        # Paired permutation test on the per-split F1 differences.
+        pvalue = permutation_pvalue(
+            method_split_f1[top_methods[0]],
+            method_split_f1[top_methods[1]],
+            n_permutations=2000,
+            seed=42,
+        )
+        min_p = 2.0 / (2 ** STAT_N_SPLITS)  # two-sided sign-permutation floor
+        print(f"\n[INFO] Paired permutation p-value ({top_methods[0]} vs "
+              f"{top_methods[1]}): {pvalue:.6f}  (two-sided min achievable ≈ {min_p:.4f})")
+
+    stats_df = pd.DataFrame(stats_records)
+    stats_df["pvalue_vs_other_top_method"] = pvalue
+    stats_csv = os.path.join(output_dir, "statistical_validity_multiseed.csv")
+    stats_df.to_csv(stats_csv, index=False)
+    print(f"[INFO] Saved: {stats_csv}")
+
+    x = list(range(1, STAT_N_SPLITS + 1))
+    plt.figure(figsize=(10, 5))
+    for method_name in top_methods:
+        plt.plot(x, method_split_f1[method_name], marker="o", label=method_name)
+    plt.xlabel("Resample split #")
+    plt.ylabel("F1-Score")
+    plt.title(f"Per-Split F1 across {STAT_N_SPLITS} Resamples (Top Methods)")
+    plt.ylim(0, 1.0)
+    plt.grid(alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    stats_plot = os.path.join(output_dir, "multiseed_stability.png")
+    plt.savefig(stats_plot, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"[INFO] Saved: {stats_plot}")
+    return stats_plot, stats_csv
 
 
 def _method_slug(name: str) -> str:
@@ -99,6 +274,8 @@ def _train_single_named_model(method_cfg, model_name, feature_cols, train_df, te
     )
     if model_name not in clf_dict:
         raise ValueError(f"Model '{model_name}' not available for method.")
+    # Balance class weights uniformly (weightCol-aware models read this column).
+    train_df = add_class_weights(train_df, scale_pos_weight)
     pipeline = Pipeline(stages=[assembler, scaler] + extra_stages + [clf_dict[model_name]])
     model, preds, metrics = train_and_evaluate(
         pipeline, train_df, test_df, title=f"{model_name} | Seed={seed}"
@@ -107,6 +284,9 @@ def _train_single_named_model(method_cfg, model_name, feature_cols, train_df, te
 
 
 def _build_drift_windows(df):
+    # The union DataFrame arrives uncached; cache here since the drift
+    # simulation scans it several times.
+    df = df.cache()
     if "timestamp" in df.columns:
         ts_df = (
             df.withColumn("_ts_num", F.unix_timestamp("timestamp").cast("double"))
@@ -119,6 +299,13 @@ def _build_drift_windows(df):
             test_late = ts_df.filter(F.col("_ts_num") > q80).drop("_ts_num")
             return train_early, test_mid, test_late, "timestamp"
 
+    print("\n" + "!" * 70)
+    print("  [WARN] No usable 'timestamp' column found in the dataset.")
+    print("  Drift windows fall back to a RANDOM split, which contains NO")
+    print("  temporal/concept drift. Results from this track are NOT a valid")
+    print("  concept-drift evaluation and must NOT be reported as such.")
+    print("  Provide timestamped data to enable a real temporal drift test.")
+    print("!" * 70 + "\n")
     train_early, test_mid, test_late = df.randomSplit([0.6, 0.2, 0.2], seed=2026)
     return train_early, test_mid, test_late, "random_split_fallback"
 
@@ -127,6 +314,43 @@ if __name__ == "__main__":
 
     spark = create_spark_session("IDS_Exp7_Comparison")
     df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
+
+    start_step = int(os.environ.get("IDS_EXP7_START_STEP") or "1")
+
+    if start_step >= 5:
+        summary_csv = os.path.join(OUTPUT_DIR, "cross_method_summary.csv")
+        if not os.path.exists(summary_csv):
+            raise FileNotFoundError(
+                f"IDS_EXP7_START_STEP=5 requires prior Step 1–2 output: {summary_csv}\n"
+                "Run full ml_07 first, or lower IDS_EXP7_START_STEP."
+            )
+        print("\n")
+        print("=" * 70)
+        print("  EXPERIMENT 7: RESUME FROM STEP 5 (MULTI-SEED STATS)")
+        print("=" * 70)
+        print(f"[INFO] Loaded: {summary_csv}")
+        all_method_results = _load_results_from_summary_csv(summary_csv)
+        best_per_method = _build_best_per_method(all_method_results)
+        for method, info in best_per_method.items():
+            print(f"  {method:<25} -> {info['best_model']} (F1={info['best_f1']:.6f})")
+
+        stats_plot, _ = _run_statistical_validity_track(
+            best_per_method, all_method_results, feature_cols, df, OUTPUT_DIR,
+        )
+        export_multi_section_report(
+            [{
+                "section_title": "Statistical Validity Track",
+                "results": {},
+                "chart_paths": [stats_plot],
+            }],
+            title="IDS Thesis - Experiment 7: Statistical Validity (Resume)",
+            output_path=os.path.join(OUTPUT_DIR, "report_step5.html"),
+        )
+        print(f"\n[INFO] Step 5 completed!")
+        print(f"[INFO] Results exported to: {OUTPUT_DIR}")
+        spark.stop()
+        print("[INFO] Spark Session closed.")
+        raise SystemExit(0)
 
     print("\n")
     print("=" * 70)
@@ -287,11 +511,7 @@ if __name__ == "__main__":
     print(f"[INFO] Saved: {cross_f1_path}")
 
 
-    best_per_method = {}
-    for method, results in all_method_results.items():
-        best_model = max(results, key=lambda k: results[k].get("f1", 0))
-        best_f1 = results[best_model]["f1"]
-        best_per_method[method] = {"best_model": best_model, "best_f1": best_f1}
+    best_per_method = _build_best_per_method(all_method_results)
 
     fig, ax = plt.subplots(figsize=(12, 6))
     methods_list = list(best_per_method.keys())
@@ -329,6 +549,48 @@ if __name__ == "__main__":
     csv_path = os.path.join(OUTPUT_DIR, "cross_method_summary.csv")
     summary_df.to_csv(csv_path, index=False)
     print(f"[INFO] Saved: {csv_path}")
+
+    # ── Consolidated train vs. predict time for the BEST model per method ─────
+    # Single cross-method timing figure for the papers (FAIR fig:timing), in
+    # addition to the per-method train_time.png charts above. Times are measured
+    # on the Spark executors, i.e. on the Jetson cluster nodes themselves.
+    try:
+        import numpy as _np
+        # Exclude meta-ensemble rows (their training_time is recorded as 0.0 and
+        # the downstream tracks use single classifiers); pick the best single
+        # classifier per method so the timing figure matches the reported model.
+        _single_df = summary_df[~summary_df["Model"].apply(_is_meta_ensemble)]
+        if _single_df.empty:
+            _single_df = summary_df
+        best_idx = _single_df.groupby("Method")["f1"].idxmax()
+        best = _single_df.loc[best_idx].copy()
+        _order = ["Baseline", "RF Importance", "SHAP", "PCA"]
+        best["__o"] = best["Method"].apply(
+            lambda m: _order.index(m) if m in _order else 99)
+        best = best.sort_values(["__o", "Method"])
+        _labels = [f"{m}\n({mod})" for m, mod in zip(best["Method"], best["Model"])]
+        _x = _np.arange(len(best))
+        _w = 0.38
+        figt, axt = plt.subplots(figsize=(9, 5))
+        _b1 = axt.bar(_x - _w / 2, best["training_time"].astype(float), _w,
+                      label="Training time (s)", color="#1f77b4")
+        _b2 = axt.bar(_x + _w / 2, best["prediction_time"].astype(float), _w,
+                      label="Prediction time (s)", color="#ff7f0e")
+        axt.set_xticks(_x)
+        axt.set_xticklabels(_labels, fontsize=8)
+        axt.set_ylabel("Time (s)")
+        axt.set_title("Best-model training vs. prediction time per method "
+                      "(Jetson Spark cluster)")
+        axt.legend()
+        axt.bar_label(_b1, fmt="%.1f", fontsize=8, padding=2)
+        axt.bar_label(_b2, fmt="%.2f", fontsize=8, padding=2)
+        figt.tight_layout()
+        _tp = os.path.join(OUTPUT_DIR, "train_predict_time.png")
+        plt.savefig(_tp, dpi=150, bbox_inches="tight")
+        plt.close()
+        print(f"[INFO] Saved: {_tp}")
+    except Exception as _e:
+        print(f"[WARN] train/predict-time plot skipped: {_e}")
 
 
     fig, ax = plt.subplots(figsize=(16, 6))
@@ -386,24 +648,42 @@ if __name__ == "__main__":
     print(f"{'=' * 70}")
 
     robust_data_dir = os.environ.get("IDS_ROBUST_DATA_DIR")
+    robust_is_external = False
     if robust_data_dir:
         robust_test_path = os.path.join(robust_data_dir, "test_data.parquet")
         if os.path.exists(robust_test_path):
             robust_test_df = spark.read.parquet(robust_test_path)
+            robust_is_external = True
             print(f"[INFO] Loaded external robustness test set: {robust_test_path}")
         else:
-            print(f"[WARN] IDS_ROBUST_DATA_DIR set, but test_data.parquet not found. Using fallback split.")
-            _, robust_test_df = df.randomSplit([0.8, 0.2], seed=2026)
+            print(f"[WARN] IDS_ROBUST_DATA_DIR set, but test_data.parquet not found. Falling back.")
+            robust_test_df = None
     else:
-        print("[INFO] IDS_ROBUST_DATA_DIR not set. Using in-domain alternative split for robustness.")
-        _, robust_test_df = df.randomSplit([0.8, 0.2], seed=2026)
+        robust_test_df = None
+
+    if robust_test_df is None:
+        # IMPORTANT: must NOT resplit `df` (= train ∪ test) here — that would put
+        # rows the models were trained on into the "holdout", leaking and
+        # inflating robustness F1. Draw a subsample of test_df instead, which is
+        # disjoint from train by construction. This is only an in-domain proxy
+        # (same distribution), NOT a true distribution-shift robustness test.
+        robust_test_df = test_df.sample(withReplacement=False, fraction=0.7, seed=2026)
+        print("[WARN] No external robustness set (IDS_ROBUST_DATA_DIR). Using a "
+              "leakage-free in-domain subsample of the test set as a PROXY — "
+              "this is not a true robustness/distribution-shift evaluation.")
+
+    robust_test_df = robust_test_df.cache()
+    print(f"  Robustness set: {robust_test_df.count():,} rows "
+          f"({'external' if robust_is_external else 'in-domain proxy'})")
 
     robustness_rows = []
     for method_name, info in best_per_method.items():
         best_model_name = info["best_model"]
         best_model = all_method_models[method_name][best_model_name]
-        robust_preds = best_model.transform(robust_test_df)
+        robust_preds = best_model.transform(robust_test_df).cache()
+        robust_preds.count()
         robust_metrics = compute_metrics(robust_preds)
+        robust_preds.unpersist()
         robustness_rows.append({
             "Method": method_name,
             "Best_Model": best_model_name,
@@ -411,6 +691,7 @@ if __name__ == "__main__":
             "robust_auc_pr": robust_metrics.get("auc_pr"),
             "robust_auc_roc": robust_metrics.get("auc_roc"),
         })
+    robust_test_df.unpersist()
     robustness_df = pd.DataFrame(robustness_rows).sort_values("robust_f1", ascending=False)
     robustness_csv = os.path.join(OUTPUT_DIR, "robustness_holdout_summary.csv")
     robustness_df.to_csv(robustness_csv, index=False)
@@ -433,17 +714,26 @@ if __name__ == "__main__":
 
     drift_train, drift_mid, drift_late, drift_mode = _build_drift_windows(df)
     print(f"[INFO] Drift split mode: {drift_mode}")
+    drift_is_valid = drift_mode == "timestamp"
+    if not drift_is_valid:
+        print("[WARN] Drift track ran in random-split fallback — NOT a valid "
+              "concept-drift result (flagged as drift_valid=False in the CSV).")
     print(f"  Train(Early): {drift_train.count():,} | Mid: {drift_mid.count():,} | Late: {drift_late.count():,}")
 
     drift_method = overall_best_method
-    drift_model_name = overall_info["best_model"]
+    drift_model_name = _trainable_model_name(
+        drift_method, overall_info["best_model"], all_method_results,
+    )
     drift_cfg = METHODS[drift_method]
 
     model_early, pred_mid, metrics_mid = _train_single_named_model(
         drift_cfg, drift_model_name, feature_cols, drift_train, drift_mid, seed=42
     )
-    pred_late_no_update = model_early.transform(drift_late)
+    # Cache once so compute_metrics' three passes don't re-run inference 3x.
+    pred_late_no_update = model_early.transform(drift_late).cache()
+    pred_late_no_update.count()
     metrics_late_no_update = compute_metrics(pred_late_no_update)
+    pred_late_no_update.unpersist()
 
     drift_retrain_df = drift_train.unionByName(drift_mid)
     _, pred_late_retrained, metrics_late_retrained = _train_single_named_model(
@@ -456,6 +746,8 @@ if __name__ == "__main__":
         {"Scenario": "Early+Mid->Late (Retrained)", "f1": metrics_late_retrained.get("f1"), "auc_pr": metrics_late_retrained.get("auc_pr")},
     ]
     drift_df = pd.DataFrame(drift_rows)
+    drift_df["drift_mode"] = drift_mode
+    drift_df["drift_valid"] = drift_is_valid
     drift_csv = os.path.join(OUTPUT_DIR, "drift_simulation_summary.csv")
     drift_df.to_csv(drift_csv, index=False)
     print(f"[INFO] Saved: {drift_csv}")
@@ -472,68 +764,9 @@ if __name__ == "__main__":
     plt.close()
     print(f"[INFO] Saved: {drift_plot}")
 
-    print(f"\n\n{'=' * 70}")
-    print("  STEP 5: STATISTICAL VALIDITY TRACK (MULTI-SEED)")
-    print(f"{'=' * 70}")
-
-    sorted_methods = sorted(best_per_method.keys(), key=lambda m: best_per_method[m]["best_f1"], reverse=True)
-    top_methods = sorted_methods[:2]
-    stats_records = []
-    method_seed_scores = {}
-
-    for method_name in top_methods:
-        model_name = best_per_method[method_name]["best_model"]
-        cfg = METHODS[method_name]
-        seed_metrics = []
-        seed_f1_scores = []
-        for s in STAT_SEEDS:
-            _, _, m = _train_single_named_model(cfg, model_name, feature_cols, train_df, test_df, seed=s)
-            seed_metrics.append(m)
-            seed_f1_scores.append(float(m.get("f1", 0.0)))
-        agg = summarize_metric_runs(seed_metrics, metric_keys=["f1", "auc_pr", "accuracy"])
-        method_seed_scores[method_name] = seed_f1_scores
-        stats_records.append({
-            "Method": method_name,
-            "Model": model_name,
-            "Seeds": ",".join([str(s) for s in STAT_SEEDS]),
-            "f1_scores": ",".join([f"{v:.6f}" for v in seed_f1_scores]),
-            "f1_mean": agg.get("f1_mean"),
-            "f1_std": agg.get("f1_std"),
-            "f1_ci95_low": agg.get("f1_ci95_low"),
-            "f1_ci95_high": agg.get("f1_ci95_high"),
-        })
-
-    pvalue = 1.0
-    if len(top_methods) == 2:
-        pvalue = permutation_pvalue(
-            method_seed_scores[top_methods[0]],
-            method_seed_scores[top_methods[1]],
-            n_permutations=2000,
-            seed=42,
-        )
-        print(f"[INFO] Permutation p-value ({top_methods[0]} vs {top_methods[1]}): {pvalue:.6f}")
-
-    stats_df = pd.DataFrame(stats_records)
-    stats_df["pvalue_vs_other_top_method"] = pvalue
-    stats_csv = os.path.join(OUTPUT_DIR, "statistical_validity_multiseed.csv")
-    stats_df.to_csv(stats_csv, index=False)
-    print(f"[INFO] Saved: {stats_csv}")
-
-    plt.figure(figsize=(10, 5))
-    for method_name in top_methods:
-        plt.plot(STAT_SEEDS, method_seed_scores[method_name], marker="o", label=method_name)
-    plt.xlabel("Seed")
-    plt.ylabel("F1-Score")
-    plt.title("Multi-Seed Stability (Top Methods)")
-    plt.ylim(0, 1.0)
-    plt.grid(alpha=0.3)
-    plt.legend()
-    plt.tight_layout()
-    stats_plot = os.path.join(OUTPUT_DIR, "multiseed_stability.png")
-    plt.savefig(stats_plot, dpi=150, bbox_inches="tight")
-    plt.close()
-    print(f"[INFO] Saved: {stats_plot}")
-
+    stats_plot, _ = _run_statistical_validity_track(
+        best_per_method, all_method_results, feature_cols, df, OUTPUT_DIR,
+    )
 
     report_sections.append({
         "section_title": "Cross-Method Comparison",

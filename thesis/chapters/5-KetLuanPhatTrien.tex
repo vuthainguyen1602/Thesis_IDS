@@ -1,0 +1,25 @@
+Trong chương này, luận văn sẽ trình bày những kết quả mà luận văn đã đạt được so với mục tiêu được đặt ra từ ban đầu khi bắt đầu thực hiện. Bên cạnh đó, luận văn cũng trình bày những hạn chế và đưa ra hướng phát triển trong tương lai của nghiên cứu.
+
+\section{Những đóng góp chính của luận văn}
+Sau khi thực hiện luận văn với đề tài \textit{``Phát hiện xâm nhập (\ac{ids}) dựa trên Apache Spark cho bảo mật mạng \ac{iot}''}, luận văn đã đạt được một số kết quả chính tương ứng với các mục tiêu đề ra ban đầu:
+\begin{itemize}
+    \item \textbf{Xây dựng nền tảng xử lý dữ liệu lớn}: Đề xuất và triển khai thành công hệ thống \ac{ids} trên nền tảng Apache Spark. Giải pháp này tận dụng khả năng tính toán song song để xử lý các luồng dữ liệu mạng quy mô lớn từ môi trường \ac{iot}, đảm bảo tính mở rộng và hiệu năng cao trong việc giám sát bảo mật.
+    \item \textbf{Cải thiện hiệu năng phát hiện với mô hình Ensemble}: Phát triển mô hình Hybrid Bagging Ensemble kết hợp đa thuật toán (Random Forest, \ac{xgb}, MLP). Dưới quy trình đánh giá loại trừ rò rỉ dữ liệu, mô hình đạt F1-score \ph{} (điền sau khi chạy lại) và được so sánh với các mô hình đơn lẻ kèm kiểm định ý nghĩa thống kê để khẳng định khác biệt (nếu có) là đáng kể.
+    \item \textbf{Đánh giá trung thực, loại trừ rò rỉ dữ liệu}: Nhận diện và xử lý các nguồn rò rỉ thường gặp trên CIC-\ac{ids}2017 (đặc trưng \texttt{destination\_port} rò rỉ nhãn và trùng lặp luồng ở mức đặc trưng), đồng thời định lượng mức thổi phồng hiệu năng do rò rỉ — giúp kết quả phản ánh đúng năng lực thực của mô hình.
+    \item \textbf{Tối ưu hóa và Giải thích mô hình}: Ứng dụng kỹ thuật \ac{shap} để lựa chọn các đặc trưng quan trọng nhất, giúp giảm số lượng đặc trưng (khoảng 60\%) trong khi giữ phần lớn hiệu năng phân loại. Đồng thời, \ac{shap} cung cấp khả năng giải thích chi tiết về quyết định của mô hình, tăng cường độ tin cậy và khả năng ứng dụng thực tế.
+\end{itemize}
+
+\section{Hạn chế của đề tài}
+Mặc dù đã đạt được các kết quả nêu trên, luận văn vẫn còn một số hạn chế cần được khắc phục trong các giai đoạn tiếp theo:
+\begin{itemize}
+    \item \textbf{Phạm vi phân loại}: Hệ thống triển khai chính dựa trên bài toán phân loại nhị phân (Tấn công so với Bình thường); luận văn đã bổ sung đánh giá đa lớp theo từng loại tấn công (Mục~\ref{sec:multiclass}) để phân tích điểm yếu ở các lớp hiếm, song việc xây dựng một bộ phân loại đa lớp hoàn chỉnh cho triển khai realtime vẫn là hướng phát triển tiếp theo.
+    \item \textbf{Môi trường triển khai}: Hệ thống được huấn luyện phân tán trên cụm Spark gồm máy chủ Mac và hai nút Jetson Orin Nano Super Developer Kit (8\,GB), và chính hai thiết bị này cũng được dùng để triển khai, đo hiệu năng thực tế ở pha suy luận; tuy nhiên việc kiểm chứng trên hạ tầng mạng \ac{iot} thực tế với hàng nghìn thiết bị đầu cuối và lưu lượng trực tuyến vẫn là thách thức cần thực hiện.
+    \item \textbf{Phạm vi bộ dữ liệu}: Luận văn đã thiết lập quy trình đánh giá tổng quát hoá liên bộ dữ liệu (huấn luyện trên một bộ, kiểm tra trên bộ khác --- Mục~\ref{sec:cross-dataset}) trên cặp CIC-\ac{ids}2017 và CSE-CIC-IDS2018; việc mở rộng sang nhiều bộ mới hơn (CIC-IoT, RoEduNet) để củng cố kết luận về khái quát hoá vẫn là hướng tiếp theo.
+\end{itemize}
+
+\section{Hướng phát triển trong tương lai}
+Dựa trên những kết quả đã đạt được và nhận diện các hạn chế hiện có, luận văn đề xuất một số hướng phát triển trong tương lai như sau:
+\begin{itemize}
+    \item \textbf{Nâng cấp khả năng nhận diện đa lớp}: Mở rộng mô hình để có thể phân loại chi tiết các loại tấn công phổ biến trong mạng \ac{iot} như DoS/DDoS, Botnet (Mirai), Infiltration và Heartbleed.
+    \item \textbf{Tích hợp học máy trực tuyến (Online Learning)}: Nghiên cứu các giải pháp cập nhật tham số mô hình theo thời gian thực (real-time stream processing) mà không cần huấn luyện lại toàn bộ dữ liệu, giúp hệ thống thích ứng nhanh với các biến thể tấn công mới.
+\end{itemize}

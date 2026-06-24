@@ -33,7 +33,9 @@ SHAP_TOP_FEATURES = [
     "bwd_iat_total", "bwd_iat_mean", "fwd_psh_flags", "bwd_packets_s",
     "min_packet_length", "max_packet_length", "packet_length_mean",
     "packet_length_std", "packet_length_variance", "average_packet_size",
-    "destination_port",
+    # destination_port removed — label-leakage feature now excluded from
+    # training (shared_utils._leaky_port_cols). Regenerate from ml_06 SHAP
+    # ranking after re-running on the leak-free feature set.
 ]
 
 MODELS_TO_SAVE = ["Decision Tree", "GBT", "Random Forest"]
@@ -45,7 +47,7 @@ def main():
     print("=" * 60 + "\n")
 
     spark = create_spark_session("IDS_SaveAllModels")
-    df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
+    _df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
     selected_features = [f for f in SHAP_TOP_FEATURES if f in feature_cols]
     print(f"  Using {len(selected_features)} SHAP features\n")
@@ -71,6 +73,9 @@ def main():
         label_col="label_binary",
         num_features=len(selected_features),
     )
+
+    from shared_utils import add_class_weights
+    train_df = add_class_weights(train_df)  # weightCol-aware models need this
 
     results = []
 
