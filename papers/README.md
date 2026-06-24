@@ -1,12 +1,11 @@
-# Papers — FAIR 2026, SOICT 2026 & Journal 2026
+# Papers — FAIR 2026 & SOICT 2026
 
-This folder holds the **manuscripts, figures, and results** for two conference papers and one journal paper. The execution code lives at the repo root (`shared_utils.py`, `idslib/`, `ml_*.py`, `jetson/`).
+This folder holds the **manuscripts, figures, and results** for two conference papers. The execution code lives at the repo root (`shared_utils.py`, `idslib/`, `ml_*.py`, `jetson/`).
 
 | Folder | Venue | Submission deadline | Focus |
 |--------|-------|---------------------|-------|
 | [fair2026/](fair2026/) | [FAIR'2026](https://fair.conf.vn/) | 2026-08-15 | ML, feature selection, SHAP, drift |
 | [soict2026/](soict2026/) | [SOICT 2026](https://soict.org/) | 2026-09-16 | Distributed edge, 2× Jetson Orin Nano Super, Kafka |
-| [journal2026/](journal2026/) | Journal | — | Extended version (ML + edge) |
 
 Combined thesis: [../thesis/](../thesis/)
 

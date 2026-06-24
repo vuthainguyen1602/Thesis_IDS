@@ -64,8 +64,7 @@ Thesis_IDS/
 ├── thesis/                          # Deliverable #1 — thesis (main.tex + chapters/ + img/)
 ├── papers/
 │   ├── fair2026/                    # Deliverable #2 — FAIR'2026 paper
-│   ├── soict2026/                   # Deliverable #3 — SOICT 2026 paper
-│   └── journal2026/                 # Deliverable #4 — journal (extended)
+│   └── soict2026/                   # Deliverable #3 — SOICT 2026 paper
 └── ...
 ```
 
@@ -76,7 +75,6 @@ Thesis_IDS/
 | `thesis/` | Full thesis | `./cluster/reproduce_cluster.sh thesis` |
 | `papers/fair2026/` | ML paper / FAIR'2026 | `./papers/fair2026/reproduce.sh` |
 | `papers/soict2026/` | Edge paper / SOICT 2026 | `./papers/soict2026/reproduce.sh` |
-| `papers/journal2026/` | Journal (extended) | reuses FAIR + SOICT results |
 
 Shared execution code lives at the repo root (`ml_*.py`, `jetson/`). Each folder above holds manuscript, figures, tables, and result-collection scripts.
 
