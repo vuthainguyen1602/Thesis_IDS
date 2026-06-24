@@ -8,9 +8,7 @@ import pandas as pd
 from reporting import export_multi_section_report
 
 from shared_utils import (
-    HAS_LIGHTGBM,
     HAS_XGBOOST,
-    LightGBMClassifier,
     MultilayerPerceptronClassifier,
     SparkXGBClassifier,
     create_spark_session,
@@ -89,14 +87,18 @@ def run_grid_search_tuning(
     best_params = _get_best_params(cv_model, param_grid)
     print(f"[BEST] {display_name}: {_format_best_params(best_params, best_log_keys)}")
 
+    # transform() is lazy; cache + force one action so pred_time measures real
+    # inference and compute_metrics' three passes don't re-run inference 3x.
+    predictions = cv_model.bestModel.transform(test_df).cache()
     start_pred = time.time()
-    predictions = cv_model.bestModel.transform(test_df)
+    predictions.count()
     pred_time = time.time() - start_pred
 
     metrics = compute_metrics(predictions)
     metrics["training_time"] = train_time
     metrics["prediction_time"] = pred_time
     metrics["model_size_mb"] = get_model_size(cv_model.bestModel)
+    predictions.unpersist()
 
     result_key = f"{display_name} (Tuned)"
     return result_key, metrics, cv_model.bestModel, best_params
@@ -128,7 +130,7 @@ def _tuning_jobs(features_col, num_features, fast_mode, run_gbt, run_extended):
             (rf.maxDepth, [15, 20]),
             (rf.minInstancesPerNode, lambda fast: [1] if fast else [1, 5]),
         ],
-        ["numTrees", "maxDepth"],
+        ["numTrees", "maxDepth", "minInstancesPerNode"],
         store_key="rf",
     )
 
@@ -179,27 +181,16 @@ def _tuning_jobs(features_col, num_features, fast_mode, run_gbt, run_extended):
             store_key="xgb",
         )
 
-    if run_extended and HAS_LIGHTGBM:
-        lgbm = LightGBMClassifier(featuresCol=features_col, labelCol="label_binary", objective="binary")
-        add(
-            "2f", True, None, 2, "LightGBM", "LightGBM", lgbm,
-            [
-                (lgbm.numIterations, [100, 300]),
-                (lgbm.numLeaves, [31, 63]),
-                (lgbm.learningRate, [0.05, 0.1]),
-            ],
-            ["numLeaves", "learningRate"],
-            store_key="lgbm",
-        )
+    # LightGBM tuning excluded (not deployable on Jetson Orin Nano Super ARM64).
 
     if run_extended:
-        layers_opts = [[num_features, 64, 32, 2], [num_features, 128, 64, 32, 2]]
+        layers_opts = [[num_features, 64, 32, 2], [num_features, 32, 16, 2]]
         mlp = MultilayerPerceptronClassifier(featuresCol=features_col, labelCol="label_binary", seed=42)
         add(
             "2g", True, None, 4, "MLP", "MLP", mlp,
             [
                 (mlp.layers, layers_opts),
-                (mlp.maxIter, [100, 200]),
+                (mlp.maxIter, [50, 100]),
                 (mlp.stepSize, [0.01, 0.05]),
             ],
             ["layers", "maxIter"],
@@ -215,6 +206,7 @@ def _build_hybrid_bagging_pipelines(base_stages, features_col, tuned_params, run
         labelCol="label_binary",
         numTrees=int(rf_params.get("numTrees", 200)),
         maxDepth=int(rf_params.get("maxDepth", 15)),
+        minInstancesPerNode=int(rf_params.get("minInstancesPerNode", 1)),
         seed=42,
     )
     pipeline_dist = [(Pipeline(stages=base_stages + [rf_tuned]), 3)]
@@ -230,16 +222,7 @@ def _build_hybrid_bagging_pipelines(base_stages, features_col, tuned_params, run
         )
         pipeline_dist.append((Pipeline(stages=base_stages + [xgb_tuned]), 2))
 
-    if run_extended and HAS_LIGHTGBM and tuned_params.get("lgbm"):
-        lgbm_params = tuned_params["lgbm"]
-        lgbm_tuned = LightGBMClassifier(
-            featuresCol=features_col,
-            labelCol="label_binary",
-            numLeaves=int(lgbm_params.get("numLeaves", 63)),
-            learningRate=float(lgbm_params.get("learningRate", 0.05)),
-            objective="binary",
-        )
-        pipeline_dist.append((Pipeline(stages=base_stages + [lgbm_tuned]), 2))
+    # LightGBM tuned-ensemble branch excluded (not deployable on Jetson Orin Nano Super).
 
     return pipeline_dist
 

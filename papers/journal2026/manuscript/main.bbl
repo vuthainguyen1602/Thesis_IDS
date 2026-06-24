@@ -1,0 +1,112 @@
+\begin{thebibliography}{10}
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\urlprefix}{URL }
+\providecommand{\doi}[1]{https://doi.org/#1}
+
+\bibitem{anderson2017spark}
+Anderson, M., et~al.: Input selection for fast feature engineering and machine
+  learning on large datasets with apache spark. Proc. VLDB  (2017)
+
+\bibitem{arp2022dos}
+Arp, D., Quiring, E., Pendlebury, F., Warnecke, A., Pierazzi, F., Wressnegger,
+  C., Cavallaro, L., Rieck, K.: Dos and don'ts of machine learning in computer
+  security. In: Proc. 31st USENIX Security Symposium. pp. 3971--3988 (2022)
+
+\bibitem{breiman2001random}
+Breiman, L.: Random forests. Machine Learning  \textbf{45}(1),  5--32 (2001)
+
+\bibitem{chandola2009anomaly}
+Chandola, V., Banerjee, A., Kumar, V.: Anomaly detection: A survey. ACM
+  Computing Surveys  \textbf{41}(3),  1--58 (2009)
+
+\bibitem{chen2016xgboost}
+Chen, T., Guestrin, C.: {XGBoost}: A scalable tree boosting system. In: Proc.
+  22nd ACM SIGKDD. pp. 785--794 (2016)
+
+\bibitem{demsar2006statistical}
+Dem{\v{s}}ar, J.: Statistical comparisons of classifiers over multiple data
+  sets. Journal of Machine Learning Research  \textbf{7},  1--30 (2006)
+
+\bibitem{engelen2021troubleshooting}
+Engelen, G., Rimmer, V., Joosen, W.: Troubleshooting an intrusion detection
+  dataset: the cicids2017 case study. In: 2021 IEEE Security and Privacy
+  Workshops (SPW). pp. 7--12. IEEE (2021)
+
+\bibitem{ferrag2020deep}
+Ferrag, M.A., Maglaras, L., Moschoyiannis, S., Janicke, H.: Deep learning for
+  cyber security intrusion detection: Approaches, datasets, and comparative
+  study. Journal of Information Security and Applications  \textbf{50},  102419
+  (2020)
+
+\bibitem{guyon2003introduction}
+Guyon, I., Elisseeff, A.: An introduction to variable and feature selection.
+  Journal of Machine Learning Research  \textbf{3},  1157--1182 (2003)
+
+\bibitem{jolliffe2002pca}
+Jolliffe, I.T.: Principal Component Analysis. Springer, 2nd edn. (2002)
+
+\bibitem{kapoor2023leakage}
+Kapoor, S., Narayanan, A.: Leakage and the reproducibility crisis in
+  machine-learning-based science. Patterns  \textbf{4}(9),  100804 (2023)
+
+\bibitem{khraisat2019survey}
+Khraisat, A., Gondal, I., Vamplew, P., Kamruzzaman, J.: Survey of intrusion
+  detection systems: techniques, datasets and challenges. Cybersecurity
+  \textbf{2}(1),  1--22 (2019)
+
+\bibitem{kreps2011kafka}
+Kreps, J., Narkhede, N., Rao, J., et~al.: Kafka: A distributed messaging system
+  for log processing. In: Proc. NetDB. vol.~11, pp.~1--7 (2011)
+
+\bibitem{lopez2020autoencoder}
+L{\'o}pez-Mart{\'i}n, M., Carro, B., S{\'a}nchez-Esguevillas, A.: Network
+  intrusion detection with a novel hierarchy of distances between embeddings of
+  hash ip addresses. Knowledge-Based Systems  \textbf{206},  106384 (2020)
+
+\bibitem{lundberg2017unified}
+Lundberg, S.M., Lee, S.I.: A unified approach to interpreting model
+  predictions. Advances in Neural Information Processing Systems  \textbf{30}
+  (2017)
+
+\bibitem{nadeau2003inference}
+Nadeau, C., Bengio, Y.: Inference for the generalization error. Machine
+  Learning  \textbf{52}(3),  239--281 (2003)
+
+\bibitem{nvidia2019jetson}
+{NVIDIA}: Jetson orin nano super developer kit (2024),
+  \url{https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/}
+
+\bibitem{pendlebury2019tesseract}
+Pendlebury, F., Pierazzi, F., Jordaney, R., Kinder, J., Cavallaro, L.:
+  {TESSERACT}: Eliminating experimental bias in malware classification across
+  space and time. In: Proc. 28th USENIX Security Symposium. pp. 729--746 (2019)
+
+\bibitem{ring2019survey}
+Ring, M., Wunderlich, S., Gr{\"u}dl, D., Landes, D., Hotho, A.: A survey of
+  network-based intrusion detection data sets. Computers \& Security
+  \textbf{86},  147--167 (2019)
+
+\bibitem{sarhan2022explainable}
+Sarhan, M., Layeghy, S., Portmann, M.: Explainable ai for intrusion detection
+  systems. arXiv preprint arXiv:2207.06343  (2022)
+
+\bibitem{sharafaldin2018toward}
+Sharafaldin, I., Lashkari, A.H., Ghorbani, A.A.: Toward generating a new
+  intrusion detection dataset and intrusion traffic characterization. In: Proc.
+  4th Int. Conf. on Information Systems Security and Privacy (ICISSP). pp.
+  108--116 (2018)
+
+\bibitem{shi2016edge}
+Shi, W., Cao, J., Zhang, Q., Li, Y., Xu, L.: Edge computing: Vision and
+  challenges. IEEE Internet of Things Journal  \textbf{3}(5),  637--646 (2016)
+
+\bibitem{vinayakumar2019deep}
+Vinayakumar, R., Alazab, M., Soman, K., Poornachandran, P., Al-Nemrat, A.,
+  Venkatraman, S.: Deep learning approach for intelligent intrusion detection
+  system. IEEE Access  \textbf{7},  41525--41550 (2019)
+
+\bibitem{zaharia2010spark}
+Zaharia, M., Chowdhury, M., Franklin, M.J., Shenker, S., Stoica, I.: Spark:
+  Cluster computing with working sets. HotCloud (2010)
+
+\end{thebibliography}

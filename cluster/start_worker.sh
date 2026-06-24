@@ -28,7 +28,7 @@ export_spark_home
 MASTER_URL="${SPARK_MASTER:?Set SPARK_MASTER in cluster/spark_cluster.env}"
 NODE_ID="${EDGE_NODE_ID:-$(hostname)}"
 CORES="${SPARK_WORKER_CORES:-4}"
-MEMORY="${SPARK_WORKER_MEMORY:-4g}"
+MEMORY="${SPARK_WORKER_MEMORY:-5g}"
 
 echo "[INFO] Spark worker ($NODE_ID) -> $MASTER_URL (${CORES} cores, ${MEMORY})"
 echo "[INFO] SPARK_HOME=$SPARK_HOME"

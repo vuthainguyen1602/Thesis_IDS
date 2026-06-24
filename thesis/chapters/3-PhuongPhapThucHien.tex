@@ -1,0 +1,488 @@
+
+
+Trong chương này, luận văn sẽ trình bày phương pháp đề xuất để xây dựng mô hình phát hiện bất thường dựa trên Apache Spark cho bảo mật mạng \ac{iot}. Quá trình thực hiện bao gồm 6 bước chính, được thể hiện qua Hình~\textbf{\ref{fig:trainning_model}}: (1) Thu thập dữ liệu và tiền xử lý; (2) Xây dựng đặc trưng và lựa chọn đặc trưng; (3) Huấn luyện mô hình; (4) Đánh giá mô hình; (5) Tối ưu siêu tham số; và (6) Triển khai biên thời gian thực. Các bước (1)–(5) được lặp lại tương ứng với từng phương pháp lựa chọn đặc trưng (\ac{rfi}, \ac{shap}, \ac{pca}), sau đó lựa chọn mô hình tốt nhất để triển khai trên thiết bị biên.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        font=\small, >=Stealth,
+        every node/.style={align=center},
+        io/.style ={draw=gray!60,        thick, rounded corners, fill=gray!8,   text width=8.6cm, minimum height=1.0cm, inner sep=3pt},
+        ml/.style ={draw=blue!55,        thick, rounded corners, fill=blue!5,   text width=8.6cm, minimum height=1.0cm, inner sep=3pt},
+        dep/.style={draw=orange!75!black,thick, rounded corners, fill=orange!10,text width=8.6cm, minimum height=1.0cm, inner sep=3pt},
+        arr/.style ={-{Stealth[length=2.5mm]}, thick, draw=gray!60!black},
+        loop/.style={-{Stealth[length=2.5mm]}, thick, draw=orange!75!black, dashed},
+    ]
+        \node[io]  (data)  at (0, 0.0)  {\textbf{(1) Thu thập \& Tiền xử lý} --- CICIDS2017\\
+            loại trừ rò rỉ dữ liệu (bỏ \texttt{destination\_port}, khử trùng lặp đặc trưng), chia 80/20};
+        \node[ml]  (feat)  at (0,-1.7)  {\textbf{(2) Xây dựng \& lựa chọn đặc trưng}\\
+            RF Importance \;$|$\; SHAP \;$|$\; PCA};
+        \node[ml]  (train) at (0,-3.4)  {\textbf{(3) Huấn luyện mô hình} --- Apache Spark ML\\
+            8 thuật toán + Ensemble (Bagging / Voting)};
+        \node[ml]  (eval)  at (0,-5.1)  {\textbf{(4) Đánh giá mô hình}\\
+            Accuracy, Precision, Recall, F1, AUC-PR + kiểm định thống kê};
+        \node[ml]  (tune)  at (0,-6.8)  {\textbf{(5) Tối ưu siêu tham số}\\
+            Grid Search + Cross-Validation};
+        \node[dep] (dep)   at (0,-8.5)  {\textbf{(6) Triển khai biên thời gian thực}\\
+            Chọn mô hình tốt nhất $\rightarrow$ cụm 2 Jetson Orin Nano Super};
+
+        \foreach \a/\b in {data/feat, feat/train, train/eval, eval/tune, tune/dep}
+            \draw[arr] (\a) -- (\b);
+
+        % Vòng lặp (2)--(5) theo từng phương pháp lựa chọn đặc trưng
+        \draw[loop] (tune.east) -- ++(0.7,0) |- (feat.east);
+        \node[anchor=west, font=\footnotesize, text width=2.6cm, text=orange!60!black]
+            at (5.1,-4.25) {Lặp lại theo từng phương pháp (RFI / SHAP / PCA)};
+    \end{tikzpicture}
+    \caption{Quy trình tổng thể huấn luyện, đánh giá và triển khai mô hình đề xuất}
+    \label{fig:trainning_model}
+\end{figure}
+
+\section{Thu thập dữ liệu và tiền xử lý}
+Trong nghiên cứu này, tập dữ liệu được sử dụng là CIC-\ac{ids}2017 được phát hành bởi Viện An ninh mạng Canada (CIC). Tập dữ liệu này được xây dựng nhằm mô phỏng lưu lượng mạng thực tế kết hợp với nhiều loại tấn công mạng hiện đại, phục vụ cho việc huấn luyện và đánh giá các mô hình phát hiện xâm nhập. Tập dữ liệu CIC-\ac{ids}2017 tập trung vào các kịch bản tấn công đơn lẻ trong môi trường kiểm soát. Thông tin chi tiết về tập dữ liệu được trình bày trong Bảng~\textbf{\ref{tab:cicids2017}}.
+
+\begin{table}[htbp]
+\centering
+\caption{Mô tả bộ dữ liệu CIC-\ac{ids}2017}
+\label{tab:cicids2017}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{l@{\hspace{10pt}}l}
+\toprule
+\textbf{Thuộc tính}              & \textbf{Giá trị} \\
+\midrule
+Tổ chức phát hành                & Canadian Institute for Cybersecurity (CIC) \\
+Thời gian phát hành              & 2017 \\
+Giao thức mạng                   & HTTP, HTTPS, FTP, SSH, DNS, ... \\
+Số lượng bản ghi (CSV)           & Hơn 2.8 triệu bản ghi \\
+Thời gian thu thập               & 03/07/2017 – 07/07/2017 \\
+Loại tấn công mô phỏng           & DoS, DDoS, PortScan, Brute-force, Infiltration, Botnet, ... \\
+Số loại nhãn                     & 14 loại (tấn công và bình thường) \\
+Định dạng dữ liệu                & CSV \\
+Mục đích                         & Phát hiện xâm nhập mạng trong môi trường thực tế giả lập \\
+Nguồn dữ liệu                    & \cite{sharafaldin2018toward} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\break
+
+\textbf{Tiền xử lý dữ liệu}
+Việc tiền xử lý dữ liệu nhằm loại bỏ nhiễu, giá trị ngoại lệ và giá trị bị thiếu được thực hiện trước khi đưa dữ liệu vào huấn luyện mô hình. Các kỹ thuật được áp dụng gồm chuẩn hóa tên cột, căn chỉnh lược đồ giữa các tệp, thay thế giá trị vô cùng, loại bỏ bản ghi trùng lặp/thiếu, và gán nhãn nhị phân (BENIGN $=0$, Attack $=1$).
+
+Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng năng lực mô hình, luận văn áp dụng thêm hai bước \emph{loại trừ rò rỉ dữ liệu} ngay trong giai đoạn tiền xử lý, trước khi phân chia tập: (i) \textbf{loại đặc trưng rò rỉ nhãn} \texttt{destination\_port} (và \texttt{source\_port} nếu có) — vì trong CIC-\ac{ids}2017, mỗi loại tấn công được sinh nhằm vào những cổng dịch vụ cố định nên cổng đích gần như mã hóa trực tiếp nhãn, khiến mô hình ``ghi nhớ'' ánh xạ cổng~$\rightarrow$~nhãn thay vì học hành vi luồng; và (ii) \textbf{khử trùng lặp ở mức đặc trưng} — loại các luồng giống nhau trên toàn bộ cột đặc trưng (không chỉ khử các bản ghi trùng lặp hoàn toàn), tránh việc cùng một mẫu xuất hiện ở cả tập huấn luyện lẫn kiểm tra khi phân chia ngẫu nhiên. Đối với tập dữ liệu CIC-\ac{ids}2017, quá trình tiền xử lý dữ liệu được thể hiện chi tiết ở \textbf{\textit{Thuật toán \ref{data_preparation_ag}}}.
+
+\begin{algorithm}[htbp]
+\caption{Thuật toán Tiền xử lý Dữ liệu CICIDS2017}
+\label{data_preparation_ag}
+\begin{algorithmic}[1]
+\Require Tập $N$ tệp CSV từ bộ dữ liệu CICIDS2017: $\{F_1, F_2, \dots, F_N\}$
+\Statex \qquad Tỷ lệ phân chia huấn luyện/kiểm tra $\alpha = 0.8$
+\Ensure Tập huấn luyện $D_{\text{train}}$ và tập kiểm tra $D_{\text{test}}$ ở định dạng Parquet
+
+\State \textbf{Bước 1: Gộp dữ liệu từ nhiều tệp CSV}
+\State $D \gets \emptyset$
+\For{$i = 1$ to $N$}
+    \State Đọc tệp $F_i$ thành DataFrame $df_i$ với lược đồ suy luận tự động
+    \State \Call{CleanColumnNames}{$df_i$} \Comment{Chuẩn hóa tên cột: xóa khoảng trắng, chuyển chữ thường}
+    \State \Call{HandleInfinityValues}{$df_i$} \Comment{Thay thế $\pm\infty$ bằng giá trị NaN}
+    \If{$D = \emptyset$}
+        \State $\mathcal{S} \gets \text{Schema}(df_i)$ \Comment{Lưu lược đồ chuẩn từ tệp đầu tiên}
+        \State $D \gets df_i$
+    \Else
+        \State \Call{AlignSchema}{$df_i, \mathcal{S}$} \Comment{Căn chỉnh lược đồ về chuẩn $\mathcal{S}$}
+        \State $D \gets D \cup df_i$ \Comment{Gộp theo tên cột (unionByName)}
+    \EndIf
+\EndFor
+
+\State \textbf{Bước 2: Làm sạch dữ liệu}
+\State $D \gets \text{RemoveDuplicates}(D)$ \Comment{Loại bỏ các bản ghi trùng lặp hoàn toàn (giống hệt trên mọi cột)}
+\State $D \gets \text{RemoveNulls}(D)$ \Comment{Loại bỏ các bản ghi chứa giá trị null/NaN}
+
+\State \textbf{Bước 3: Tạo nhãn nhị phân}
+\State $\forall (x_i, \text{label}_i) \in D: \ y_i \gets \begin{cases} 0 & \text{nếu label}_i = \text{``BENIGN''} \\ 1 & \text{ngược lại (Attack)} \end{cases}$
+
+\State \textbf{Bước 4: Xác định các đặc trưng số (đã loại trừ rò rỉ)}
+\State $\mathcal{C}_{\text{exclude}} \gets \{\text{label, label\_binary, source\_ip, destination\_ip, flow\_id, timestamp, protocol,}$
+\Statex \qquad\qquad $\text{\textbf{destination\_port, source\_port}}\}$ \Comment{Loại bỏ đặc trưng gây rò rỉ nhãn}
+\State $\mathcal{F} \gets \{c \in \text{columns}(D) \mid c \notin \mathcal{C}_{\text{exclude}} \wedge \text{dtype}(c) \in \{\text{double, float, int, bigint}\}\}$
+\State $D \gets \text{DropDuplicates}(D, \text{subset}=\mathcal{F})$ \Comment{Khử trùng lặp ở mức đặc trưng trước khi chia}
+
+\State \textbf{Bước 5: Phân chia và lưu trữ}
+\State $D_{\text{train}}, D_{\text{test}} \gets \text{RandomSplit}(D, [\alpha, 1 - \alpha], \text{seed} = 42)$
+\State Lưu $D_{\text{train}}, D_{\text{test}}$ dưới định dạng Parquet
+\State \Return $D_{\text{train}}, D_{\text{test}}$
+\end{algorithmic}
+\end{algorithm}
+
+\textbf{Phân chia tập dữ liệu}
+
+Tập dữ liệu CIC-\ac{ids}2017 được phân chia theo tỷ lệ 80/20 cho huấn luyện và kiểm tra, sử dụng chiến lược \textit{stratified split} để giữ nguyên phân bố nhãn. Các chỉ số hiệu năng được \textbf{công bố trên tập kiểm tra} (tập giữ lại cuối cùng, không tham gia huấn luyện, xếp hạng đặc trưng hay tinh chỉnh siêu tham số); kết quả trên tập huấn luyện chỉ được dùng để chẩn đoán hiện tượng quá khớp (overfitting) hoặc thiếu khớp (underfitting).
+
+
+\section{Lựa chọn đặc trưng và giảm chiều dữ liệu}
+
+Trong quá trình tiền xử lý dữ liệu cho bài toán phát hiện xâm nhập mạng, lựa chọn đặc trưng bao gồm \textbf{chọn đặc trưng} và \textbf{trích xuất đặc trưng} là một bước quan trọng nhằm giảm chiều dữ liệu, loại bỏ những đặc trưng không cần thiết, và cải thiện hiệu suất của mô hình học máy. Dữ liệu số được gom vào vector đặc trưng bằng \texttt{VectorAssembler} (77 thuộc tính số) và được chuẩn hóa bằng \texttt{StandardScaler} (chuẩn hóa Z-score). Ba phương pháp được sử dụng trong luận văn là \textit{\ac{rf}}, \ac{shap} và \ac{pca}.
+
+\begin{enumerate}[label=\alph*)]
+    \item \textbf{Principal Component Analysis (\ac{pca})}: Là phương pháp giảm chiều dữ liệu không giám sát, nhằm biến đổi tập đặc trưng ban đầu thành một tập các thành phần chính (principal components) mới không tương quan tuyến tính với nhau và giữ lại phần lớn phương sai của dữ liệu.\ac{pca} thực hiện bằng cách tính ma trận hiệp phương sai và tìm các vector riêng (eigenvectors) tương ứng với các giá trị riêng (eigenvalues). Các thành phần chính được xác định bằng cách giải bài toán:
+
+    \begin{equation}
+    \mathbf{C}\mathbf{v} = \lambda \mathbf{v}
+    \end{equation}
+
+    Trong đó:
+    \begin{itemize}
+        \item $\mathbf{C}$ là ma trận hiệp phương sai của dữ liệu.
+        \item $\mathbf{v}$ là vector riêng (principal component).
+        \item $\lambda$ là giá trị riêng, biểu thị lượng phương sai được giải thích.
+    \end{itemize}
+
+    Các thành phần chính có giá trị riêng lớn nhất sẽ được lựa chọn để tạo thành không gian đặc trưng mới với số chiều thấp hơn nhưng vẫn giữ được phần lớn thông tin của dữ liệu. Đây là phương pháp được sử dụng phổ biến trong phân tích dữ liệu đa biến và học máy để giảm chiều, loại bỏ nhiễu và trực quan hóa dữ liệu \cite{Jolliffe2002}.
+
+    \item \textbf{SHapley Additive exPlanations (\ac{shap})}: Là phương pháp giải thích mô hình dựa trên lý thuyết trò chơi, dùng để đo lường mức độ đóng góp của từng đặc trưng vào dự đoán của mô hình. \ac{shap} tính giá trị Shapley cho mỗi đặc trưng bằng cách xét trung bình đóng góp biên của đặc trưng đó trên tất cả các tập con có thể:
+
+    \begin{equation}
+    \phi_i = \sum_{S \subseteq F \setminus \{i\}} 
+    \frac{|S|!(|F|-|S|-1)!}{|F|!} 
+    \left[ f(S \cup \{i\}) - f(S) \right]
+    \end{equation}
+
+    Trong đó:
+    \begin{itemize}
+        \item $F$ là tập tất cả các đặc trưng.
+        \item $S$ là tập con của các đặc trưng không chứa $i$.
+        \item $f(S)$ là giá trị dự đoán của mô hình khi chỉ sử dụng tập đặc trưng $S$.
+        \item $\phi_i$ là mức độ đóng góp của đặc trưng $i$ vào kết quả dự đoán.
+    \end{itemize}
+
+    Các đặc trưng có giá trị \ac{shap} lớn (theo độ lớn tuyệt đối) được xem là có ảnh hưởng quan trọng hơn đến quyết định của mô hình. Phương pháp này được ứng dụng rộng rãi trong giải thích mô hình phức tạp như XGBoost, Random Forest, và mạng nơ-ron \cite{Lundberg2017}. 
+
+
+    \item \textbf{Random Forest Feature Importance}: Thuật toán \ac{rf} có khả năng đánh giá tầm quan trọng của từng đặc trưng dựa trên mức độ đóng góp vào việc giảm độ bất thuần (impurity) tại các nút phân chia của cây quyết định. Độ quan trọng $I(f_j)$ của đặc trưng $f_j$ được tính như sau:
+
+    \begin{equation}
+    I(f_j) = \frac{1}{T} \sum_{t=1}^{T} \sum_{n \in N_t(f_j)} \Delta i(n)
+    \end{equation}
+
+    Trong đó:
+    \begin{itemize}
+        \item $T$ là số lượng cây trong rừng.
+        \item $N_t(f_j)$ là tập các nút trong cây $t$ sử dụng đặc trưng $f_j$ để phân chia.
+        \item $\Delta i(n)$ là lượng giảm độ bất thuần (ví dụ: Gini hoặc Entropy) tại nút $n$.
+    \end{itemize}
+\end{enumerate}
+
+Các đặc trưng có độ quan trọng cao hơn sẽ được ưu tiên lựa chọn để đưa vào mô hình huấn luyện. Sau khi huấn luyện mô hình \ac{rf}, các đặc trưng có giá trị quan trọng thấp hơn một ngưỡng định trước sẽ bị loại bỏ, giữ lại những đặc trưng có ảnh hưởng lớn đến việc phân loại.
+
+
+\section{Huấn luyện mô hình}
+
+\subsection{Huấn luyện các mô hình cơ sở}
+
+Tám thuật toán phân loại có giám sát được huấn luyện độc lập trên tập đặc trưng
+đã qua bước xây dựng và lựa chọn đặc trưng. Bảng~\ref{tab:classifiers} liệt kê các thuật toán cùng
+thông tin chi tiết về biến thể và phương pháp học.
+
+\begin{table}[htbp]
+\centering
+\caption{Tám bộ phân loại cơ sở được sử dụng trong pipeline}
+\label{tab:classifiers}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{l@{\hspace{10pt}}l@{\hspace{10pt}}l}
+\toprule
+\textbf{Thuật toán}              & \textbf{Biến thể / Ghi chú}        & \textbf{Phương pháp học} \\
+\midrule
+Decision Tree                   & CART                                & Phân chia đệ quy theo Gini / Entropy \\
+Logistic Regression             & Chuẩn hoá L2                        & Tối ưu hàm mất mát logistic \\
+Linear \ac{svm}                 & SVC tuyến tính                      & Tối đa hoá biên phân loại \\
+Naive Bayes                     & Phân phối Gaussian                  & Ước lượng xác suất hậu nghiệm \\
+Random Forest                   & Bagging                             & Tổ hợp cây quyết định ngẫu nhiên \\
+\ac{gbt}                        & Gradient Boosting                   & Tối thiểu hoá hàm mất mát theo bậc \\
+XGBoost                         & Gradient Boosting tối ưu            & Regularised Gradient Boosting \\
+\ac{mlp}                        & Mạng nơ-ron nhân tạo                & Lan truyền ngược (Backpropagation) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Đáng lưu ý, LightGBM --- một thư viện gradient boosting phổ biến --- \emph{không} được đưa vào danh sách trên vì thư viện gốc (native, thông qua SynapseML) chỉ hỗ trợ kiến trúc x86\_64, không chạy được trên thiết bị biên Jetson Orin Nano Super (ARM64) --- vốn là mục tiêu triển khai của nghiên cứu; XGBoost và \ac{gbt} đã đại diện đầy đủ cho họ gradient boosting.
+
+\noindent Sau khi huấn luyện, tám mô hình được xếp hạng theo chiều giảm dần của F1-Score
+trên tập kiểm tra để xác định top-3 mô hình tốt nhất phục vụ bước tổ hợp tiếp theo.
+
+\pagebreak
+\subsection{Các phương pháp Ensemble Learning}
+\begin{table}[htbp]
+\centering
+\caption{Các phương pháp tổ hợp mô hình trong Giai đoạn 3}
+\label{tab:ensemble}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{l@{\hspace{10pt}}l}
+\toprule
+\textbf{Phương pháp}             & \textbf{Mô tả chi tiết} \\
+\midrule
+Hybrid Bagging                  & Top-3 mô hình kết hợp theo sơ đồ $(3\text{-}2\text{-}2)$ sub-samples \\
+                                 & với \textit{Weighted Soft Voting} — dự đoán xác suất có trọng số \\
+Majority Voting                 & Hard voting trên Top-3 mô hình theo F1-Score \\
+                                 & Nhãn được chọn theo phiếu đa số từ ba bộ phân loại \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{a) Áp dụng Voting}
+\addcontentsline{toc}{subsection}{a) Áp dụng Voting}
+Sau khi hoàn tất giai đoạn huấn luyện đơn mô hình, luận văn tiến hành xây dựng mô hình kết hợp dựa trên kỹ thuật Voting để nâng cao độ chính xác và tính ổn định của hệ thống phân loại. Cụ thể, ba mô hình phân loại nhị phân có chỉ số F1-Score cao nhất ở giai đoạn trước sẽ được lựa chọn để tham gia vào quá trình ensemble.
+
+Mỗi mô hình trong tập được chọn sẽ đưa ra dự đoán độc lập cho từng mẫu trong tập kiểm tra. Các dự đoán này sau đó được tổng hợp thông qua cơ chế bầu chọn. Trong trường hợp Majority Voting, nhãn cuối cùng của mỗi mẫu được xác định dựa trên lớp nhận được nhiều phiếu bầu nhất từ các mô hình thành phần. Đối với bài toán phân loại nhị phân, mẫu được gán nhãn \textit{Attack} nếu số lượng mô hình dự đoán lớp 1 lớn hơn một nửa tổng số mô hình, ngược lại sẽ được gán nhãn \textit{Benign}.
+
+Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữa các mô hình học cơ sở, từ đó giảm sai số do thiên lệch của từng mô hình riêng lẻ và cải thiện khả năng tổng quát hóa trên dữ liệu chưa từng thấy. Nhờ cơ chế kết hợp này, hệ thống có thể nâng cao hiệu suất tổng thể trong việc phát hiện và phân loại chính xác các hành vi xâm nhập mạng. Quy trình chi tiết được trình bày trong \textbf{\textit{Thuật toán \ref{voting_ag}}}.
+
+\begin{algorithm}[htbp]
+\caption{Thuật toán Majority Voting Ensemble}
+\label{voting_ag}
+\begin{algorithmic}[1]
+\Require Tập dữ liệu huấn luyện $D = \{(x_i, y_i)\}_{i=1}^{n}$ với $x_i \in \mathbb{R}^d$, $y_i \in \{0, 1\}$
+\Statex \qquad Tập dữ liệu kiểm tra $D_{\text{test}} = \{(x_j)\}_{j=1}^{m}$
+\Statex \qquad Tập $K$ thuật toán học cơ sở khác loại $\{\mathcal{L}_1, \mathcal{L}_2, \dots, \mathcal{L}_K\}$
+\Ensure Nhãn dự đoán cuối cùng $y_{\text{vote}} \in \{0, 1\}$ cho mỗi mẫu
+
+\State \textbf{Bước 1: Huấn luyện và đánh giá $K$ mô hình cơ sở}
+\For{$k = 1$ to $K$}
+    \State $M_k \gets \text{Train}(\mathcal{L}_k, D)$ \Comment{Huấn luyện mô hình $M_k$ trên tập $D$}
+    \State $F_k \gets \text{F1-Score}(M_k, D)$ \Comment{Tính điểm F1 của mô hình $M_k$}
+\EndFor
+
+\State \textbf{Bước 2: Chọn Top-3 mô hình có F1 cao nhất}
+\State Sắp xếp $\{M_1, \dots, M_K\}$ theo $F_k$ giảm dần
+\State Chọn 3 mô hình tốt nhất: $\mathcal{S} = \{M^{(1)}, M^{(2)}, M^{(3)}\}$ với $F^{(1)} \geq F^{(2)} \geq F^{(3)}$
+
+\State \textbf{Bước 3: Thu thập dự đoán từ 3 mô hình được chọn}
+\For{mỗi mẫu $x_j \in D_{\text{test}}$}
+    \For{mỗi $M^{(s)} \in \mathcal{S}$, $s = 1, 2, 3$}
+        \State $\hat{y}_s^{(j)} \gets M^{(s)}(x_j)$ \Comment{Dự đoán nhãn từ mô hình $M^{(s)}$}
+    \EndFor
+\EndFor
+
+\State \textbf{Bước 4: Kết hợp bằng bầu chọn mềm (Soft Voting)}
+\For{mỗi mẫu $x_j \in D_{\text{test}}$}
+    \State $\bar{p}_j \gets \frac{1}{3} \displaystyle\sum_{s=1}^{3} P^{(s)}(y=1|x_j)$ \Comment{Tính xác suất trung bình lớp Attack}
+    \If{$\bar{p}_j \geq 0.5$}
+        \State $y_{\text{vote}}^{(j)} \gets 1$ \Comment{Dự đoán: Attack}
+    \Else
+        \State $y_{\text{vote}}^{(j)} \gets 0$ \Comment{Dự đoán: Benign}
+    \EndIf
+\EndFor
+
+
+% \State \textbf{Bước 4: Kết hợp bằng bầu chọn mềm (Soft Voting)}
+% \For{mỗi mẫu $x_j \in D_{\text{test}}$}
+%     \State $S_j \gets \displaystyle\sum_{s=1}^{3} \hat{y}_s^{(j)}$ \Comment{Tổng số phiếu bầu dự đoán Attack}
+%     \If{$S_j > 3 / 2$}
+%         \State $y_{\text{vote}}^{(j)} \gets 1$ \Comment{Dự đoán: Attack}
+%     \Else
+%         \State $y_{\text{vote}}^{(j)} \gets 0$ \Comment{Dự đoán: Benign}
+%     \EndIf
+% \EndFor
+
+\State \Return $\{y_{\text{vote}}^{(j)}\}_{j=1}^{m}$
+\end{algorithmic}
+\end{algorithm}
+
+\pagebreak
+ 
+\subsection*{b) Áp dụng Bagging}
+\addcontentsline{toc}{subsection}{b) Áp dụng Bagging}
+Để khai thác hiệu quả sức mạnh của kỹ thuật học máy tổng hợp Bagging, luận văn đề xuất xây dựng một mô hình ensemble lai (Hybrid Bagging Ensemble) dựa trên các mô hình cơ sở có hiệu suất cao nhất ở giai đoạn 1. Cụ thể, thay vì chỉ sử dụng một mô hình đơn lẻ, quy trình bắt đầu bằng việc huấn luyện và đánh giá $K$ thuật toán học cơ sở trên tập dữ liệu huấn luyện $D$. Hiệu năng của từng mô hình được đo lường thông qua chỉ số F1-Score, từ đó lựa chọn ba mô hình có kết quả tốt nhất để đưa vào giai đoạn kết hợp.
+
+Sau khi xác định Top-3 mô hình, phương pháp Bagging được áp dụng theo phân bố bản sao $(3,2,2)$. Đối với mỗi mô hình trong ba mô hình được chọn, nhiều tập dữ liệu bootstrap được tạo ra bằng cách lấy mẫu ngẫu nhiên có hoàn lại từ tập huấn luyện ban đầu. Trên mỗi tập bootstrap này, một bản sao của mô hình tương ứng được huấn luyện độc lập, tạo thành các \textit{bộ học cơ sở (base learners)} trong ensemble. Mỗi base learner được gán trọng số tỷ lệ với F1-Score của mô hình gốc nhằm phản ánh mức độ tin cậy tương đối của nó trong quá trình tổng hợp.
+
+Trong giai đoạn dự đoán, toàn bộ các mô hình trong ensemble đưa ra phân phối xác suất dự đoán cho mẫu đầu vào mới. Kết quả cuối cùng được xác định thông qua cơ chế Soft Voting có trọng số, trong đó xác suất của từng lớp được tính bằng tổng có trọng số của các xác suất thành phần. Nhãn dự đoán cuối cùng được chọn là lớp có xác suất tổng hợp lớn nhất.
+
+Cách tiếp cận này cho phép giảm phương sai của các mô hình cơ sở nhờ cơ chế lấy mẫu bootstrap, đồng thời duy trì khả năng học biểu diễn của từng thuật toán riêng lẻ. Việc kết hợp chọn lọc các mô hình có hiệu năng cao nhất trước khi áp dụng Bagging giúp tối ưu hóa cả độ chính xác và tính ổn định của hệ thống. Chi tiết quy trình được trình bày trong \textbf{\textit{Thuật toán \ref{bagging_ag}}}.
+
+\begin{algorithm}[htbp]
+\caption{Thuật toán Hybrid Bagging Ensemble Learning}
+\label{bagging_ag}
+\begin{algorithmic}[1]
+\Require Tập dữ liệu huấn luyện $D = \{(x_i, y_i)\}_{i=1}^{n}$ với $x_i \in \mathbb{R}^d$, $y_i \in \{1, 2, \dots, C\}$
+\Statex \qquad Tập $K$ thuật toán học cơ sở $\{\mathcal{L}_1, \mathcal{L}_2, \dots, \mathcal{L}_K\}$
+\Statex \qquad Phân bố số bản sao $\mathbf{r} = (r_1, r_2, r_3) = (3, 2, 2)$
+\Ensure Nhãn dự đoán cuối cùng $y_{\text{bag}} \in \{1, 2, \dots, C\}$
+
+\State \textbf{Bước 1: Huấn luyện và đánh giá $K$ mô hình cơ sở}
+\For{$k = 1$ to $K$}
+    \State $M_k \gets \text{Train}(\mathcal{L}_k, D)$ \Comment{Huấn luyện mô hình $M_k$ trên tập $D$}
+    \State $F_k \gets \text{F1-Score}(M_k, D)$ \Comment{Tính điểm F1 của mô hình $M_k$}
+\EndFor
+
+\State \textbf{Bước 2: Chọn Top-3 mô hình có F1 cao nhất}
+\State Sắp xếp $\{M_1, \dots, M_K\}$ theo $F_k$ giảm dần
+\State Chọn 3 mô hình tốt nhất: $M^{(1)}, M^{(2)}, M^{(3)}$ với $F^{(1)} \geq F^{(2)} \geq F^{(3)}$
+
+\State \textbf{Bước 3: Tạo ensemble theo phân bố 3-2-2}
+\State $\mathcal{E} \gets \emptyset$ \Comment{Tập ensemble gồm 7 mô hình}
+\For{$j = 1$ to $3$}
+    \For{$i = 1$ to $r_j$}
+        \State Tạo tập bootstrap $D_{j,i}$ bằng cách lấy ngẫu nhiên $n$ mẫu từ $D$ \textbf{có hoàn lại}
+        \State $h_{j,i} \gets \text{Train}(\mathcal{L}^{(j)}, D_{j,i})$ \Comment{Huấn luyện bản sao thứ $i$ của mô hình hạng $j$}
+        \State Gán trọng số $w_{j,i} \gets F^{(j)}$ \Comment{Trọng số dựa trên F1-Score}
+        \State Thêm $(h_{j,i}, w_{j,i})$ vào $\mathcal{E}$
+    \EndFor
+\EndFor
+\State Chuẩn hóa trọng số: $w_{j,i} \gets \dfrac{w_{j,i}}{\sum_{(h, w) \in \mathcal{E}} w}$
+
+\State \textbf{Bước 4: Dự đoán cho mẫu mới $x$ (Soft Voting có trọng số)}
+\State $T \gets |\mathcal{E}| = 7$ \Comment{Tổng số mô hình trong ensemble}
+\For{mỗi $(h_t, w_t) \in \mathcal{E}$, $t = 1, \dots, T$}
+    \State $\mathbf{p}_t \gets h_t(x)$ \Comment{Lấy vector xác suất dự đoán}
+\EndFor
+\State Tính xác suất có trọng số: $\bar{p}(c \mid x) = \displaystyle\sum_{t=1}^{T} w_t \cdot P_t(c \mid x), \quad \forall c \in \{1, \dots, C\}$
+\State $y_{\text{bag}} \gets \underset{c \in \{1, \dots, C\}}{\arg\max} \ \bar{p}(c \mid x)$
+
+\State \Return $y_{\text{bag}}$
+\end{algorithmic}
+\end{algorithm}
+
+
+\clearpage
+\section{Đánh giá mô hình}
+
+Mỗi mô hình (cơ sở và tổ hợp) được đánh giá toàn diện trên bốn chiều:
+
+\begin{table}[htbp]
+\centering
+\caption{Các tiêu chí đánh giá mô hình trong Giai đoạn 4}
+\label{tab:evaluation}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{p{5cm} p{8.5cm}}
+\toprule
+\textbf{Tiêu chí}                & \textbf{Mô tả} \\
+\midrule
+Độ chính xác (Accuracy)         & Tỉ lệ dự đoán đúng trên toàn bộ mẫu kiểm tra \\
+Precision                        & Tỉ lệ cảnh báo đúng trong tổng số cảnh báo được phát ra \\
+Recall                           & Tỉ lệ phát hiện đúng trong tổng số mẫu tấn công thực tế \\
+F1-Score                         & Trung bình điều hoà của Precision và Recall \\
+\ac{auc} – \ac{roc}             & Diện tích dưới đường cong ROC — đo hiệu năng phân biệt lớp \\
+\ac{auc} – PR                   & Diện tích dưới đường cong Precision-Recall \\
+Chi phí tính toán                & Thời gian huấn luyện, thời gian dự đoán và kích thước mô hình \\
+Khả năng giải thích (\ac{xai})  & Biểu đồ SHAP: summary plot, bar chart và waterfall plot \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Hiệu năng của mô hình được đánh giá thông qua các chỉ số phân loại phổ biến như Accuracy, Precision, Recall và F1-Score, kết hợp với phân tích đường cong AUC (ROC và PR), chi phí tính toán (thời gian huấn luyện và suy luận), cũng như khả năng giải thích của mô hình (ví dụ: biểu đồ tổng quan SHAP). Để xác thực mô hình phát hiện xâm nhập, tập dữ liệu kiểm tra được sử dụng nhằm đánh giá khả năng tổng quát hóa của mô hình đã huấn luyện, trong đó kết quả dự đoán được đối chiếu với nhãn thực tế và đo lường bằng các thước đo đánh giá. Các chỉ số như \ac{ac}, \ac{pr}, \ac{re}, \ac{fs} được tính toán theo các công thức trình bày tại \textit{~\ref{eq:accuracy}, ~\ref{eq:precision}, ~\ref{eq:recall}, ~\ref{eq:f1score}}. Những kết quả này là cơ sở quan trọng để so sánh giữa các phương pháp lựa chọn đặc trưng và lựa chọn mô hình phù hợp cho triển khai thực tế.
+
+\begin{equation}
+\text{Accuracy (\ac{ac})} = \frac{TP + TN}{TP + TN + FP + FN}
+\label{eq:accuracy}
+\end{equation}
+
+\begin{equation}
+\text{Precision (\ac{pr})} = \frac{TP}{TP + FP}
+\label{eq:precision}
+\end{equation}
+
+\begin{equation}
+\text{Recall (\ac{re})} = \frac{TP}{TP + FN}
+\label{eq:recall}
+\end{equation}
+
+\begin{equation}
+\text{F1-Score (\ac{fs})} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}
+\label{eq:f1score}
+\end{equation}
+
+\begin{table}[htbp]
+\centering
+\caption{Ma trận nhầm lẫn của mô hình phát hiện xâm nhập}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{l@{\hspace{20pt}}c@{\hspace{20pt}}c}
+\toprule
+\textbf{} & \textbf{Dự đoán: Positive} & \textbf{Dự đoán: Negative} \\
+\midrule
+\textbf{Thực tế: Positive} & TP (True Positive) & FN (False Negative) \\
+\textbf{Thực tế: Negative} & FP (False Positive) & TN (True Negative) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Trong đó, TP (True Positive) là số lượng lưu lượng mạng hoặc phiên kết nối thực sự là tấn công và được hệ thống \ac{ids} phát hiện đúng là xâm nhập. TN (True Negative) là những lưu lượng bình thường (không phải tấn công) và được mô hình phân loại chính xác là hợp lệ. FP (False Positive) là các lưu lượng bình thường nhưng bị hệ thống nhận diện nhầm là tấn công. Ngược lại, FN (False Negative) là những cuộc tấn công thực sự xảy ra nhưng không được hệ thống phát hiện và bị phân loại nhầm là lưu lượng bình thường.
+
+\clearpage
+\section{Tối ưu hóa tham số và huấn luyện mô hình}
+
+Trong quá trình xây dựng mô hình học máy, việc lựa chọn các siêu tham số (hyperparameters) phù hợp là một yếu tố quan trọng ảnh hưởng đến hiệu năng của mô hình. Để tối ưu hóa các siêu tham số này, phương pháp \textbf{Tìm kiếm theo lưới} (\ac{gs}) kết hợp với \textbf{\ac{cv}} đã được sử dụng trong môi trường phân tán của Apache Spark. Các mô hình phân loại được huấn luyện và so sánh gồm: Decision Tree, Logistic Regression, Linear SVC, Naive Bayes, Random Forest, GBT, XGBoost và MLP; sau đó xếp hạng theo F1-Score để chọn Top-3 mô hình cho các phương pháp ensemble ở giai đoạn 2.
+
+\begin{itemize}
+    \item \textbf{\ac{gs}}: Là phương pháp thử nghiệm tất cả các tổ hợp có thể của các siêu tham số được định nghĩa trước. Ví dụ, với một mô hình Random Forest, các tham số có thể bao gồm số lượng cây (\texttt{numTrees}), độ sâu tối đa (\texttt{maxDepth}), và số lượng đặc trưng được chọn tại mỗi nút (\texttt{maxFeatures}). Spark MLlib hỗ trợ đối tượng \texttt{ParamGridBuilder} để xây dựng lưới các tham số.
+    
+    \item \textbf{\ac{cv}}: Là phương pháp đánh giá mô hình bằng cách chia dữ liệu huấn luyện thành $k$ phần, sau đó huấn luyện và đánh giá mô hình $k$ lần, mỗi lần sử dụng một phần khác nhau làm dữ liệu kiểm tra và các phần còn lại làm dữ liệu huấn luyện. Trong Spark, đối tượng \texttt{CrossValidator} được sử dụng để thực hiện quy trình này.
+\end{itemize}
+
+Quy trình tối ưu hóa được thực hiện như sau:
+
+\begin{enumerate}
+    \item Xây dựng pipeline gồm các bước tiền xử lý dữ liệu (ví dụ: chuẩn hóa, biến đổi đặc trưng) và mô hình học máy.
+    \item Sử dụng \texttt{ParamGridBuilder} để định nghĩa tập lưới các siêu tham số cần tìm kiếm.
+    \item Khởi tạo \texttt{CrossValidator} với pipeline, lưới các tham số, và bộ đánh giá hiệu năng (ví dụ: \texttt{BinaryClassificationEvaluator}).
+    \item Huấn luyện mô hình bằng cách gọi phương thức \texttt{fit()} của \texttt{CrossValidator} trên tập dữ liệu huấn luyện.
+    \item Chọn mô hình tốt nhất dựa trên điểm đánh giá trung bình trên các folds.
+\end{enumerate}
+
+\textbf{Ví dụ đoạn mã sử dụng Spark MLlib}:
+
+\begin{lstlisting}[language=Python]
+from pyspark.ml.classification import RandomForestClassifier
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
+from pyspark.ml import Pipeline
+
+rf = RandomForestClassifier(labelCol="label", featuresCol="features")
+
+pipeline = Pipeline(stages=[rf])
+
+paramGrid = ParamGridBuilder() \
+    .addGrid(rf.numTrees, [10, 20, 50]) \
+    .addGrid(rf.maxDepth, [5, 10, 15]) \
+    .build()
+
+evaluator = BinaryClassificationEvaluator(labelCol="label", metricName="areaUnderROC")
+
+cv = CrossValidator(estimator=pipeline,
+                    estimatorParamMaps=paramGrid,
+                    evaluator=evaluator,
+                    numFolds=5)
+
+cvModel = cv.fit(trainingData)
+\end{lstlisting}
+
+Quy trình này giúp đảm bảo lựa chọn được tổ hợp siêu tham số tối ưu, đồng thời giúp tối ưu thời gian huấn luyện. Spark giúp tăng tốc quá trình này nhờ khả năng xử lý phân tán và song song hóa trên cụm máy.
+
+
+
+\pagebreak
+\section{Triển khai biên}
+Mô hình tốt nhất sau đánh giá được đóng gói thành \texttt{PipelineModel} và triển khai trên một cụm \emph{hai} thiết bị biên NVIDIA Jetson Orin Nano Super (CPU ARM 64-bit + GPU NVIDIA), tách vai trò: Jetson~\#1 chạy cổng phát hiện bất thường (autoencoder) để lọc lưu lượng bình thường, Jetson~\#2 chạy bộ phân loại PySpark trên các luồng nghi vấn. Mô hình sau khi huấn luyện trên cụm được chuyển sang thiết bị biên bằng SCP. Quy trình suy luận thời gian thực theo chuỗi: Kafka Consumer nhận dữ liệu mạng (topic \texttt{ids-network-flow}), cổng bất thường chuyển tiếp luồng nghi vấn sang \texttt{ids-suspicious-flow}, PySpark Streaming (micro-batch) xử lý và trích xuất đặc trưng, kết quả dự đoán ghi vào PostgreSQL phục vụ trực quan hóa trên Grafana và kích hoạt cảnh báo khi phát hiện bất thường. Hệ thống hỗ trợ ba chế độ: tách pipeline (pipeline split), mở rộng theo chiều ngang (horizontal scaling) và cụm Spark (Spark cluster).
+
+\begin{table}[htbp]
+\centering
+\caption{Thông số phần cứng thiết bị biên}
+\label{tab:hardware}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{l@{\hspace{10pt}}l}
+\toprule
+\textbf{Thuộc tính}              & \textbf{Giá trị} \\
+\midrule
+Nền tảng                         & NVIDIA Jetson Orin Nano Super Developer Kit ($\times 2$) \\
+CPU                              & 6 nhân Arm Cortex-A78AE, 1{,}7 GHz \\
+GPU                              & NVIDIA Ampere, 1024 nhân CUDA + 32 Tensor Core \\
+RAM                              & 8 GB LPDDR5 (102 GB/s) \\
+Lưu trữ                          & SSD NVMe 256 GB \\
+Hiệu năng AI                     & tới $\sim$67 TOPS (khung 25 W) \\
+Hệ điều hành                     & Ubuntu --- NVIDIA JetPack / L4T \\
+Vai trò                          & Worker huấn luyện (Spark) \& thiết bị suy diễn biên \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\nopagebreak
+

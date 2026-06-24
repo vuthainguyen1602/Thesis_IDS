@@ -57,3 +57,8 @@ cluster/spark_cluster.env
 papers/fair2026/tables/
 papers/fair2026/results/
 papers/soict2026/results/benchmarks/
+
+# Regenerable LaTeX previews / backups / scratch notes
+*_preview.pdf
+*_backup.tex
+IDS_briefing_*.md

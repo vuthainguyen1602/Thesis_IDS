@@ -6,7 +6,7 @@ Code thực thi nằm ở root repo (`shared_utils.py`, `ml_*.py`, `raspberry/`)
 | Thư mục | Hội nghị | Deadline nộp bài | Trọng tâm |
 |---------|----------|------------------|-----------|
 | [fair2026/](fair2026/) | [FAIR'2026](https://fair.conf.vn/) | 15/08/2026 | ML, feature selection, SHAP, drift |
-| [soict2026/](soict2026/) | [SOICT 2026](https://soict.org/) | 16/09/2026 | Edge phân tán, 2× Jetson Nano, Kafka |
+| [soict2026/](soict2026/) | [SOICT 2026](https://soict.org/) | 16/09/2026 | Edge phân tán, 2× Jetson Orin Nano Super, Kafka |
 
 Luận văn tổng hợp: [../thesis/](../thesis/)
 

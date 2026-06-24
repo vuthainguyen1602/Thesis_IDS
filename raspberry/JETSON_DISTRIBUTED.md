@@ -1,6 +1,6 @@
-# Triển khai phân tán IDS trên 2 Jetson Nano Super Kit (8GB)
+# Triển khai phân tán IDS trên 2 Jetson Orin Nano Super Developer Kit (8GB)
 
-Hướng dẫn chạy hệ thống IDS edge trên **2 Jetson Nano Super Kit (8GB RAM, 256GB SSD)**, kết nối với hạ tầng Kafka/PostgreSQL/InfluxDB trên Mac.
+Hướng dẫn chạy hệ thống IDS edge trên **2 Jetson Orin Nano Super Developer Kit (8GB RAM, 256GB SSD)**, kết nối với hạ tầng Kafka/PostgreSQL/InfluxDB trên Mac.
 
 **Huấn luyện ML phân tán (Spark):** xem [../cluster/DISTRIBUTED_CLUSTER.md](../cluster/DISTRIBUTED_CLUSTER.md)
 
@@ -26,7 +26,7 @@ Kiểm tra IP Mac: `ipconfig getifaddr en0` — phải khớp `MAC_IP` trong `cl
 └───────────────┬───────────────────────────────┬─────────────────┘
                 │                               │
      ┌──────────┴──────────┐         ┌──────────┴──────────┐
-     │   Jetson Nano #1    │         │   Jetson Nano #2    │
+     │   Jetson Orin Nano Super #1    │         │   Jetson Orin Nano Super #2    │
      │   (anomaly_gate)    │────────▶│   (classifier)      │
      │   sklearn AE filter │  Kafka  │   PySpark model     │
      └─────────────────────┘         └─────────────────────┘
@@ -45,7 +45,7 @@ Hệ thống hỗ trợ **3 chế độ phân tán**:
 
 ## Yêu cầu phần cứng & mạng
 
-- 2× Jetson Nano Super Kit (**8GB RAM**, **256GB SSD** khuyến nghị)
+- 2× Jetson Orin Nano Super Developer Kit (**8GB RAM**, **256GB SSD** khuyến nghị)
 - Mac/PC cùng mạng LAN WiFi với 2 Jetson (`192.168.1.x`)
 - Nguồn 5V/4A ổn định cho mỗi Jetson
 - Swap 4GB (tùy chọn trên 8GB — `setup_jetson.sh` tự cấu hình)
@@ -77,7 +77,7 @@ cd .. && python ml_08_anomaly_gate_autoencoder.py
 
 ---
 
-## Bước 2: Setup từng Jetson Nano
+## Bước 2: Setup từng Jetson Orin Nano Super
 
 Trên **cả 2 Jetson**:
 

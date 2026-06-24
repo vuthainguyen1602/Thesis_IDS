@@ -49,5 +49,5 @@ Hình lấy trực tiếp từ thư mục gốc (không copy trùng):
 
 ## Không nằm trong paper này
 
-- Triển khai Jetson Nano / Kafka → xem [../soict2026/](../soict2026/)
+- Triển khai Jetson Orin Nano Super / Kafka → xem [../soict2026/](../soict2026/)
 - Luận văn đầy đủ → xem [../../thesis/](../../thesis/)

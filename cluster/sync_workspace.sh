@@ -20,6 +20,7 @@ RSYNC_EXCLUDES=(
     --exclude '.idea'
     --exclude 'data_smoke'
     --exclude '*.pyc'
+    --exclude 'results'
 )
 
 sync_host() {

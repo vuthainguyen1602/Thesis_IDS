@@ -1,160 +1,208 @@
 # Execution Guide — IDS Thesis Project
 
-This guide covers **distributed cluster mode** (Mac + 2× Jetson, recommended) and legacy local/RPi paths.
+Step-by-step for **distributed cluster mode** (Mac + 2× Jetson Orin Nano Super 8GB).
 
-**Cluster guide:** [cluster/DISTRIBUTED_CLUSTER.md](cluster/DISTRIBUTED_CLUSTER.md)
+**Detailed guide:** [cluster/DISTRIBUTED_CLUSTER.md](cluster/DISTRIBUTED_CLUSTER.md)
 
 ---
 
-## Distributed cluster (Mac + 2× Jetson Super Kit 8GB)
+## Prerequisites
 
-| Node | IP (lab) | Role |
-|------|----------|------|
-| Mac | `192.168.1.165` | Spark Master, Docker, `ml_00`, sync/pull |
+| Requirement | Notes |
+|-------------|-------|
+| Same LAN | Mac + Jetsons on one WiFi (e.g. `192.168.1.x`), mutual `ping` |
+| `cluster/spark_cluster.env` | Copy from `.example`; set `MAC_IP`, Jetson IPs, `JETSON_SSH_USER`, `IDS_MAC_ROOT` |
+| SSH keys | `ssh-copy-id <user>@<JETSON1_IP>` (and #2) |
+| Parquet data | `python ml_00_prepare_cicids2017.py` on Mac (once) |
+
+### Lab IPs (reference)
+
+| Node | IP | Role |
+|------|-----|------|
+| Mac | `192.168.1.165` | Spark Master, Docker, sync/pull |
 | Jetson #1 | `192.168.1.50` | Worker + ML driver, `results/` |
 | Jetson #2 | `192.168.1.205` | Worker, edge classifier |
 
-### 1. Configure cluster
+---
+
+## One-time setup
+
+### 1. Configure cluster (Mac)
 
 ```bash
+cd ~/Desktop/Thesis_IDS
 cp cluster/spark_cluster.env.example cluster/spark_cluster.env
-# Edit MAC_IP (ipconfig getifaddr en0), JETSON IPs, JETSON_SSH_USER, IDS_MAC_ROOT
+# Edit MAC_IP, JETSON1_IP, JETSON2_IP, JETSON_SSH_USER, IDS_MAC_ROOT
 source cluster/load_cluster_env.sh
 ```
 
-### 2. Start cluster
+Also set Kafka in `raspberry/docker-compose.yml`:
+
+```yaml
+KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://<MAC_IP>:9092
+```
+
+### 2. Setup Jetsons (SSH, once per device)
 
 ```bash
-# Mac
-./cluster/start_master_mac.sh
+ssh <user>@<JETSON_IP>
+cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh
+exit
+```
+
+### 3. Data + Docker (Mac, once)
+
+```bash
+python ml_00_prepare_cicids2017.py
 cd raspberry && docker compose up -d
+python scripts/init_kafka_topics.py --partitions 2 --bootstrap localhost:9092
+```
 
-# Each Jetson (SSH)
-cd ~/Thesis_IDS && source cluster/load_cluster_env.sh && ./cluster/start_worker.sh
+---
 
-# Mac — verify: http://192.168.1.165:8080 → 2 workers ALIVE
+## Daily run — every training session
+
+### Step 1 — Mac: stop old cluster, start master
+
+```bash
+cd ~/Desktop/Thesis_IDS
+source cluster/load_cluster_env.sh
+
+# Confirm Mac IP still matches spark_cluster.env
+ipconfig getifaddr en0
+
+./cluster/stop_cluster.sh
+./cluster/start_master_mac.sh
+sleep 3
+```
+
+### Step 2 — Jetson #1: start worker
+
+```bash
+ssh <user>@192.168.1.50
+
+export SPARK_HOME=$(python3 -c "import pyspark; print(pyspark.__path__[0])")
+unset SPARK_MASTER
+$SPARK_HOME/sbin/stop-worker.sh 2>/dev/null || true
+pkill -f SparkSubmit 2>/dev/null || true
+
+cd ~/Thesis_IDS
+unset SPARK_HOME
+source cluster/load_cluster_env.sh
+./cluster/start_worker.sh
+exit
+```
+
+Expected output:
+
+```
+[INFO] Spark worker (...) -> spark://192.168.1.165:7077 (4 cores, 5g)
+[OK] Worker started
+```
+
+### Step 3 — Jetson #2: start worker
+
+Same commands as Step 2, but SSH to `192.168.1.205`.
+
+### Step 4 — Mac: verify cluster
+
+```bash
 ./cluster/check_cluster.sh
 ```
 
-### 3. Preprocess + sync + train
+Open http://192.168.1.165:8080 — expect:
+
+- **Workers:** 2 ALIVE (4 cores, 5 GiB each)
+- **Running Applications:** 0 (no stale 7h zombie apps)
+
+Connectivity check from Jetson:
 
 ```bash
-python ml_00_prepare_cicids2017.py          # Mac only
-./cluster/sync_workspace.sh
-./cluster/run_ml_remote.sh ml_01_baseline_all_features.py
-./cluster/pull_results.sh                   # Jetson #1 → Mac
+ssh <user>@192.168.1.50 "ping -c 2 192.168.1.165 && nc -zv 192.168.1.165 7077"
 ```
 
-Full pipeline:
+### Step 5 — Mac: sync + train
+
+```bash
+./cluster/sync_workspace.sh          # if code/config changed on Mac
+./cluster/run_ml_remote.sh ml_01_baseline_all_features.py
+```
+
+On first run, Jetson driver auto-installs: `xgboost`, `shap`, `scipy`. Log should show:
+
+```
+[OK] Core ML deps ready
+[INFO] XGBoost backend available
+```
+
+(LightGBM was removed — x86_64-only native libs, not runnable on the ARM64 Jetson.)
+
+New Spark app on Master UI should show **Cores > 0** (typically 8), not `WAITING` with 0 cores.
+
+### Step 6 — Mac: pull results
+
+```bash
+./cluster/pull_results.sh
+```
+
+Results live on Jetson #1 at `~/Thesis_IDS/results/` until pulled.
+
+---
+
+## Full pipeline (papers / thesis)
 
 ```bash
 ./cluster/reproduce_cluster.sh fair    # or thesis / soict
 ./cluster/pull_results.sh
-./papers/fair2026/collect_results.sh
+./papers/fair2026/collect_results.sh   # if applicable
+```
+
+### ML script order (cluster)
+
+| Order | Script | Notes |
+|-------|--------|-------|
+| 0 | `ml_00_prepare_cicids2017.py` | Mac only |
+| 1 | `ml_01_baseline_all_features.py` | 8 models (incl. XGBoost if deps OK) |
+| 2 | `ml_02_feature_selection_rf.py` | |
+| 3 | `ml_04_dimensionality_reduction_pca.py` | |
+| 4 | `ml_05_shap_explainability.py` | Needs xgboost + shap |
+| 5 | `ml_06_feature_selection_shap.py` | |
+| 6 | `ml_07_cross_method_comparison.py` | Run before ml_03 |
+| 7 | `ml_03_hyperparameter_tuning.py` | Reads `best_config.json` from ml_07 |
+
+---
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| App `WAITING`, **0 cores** | Kill apps on Spark UI; `pkill -f SparkSubmit` on Jetson #1; restart workers |
+| `(0 + 0) / 1` stuck > 15 min | Check workers ALIVE; verify executors registered on Master UI |
+| `No route to host` | Mac on wrong network or stale `MAC_IP` — update config, sync, restart |
+| No XGBoost in results | Re-run `run_ml_remote.sh`; or on Jetson: `pip install -r cluster/requirements_ml_driver.txt` |
+| MLP slow | Normal; tree models (RF, GBT, XGBoost) finish much faster |
+| Mac changed IP | Update `MAC_IP`, `docker-compose.yml` Kafka listener, `sync_workspace.sh`, restart all |
+
+Kill stale apps from Mac:
+
+```bash
+curl "http://192.168.1.165:8080/app/kill/?id=<APP_ID>&terminate=true"
 ```
 
 ---
 
 ## Local mode (Mac only — debug)
 
-### 1. Configure the Environment
-Set the project root and data directory via environment variables to ensure portability.
 ```bash
 export IDS_ROOT="$(pwd)"
-export IDS_RAW_DATA_DIR="/path/to/your/ids-2017/csvs"
-# Optional: additional holdout dataset for Exp7 robustness track
-# export IDS_ROBUST_DATA_DIR="/path/to/robustness_parquet_dir"
+export IDS_ALLOW_LOCAL_SPARK=1
+python ml_01_baseline_all_features.py
 ```
 
-### 2. Preprocess the Dataset
-Prepare the CICIDS2017 dataset for Spark.
-```bash
-python ml_00_prepare_cicids2017.py
-```
-*Output: `data/train_data.parquet` and `data/test_data.parquet`*
-
-### 3. Run Experiments (Baseline to SHAP)
-Each script evaluates models and generates reports under `results/<experiment_name>/` (local) or on Jetson #1 driver (cluster).
-```bash
-python ml_01_baseline_all_features.py            # Baseline (all features)
-python ml_02_feature_selection_rf.py           # Random Forest Feature Importance (generates importance.csv)
-python ml_04_dimensionality_reduction_pca.py   # PCA Dimensionality Reduction
-python ml_05_shap_explainability.py            # SHAP XAI Analysis
-python ml_06_feature_selection_shap.py         # SHAP Feature Selection (Top-K)
-python ml_07_cross_method_comparison.py        # Cross-method + Robustness + Drift + Statistical validity
-python ml_03_hyperparameter_tuning.py          # Hyperparameter Tuning on best_config.json from ml_07
-```
+Not used for paper/thesis reproduction.
 
 ---
 
-## Stage 2: Model Export for Edge (PC/Mac)
+## Edge deployment (SOICT)
 
-### 4. Save PySpark Pipeline for RPi
-Export the best-performing models (Decision Tree/RF/GBT) as PipelineModels for the Edge engine.
-```bash
-python raspberry/scripts/save_model.py      # Save single optimal model (DT)
-python raspberry/scripts/save_all_models.py  # Save multiple models for benchmarking
-```
-*Output: `raspberry/model/ids_pipeline_model/`*
-
----
-
-## Stage 3: Infrastructure Setup (PC/Mac - Docker)
-
-### 5. Start Centralized Services
-Kafka, PostgreSQL, and InfluxDB run on the Mac/PC to store results and relay traffic.
-```bash
-cd raspberry/
-docker compose up -d
-```
-*Check status: `docker compose ps`*
-
----
-
-## Stage 4: Edge Deployment (Raspberry Pi)
-
-### 6. Remote Setup
-Connect to the Raspberry Pi and install the environment.
-```bash
-ssh pi@<rpi-ip>
-cd ~/raspberry
-chmod +x scripts/setup_raspberry.sh
-./scripts/setup_raspberry.sh
-```
-
-### 7. Copy Model to RPi
-From your **PC/Mac**, send the exported model to the Pi.
-```bash
-scp -r ~/Thesis_IDS/raspberry/model/* pi@<rpi-ip>:~/raspberry/model/
-```
-
-### 8. Start the IDS Consumer
-On the **Raspberry Pi**, start the real-time inference engine.
-```bash
-cd ~/raspberry
-source venv/bin/activate
-python edge/kafka_consumer.py
-```
-
----
-
-## Stage 5: Evaluation & Monitoring
-
-### 9. Simulate Network Traffic (PC/Mac)
-Stream CSV data rows to the RPi via Kafka.
-```bash
-cd raspberry/
-python sender/data_sender.py --rate 100
-```
-
-### 10. Benchmark Performance (Raspberry Pi)
-Measure throughput and latency on the edge device.
-```bash
-python scripts/benchmark.py --samples 500
-python scripts/benchmark_all.py  # Multi-model comparison
-```
-
-### 11. Dashboard Monitoring (Browser)
-Open Grafana on your **PC/Mac** to view live metrics.
-- **URL**: `http://localhost:3000` (User: `admin` / `admin`)
-- **Action**: Import JSON from `raspberry/dashboard/grafana_dashboard.json`
+After ML + `save_model.py`, see [raspberry/JETSON_DISTRIBUTED.md](raspberry/JETSON_DISTRIBUTED.md).

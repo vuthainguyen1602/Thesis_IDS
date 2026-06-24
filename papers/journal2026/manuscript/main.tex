@@ -1,0 +1,208 @@
+% Journal manuscript (merged, end-to-end) — draft in LNCS for compile-checking.
+% NOTE: reformat to the target journal's template before submission; the LNCS
+% class here is only to keep the draft self-contained and compilable.
+% Compile: ./compile.sh
+%
+% RESULT PLACEHOLDERS: every empirical value is \ph{...}. Fill from results/*.csv
+% after running the pipeline on BOTH datasets (CICIDS2017 and CSE-CIC-IDS2018).
+% Do NOT reuse legacy F1=1.000 numbers (they came from a leaky configuration).
+%
+\documentclass[runningheads]{llncs}
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+\input{../../../papers/latex/fonts-xelatex-vi.tex}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\providecommand{\babelshorthandoff}[1]{}
+\newcommand{\ph}[1]{{\color{red}\textbf{[#1]}}}
+
+\graphicspath{{../../../results/ml_07_cross_method_comparison/}{../../../results/ml_09_multiclass_eval/}{../../../results/ml_08_anomaly_gate/}}
+
+\begin{document}
+
+\title{A Reproducible, Leakage-Aware Machine-Learning IDS Pipeline: From Distributed Spark Training to Jetson Orin Nano Super Edge Deployment}
+\titlerunning{Leakage-Aware ML-IDS: Spark Training to Jetson Edge}
+
+\author{Nguyen Vu Thai\inst{1} \and Bui Van Dung\inst{2,3}}
+\authorrunning{Nguyen V. T. et al.}
+\institute{University of Transport and Communications, Ho Chi Minh City Campus, Vietnam\\
+\email{nvthai@utc2.edu.vn}
+\and Vietnam National University Ho Chi Minh City, Vietnam
+\and University of Information Technology, Vietnam\\
+\email{dungbv.17@grad.uit.edu.vn}}
+
+\maketitle
+
+\begin{abstract}
+Machine-learning intrusion detection on the CICIDS2017 benchmark routinely reports near-perfect F1, suggesting a solved problem; in practice such scores are frequently artefacts of evaluation pitfalls rather than detection capability. We present an end-to-end, reproducible ML-IDS pipeline whose primary contribution is a \emph{leakage-aware, statistically-valid evaluation protocol}, and which carries the resulting model through to a real distributed edge deployment. The protocol (i) removes the label-leaking \texttt{destination\_port} feature and de-duplicates flows at the feature level before splitting; (ii) fixes the comparison configuration a priori and handles class imbalance uniformly; (iii) evaluates robustness on a holdout disjoint from training; and (iv) tests significance with a paired permutation test over repeated data resamples and $t$-distribution confidence intervals. Under this protocol we compare four dimensionality-reduction strategies (baseline, Random Forest importance, SHAP, PCA) across eight Apache Spark ML classifiers, on \emph{two} datasets (CICIDS2017 and CSE-CIC-IDS2018), with per-attack multiclass analysis. The selected model is exported to a two-node Jetson Orin Nano Super cluster with an autoencoder anomaly gate, and we characterise the gate as a tunable operating curve (recall vs.\ Spark offloading) rather than a single point. The work shows how to obtain trustworthy IDS results and translate them into a deployable, measurable edge system.
+\keywords{Intrusion detection \and Data leakage \and Reproducibility \and Apache Spark \and Edge computing \and Jetson Orin Nano Super.}
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Network intrusion detection systems (IDS) increasingly combine machine learning with large flow datasets, and increasingly must run near the data source under edge constraints~\cite{shi2016edge,ring2019survey}. On the widely used CICIDS2017 benchmark~\cite{sharafaldin2018toward}, many models report binary F1 $\geq 0.99$. Taken at face value this implies ML-IDS is essentially solved; in security, ``too good'' results are a known warning sign of leakage and experimental bias~\cite{arp2022dos,kapoor2023leakage,pendlebury2019tesseract}, and CICIDS2017 itself has documented flaws~\cite{engelen2021troubleshooting}.
+
+This paper makes the \emph{evaluation methodology} the first-class contribution, and then demonstrates the deployability of the resulting model. We argue and show empirically that, on a representative Spark ML pipeline, four common pitfalls inflate reported performance, and we provide concrete, low-cost remedies for each. We then compare dimensionality-reduction strategies under the corrected protocol on two datasets, and deploy the selected model on a measured two-node Jetson Orin Nano Super edge cluster.
+
+\textbf{Contributions.}
+(1) A \emph{leakage-aware, statistically-valid evaluation protocol} for ML-IDS, with quantified before/after effect of each pitfall;
+(2) A uniform comparison of RF importance, SHAP, and PCA across eight Spark ML classifiers under that protocol, on \emph{two} datasets, including per-attack multiclass analysis;
+(3) An \emph{edge-aware} model-selection bridge linking offline F1 to deployable feature count, model size and latency;
+(4) A working distributed edge deployment (Kafka + PySpark + autoencoder gate) on two Jetson Orin Nano Super nodes, with the gate characterised as an operating curve;
+(5) Open, configurable code (dataset-agnostic preparation, run-configuration logging) for reproduction.
+
+\section{Related Work}
+\label{sec:related}
+
+ML-IDS surveys~\cite{ring2019survey,khraisat2019survey,ferrag2020deep} show broad use of classical and deep models on benchmarks such as CICIDS2017~\cite{sharafaldin2018toward}. Many studies optimise a single model~\cite{vinayakumar2019deep} without a uniform comparison of reduction strategies on one distributed pipeline. Apache Spark ML~\cite{zaharia2010spark,anderson2017spark} scales such pipelines but is rarely combined with feature selection, model explanation, drift and significance testing in one framework.
+
+\textbf{Feature selection and explanation.} Variable-selection theory~\cite{guyon2003introduction} distinguishes filter, wrapper and embedded methods. RF importance~\cite{breiman2001random} (embedded) and PCA~\cite{jolliffe2002pca} (unsupervised) are common but measure different quantities; SHAP~\cite{lundberg2017unified} gives consistent local explanations and is used for IDS~\cite{sarhan2022explainable} but is rarely contrasted directly with RF importance on the same Spark training set.
+
+\textbf{Evaluation rigour.} Kapoor and Narayanan~\cite{kapoor2023leakage} taxonomise leakage; Arp et al.~\cite{arp2022dos} list security-ML pitfalls; Pendlebury et al.~\cite{pendlebury2019tesseract} address space/time bias; Dem{\v{s}}ar~\cite{demsar2006statistical} and Nadeau--Bengio~\cite{nadeau2003inference} prescribe sound classifier comparison. Engelen et al.~\cite{engelen2021troubleshooting} document CICIDS2017 defects. We operationalise these principles concretely for Spark ML-IDS and quantify their impact.
+
+\textbf{Edge IDS.} Edge computing reduces latency and bandwidth~\cite{shi2016edge}; two-stage gate-then-classifier designs are motivated by anomaly surveys~\cite{chandola2009anomaly} and autoencoder detectors~\cite{lopez2020autoencoder}. Kafka~\cite{kreps2011kafka} enables decoupled streaming. We deploy a Spark-trained model on NVIDIA Jetson Orin Nano Super~\cite{nvidia2019jetson} with a measured gate trade-off.
+
+\section{Methodology}
+\label{sec:method}
+
+\subsection{Pipeline overview}
+The offline pipeline is: merge/clean flows $\rightarrow$ leakage-aware filtering $\rightarrow$ \texttt{VectorAssembler} $\rightarrow$ \texttt{StandardScaler} $\rightarrow$ optional reduction $\rightarrow$ classifier. Feature ranking, scaler and PCA are fit on the training split only; the test split is a final holdout.
+
+\subsection{Leakage-aware data preparation}
+\label{sec:leakage}
+Before splitting we apply two controls. First, we \textbf{remove port features}: \texttt{destination\_port} (and \texttt{source\_port} when present) directly encode the targeted service; since attacks were generated against fixed ports, keeping them lets a model memorise port$\rightarrow$label. Second, we \textbf{de-duplicate at the feature level}: exact-record de-duplication leaves flows that are identical on all feature columns but differ in identifier/timestamp fields, which a random split places on both sides. Both controls are toggleable, enabling an explicit ablation.
+
+\subsection{Classifiers, reduction and imbalance}
+\label{sec:hparams}
+Eight Spark ML classifiers (Decision Tree, Logistic Regression, LinearSVC, Naive Bayes, Random Forest, GBT, XGBoost~\cite{chen2016xgboost}, MLP) and two ensembles are evaluated. LightGBM is excluded because its native libraries are x86\_64-only and cannot run on the ARM64 Jetson deployment target. Hyperparameters (Table~\ref{tab:hparams}) are fixed a priori and shared across reduction strategies, so observed differences reflect the \emph{reduction method}, not per-model tuning; stochastic models fix their seed. Class imbalance is handled \emph{uniformly}: every classifier supporting sample weights receives class weights equal to the benign/attack ratio (equivalent to XGBoost's \texttt{scale\_pos\_weight}); MLP is unweighted as Spark ML offers no weight support for it. The four reduction strategies are baseline (all features), RF Top-$K$, SHAP Top-$K$ ($K\in\{20,30,40\}$) and PCA ($k\in\{20,30,40\}$); RF/SHAP rankings use the training split only, SHAP on a class-stratified sample.
+
+\begin{table}[htbp]
+  \caption{Key hyperparameters (fixed a priori).}
+  \label{tab:hparams}
+  \centering\small
+  \begin{tabular}{ll}
+    \toprule Model & Key hyperparameters \\ \midrule
+    Decision Tree & maxDepth=15, minInstancesPerNode=5, entropy \\
+    Logistic Regression & maxIter=200, regParam=0.001, L2, threshold=0.5 \\
+    LinearSVC & maxIter=100, regParam=0.001 \\
+    Naive Bayes & gaussian, smoothing=1.0 \\
+    Random Forest & numTrees=200, maxDepth=15, featureSubset=sqrt \\
+    GBT & maxIter=150, maxDepth=6, stepSize=0.05, subsample=0.8 \\
+    XGBoost & n\_estimators=300, max\_depth=8, lr=0.05, subsample=0.8 \\
+    MLP & layers=[$d$,64,32,2], maxIter=80, stepSize=0.01 \\ \midrule
+    \multicolumn{2}{l}{Imbalance: weightCol (6 models) / scale\_pos\_weight (XGBoost); MLP unweighted.} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Statistically-valid evaluation protocol}
+\label{sec:protocol}
+Metrics are Accuracy, Precision, Recall, F1, AUC-ROC, AUC-PR, plus training/prediction time and model size; AUC-PR and attack recall are prioritised under imbalance.
+\textbf{Two-stage comparison.} An exploration stage sweeps $K$ (reported in full); a confirmation stage fixes four a-priori configurations, avoiding post-hoc selection bias.
+\textbf{Disjoint robustness.} The best model per method is re-evaluated on a holdout disjoint from training (a subsample of the test split, or an external set), never a re-split of the full data.
+\textbf{Significance.} The two leading methods are retrained on $N$ independent train/test resamples ($N{=}6$ by default), both on the \emph{same} split each round (paired). Confidence intervals use the $t$ distribution ($t_{0.975,N-1}$). Significance uses a two-sided paired permutation test on per-split F1 differences; its floor is $2/2^{N}$, so $N\ge 6$ can cross $0.05$, while a single fixed split / few seeds cannot. We lead conclusions with effect size and CI, treating $p$ as supporting evidence~\cite{demsar2006statistical,nadeau2003inference}.
+\textbf{Multiclass.} Because binary benign-vs-attack is near-separable, we add per-attack multiclass evaluation (per-class recall/F1, macro-F1, confusion matrix), where rare classes reveal real differences.
+
+\section{Experimental Setup}
+\label{sec:setup}
+We use \emph{two} datasets to test generality: CICIDS2017~\cite{sharafaldin2018toward} and CSE-CIC-IDS2018 (same CICFlowMeter feature family). Both are prepared by the same dataset-agnostic script (80/20 split after leakage-aware controls). Software: Apache Spark \ph{spark}, Java \ph{java}; offline/edge hardware: a Mac (Spark master) plus two NVIDIA Jetson Orin Nano Super Developer Kits (8\,GB LPDDR5, 256\,GB NVMe SSD) acting as both Spark workers and edge nodes. Every run logs its configuration (seed, leakage/dedup switches, versions) for traceability.
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Effect of evaluation pitfalls (ablation)}
+Table~\ref{tab:ablation} quantifies leakage on the best model. Keeping \texttt{destination\_port} drives binary F1 to \ph{f1\_leak}; removing it and de-duplicating yields \ph{f1\_clean}, a drop of \ph{delta}. All subsequent results use the leak-free configuration.
+
+\begin{table}[htbp]
+  \caption{Ablation of leakage controls (best model, binary). Per dataset.}
+  \label{tab:ablation}
+  \centering\small
+  \begin{tabular}{lccc}
+    \toprule Configuration & F1 & Recall (Attack) & AUC-PR \\ \midrule
+    Keep port + exact-dedup only (leaky) & \ph{f1\_leak} & \ph{r\_leak} & \ph{pr\_leak} \\
+    Remove port + feature-dedup (ours) & \ph{f1\_clean} & \ph{r\_clean} & \ph{pr\_clean} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Cross-method comparison (two datasets)}
+Table~\ref{tab:cross} reports the best model per reduction method on each dataset (from \texttt{cross\_method\_summary.csv}). Feature selection retains near-baseline F1 while removing $\approx$60\% of features.
+
+\begin{table}[htbp]
+  \caption{Best model per method (leak-free). Fill from \texttt{cross\_method\_summary.csv}.}
+  \label{tab:cross}
+  \centering\small
+  \begin{tabular}{llcc|cc}
+    \toprule
+    & & \multicolumn{2}{c|}{CICIDS2017} & \multicolumn{2}{c}{CSE-CIC-IDS2018} \\
+    Method & Model & F1 & AUC-PR & F1 & AUC-PR \\ \midrule
+    Baseline    & \ph{m1} & \ph{a1} & \ph{b1} & \ph{c1} & \ph{d1} \\
+    RF Top-30   & \ph{m2} & \ph{a2} & \ph{b2} & \ph{c2} & \ph{d2} \\
+    SHAP Top-30 & \ph{m3} & \ph{a3} & \ph{b3} & \ph{c3} & \ph{d3} \\
+    PCA $k$=40  & \ph{m4} & \ph{a4} & \ph{b4} & \ph{c4} & \ph{d4} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Significance and per-attack analysis}
+On $N{=}6$ paired resamples, the two leading methods give F1 $=$ \ph{f1A}$\pm$\ph{ciA} and \ph{f1B}$\pm$\ph{ciB}; paired permutation $p=$\ph{pval}, so we conclude \ph{equivalent / significantly different}. Multiclass evaluation (Fig.~\ref{fig:cm}) shows majority classes at high recall but rare classes (\ph{rare classes}) at \ph{rare recall}, the regime where reduction methods diverge.
+
+\begin{figure}[htbp]
+  \centering
+  \IfFileExists{../../../results/ml_09_multiclass_eval/confusion_matrix.png}{\includegraphics[width=0.62\textwidth]{confusion_matrix.png}}{\fbox{\parbox{0.6\textwidth}{\centering\vspace{1cm}\ph{Multiclass confusion matrix --- run ml\_09}\vspace{1cm}}}}
+  \caption{Per-attack confusion matrix (row-normalised).}
+  \label{fig:cm}
+\end{figure}
+
+\section{Edge Deployment}
+\label{sec:edge}
+The selected model is exported to a two-node Jetson Orin Nano Super cluster: Jetson~\#1 runs a lightweight autoencoder anomaly gate, forwarding only suspicious flows over Kafka~\cite{kreps2011kafka} to a PySpark \texttt{PipelineModel} classifier on Jetson~\#2; a host PC runs Kafka/PostgreSQL/InfluxDB/Grafana. Three modes (pipeline split, horizontal scaling, Spark cluster) are supported. Offline F1 and edge throughput/latency belong to different phases and are not ranked jointly; offline metrics constrain \emph{which} compact model is worth deploying.
+
+\textbf{Gate as an operating curve.} Rather than a single threshold, we sweep the gate threshold and report the recall vs.\ offloading trade-off (Fig.~\ref{fig:gate}, Table~\ref{tab:gate}): a higher threshold offloads more benign traffic from Spark (higher gate-skip) at the cost of attack recall. This makes the deployment trade-off explicit and tunable per latency/accuracy budget.
+
+\begin{figure}[htbp]
+  \centering
+  \IfFileExists{../../../results/ml_08_anomaly_gate/gate_operating_points.png}{\includegraphics[width=0.62\textwidth]{gate_operating_points.png}}{\fbox{\parbox{0.6\textwidth}{\centering\vspace{1cm}\ph{Gate operating points --- run ml\_08}\vspace{1cm}}}}
+  \caption{Anomaly-gate operating points: recall vs.\ Spark offloading (and FPR).}
+  \label{fig:gate}
+\end{figure}
+
+\begin{table}[htbp]
+  \caption{End-to-end edge benchmarks (fill from \texttt{summary.csv}) and gate sweep (\texttt{gate\_operating\_points.csv}).}
+  \label{tab:gate}
+  \centering\small
+  \begin{tabular}{lcccc}
+    \toprule Mode & Throughput (flows/s) & Latency p95 (ms) & Gate skip (\%) & Attack F1 \\ \midrule
+    Single node & \ph{t0} & \ph{l0} & \ph{g0} & \ph{f0} \\
+    A: Pipeline split & \ph{tA} & \ph{lA} & \ph{gA} & \ph{fA} \\
+    B: Horizontal & \ph{tB} & \ph{lB} & N/A & \ph{fB} \\
+    C: Spark cluster & \ph{tC} & \ph{lC} & N/A & \ph{fC} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Discussion and Threats to Validity}
+\label{sec:threats}
+\textbf{Internal.} RF/SHAP rankings are fixed across resamples (consistent with the a-priori design but a mild ranking leak; nested re-ranking is costlier, especially SHAP). Imbalance is uniform for seven models but not MLP, whose results carry that caveat.
+\textbf{External.} Using two CICFlowMeter datasets improves but does not guarantee generality; encrypted/modern traffic (CIC-IoT) remains future work. The default split is random; a temporal split mode is provided for realistic and drift-faithful evaluation.
+\textbf{Statistical.} $N{=}6$ resamples give modest power; larger $N$, a Nadeau--Bengio corrected $t$-test~\cite{nadeau2003inference}, or nested CV would strengthen conclusions.
+\textbf{Systems.} Benchmarks use a two-node lab cluster over WiFi; larger clusters and wired links may shift latency tails.
+
+\section{Conclusion}
+We presented a reproducible, leakage-aware ML-IDS pipeline whose central contribution is a sound evaluation protocol, validated across two datasets and carried through to a measured Jetson Orin Nano Super edge deployment. The methodology---remove leaky features, de-duplicate, isolate holdouts, test significance over resamples, and report per-attack and edge-aware metrics---aims at trustworthy, deployable IDS results. Future work: modern datasets, corrected significance tests, and larger edge clusters with TensorRT.
+
+\begin{credits}
+\subsubsection{\ackname} Conducted at the University of Transport and Communications (HCMC Campus) and the University of Information Technology, VNU-HCM, as part of a graduation thesis.
+\subsubsection{\discintname} The authors declare no competing interests.
+\end{credits}
+
+\bibliographystyle{../../latex/splncs04}
+\bibliography{references}
+
+\end{document}

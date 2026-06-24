@@ -1,15 +1,15 @@
-# SOICT 2026 — Paper: Distributed Edge IDS on Jetson Nano
+# SOICT 2026 — Paper: Distributed Edge IDS on Jetson Orin Nano Super
 
 **Hội nghị:** [SOICT 2026 — International Symposium on ICT](https://soict.org/)  
 **Deadline abstract:** 09/09/2026 | **Full paper:** 16/09/2026 | **Hội nghị:** 04–05/12/2026
 
 ## Câu hỏi nghiên cứu
 
-Kiến trúc và đánh giá hiệu năng hệ thống IDS phân tán realtime trên 2× NVIDIA Jetson Nano với Kafka và PySpark.
+Kiến trúc và đánh giá hiệu năng hệ thống IDS phân tán realtime trên 2× NVIDIA Jetson Orin Nano Super với Kafka và PySpark.
 
 ## Đề xuất tiêu đề
 
-*A Distributed Real-Time Intrusion Detection System on Jetson Nano Edge Cluster using Kafka and PySpark*
+*A Distributed Real-Time Intrusion Detection System on Jetson Orin Nano Super Edge Cluster using Kafka and PySpark*
 
 ## Code liên quan (root repo)
 
@@ -32,7 +32,7 @@ export IDS_ROOT="$(pwd)"
 ./papers/soict2026/reproduce.sh
 ```
 
-**Bước 2 — 2× Jetson Nano (benchmark thủ công):**
+**Bước 2 — 2× Jetson Orin Nano Super (benchmark thủ công):**
 
 ```bash
 ./papers/soict2026/run_benchmarks.sh   # chạy trên từng Jetson hoặc theo hướng dẫn

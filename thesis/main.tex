@@ -1,0 +1,88 @@
+% Define metadata
+\documentclass{template/thesis}
+\Title{PHÁT HIỆN XÂM NHẬP (IDS) DỰA TRÊN APACHE SPARK CHO BẢO MẬT MẠNG IOT}
+\Title[en]{INTRUSION DETECTION (IDS) BASED ON APACHE SPARK FOR IOT NETWORK SECURITY}
+
+\ThesisType{LUẬN VĂN THẠC SĨ}
+
+\University{ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH}
+\CollegeOrDept{{TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN}}
+\Faculty{KHOA KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH}
+
+
+\Author{BÙI VĂN DŨNG}{220201014}
+
+\Degree{THẠC SĨ}
+\Major{CÔNG NGHỆ THÔNG TIN}
+% \MajorCode{123}
+\ThesisYear{2026}
+\ThesisLocation{TP. HỒ CHÍ MINH}
+
+\Supervisor{TS. NGUYỄN VĂN DŨ}
+\Supervisor{TS. ĐỖ TRÍ NHỰT}
+
+\hypersetup{
+	pdfencoding=auto,
+	pdfauthor={Bùi Văn Dũng},
+	pdfsubject={Phát hiện xâm nhập dựa trên Apache Spark cho bảo mật mạng IoT},
+	pdftitle={Phát hiện xâm nhập (IDS) dựa trên Apache Spark cho bảo mật mạng IoT},
+	pdfkeywords={IDS, Apache Spark, IoT, Machine Learning, CICIDS2017}
+}
+
+% Placeholder cho số liệu sẽ điền sau khi chạy lại pipeline (leak-free).
+% Thay mỗi \ph{...} bằng giá trị từ results/*.csv tương ứng.
+\newcommand{\ph}[1]{{\bfseries [#1]}}
+
+% TikZ libraries cho các sơ đồ (tikz + calc đã được nạp trong thesis.cls).
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric, fit, backgrounds, calc}
+
+% \renewcommand{\algorithmicrequire}{\textbf{Đầu vào:}}
+% \renewcommand{\algorithmicensure}{\textbf{Đầu ra:}}
+
+% \renewcommand{\algorithmicrequire}{\textbf{Đầu vào:}}
+% \renewcommand{\algorithmicensure}{\textbf{Đầu ra:}}
+
+\begin{document}
+\firstbeforepreface
+\secondbeforepreface
+\setcounter{page}{1}
+\newpage
+\afterpreface
+
+\chapter{Mở đầu}
+\label{c:intro}
+\input{chapters/1-MoDau}
+
+\chapter{Cơ sở lý thuyết}
+\label{c:cosolythuyet}
+\input{chapters/2-CoSoLyThuyet}
+
+
+\chapter{Phương pháp thực hiện}
+\label{c:phuongphapthuchien}
+\input{chapters/3-PhuongPhapThucHien}
+
+\chapter{Thực nghiệm, đánh giá và thảo luận}
+\label{c:thucnghiemdanhgia}
+\input{chapters/4-ThucNghiemDanhGia}
+
+
+\chapter{Kết luận và hướng phát triển}
+\label{c:ketluanvaphattrien}
+\input{chapters/5-KetLuanPhatTrien}
+
+
+\appendix
+\renewcommand{\cftchappresnum}{Phụ lục }
+\addtocontents{toc}{\protect\renewcommand{\protect\cftchappresnum}{Phụ lục }}
+\input{chapters/appendix}
+
+\begingroup
+\setlength{\emergencystretch}{8em}
+\justifying\printbibliography[title=Tài liệu tham khảo]
+\endgroup
+\addcontentsline{toc}{chapter}{Tài liệu tham khảo}
+
+
+
+\end{document}
