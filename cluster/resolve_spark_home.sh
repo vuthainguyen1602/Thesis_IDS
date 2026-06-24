@@ -22,7 +22,7 @@ resolve_spark_home() {
         ls -la "${from_pyspark}/bin" 2>&1 | head -5 >&2 || true
     fi
     echo "      On Jetson run:" >&2
-    echo "        cd ~/Thesis_IDS/raspberry && source venv/bin/activate" >&2
+    echo "        cd ~/Thesis_IDS/jetson && source venv/bin/activate" >&2
     echo "        pip install --force-reinstall 'pyspark==3.4.1'" >&2
     return 1
 }

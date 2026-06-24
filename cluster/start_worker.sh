@@ -15,9 +15,9 @@ source "$CLUSTER_DIR/resolve_spark_home.sh"
 
 export JAVA_HOME="${JAVA_HOME:-$(dirname "$(dirname "$(readlink -f "$(which java)")")")}"
 
-if [ -d "$ROOT/raspberry/venv/bin" ]; then
+if [ -d "$ROOT/jetson/venv/bin" ]; then
     # shellcheck disable=SC1091
-    source "$ROOT/raspberry/venv/bin/activate"
+    source "$ROOT/jetson/venv/bin/activate"
 elif [ -d "$ROOT/venv/bin" ]; then
     # shellcheck disable=SC1091
     source "$ROOT/venv/bin/activate"

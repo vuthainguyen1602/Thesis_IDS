@@ -7,7 +7,7 @@ PAPER_DIR="$(cd "$(dirname "$0")" && pwd)"
 OUT="$PAPER_DIR/results/benchmarks"
 mkdir -p "$OUT"
 
-cd "$ROOT/raspberry"
+cd "$ROOT/jetson"
 
 if [ ! -d "venv" ]; then
     echo "[WARN] venv not found. Run: ./scripts/setup_jetson.sh"

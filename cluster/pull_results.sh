@@ -30,12 +30,12 @@ rsync "${RSYNC_OPTS[@]}" \
 echo "[OK] results/ synced to ${LOCAL_ROOT}/results/"
 
 if [ "$PULL_MODELS" = "1" ]; then
-    mkdir -p "${LOCAL_ROOT}/raspberry/model"
+    mkdir -p "${LOCAL_ROOT}/jetson/model"
     # shellcheck disable=SC2086
     rsync "${RSYNC_OPTS[@]}" \
-        "${REMOTE}:${REMOTE_ROOT}/raspberry/model/" \
-        "${LOCAL_ROOT}/raspberry/model/"
-    echo "[OK] raspberry/model/ synced"
+        "${REMOTE}:${REMOTE_ROOT}/jetson/model/" \
+        "${LOCAL_ROOT}/jetson/model/"
+    echo "[OK] jetson/model/ synced"
 fi
 
 echo ""

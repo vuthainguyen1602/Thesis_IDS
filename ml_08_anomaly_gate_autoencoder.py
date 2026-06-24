@@ -19,12 +19,12 @@ BASE_DIR = os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))
 TRAIN_PARQUET = os.path.join(BASE_DIR, "data", "train_data.parquet")
 TEST_PARQUET = os.path.join(BASE_DIR, "data", "test_data.parquet")
 
-RPI_MODEL_DIR = os.path.join(BASE_DIR, "raspberry", "model")
-FEATURES_PATH = os.path.join(RPI_MODEL_DIR, "feature_columns.json")
+JETSON_MODEL_DIR = os.path.join(BASE_DIR, "jetson", "model")
+FEATURES_PATH = os.path.join(JETSON_MODEL_DIR, "feature_columns.json")
 
-AE_MODEL_PATH = os.path.join(RPI_MODEL_DIR, "anomaly_autoencoder.pkl")
-AE_SCALER_PATH = os.path.join(RPI_MODEL_DIR, "anomaly_scaler.pkl")
-AE_THRESHOLD_PATH = os.path.join(RPI_MODEL_DIR, "anomaly_threshold.json")
+AE_MODEL_PATH = os.path.join(JETSON_MODEL_DIR, "anomaly_autoencoder.pkl")
+AE_SCALER_PATH = os.path.join(JETSON_MODEL_DIR, "anomaly_scaler.pkl")
+AE_THRESHOLD_PATH = os.path.join(JETSON_MODEL_DIR, "anomaly_threshold.json")
 
 
 def _safe_matrix(df: pd.DataFrame, cols: list[str]) -> np.ndarray:
@@ -72,7 +72,7 @@ def main():
     if not os.path.exists(FEATURES_PATH):
         raise FileNotFoundError(
             f"{FEATURES_PATH} not found.\n"
-            "Run `python raspberry/scripts/save_model.py` first to export `feature_columns.json`."
+            "Run `python jetson/scripts/save_model.py` first to export `feature_columns.json`."
         )
 
     with open(FEATURES_PATH, "r") as f:
@@ -212,7 +212,7 @@ def main():
     except Exception as e:
         print(f"[WARN] Operating-point plot skipped: {e}")
 
-    os.makedirs(RPI_MODEL_DIR, exist_ok=True)
+    os.makedirs(JETSON_MODEL_DIR, exist_ok=True)
     joblib.dump(ae, AE_MODEL_PATH, compress=3)
     joblib.dump(scaler, AE_SCALER_PATH, compress=3)
     with open(AE_THRESHOLD_PATH, "w") as f:
@@ -224,7 +224,7 @@ def main():
     print(f"  - {AE_THRESHOLD_PATH}")
     print("\nEdge enable:")
     print("  export ANOMALY_ENABLED=1")
-    print("  python raspberry/edge/kafka_consumer.py")
+    print("  python jetson/edge/kafka_consumer.py")
 
 
 if __name__ == "__main__":

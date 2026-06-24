@@ -36,7 +36,7 @@ cp cluster/spark_cluster.env.example cluster/spark_cluster.env
 source cluster/load_cluster_env.sh
 ```
 
-Also set Kafka in `raspberry/docker-compose.yml`:
+Also set Kafka in `jetson/docker-compose.yml`:
 
 ```yaml
 KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://<MAC_IP>:9092
@@ -46,7 +46,7 @@ KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://<MAC_IP>:9092
 
 ```bash
 ssh <user>@<JETSON_IP>
-cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh
+cd ~/Thesis_IDS/jetson && ./scripts/setup_jetson.sh
 exit
 ```
 
@@ -54,7 +54,7 @@ exit
 
 ```bash
 python ml_00_prepare_cicids2017.py
-cd raspberry && docker compose up -d
+cd jetson && docker compose up -d
 python scripts/init_kafka_topics.py --partitions 2 --bootstrap localhost:9092
 ```
 
@@ -193,4 +193,4 @@ curl "http://192.168.1.165:8080/app/kill/?id=<APP_ID>&terminate=true"
 
 ## Edge deployment (SOICT)
 
-After ML + `save_model.py`, see [raspberry/JETSON_DISTRIBUTED.md](raspberry/JETSON_DISTRIBUTED.md).
+After ML + `save_model.py`, see [jetson/JETSON_DISTRIBUTED.md](jetson/JETSON_DISTRIBUTED.md).

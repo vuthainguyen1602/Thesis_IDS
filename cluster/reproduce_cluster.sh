@@ -63,7 +63,7 @@ case "$TRACK" in
     ;;
   soict)
     run_remote ml_08_anomaly_gate_autoencoder.py
-    run_local_mac raspberry/scripts/save_model.py
+    run_local_mac jetson/scripts/save_model.py
     "$CLUSTER_DIR/sync_workspace.sh"
     echo ""
     echo "Done SOICT prep. Model synced. Start Docker + Jetson edge pipelines."
@@ -77,7 +77,7 @@ case "$TRACK" in
     run_remote ml_07_cross_method_comparison.py
     run_remote ml_03_hyperparameter_tuning.py
     run_remote ml_08_anomaly_gate_autoencoder.py
-    run_local_mac raspberry/scripts/save_model.py
+    run_local_mac jetson/scripts/save_model.py
     "$CLUSTER_DIR/sync_workspace.sh"
     echo ""
     echo "Done thesis track. Model synced to Jetsons."

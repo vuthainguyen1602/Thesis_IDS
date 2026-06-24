@@ -124,7 +124,7 @@ Each node tags metrics with \texttt{EDGE\_NODE\_ID} in InfluxDB and PostgreSQL. 
 
 \section{Implementation}
 
-Training and model export run on a Spark standalone cluster (host PC as master, two Jetson Orin Nano Super devices as workers) using Apache Spark ML~\cite{zaharia2010spark}. The edge stack is implemented in Python (\texttt{raspberry/edge/}) with configurable roles via environment variables. Every offline run logs its configuration (random seed, leakage/dedup switches, library versions) so each exported model is traceable to the exact pipeline that produced it.
+Training and model export run on a Spark standalone cluster (host PC as master, two Jetson Orin Nano Super devices as workers) using Apache Spark ML~\cite{zaharia2010spark}. The edge stack is implemented in Python (\texttt{jetson/edge/}) with configurable roles via environment variables. Every offline run logs its configuration (random seed, leakage/dedup switches, library versions) so each exported model is traceable to the exact pipeline that produced it.
 
 \section{From Spark Training to Edge Deployment}
 \label{sec:bridge}

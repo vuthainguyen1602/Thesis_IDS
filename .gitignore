@@ -48,9 +48,9 @@ feature_importance.csv
 best_config.json
 
 # Edge runtime / models
-raspberry/model/ids_pipeline*/
-raspberry/model/*.pkl
-raspberry/.env
+jetson/model/ids_pipeline*/
+jetson/model/*.pkl
+jetson/.env
 cluster/spark_cluster.env
 
 !results/.gitkeep

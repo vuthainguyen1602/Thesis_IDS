@@ -1,72 +1,74 @@
 # SOICT 2026 — Paper: Distributed Edge IDS on Jetson Orin Nano Super
 
-**Hội nghị:** [SOICT 2026 — International Symposium on ICT](https://soict.org/)  
-**Deadline abstract:** 09/09/2026 | **Full paper:** 16/09/2026 | **Hội nghị:** 04–05/12/2026
+**Venue:** [SOICT 2026 — International Symposium on Information and Communication Technology](https://soict.org/)
+**Abstract deadline:** 2026-09-09 | **Full paper:** 2026-09-16 | **Conference:** 2026-12-04/05
 
-## Câu hỏi nghiên cứu
+## Research question
 
-Kiến trúc và đánh giá hiệu năng hệ thống IDS phân tán realtime trên 2× NVIDIA Jetson Orin Nano Super với Kafka và PySpark.
+Architecture and performance evaluation of a real-time distributed IDS on 2× NVIDIA Jetson Orin Nano Super using Kafka and PySpark.
 
-## Đề xuất tiêu đề
+## Title
 
-*A Distributed Real-Time Intrusion Detection System on Jetson Orin Nano Super Edge Cluster using Kafka and PySpark*
+*A Distributed Real-Time Intrusion Detection System on a Jetson Orin Nano Super Edge Cluster using Kafka and PySpark*
 
-## Code liên quan (root repo)
+## Related code (repo root)
 
-| Thành phần | Đường dẫn |
-|------------|-----------|
-| Edge pipeline | `raspberry/edge/kafka_consumer.py` |
-| 3 chế độ phân tán | `raspberry/edge/role_pipelines.py` |
-| Hướng dẫn Jetson | `raspberry/JETSON_DISTRIBUTED.md` |
+| Component | Path |
+|-----------|------|
+| Edge pipeline | `jetson/edge/kafka_consumer.py` |
+| Distributed roles | `jetson/edge/role_pipelines.py` |
+| Jetson guide | `jetson/JETSON_DISTRIBUTED.md` |
 | Anomaly gate | `ml_08_anomaly_gate_autoencoder.py` |
-| Model export | `raspberry/scripts/save_model.py` |
-| Benchmark | `raspberry/scripts/benchmark.py` |
-| Env mẫu | `raspberry/.env.jetson1.example`, `.env.jetson2.example` |
+| Model export | `jetson/scripts/save_model.py` |
+| Benchmark | `jetson/scripts/benchmark.py` |
+| Env templates | `jetson/.env.jetson1.example`, `.env.jetson2.example` |
 
 ## Reproduce
 
-**Bước 1 — PC/Mac (train + export + infra):**
+**Step 1 — Mac (train + export + infra), dispatched to the Jetson cluster:**
 
 ```bash
 export IDS_ROOT="$(pwd)"
-./papers/soict2026/reproduce.sh
+./cluster/reproduce_cluster.sh soict
 ```
 
-**Bước 2 — 2× Jetson Orin Nano Super (benchmark thủ công):**
+**Step 2 — 2× Jetson Orin Nano Super (edge benchmark):**
 
 ```bash
-./papers/soict2026/run_benchmarks.sh   # chạy trên từng Jetson hoặc theo hướng dẫn
+./papers/soict2026/run_benchmarks.sh   # local | run | merge → summary.csv
 ```
 
-**Bước 3 — Thu kết quả:**
+**Step 3 — Collect results:**
 
 ```bash
 ./papers/soict2026/collect_results.sh
+python papers/soict2026/plot_edge_modes.py   # → edge_modes.png
 ```
 
-## 3 chế độ phân tán (so sánh trong bài)
+## Three distributed modes (compared in the paper)
 
 | Mode | Jetson #1 | Jetson #2 | Env |
 |------|-----------|-----------|-----|
 | A — Pipeline split | `EDGE_NODE_ROLE=anomaly_gate` | `EDGE_NODE_ROLE=classifier` | `.env.jetson1/2.example` |
 | B — Horizontal | `EDGE_NODE_ROLE=full` | `EDGE_NODE_ROLE=full` | `.env.jetson-horizontal.example` |
-| C — Spark cluster | Spark master | Spark worker | `start_spark_master/worker.sh` |
+| C — Spark cluster | Spark worker | Spark worker | `cluster/start_worker.sh` (Mac = master) |
 
-## Metrics cần báo cáo
+## Metrics to report
 
 - Throughput (flows/s)
 - Latency p50 / p95 (ms)
-- CPU %, RAM (MB), nhiệt độ (°C) mỗi node
-- Attack detection rate
-- % flows filtered by anomaly gate (mode A)
+- CPU %, RAM (MB), temperature (°C) per node
+- Attack-class F1
+- Gate-skip ratio — % of flows filtered by the anomaly gate (mode A)
+- Energy per inference (mJ) via `tegrastats` (`jetson/edge/power_monitor.py`)
 
-Lưu benchmark JSON vào `results/benchmarks/` trước khi chạy `collect_results.sh`.
+Benchmark CSV/JSON is written to `papers/soict2026/results/benchmarks/` before `collect_results.sh`.
 
 ## Manuscript
 
-Đặt bài tiếng Anh trong `manuscript/`.
+The English paper is in `manuscript/` (Springer LNCS template, XeLaTeX).
 
 ## Cross-reference
 
-- Chọn model (DT, SHAP Top-30): trích bài FAIR hoặc `papers/fair2026/`
-- Luận văn đầy đủ: `thesis/`
+- Model selection (DT, SHAP Top-30): see the FAIR paper / `papers/fair2026/`
+- Full thesis: `thesis/`

@@ -15,14 +15,14 @@ else
 fi
 
 cd "$ROOT"
-if [ -d raspberry/venv/bin ]; then
+if [ -d jetson/venv/bin ]; then
     # shellcheck disable=SC1091
-    source raspberry/venv/bin/activate
+    source jetson/venv/bin/activate
 elif [ -d venv/bin ]; then
     # shellcheck disable=SC1091
     source venv/bin/activate
 else
-    echo "[ERR] No venv found under $ROOT (run raspberry/scripts/setup_jetson.sh first)" >&2
+    echo "[ERR] No venv found under $ROOT (run jetson/scripts/setup_jetson.sh first)" >&2
     exit 1
 fi
 

@@ -1,57 +1,59 @@
 # FAIR'2026 — Paper: ML & Feature Selection for IDS
 
-**Hội nghị:** [The 19th FAIR — Fundamental and Applied IT Research](https://fair.conf.vn/)  
-**Chủ đề:** Artificial Intelligence and Its Future Trends  
-**Deadline:** 15/08/2026 | **Hội nghị:** 08–09/10/2026, HUIT TP.HCM
+**Venue:** [The 19th FAIR — Fundamental and Applied IT Research](https://fair.conf.vn/)
+**Topic:** Artificial Intelligence and Its Future Trends
+**Deadline:** 2026-08-15 | **Conference:** 2026-10-08/09, HUIT, Ho Chi Minh City
 
-## Câu hỏi nghiên cứu
+## Research question
 
-So sánh có hệ thống các phương pháp giảm chiều (RF Importance, SHAP, PCA) cho phát hiện xâm nhập mạng trên Apache Spark ML với dataset CICIDS2017.
+A systematic comparison of dimensionality-reduction and feature-selection methods (RF Importance, SHAP, PCA) for network intrusion detection on Apache Spark ML, evaluated on CICIDS2017 under a leakage-aware protocol.
 
-## Đề xuất tiêu đề
+## Title
 
-**VI:** *So sánh các phương pháp giảm chiều và lựa chọn đặc trưng cho phát hiện xâm nhập mạng sử dụng Apache Spark ML*
+**VI:** *So sánh giảm chiều và lựa chọn đặc trưng cho phát hiện xâm nhập mạng trên Apache Spark ML với quy trình đánh giá loại trừ rò rỉ dữ liệu*
+**EN:** *A Comparative Study of Feature Selection and Dimensionality Reduction for Network Intrusion Detection on Spark ML under a Leakage-Aware Protocol*
 
-**EN:** *A Comparative Study of Feature Selection and Dimensionality Reduction for Network Intrusion Detection using Spark ML*
+## Experiments (code at repo root)
 
-## Experiments (code ở root repo)
-
-| Script | Mô tả |
-|--------|-------|
+| Script | Description |
+|--------|-------------|
 | `ml_01_baseline_all_features.py` | Baseline — all features |
 | `ml_02_feature_selection_rf.py` | RF Top-20/30/40 |
 | `ml_04_dimensionality_reduction_pca.py` | PCA k=20/30/40 |
 | `ml_05_shap_explainability.py` | SHAP XAI |
 | `ml_06_feature_selection_shap.py` | SHAP Top-20/30/40 |
-| `ml_07_cross_method_comparison.py` | So sánh 4 phương pháp + drift/robustness |
+| `ml_07_cross_method_comparison.py` | 4-method comparison + drift/robustness |
 | `ml_09_multiclass_eval.py` | Per-attack multiclass + confusion matrix |
-| `ml_10_leakage_ablation.py` | Ablation rò rỉ `destination_port` |
+| `ml_10_leakage_ablation.py` | `destination_port` leakage ablation |
 
 ## Reproduce
 
+All experiments run on the distributed cluster (Mac + 2× Jetson). See [../../cluster/DISTRIBUTED_CLUSTER.md](../../cluster/DISTRIBUTED_CLUSTER.md).
+
 ```bash
 export IDS_ROOT="$(pwd)"
-./papers/fair2026/reproduce.sh
+./cluster/reproduce_cluster.sh fair     # dispatches ml_01..ml_10 to the Jetson workers
+./cluster/pull_results.sh
 ./papers/fair2026/collect_results.sh
 ```
 
-## Figures chính cho bài báo
+## Main figures
 
-Hình lấy trực tiếp từ thư mục gốc (không copy trùng):
+Figures are read directly from the results folders (no duplicate copies):
 
-| Figure | Nguồn |
-|--------|-------|
+| Figure | Source |
+|--------|--------|
 | F1 heatmap | `results/ml_07_cross_method_comparison/f1_heatmap.png` |
 | Cross-method F1 | `results/ml_07_cross_method_comparison/cross_method_f1_comparison.png` |
-| Drift simulation | `results/ml_07_cross_method_comparison/drift_simulation_f1.png` |
+| Train/predict time | `results/ml_07_cross_method_comparison/train_predict_time.png` |
 | Confusion matrix | `results/ml_09_multiclass_eval/confusion_matrix.png` |
 | Leakage ablation | `results/ml_10_leakage_ablation/leakage_ablation.png` |
 
 ## Manuscript
 
-Đặt bài viết trong `manuscript/` (LaTeX template FAIR hoặc Word theo hướng dẫn hội nghị).
+The paper is in `manuscript/` (IEEE conference template, XeLaTeX + Vietnamese).
 
-## Không nằm trong paper này
+## Out of scope for this paper
 
-- Triển khai Jetson Orin Nano Super / Kafka → xem [../soict2026/](../soict2026/)
-- Luận văn đầy đủ → xem [../../thesis/](../../thesis/)
+- Jetson Orin Nano Super / Kafka deployment → see [../soict2026/](../soict2026/)
+- Full thesis → see [../../thesis/](../../thesis/)

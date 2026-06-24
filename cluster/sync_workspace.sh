@@ -15,7 +15,7 @@ LOCAL_DATA="${IDS_DATA_DIR:-$LOCAL_ROOT/data}"
 RSYNC_EXCLUDES=(
     --exclude '.git'
     --exclude 'venv'
-    --exclude 'raspberry/venv'
+    --exclude 'jetson/venv'
     --exclude '__pycache__'
     --exclude '.idea'
     --exclude 'data_smoke'

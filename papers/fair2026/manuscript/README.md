@@ -1,37 +1,37 @@
-# Manuscript — FAIR'2026 (Springer LNCS)
+# Manuscript — FAIR'2026 (IEEE conference template)
 
-Dựa trên `Latex-Template-for-Springer/` (llncs.cls + splncs04.bst).
+Built on the IEEE conference template (`IEEEtran.cls` + `ieeetr.bst`) in `../IEEE-conference-template-062824/`, compiled with **XeLaTeX** for Vietnamese.
 
 ## Files
 
-| File | Mô tả |
-|------|--------|
-| `main.tex` | Bài báo tiếng Việt (~8--10 trang) |
-| `references.bib` | Tài liệu tham khảo BibTeX |
-| `compile.sh` | Biên dịch PDF |
+| File | Description |
+|------|-------------|
+| `main.tex` | The paper (Vietnamese, IEEE 2-column, ~6 pages) |
+| `references.bib` | BibTeX references |
+| `compile.sh` | Build the PDF (xelatex → bibtex → xelatex ×2) |
 
-## Biên dịch
+## Build
 
 ```bash
-# Thu hình trước (từ root repo)
+# Collect figures first (from the repo root)
 ./papers/fair2026/collect_results.sh
 
-# Biên dịch
+# Compile
 cd papers/fair2026/manuscript
 ./compile.sh
 # → main.pdf
 ```
 
-**Yêu cầu:** TeX Live với `xelatex`, `bibtex`, gói `booktabs`, `polyglossia`, `fontspec`.
+**Requirements:** TeX Live with `xelatex` and `bibtex`; packages `IEEEtran`, `fontspec`, `polyglossia`, `booktabs`, `amsmath`, `multirow`. The Vietnamese main font is set in `../../latex/fonts-xelatex-vi.tex` (Times New Roman by default).
 
 ```bash
-# macOS — cài đặt đầy đủ hơn texlive-basic nếu thiếu gói
+# macOS — full TeX Live if packages are missing
 # brew install --cask mactex-no-gui
 ```
 
-## TODO trước khi nộp FAIR
+## TODO before submission
 
-- [x] Tên tác giả, trường, email
-- [ ] Hoàn thiện mục Related Work
-- [ ] Cập nhật Bảng~\ref{tab:best-results} từ `tables/cross_method_summary.csv`
-- [ ] Kiểm tra format theo hướng dẫn [FAIR'2026](https://fair.conf.vn/)
+- [x] Author names, affiliations, emails
+- [x] Related work
+- [ ] Fill the `\ph{...}` placeholders with real values after running the pipeline on the Jetson cluster
+- [ ] Final format check against the [FAIR'2026](https://fair.conf.vn/) instructions

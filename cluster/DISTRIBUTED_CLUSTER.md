@@ -45,11 +45,11 @@ If Mac IP changes (new WiFi):
 ```bash
 ipconfig getifaddr en0
 # Update cluster/spark_cluster.env → MAC_IP
-# Update raspberry/docker-compose.yml → KAFKA_ADVERTISED_LISTENERS EXTERNAL://<new-ip>:9092
+# Update jetson/docker-compose.yml → KAFKA_ADVERTISED_LISTENERS EXTERNAL://<new-ip>:9092
 ./cluster/sync_workspace.sh
 ./cluster/stop_cluster.sh && ./cluster/start_master_mac.sh
 # Restart workers on each Jetson
-cd raspberry && docker compose up -d
+cd jetson && docker compose up -d
 ```
 
 Verify from Jetson:
@@ -109,7 +109,7 @@ Edit the following:
 
 **Important:** Do not set `IDS_ROOT` to a Jetson path on Mac — use `IDS_MAC_ROOT` for sync.
 
-Update Kafka Docker on Mac — `raspberry/docker-compose.yml`:
+Update Kafka Docker on Mac — `jetson/docker-compose.yml`:
 
 ```yaml
 KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://192.168.1.165:9092
@@ -129,7 +129,7 @@ Set `JETSON2_ENABLED=0` in `spark_cluster.env`.
 source cluster/load_cluster_env.sh
 
 ./cluster/start_master_mac.sh
-cd raspberry && docker compose up -d
+cd jetson && docker compose up -d
 python scripts/init_kafka_topics.py --partitions 2 --bootstrap localhost:9092
 ```
 
@@ -143,7 +143,7 @@ scp cluster/spark_cluster.env bvdung@192.168.1.50:~/Thesis_IDS/cluster/
 
 # On Jetson
 ssh bvdung@192.168.1.50
-cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh
+cd ~/Thesis_IDS/jetson && ./scripts/setup_jetson.sh
 cd ~/Thesis_IDS
 unset SPARK_HOME    # if previously set to wrong /opt/spark
 source cluster/load_cluster_env.sh
@@ -180,7 +180,7 @@ ssh bvdung@192.168.1.205 "mkdir -p ~/Thesis_IDS/cluster"
 scp cluster/spark_cluster.env bvdung@192.168.1.205:~/Thesis_IDS/cluster/
 
 ssh bvdung@192.168.1.205
-cd ~/Thesis_IDS/raspberry && ./scripts/setup_jetson.sh
+cd ~/Thesis_IDS/jetson && ./scripts/setup_jetson.sh
 cd ~/Thesis_IDS && source cluster/load_cluster_env.sh && ./cluster/start_worker.sh
 ```
 
@@ -204,7 +204,7 @@ source cluster/load_cluster_env.sh
 | #1 | `192.168.1.50` | `.env.jetson1.example` | `EDGE_NODE_ROLE=anomaly_gate` |
 | #2 | `192.168.1.205` | `.env.jetson2.example` | `EDGE_NODE_ROLE=classifier` |
 
-Both point Kafka/DB to `MAC_IP` (`192.168.1.165`). Details: [raspberry/JETSON_DISTRIBUTED.md](../raspberry/JETSON_DISTRIBUTED.md)
+Both point Kafka/DB to `MAC_IP` (`192.168.1.165`). Details: [jetson/JETSON_DISTRIBUTED.md](../jetson/JETSON_DISTRIBUTED.md)
 
 ---
 
@@ -286,8 +286,8 @@ New app on UI must show **Cores > 0** (typically 8). If **0 cores** + `WAITING` 
 |------|-------------------------|
 | Experiment reports, CSV, PNG | `~/Thesis_IDS/results/ml_0X_.../` on **Jetson #1** |
 | Shared config | `~/Thesis_IDS/results/shared/best_config.json` |
-| Edge PySpark model | `~/Thesis_IDS/raspberry/model/` (after `save_model.py`) |
-| Autoencoder gate | `raspberry/model/anomaly_*.pkl` (after `ml_08`) |
+| Edge PySpark model | `~/Thesis_IDS/jetson/model/` (after `save_model.py`) |
+| Autoencoder gate | `jetson/model/anomaly_*.pkl` (after `ml_08`) |
 
 **Jetson #2 does not store ML results** — it only runs Spark executors.
 
@@ -334,7 +334,7 @@ rsync -avz bvdung@192.168.1.50:~/Thesis_IDS/results/ ~/Desktop/Thesis_IDS/result
 Manual install (if needed):
 
 ```bash
-cd ~/Thesis_IDS/raspberry && source venv/bin/activate
+cd ~/Thesis_IDS/jetson && source venv/bin/activate
 pip install -r ../cluster/requirements_ml_driver.txt
 ```
 
@@ -430,7 +430,7 @@ exit
 | pip `IncompleteRead` on Jetson | Install packages one-by-one |
 | `Missing parquet on Jetson` | `./cluster/sync_workspace.sh`; verify `IDS_MAC_ROOT` on Mac |
 | Kafka `NoBrokersAvailable` | Wait 30s after `docker compose up`; use `--bootstrap localhost:9092` on Mac |
-| Kafka `Restarting (1)` / `InconsistentClusterIdException` | Stale volume — `docker compose stop kafka && docker volume rm raspberry_kafka_data && docker compose up -d kafka` |
+| Kafka `Restarting (1)` / `InconsistentClusterIdException` | Stale volume — `docker compose stop kafka && docker volume rm jetson_kafka_data && docker compose up -d kafka` |
 | OOM on Jetson | Run `sudo ./cluster/setup_swap_jetson.sh` on each Jetson (8GB NVMe swap), or reduce `SPARK_EXECUTOR_MEMORY` |
 
 ---
@@ -443,7 +443,7 @@ exit
 | `cluster/load_cluster_env.sh` | Load config (zsh + bash) |
 | `cluster/setup_swap_jetson.sh` | One-time: create 8GB NVMe swap on each Jetson (disables zram) |
 | `cluster/sync_workspace.sh` | rsync Mac → Jetson(s) |
-| `cluster/pull_results.sh` | rsync Jetson #1 → Mac (`results/`, `raspberry/model/`) |
+| `cluster/pull_results.sh` | rsync Jetson #1 → Mac (`results/`, `jetson/model/`) |
 | `cluster/run_ml_remote.sh` | SSH driver on Jetson #1 |
 | `cluster/start_master_mac.sh` | Spark master on Mac |
 | `cluster/start_worker.sh` | Spark worker on Jetson |
