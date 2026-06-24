@@ -173,7 +173,7 @@ Tính giải thích (explainability) là một thành phần thiết yếu trong
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=\linewidth]{img/shap_feature_importance_top30.png}
+    \IfFileExists{img/shap_feature_importance_top30.png}{\includegraphics[width=\linewidth]{img/shap_feature_importance_top30.png}}{\fbox{\parbox{0.9\linewidth}{\centering\vspace{1.4cm}\ph{Biểu đồ SHAP Top-30 --- chạy ml\_06\_feature\_selection\_shap.py rồi \texttt{thesis/collect\_figures.sh}}\vspace{1.4cm}}}}
     \caption{Top 30 đặc trưng quan trọng theo giá trị trung bình tuyệt đối SHAP của mô hình \ac{xgb}}
     \label{fig:shap_summary}
 \end{figure}
@@ -549,7 +549,7 @@ Hình~\ref{fig:benchmark_comparison} minh họa trực quan sự khác biệt gi
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.85\textwidth]{img/benchmark_comparison.png}
+    \IfFileExists{img/benchmark_comparison.png}{\includegraphics[width=0.85\textwidth]{img/benchmark_comparison.png}}{\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.4cm}\ph{Biểu đồ so sánh hiệu năng --- tạo từ \texttt{benchmark\_comparison.json}}\vspace{1.4cm}}}}
     \caption{So sánh hiệu năng ba mô hình trên Jetson Orin Nano Super}
     \label{fig:benchmark_comparison}
 \end{figure}
@@ -566,7 +566,7 @@ Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữ
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.75\textwidth]{img/model_tradeoff_radar.png}
+    \IfFileExists{img/model_tradeoff_radar.png}{\includegraphics[width=0.75\textwidth]{img/model_tradeoff_radar.png}}{\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.4cm}\ph{Biểu đồ radar trade-off --- tạo từ \texttt{benchmark\_comparison.json}}\vspace{1.4cm}}}}
     \caption{Biểu đồ radar thể hiện sự đánh đổi (trade-off) giữa các mô hình trên thiết bị biên}
     \label{fig:model_tradeoff}
 \end{figure}
