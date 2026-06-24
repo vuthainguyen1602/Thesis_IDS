@@ -191,18 +191,6 @@ curl "http://192.168.1.165:8080/app/kill/?id=<APP_ID>&terminate=true"
 
 ---
 
-## Local mode (Mac only — debug)
-
-```bash
-export IDS_ROOT="$(pwd)"
-export IDS_ALLOW_LOCAL_SPARK=1
-python ml_01_baseline_all_features.py
-```
-
-Not used for paper/thesis reproduction.
-
----
-
 ## Edge deployment (SOICT)
 
 After ML + `save_model.py`, see [raspberry/JETSON_DISTRIBUTED.md](raspberry/JETSON_DISTRIBUTED.md).
