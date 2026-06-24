@@ -40,7 +40,7 @@ Logistic Reg. & maxIter & 200 & Đảm bảo hội tụ trên tập dữ liệu 
 & regParam & 0.001 & Kiểm soát regularization. \\
 & elasticNetParam & 0.0 & Sử dụng Ridge (L2) ổn định hơn. \\
 \midrule
-\ac{svm} (LinearSVC) & maxIter & 100 & Số lần lặp tối ưu hóa biên. \\
+\ac{svm} (LinearSVC) & maxIter & 200 & Số lần lặp tối ưu hóa biên. \\
 & regParam & 0.001 & Tham số điều chuẩn biên quyết định. \\
 \midrule
 \ac{nb} & modelType & gaussian & Phù hợp cho đặc trưng liên tục. \\
@@ -62,7 +62,7 @@ Logistic Reg. & maxIter & 200 & Đảm bảo hội tụ trên tập dữ liệu 
 \midrule
 \multirow{2}{*}{MLP}
 & layers & [dim, 64, 32, 2] & Mạng nơ-ron 2 lớp ẩn. \\
-& maxIter & 80 & Số vòng lặp huấn luyện tối đa. \\
+& maxIter & 150 & Số vòng lặp huấn luyện tối đa. \\
 \bottomrule
 \end{tabular*}
 \end{table}

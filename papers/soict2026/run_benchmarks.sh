@@ -18,7 +18,6 @@ ROLE="${EDGE_NODE_ROLE:-full}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
 
 if [ -f "venv/bin/activate" ]; then
-    # shellcheck disable=SC1091
     source venv/bin/activate
 fi
 

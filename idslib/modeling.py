@@ -1,7 +1,7 @@
 """IDS modeling: classifiers, training, ensembles, metrics, statistical tests."""
-from .core import *  # noqa: F401,F403
+from .core import *
 # Hyperparameter tuning utilities (re-exported for ml_03).
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder  # noqa: F401
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 
 
 # Column carrying per-row class weights (added to the training data by the
@@ -70,7 +70,7 @@ def get_classifiers(
         featuresCol=features_col,
         labelCol=label_col,
         weightCol=w,
-        maxIter=100,
+        maxIter=200,
         regParam=0.001,
         threshold=0.0,
     )
@@ -134,7 +134,7 @@ def get_classifiers(
         featuresCol=features_col,
         labelCol=label_col,
         layers=layers,
-        maxIter=80,
+        maxIter=150,
         blockSize=128,
         stepSize=0.01,
         seed=seed,

@@ -6,20 +6,16 @@ CLUSTER_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$CLUSTER_DIR/.." && pwd)"
 
 if [ -f "$CLUSTER_DIR/spark_cluster.env" ]; then
-    # shellcheck disable=SC1091
     source "$CLUSTER_DIR/load_cluster_env.sh"
 fi
 
-# shellcheck disable=SC1091
 source "$CLUSTER_DIR/resolve_spark_home.sh"
 
 export JAVA_HOME="${JAVA_HOME:-$(dirname "$(dirname "$(readlink -f "$(which java)")")")}"
 
 if [ -d "$ROOT/jetson/venv/bin" ]; then
-    # shellcheck disable=SC1091
     source "$ROOT/jetson/venv/bin/activate"
 elif [ -d "$ROOT/venv/bin" ]; then
-    # shellcheck disable=SC1091
     source "$ROOT/venv/bin/activate"
 fi
 

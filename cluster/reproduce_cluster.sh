@@ -5,7 +5,6 @@ set -euo pipefail
 CLUSTER_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$CLUSTER_DIR/.." && pwd)"
 
-# shellcheck disable=SC1091
 source "$CLUSTER_DIR/load_cluster_env.sh"
 
 TRACK="${1:-fair}"
@@ -13,7 +12,6 @@ TRACK="${1:-fair}"
 run_local_mac() {
     cd "$ROOT"
     if [ -d venv/bin ]; then
-        # shellcheck disable=SC1091
         source venv/bin/activate
     fi
     export IDS_ROOT="$ROOT"

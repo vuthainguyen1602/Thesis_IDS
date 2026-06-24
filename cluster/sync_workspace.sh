@@ -5,7 +5,6 @@ set -euo pipefail
 CLUSTER_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$CLUSTER_DIR/.." && pwd)"
 
-# shellcheck disable=SC1091
 source "$CLUSTER_DIR/load_cluster_env.sh"
 
 REMOTE_ROOT="${CLUSTER_DRIVER_IDS_ROOT:-/home/jetson/Thesis_IDS}"
@@ -29,9 +28,7 @@ sync_host() {
     echo "================================================================"
     echo "  Sync -> ${ssh_target}:${REMOTE_ROOT}"
     echo "================================================================"
-    # shellcheck disable=SC2086
     ssh ${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10} "$ssh_target" "mkdir -p '${REMOTE_ROOT}'"
-    # shellcheck disable=SC2086
     rsync -avz -e "ssh ${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10}" --delete "${RSYNC_EXCLUDES[@]}" \
         "$LOCAL_ROOT/" "${ssh_target}:${REMOTE_ROOT}/"
 }

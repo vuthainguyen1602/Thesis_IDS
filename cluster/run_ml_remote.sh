@@ -5,7 +5,6 @@ set -euo pipefail
 CLUSTER_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$CLUSTER_DIR/.." && pwd)"
 
-# shellcheck disable=SC1091
 source "$CLUSTER_DIR/load_cluster_env.sh"
 
 SCRIPT="${1:-}"
@@ -38,7 +37,6 @@ install_ml_deps_remote() {
     local host="$1"
     echo ""
     echo "[INFO] Ensuring ML deps on executor host: $host"
-    # shellcheck disable=SC2086
     ssh $SSH_OPTS "$host" "IDS_ROOT='$REMOTE_ROOT' bash -s" < "$INSTALL_SCRIPT"
 }
 
@@ -48,7 +46,6 @@ if [ "${JETSON2_ENABLED:-0}" = "1" ] && [ -n "${JETSON2_SSH:-}" ]; then
     install_ml_deps_remote "$JETSON2_SSH"
 fi
 
-# shellcheck disable=SC2086
 ssh $SSH_OPTS "$DRIVER" bash -s <<EOF
 set -euo pipefail
 cd "$REMOTE_ROOT"

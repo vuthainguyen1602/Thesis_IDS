@@ -34,7 +34,7 @@ from shared_utils import (
     Pipeline,
     VectorAssembler,
     StandardScaler,
-    ML07_DIR,  # noqa: F401  (kept for parity / discoverability)
+    ML07_DIR,
 )
 from pyspark.ml.classification import RandomForestClassifier
 

@@ -39,7 +39,7 @@ import psutil
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from config import (  # noqa: E402
+from config import (
     DATA_CSV_PATH,
     EDGE_NODE_ID,
     EDGE_NODE_ROLE,

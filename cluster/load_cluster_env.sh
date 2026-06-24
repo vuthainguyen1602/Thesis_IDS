@@ -20,7 +20,6 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 fi
 
-# shellcheck disable=SC1091
 source "$ENV_FILE"
 
 export IDS_SPARK_CLUSTER=1

@@ -5,7 +5,6 @@ set -euo pipefail
 CLUSTER_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if [ -f "$CLUSTER_DIR/spark_cluster.env" ]; then
-    # shellcheck disable=SC1091
     source "$CLUSTER_DIR/load_cluster_env.sh"
 fi
 
@@ -38,7 +37,6 @@ fi
 check_data() {
     local ssh_target="$1"
     local path="${IDS_CLUSTER_DATA_DIR:-/home/jetson/Thesis_IDS/data}"
-    # shellcheck disable=SC2086
     if ssh ${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10} "$ssh_target" \
         "test -d '${path}/train_data.parquet' && ls '${path}/train_data.parquet'/part-*.parquet 1>/dev/null 2>&1"; then
         echo "[OK] Parquet on $ssh_target: $path"

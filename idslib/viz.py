@@ -1,6 +1,6 @@
 """IDS visualisation: comparison plots and SHAP explainability."""
-from .core import *  # noqa: F401,F403
-from .data import stratified_sample  # noqa: F401
+from .core import *
+from .data import stratified_sample
 
 
 def plot_comparison(

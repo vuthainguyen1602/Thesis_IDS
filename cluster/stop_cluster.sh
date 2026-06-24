@@ -5,7 +5,6 @@ set -euo pipefail
 CLUSTER_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if [ -f "$CLUSTER_DIR/spark_cluster.env" ]; then
-    # shellcheck disable=SC1091
     source "$CLUSTER_DIR/load_cluster_env.sh"
 fi
 

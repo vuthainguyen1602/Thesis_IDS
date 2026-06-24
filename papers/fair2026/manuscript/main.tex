@@ -129,12 +129,12 @@ Siêu tham số (Bảng~\ref{tab:hparams}) được \emph{cố định từ trư
     \midrule
     Decision Tree & maxDepth=15, minInstancesPerNode=5, impurity=entropy \\
     Logistic Regression & maxIter=200, regParam=0.001, L2, threshold=0.5 \\
-    SVM (LinearSVC) & maxIter=100, regParam=0.001 \\
+    SVM (LinearSVC) & maxIter=200, regParam=0.001 \\
     Naive Bayes & gaussian, smoothing=1.0 \\
     Random Forest & numTrees=200, maxDepth=15, featureSubset=sqrt \\
     GBT & maxIter=150, maxDepth=6, stepSize=0.05, subsample=0.8 \\
     XGBoost & n\_estimators=300, max\_depth=8, lr=0.05, subsample=0.8, colsample=0.8 \\
-    MLP & layers=[$d$,64,32,2], maxIter=80, stepSize=0.01 \\
+    MLP & layers=[$d$,64,32,2], maxIter=150, stepSize=0.01 \\
     \midrule
     \multicolumn{2}{l}{Cân bằng lớp: \texttt{weightCol} (6 mô hình) / \texttt{scale\_pos\_weight} (XGBoost); MLP không trọng số.} \\
     \bottomrule
