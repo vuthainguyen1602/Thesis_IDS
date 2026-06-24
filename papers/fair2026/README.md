@@ -24,6 +24,8 @@ So sánh có hệ thống các phương pháp giảm chiều (RF Importance, SHA
 | `ml_05_shap_explainability.py` | SHAP XAI |
 | `ml_06_feature_selection_shap.py` | SHAP Top-20/30/40 |
 | `ml_07_cross_method_comparison.py` | So sánh 4 phương pháp + drift/robustness |
+| `ml_09_multiclass_eval.py` | Per-attack multiclass + confusion matrix |
+| `ml_10_leakage_ablation.py` | Ablation rò rỉ `destination_port` |
 
 ## Reproduce
 
@@ -42,6 +44,8 @@ Hình lấy trực tiếp từ thư mục gốc (không copy trùng):
 | F1 heatmap | `results/ml_07_cross_method_comparison/f1_heatmap.png` |
 | Cross-method F1 | `results/ml_07_cross_method_comparison/cross_method_f1_comparison.png` |
 | Drift simulation | `results/ml_07_cross_method_comparison/drift_simulation_f1.png` |
+| Confusion matrix | `results/ml_09_multiclass_eval/confusion_matrix.png` |
+| Leakage ablation | `results/ml_10_leakage_ablation/leakage_ablation.png` |
 
 ## Manuscript
 

@@ -1,6 +1,8 @@
 # IDS Edge Deployment — Detailed Guide
 
-This guide covers the deployment of the **PySpark-based IDS** onto a **Raspberry Pi 4B (8GB)** using a **Split Deployment** architecture.
+This guide covers deploying the **PySpark-based IDS** onto an **NVIDIA Jetson Orin Nano Super (8GB)** edge node using a **Split Deployment** architecture: Docker infrastructure (Kafka/Postgres/InfluxDB/Grafana) runs on the **Mac**, inference runs on the **edge**. A **Raspberry Pi 4B (8GB)** also works as an alternative single-node target — the edge code is identical; only the OS setup script differs.
+
+> **Distributed 2× Jetson modes** (horizontal split, anomaly-gate + classifier roles) are documented separately in **[JETSON_DISTRIBUTED.md](JETSON_DISTRIBUTED.md)**. This guide covers a **single** edge node.
 
 ---
 
@@ -10,9 +12,9 @@ If you are already familiar with the setup, use these commands in order:
 
 1. **Mac**: `cd raspberry && docker compose up -d` (Start Infra)
 2. **Mac**: `python scripts/save_model.py` (Export trained model)
-3. **RPi**: `./scripts/setup_raspberry.sh` (First time only)
-4. **RPi**: `scp -r mac_user@mac_ip:~/path/to/model ~/raspberry/model/`
-5. **RPi**: `python edge/kafka_consumer.py` (Start Detection)
+3. **Jetson**: `./scripts/setup_jetson.sh` (First time only; on RPi use `setup_raspberry.sh`)
+4. **Jetson**: `scp -r mac_user@mac_ip:~/path/to/model ~/Thesis_IDS/raspberry/model/`
+5. **Jetson**: `python edge/kafka_consumer.py` (Start Detection)
 6. **Mac**: `python sender/data_sender.py` (Send stream)
 
 ---
@@ -33,7 +35,7 @@ If you are already familiar with the setup, use these commands in order:
                       │  WiFi / Ethernet (same LAN)
                       │
 ┌─────────────────────┴───────────────────────────────────┐
-│                 RASPBERRY PI 4B                          │
+│           JETSON ORIN NANO SUPER 8GB (or RPi 4B)         │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │  Kafka Consumer → (Optional) Anomaly Gate (AE)    │   │
 │  │  → Preprocessor → PySpark Model → Monitor → Alert │   │
@@ -123,57 +125,56 @@ ifconfig | grep "inet " | grep -v 127.0.0.1if
 
 ---
 
-## PART 2: SETUP ON RASPBERRY PI
+## PART 2: SETUP ON THE JETSON (EDGE NODE)
 
-### Step 2.1: Prepare Raspberry Pi OS
+### Step 2.1: Flash JetPack (Jetson Orin Nano Super)
 
 ```bash
-# Install Raspberry Pi OS 64-bit using Raspberry Pi Imager
-# Download: https://www.raspberrypi.com/software/
-# Select: Raspberry Pi OS (64-bit) Lite or Desktop
-# Write to a 32GB SD Card
+# Flash JetPack 6.x (Ubuntu, aarch64) with NVIDIA SDK Manager or the SD-card image.
+# Download: https://developer.nvidia.com/embedded/jetpack
+# Boot the Jetson, complete first-boot setup, and connect it to the SAME LAN as the Mac.
 
-# Insert the SD card, power on the RPi, connect to the same WiFi/Ethernet network as the Mac
+# (Alternative target — Raspberry Pi 4B: flash Raspberry Pi OS 64-bit to a 32GB SD card.)
 ```
 
-### Step 2.2: SSH into the Raspberry Pi
+### Step 2.2: SSH into the Jetson
 
 ```bash
-# From Mac, SSH into the RPi
-ssh pi@<rpi-ip>
-# Default password: raspberry (change it immediately)
-
-# Or if using the Desktop version, open Terminal on the RPi
+# From Mac, SSH into the Jetson
+ssh <user>@<jetson-ip>
+# (On RPi: ssh pi@<rpi-ip> — change the default password immediately.)
 ```
 
-### Step 2.3: Clone the Project to the RPi
+### Step 2.3: Clone the Project to the Jetson
 
 ```bash
-# On RPi
+# On the Jetson
 cd ~
-git clone <repo-url>
-cd raspberry/
+git clone <repo-url> Thesis_IDS
+cd Thesis_IDS/raspberry/
 
-# OR: Copy directly from Mac to RPi
+# OR: Copy directly from Mac
 # On Mac, run:
-# scp -r /Users/thainguyenvu/Desktop/Thesis_IDS/raspberry pi@<rpi-ip>:~/raspberry
+# scp -r /Users/thainguyenvu/Desktop/Thesis_IDS <user>@<jetson-ip>:~/Thesis_IDS
 ```
 
 ### Step 2.4: Run the Automated Setup Script
 
 ```bash
-# On RPi
-cd ~/raspberry
-chmod +x scripts/setup_raspberry.sh
-./scripts/setup_raspberry.sh
+# On the Jetson
+cd ~/Thesis_IDS/raspberry
+chmod +x scripts/setup_jetson.sh
+./scripts/setup_jetson.sh
+# (On RPi: ./scripts/setup_raspberry.sh instead.)
 
-# The script will automatically:
-# [1/6] Update system packages
-# [2/6] Install Python3 + pip + dev tools
-# [3/6] Ask about Docker → select N (Docker runs on Mac)
-# [4/6] Install Java JDK (required for PySpark)
-# [5/6] Create Python venv + install dependencies (pyspark, kafka-python, ...)
-# [6/6] Create .env file from template
+# setup_jetson.sh will automatically:
+# [1/7] Update system packages
+# [2/7] Install Python3 + pip + venv + build tools
+# [3/7] Install Java JDK (default-jdk, for PySpark)
+# [4/7] Configure Jetson performance (jetson_clocks / power mode — optional)
+# [5/7] Configure a 4GB safety swap file
+# [6/7] Create Python venv + install deps (pyspark, kafka-python, scikit-learn, ...)
+# [7/7] Create .env from the template
 
 # Estimated time: ~10–15 minutes (Java + PySpark downloads take a while)
 ```
@@ -181,7 +182,8 @@ chmod +x scripts/setup_raspberry.sh
 ### Step 2.5: Configure .env
 
 ```bash
-# On RPi, edit the .env file
+# On the Jetson, create .env from the Jetson template, then edit it
+cp .env.jetson1.example .env    # node #2 uses .env.jetson2.example
 nano .env
 
 # Replace the default IP (192.168.1.100) with the Mac's actual IP:
@@ -199,11 +201,11 @@ TELEGRAM_CHAT_ID=<chat-id>
 ### Step 2.6: Copy the Model from Mac
 
 ```bash
-# On RPi
-scp -r <mac-user>@<mac-ip>:/Users/thainguyenvu/Desktop/Thesis_IDS/raspberry/model/ ~/raspberry/model/
+# On the Jetson
+scp -r <mac-user>@<mac-ip>:/Users/thainguyenvu/Desktop/Thesis_IDS/raspberry/model/ ~/Thesis_IDS/raspberry/model/
 
 # Verify
-ls -la ~/raspberry/model/
+ls -la ~/Thesis_IDS/raspberry/model/
 # Should contain:
 #   ids_pipeline_model/    (PySpark model directory)
 #   feature_columns.json   (JSON file)
@@ -217,7 +219,7 @@ ls -la ~/raspberry/model/
 ### Step 2.7: Test Connectivity
 
 ```bash
-# On RPi, verify the Mac is reachable
+# On the edge node, verify the Mac is reachable
 ping <mac-ip> -c 3
 
 # Test Kafka
@@ -231,11 +233,11 @@ nc -zv <mac-ip> 5432     # Expected: Connection to ... succeeded!
 
 ## PART 3: RUNNING THE SYSTEM
 
-### Step 3.1: Start IDS on the RPi
+### Step 3.1: Start IDS on the edge node
 
 ```bash
-# On RPi - Terminal 1
-cd ~/raspberry
+# On the Jetson — Terminal 1
+cd ~/Thesis_IDS/raspberry
 source venv/bin/activate
 python edge/kafka_consumer.py
 
@@ -255,10 +257,10 @@ python edge/kafka_consumer.py
 #   IDS EDGE PIPELINE READY (PySpark) - Waiting for messages...
 # ============================================================
 
-# Note: Spark Session initialization takes ~20–30 seconds on RPi
+# Note: Spark Session init takes ~10–15 s on Jetson Orin Nano Super (~20–30 s on RPi)
 ```
 
-#### (Optional) Enable the anomaly gate on RPi
+#### (Optional) Enable the anomaly gate on the edge node
 
 By default, the anomaly gate is disabled (pipeline runs exactly as before).
 
@@ -294,10 +296,10 @@ python sender/data_sender.py \
 #   ...
 ```
 
-### Step 3.3: Monitor Results on the RPi
+### Step 3.3: Monitor Results on the edge node
 
 ```
-# RPi terminal will display:
+# The edge node terminal will display:
   [100] Batch: 45ms | Attacks: 23/100 | Avg: 4.5ms
   [200] Batch: 42ms | Attacks: 51/200 | Avg: 4.2ms
   [300] Batch: 40ms | Attacks: 78/300 | Avg: 4.0ms
@@ -320,8 +322,8 @@ open http://localhost:3000
 # - Throughput (req/s) in real time
 # - Number of detected attacks
 # - Prediction latency (ms)
-# - RPi CPU / Memory usage
-# - RPi CPU temperature
+# - Edge CPU / Memory usage
+# - Edge CPU/GPU temperature
 # - Recent alerts table
 #
 # If you imported the updated dashboard JSON, it also includes Postgres panels:
@@ -341,7 +343,7 @@ Mailtrap allows you to test SMTP email delivery without sending real emails to y
 
 1.  **Register**: Create a free account at [mailtrap.io](https://mailtrap.io).
 2.  **Get Credentials**: Go to **Inboxes** → **My Inbox** → **SMTP Settings**.
-3.  **Configure `.env`**: Copy the `Username` and `Password` to your `.env` file on the Raspberry Pi:
+3.  **Configure `.env`**: Copy the `Username` and `Password` to your `.env` file on the edge node:
     ```env
     SMTP_USER=your_username
     SMTP_PASSWORD=your_password
@@ -366,7 +368,7 @@ Slack Webhooks allow the IDS to post messages directly to a Slack channel.
 ## PART 5: STOPPING THE SYSTEM
 
 ```bash
-# On RPi: Ctrl+C to stop the pipeline
+# On the edge node: Ctrl+C to stop the pipeline
 # The pipeline will display final statistics:
 #   Final Statistics:
 #     Total predictions:  5,000
@@ -395,16 +397,21 @@ python scripts/save_all_models.py
 ```
 
 ### 6.2: Monitoring Edge Performance
-To monitor the Raspberry Pi's resource usage in real-time, use `htop` via SSH:
+On the Jetson, use `tegrastats` (CPU/GPU/RAM/power) or `htop` via SSH:
 
 ```bash
-# On RPi
-htop
+# On the Jetson
+sudo tegrastats          # CPU/GPU load, RAM, power draw, temperatures
+htop                     # per-core CPU + memory
 ```
+
+For energy-per-inference measurements, `edge/power_monitor.py` samples
+`tegrastats` while the pipeline runs (used by the SOICT edge benchmarks).
+
 Watch for:
-- **CPU Usage**: PySpark will use multiple cores during batch inference.
-- **Memory**: Ensure the resident set size (RSS) stays within the RPi's physical RAM (leave ~1GB for OS).
-- **Thermal**: If the CPU throttles (> 80°C), consider adding a fan or heat sink.
+- **CPU/GPU Usage**: PySpark uses multiple cores during batch inference.
+- **Memory**: Keep the resident set size (RSS) within physical RAM (leave ~1GB for the OS); `setup_jetson.sh` adds a 4GB swap as a safety net.
+- **Thermal**: If the SoC throttles (> 80°C), add active cooling / a heatsink-fan. (On RPi, check temperature with `vcgencmd measure_temp`.)
 
 ### 6.3: Understanding the Two-Stage Mode (Anomaly Gate + Spark Classifier)
 
@@ -425,7 +432,7 @@ All flows are still stored in PostgreSQL:
 | Error | Cause | Solution |
 |---|---|---|
 | `Connection refused :9092` | Kafka not started on Mac | Run `docker compose up -d` on Mac |
-| `Model not found` | Model not copied to RPi | Run `save_model.py` + scp |
-| `java: command not found` | Java not installed on RPi | `sudo apt install default-jdk` |
-| RPi freezes / slow | Out of RAM | Check `htop`, increase swap |
+| `Model not found` | Model not copied to the edge node | Run `save_model.py` + scp |
+| `java: command not found` | Java not installed on the edge node | `sudo apt install default-jdk` |
+| Jetson/RPi freezes / slow | Out of RAM | Check `htop`/`tegrastats`, increase swap |
 | `No brokers available` | Wrong IP in .env | Check Mac IP: `ifconfig` |
