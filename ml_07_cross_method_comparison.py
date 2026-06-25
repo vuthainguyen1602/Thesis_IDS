@@ -359,6 +359,15 @@ if __name__ == "__main__":
     print(f"  Total original features: {len(feature_cols)}")
     print(f"  Methods to compare: {len(METHODS)}")
 
+    # Validation holdout carved from TRAIN (disjoint from TEST). Base models are
+    # trained on train_core and the ensemble members are ranked by their F1 on
+    # val_df, so the test set never participates in model selection — closing the
+    # selection-leakage loop where members were previously chosen by test F1.
+    train_core, val_df = train_df.randomSplit([0.8, 0.2], seed=42)
+    train_core = train_core.cache()
+    val_df = val_df.cache()
+    print(f"  Selection holdout: base models train on train_core, ensemble members "
+          f"ranked on val (both carved from TRAIN); test set untouched.")
 
     all_method_results = {}
     all_method_models = {}
@@ -420,13 +429,16 @@ if __name__ == "__main__":
         results, trained_models = run_all_classifiers(
             assembler=assembler,
             scaler=scaler,
-            train_df=train_df,
+            train_df=train_core,
             test_df=test_df,
             features_col=features_col,
             num_features=num_features,
             extra_stages=extra_stages,
+            val_df=val_df,
         )
 
+        # ensemble_voting reads val_f1 from `results` (set above) to rank its
+        # members on validation, not test.
         ens_metrics = ensemble_voting(trained_models, test_df, results=results)
         if ens_metrics:
             results["Ensemble Voting"] = ens_metrics

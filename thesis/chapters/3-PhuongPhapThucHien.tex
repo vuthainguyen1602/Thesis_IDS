@@ -116,7 +116,7 @@ Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng 
 
 \textbf{Phân chia tập dữ liệu}
 
-Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn luyện và kiểm tra bằng phép chia ngẫu nhiên (random split) với seed cố định (=42) để đảm bảo tái lập. Các chỉ số hiệu năng được \textbf{công bố trên tập kiểm tra} (tập giữ lại cuối cùng, không tham gia huấn luyện, xếp hạng đặc trưng hay tinh chỉnh siêu tham số); kết quả trên tập huấn luyện chỉ được dùng để chẩn đoán hiện tượng quá khớp (overfitting) hoặc thiếu khớp (underfitting). Đáng lưu ý, \texttt{StandardScaler}, \ac{pca} và việc xếp hạng đặc trưng (RF Importance, \ac{shap}) đều được \emph{fit chỉ trên tập huấn luyện $D_{\text{train}}$} rồi \emph{transform} lên tập kiểm tra, nhằm tránh rò rỉ thông tin từ tập kiểm tra vào quá trình huấn luyện.
+Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn luyện và kiểm tra bằng phép chia ngẫu nhiên (random split) với seed cố định (=42) để đảm bảo tái lập. Các chỉ số hiệu năng được \textbf{công bố trên tập kiểm tra} (tập giữ lại cuối cùng, không tham gia huấn luyện, xếp hạng đặc trưng hay tinh chỉnh siêu tham số); kết quả trên tập huấn luyện chỉ được dùng để chẩn đoán hiện tượng quá khớp (overfitting) hoặc thiếu khớp (underfitting). Đáng lưu ý, \texttt{StandardScaler}, \ac{pca} và việc xếp hạng đặc trưng (RF Importance, \ac{shap}) đều được \emph{fit chỉ trên tập huấn luyện $D_{\text{train}}$} rồi \emph{transform} lên tập kiểm tra, nhằm tránh rò rỉ thông tin từ tập kiểm tra vào quá trình huấn luyện. Riêng việc \textbf{chọn Top-3 mô hình thành phần} cho các ensemble được thực hiện trên một \emph{tập kiểm định (validation)} tách từ tập huấn luyện (theo tỷ lệ 80/20, các mô hình cơ sở huấn luyện trên phần còn lại); nhờ vậy tập kiểm tra hoàn toàn không tham gia vào khâu lựa chọn mô hình, khép kín nguy cơ rò rỉ chọn lọc.
 
 
 \section{Lựa chọn đặc trưng và giảm chiều dữ liệu}
@@ -243,6 +243,7 @@ Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữ
 \label{voting_ag}
 \begin{algorithmic}[1]
 \Require Tập dữ liệu huấn luyện $D = \{(x_i, y_i)\}_{i=1}^{n}$ với $x_i \in \mathbb{R}^d$, $y_i \in \{0, 1\}$
+\Statex \qquad Tập kiểm định $D_{\text{val}}$ (tách từ $D$, dùng để xếp hạng và chọn mô hình thành phần)
 \Statex \qquad Tập dữ liệu kiểm tra $D_{\text{test}} = \{(x_j)\}_{j=1}^{m}$
 \Statex \qquad Tập $K$ thuật toán học cơ sở khác loại $\{\mathcal{L}_1, \mathcal{L}_2, \dots, \mathcal{L}_K\}$
 \Ensure Nhãn dự đoán cuối cùng $y_{\text{vote}} \in \{0, 1\}$ cho mỗi mẫu
@@ -250,7 +251,7 @@ Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữ
 \State \textbf{Bước 1: Huấn luyện và đánh giá $K$ mô hình cơ sở}
 \For{$k = 1$ to $K$}
     \State $M_k \gets \text{Train}(\mathcal{L}_k, D)$ \Comment{Huấn luyện mô hình $M_k$ trên tập $D$}
-    \State $F_k \gets \text{F1-Score}(M_k, D_{\text{test}})$ \Comment{Tính điểm F1 của mô hình $M_k$ trên tập kiểm tra}
+    \State $F_k \gets \text{F1-Score}(M_k, D_{\text{val}})$ \Comment{Tính điểm F1 trên tập kiểm định (validation), không chạm tập kiểm tra}
 \EndFor
 
 \State \textbf{Bước 2: Chọn Top-3 mô hình có F1 cao nhất}
@@ -295,6 +296,7 @@ Cách tiếp cận này cho phép giảm phương sai của các mô hình cơ s
 \label{bagging_ag}
 \begin{algorithmic}[1]
 \Require Tập dữ liệu huấn luyện $D = \{(x_i, y_i)\}_{i=1}^{n}$ với $x_i \in \mathbb{R}^d$, $y_i \in \{1, 2, \dots, C\}$
+\Statex \qquad Tập kiểm định $D_{\text{val}}$ (tách từ $D$, dùng để xếp hạng và chọn Top-3)
 \Statex \qquad Tập $K$ thuật toán học cơ sở $\{\mathcal{L}_1, \mathcal{L}_2, \dots, \mathcal{L}_K\}$
 \Statex \qquad Phân bố số bản sao $\mathbf{r} = (r_1, r_2, r_3) = (3, 2, 2)$
 \Ensure Nhãn dự đoán cuối cùng $y_{\text{bag}} \in \{1, 2, \dots, C\}$
@@ -302,7 +304,7 @@ Cách tiếp cận này cho phép giảm phương sai của các mô hình cơ s
 \State \textbf{Bước 1: Huấn luyện và đánh giá $K$ mô hình cơ sở}
 \For{$k = 1$ to $K$}
     \State $M_k \gets \text{Train}(\mathcal{L}_k, D)$ \Comment{Huấn luyện mô hình $M_k$ trên tập $D$}
-    \State $F_k \gets \text{F1-Score}(M_k, D_{\text{test}})$ \Comment{Tính điểm F1 của mô hình $M_k$ trên tập kiểm tra}
+    \State $F_k \gets \text{F1-Score}(M_k, D_{\text{val}})$ \Comment{Tính điểm F1 trên tập kiểm định (validation), không chạm tập kiểm tra}
 \EndFor
 
 \State \textbf{Bước 2: Chọn Top-3 mô hình có F1 cao nhất}

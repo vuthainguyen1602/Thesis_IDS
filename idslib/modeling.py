@@ -459,7 +459,15 @@ def run_all_classifiers(
     label_col: str = "label_binary",
     extra_stages=None,
     seed: int = 42,
+    val_df=None,
 ) -> tuple:
+    """Train the base classifiers and the Hybrid Bagging ensemble.
+
+    When ``val_df`` is provided (a holdout disjoint from both the training data
+    and ``test_df``), the Top-3 ensemble members are selected by F1 on
+    ``val_df`` — NOT on ``test_df`` — so the test set never participates in
+    model selection. Without it the function falls back to test-F1 ranking.
+    """
     class_counts = (
         train_df.groupBy(label_col).count().collect()
     )
@@ -497,6 +505,16 @@ def run_all_classifiers(
             )
             results[name] = metrics
             trained_models[name] = model
+            # Validation F1 (holdout disjoint from train & test) used ONLY to
+            # rank ensemble members, avoiding test-set leakage in selection.
+            if val_df is not None:
+                try:
+                    v_preds = model.transform(val_df)
+                    results[name]["val_f1"] = compute_metrics(
+                        v_preds, label_col=label_col)["f1"]
+                except Exception as ve:
+                    print(f"  [WARN] Validation F1 for {name} failed: {ve}")
+                    results[name]["val_f1"] = 0.0
         except Exception as e:
             print(f"  [ERROR] Training {name}: {str(e)}")
             results[name] = {"accuracy": 0, "precision": 0, "recall": 0,
@@ -515,10 +533,15 @@ def run_all_classifiers(
         print("  [WARN] Need at least 3 base models for Hybrid Bagging.")
         return results, trained_models
 
-    sorted_names = sorted(base_results.keys(), key=lambda x: base_results[x].get("f1", 0), reverse=True)
+    # Rank by validation F1 when available (selection must not see the test set);
+    # the weights below reuse the same ranking metric for the same reason.
+    rank_key = "val_f1" if val_df is not None else "f1"
+    sorted_names = sorted(base_results.keys(),
+                          key=lambda x: base_results[x].get(rank_key, 0), reverse=True)
     top_3 = sorted_names[:3]
-    top_3_f1 = [base_results[name].get("f1", 0) for name in top_3]
-    print(f"  Top-3 models: {', '.join(top_3)}")
+    top_3_f1 = [base_results[name].get(rank_key, 0) for name in top_3]
+    print(f"  Top-3 models (ranked by {'validation' if val_df is not None else 'test'} F1): "
+          f"{', '.join(top_3)}")
     
     try:
         counts = [3, 2, 2]
@@ -581,9 +604,16 @@ def ensemble_voting(
         if results is not None:
             base_results = {name: metrics for name, metrics in results.items()
                             if "Bagging" not in name and "Ensemble" not in name and "Voting" not in name}
-            sorted_names = sorted(base_results.keys(), 
-                                  key=lambda x: base_results[x].get("f1", 0), reverse=True)
+            # Prefer validation F1 (set by run_all_classifiers) so the voting
+            # members are selected without ever looking at the test set; fall
+            # back to test F1 only if no validation ranking is available.
+            uses_val = any("val_f1" in m for m in base_results.values())
+            rank_key = "val_f1" if uses_val else "f1"
+            sorted_names = sorted(base_results.keys(),
+                                  key=lambda x: base_results[x].get(rank_key, 0), reverse=True)
             base_model_names = [n for n in sorted_names[:top_n] if n in trained_models]
+            print(f"  Voting members (ranked by {'validation' if uses_val else 'test'} F1): "
+                  f"{', '.join(base_model_names)}")
         else:
             candidates = ["Random Forest", "GBT", "Logistic Regression",
                            "Decision Tree", "XGBoost"]
