@@ -261,7 +261,28 @@ We run \texttt{run\_benchmarks.sh} on the Jetson hardware in three phases (\text
   }
 \end{table}
 
-\textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run; the average rail power is integrated over the window to obtain energy, and divided by the number of classified flows to report energy-per-inference (mJ). If the anomaly gate offloads a \ph{gsA}\% fraction of benign traffic before the heavier Spark classifier runs, the pipeline-split mode is expected to lower energy-per-inference relative to the single-node baseline; however, the added node and extra Kafka hop introduce overhead that may offset this saving, so Table~\ref{tab:benchmark} quantifies whether the net effect holds. This is a dimension that latency and throughput alone do not expose.
+\textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run; the average rail power is integrated over the window and the idle baseline subtracted to obtain the active energy, divided by the number of classified flows to report energy-per-inference (mJ). For pipeline-split mode this sums the active energy of both nodes (gate on Jetson~\#1, classifier on Jetson~\#2). If the anomaly gate offloads a \ph{gsA}\% fraction of benign traffic before the heavier Spark classifier runs, the pipeline-split mode is expected to lower energy-per-inference relative to the single-node baseline; however, the added node and extra Kafka hop introduce overhead that may offset this saving, so Table~\ref{tab:benchmark} quantifies whether the net effect holds.
+
+\subsection{Inference-engine baseline (cost of the unified stack)}
+\label{sec:engine-baseline}
+
+We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with the distributed training phase} --- the same stack trains on the cluster and serves on the device. To quantify the price of that unification, we benchmark the \emph{same} RandomForest (matched hyper-parameters) on the \emph{same} SHAP Top-30 features through lighter single-node engines: scikit-learn (CPU, no JVM) and ONNX Runtime (Table~\ref{tab:engines}). Accuracy is comparable by construction; the comparison targets inference cost. We expect the JVM/Spark stack to incur higher latency and memory than sklearn/ONNX on an 8\,GB ARM board; reporting this honestly motivates an export path (\texttt{PipelineModel}~$\rightarrow$~ONNX/TensorRT) for inference while retaining Spark for training, which we leave as future work.
+
+\begin{table}[htbp]
+  \caption{Single-node inference cost on the same model/features (from \texttt{benchmark\_engines.py} vs \texttt{benchmark.py}).}
+  \label{tab:engines}
+  \centering
+  \small
+  \begin{tabular}{l c c c c}
+    \toprule
+    Engine & Throughput (flows/s) & p95 latency (ms) & RAM (\%) & Energy/inf.\ (mJ) \\
+    \midrule
+    PySpark (deployed) & \ph{tp\_sp} & \ph{p95\_sp} & \ph{ram\_sp} & \ph{e\_sp} \\
+    scikit-learn       & \ph{tp\_sk} & \ph{p95\_sk} & \ph{ram\_sk} & \ph{e\_sk} \\
+    ONNX Runtime       & \ph{tp\_ox} & \ph{p95\_ox} & \ph{ram\_ox} & \ph{e\_ox} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \begin{figure}[htbp]
   \centering
@@ -295,7 +316,7 @@ As summarized in Sec.~\ref{sec:bridge}, offline Spark experiments and edge Jetso
 
 \subsection{Limitations}
 
-Benchmarks are obtained on a two-node lab cluster over Wi-Fi; wired networking and larger clusters may shift latency tails. The anomaly-gate threshold trades attack recall against the gate-skip ratio, so we characterize it as an operating curve (Fig.~\ref{fig:gate}) rather than a single point and leave live-traffic re-calibration of the gate to future work. Ensemble members are selected by F1 on a validation split held out from the training data (disjoint from the test set), so the test set never participates in model selection; the trade-off is that base models are trained on slightly less data after carving out the validation split. The benchmarks should also be run multiple times to report the variance of latency, and Spark JVM warmup and cold-start effects can inflate early-batch p95 latency, so warmup batches should be discarded before measurement. The reported latency is inference latency (preprocess+predict) rather than true end-to-end latency including Kafka consume, network hop, and DB write, and the distributed p95 is currently taken as a percentile over per-host mean values and is therefore coarse, so end-to-end timestamping is the next step. Running PySpark on the JVM on an 8\,GB Jetson incurs substantial overhead; Spark is chosen for consistency with the distributed training phase rather than to optimize single-node inference (sklearn/ONNX/TensorRT are future baselines), and the GPU ($\sim$67 TOPS) is not yet exploited by the CPU-only pipeline. The energy-per-inference (mJ) figures do not subtract idle power, in pipeline-split mode must sum the energy of both nodes, and the gate-skip saving does not subtract the cost of the autoencoder that runs on 100\% of flows. Finally, our results are tied to CICIDS2017 replay, so validation on live traffic remains future work, and the system has not been evaluated against traffic deliberately crafted to evade detection (adversarial evasion).
+Benchmarks are obtained on a two-node lab cluster over Wi-Fi; wired networking and larger clusters may shift latency tails. The anomaly-gate threshold trades attack recall against the gate-skip ratio, so we characterize it as an operating curve (Fig.~\ref{fig:gate}) rather than a single point and leave live-traffic re-calibration of the gate to future work. Ensemble members are selected by F1 on a validation split held out from the training data (disjoint from the test set), so the test set never participates in model selection; the trade-off is that base models are trained on slightly less data after carving out the validation split. The benchmarks should also be run multiple times to report the variance of latency, and Spark JVM warmup and cold-start effects can inflate early-batch p95 latency, so warmup batches should be discarded before measurement. The reported latency is inference latency (preprocess+predict) rather than true end-to-end latency including Kafka consume, network hop, and DB write, and the distributed p95 is currently taken as a percentile over per-host mean values and is therefore coarse, so end-to-end timestamping is the next step. Running PySpark on the JVM on an 8\,GB Jetson incurs substantial overhead; Spark is chosen for consistency with the distributed training phase rather than to optimize single-node inference --- the overhead is quantified by the single-node sklearn/ONNX baseline in Sec.~\ref{sec:engine-baseline}, and TensorRT acceleration remains future work --- and the GPU ($\sim$67 TOPS) is not yet exploited by the CPU-only pipeline. The energy-per-inference (mJ) figures do not subtract idle power, in pipeline-split mode must sum the energy of both nodes, and the gate-skip saving does not subtract the cost of the autoencoder that runs on 100\% of flows. Finally, our results are tied to CICIDS2017 replay, so validation on live traffic remains future work, and the system has not been evaluated against traffic deliberately crafted to evade detection (adversarial evasion).
 
 \section{Conclusion}
 

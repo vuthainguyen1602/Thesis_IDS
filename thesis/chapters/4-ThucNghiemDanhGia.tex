@@ -531,6 +531,25 @@ Random Forest     & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 \end{tabular*}
 \end{table}
 
+\subsection{So sánh engine suy luận: cái giá của stack đồng nhất}
+\label{sec:engine-baseline-thesis}
+Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của Spark để \emph{đồng nhất với pha huấn luyện phân tán} --- cùng một stack vừa huấn luyện trên cụm vừa suy luận trên thiết bị. Để \emph{định lượng cái giá} của sự đồng nhất này, luận văn đo lại \emph{cùng một} mô hình Random Forest (cùng siêu tham số) trên \emph{cùng} tập đặc trưng SHAP Top-30 nhưng qua các engine nhẹ hơn ở chế độ một nút: scikit-learn (CPU, không JVM) và ONNX Runtime (Bảng~\ref{tab:engines_thesis}, sinh từ \texttt{benchmark\_engines.py}). Vì cùng thuật toán và đặc trưng nên độ chính xác tương đương; phép so sánh tập trung vào \emph{chi phí suy luận}. Dự kiến stack JVM/Spark có độ trễ và bộ nhớ cao hơn sklearn/ONNX trên bo mạch ARM 8\,GB; việc nêu rõ điều này một cách trung thực là cơ sở cho hướng phát triển \emph{xuất mô hình sang ONNX/TensorRT để suy luận} trong khi vẫn giữ Spark cho huấn luyện.
+
+\begin{table}[htbp]
+\centering
+\caption{Chi phí suy luận một nút trên cùng mô hình/đặc trưng (Spark vs sklearn vs ONNX)}
+\label{tab:engines_thesis}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
+\toprule
+\textbf{Engine} & \textbf{Thông lượng (flows/s)} & \textbf{Độ trễ p95 (ms)} & \textbf{RAM (\%)} & \textbf{Năng lượng/suy luận (mJ)} \\ \midrule
+PySpark (triển khai) & \ph{} & \ph{} & \ph{} & \ph{} \\
+scikit-learn         & \ph{} & \ph{} & \ph{} & \ph{} \\
+ONNX Runtime         & \ph{} & \ph{} & \ph{} & \ph{} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
 \subsection{Kết quả ba chế độ triển khai phân tán}
 
 Ngoài việc so sánh các mô hình trên một nút, luận văn đánh giá ba chế độ triển khai phân tán trên cụm hai Jetson Orin Nano Super (Bảng~\ref{tab:edge_modes}). Chỉ số chính gồm thông lượng đầu cuối (flows/s), độ trễ p95 (ms), tỷ lệ gate-skip (\% lưu lượng bình thường được cổng lọc khỏi suy luận Spark) và F1 trên lớp tấn công. Các giá trị điền lại từ \texttt{papers/soict2026/results/benchmarks/summary.csv} sau khi chạy \texttt{run\_benchmarks.sh} trên phần cứng Jetson.

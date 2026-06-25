@@ -240,3 +240,9 @@ Configuration variables in `config.py`:
   `tegrastats`. For pipeline-split (Mode A) the comparable figure is the **sum
   of both nodes'** active energy (gate on Jetson #1 + classifier on Jetson #2),
   divided by the number of classified flows.
+- **Inference-engine baseline:** `scripts/benchmark_engines.py` runs the same
+  RandomForest / SHAP Top-30 model through scikit-learn and ONNX Runtime
+  (`pip install skl2onnx onnxruntime` to enable ONNX) and reports the same
+  metrics as `benchmark.py` (Spark). This quantifies the JVM/Spark overhead;
+  Spark is kept for train-serve consistency, sklearn/ONNX motivate a future
+  export path. Example: `python scripts/benchmark_engines.py --samples 5000`.
