@@ -13,7 +13,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import MODEL_PATH, FEATURES_PATH, SHAP_TOP_FEATURES
-from edge.power_monitor import PowerMonitor
+from edge.power_monitor import PowerMonitor, measure_idle_power
 
 
 def get_cpu_temp():
@@ -100,7 +100,13 @@ def run_benchmark(n_samples=1000, batch_size=10):
     engine.total_attacks = 0
     engine.total_inference_time = 0
 
-    power = PowerMonitor().start()  # tegrastats power sampling (no-op off-Jetson)
+    # Idle baseline (board power with the JVM/Spark resident but no inference) so
+    # we can report active (incremental) energy, not just raw board energy.
+    print("  Measuring idle baseline power (5s)...", end="", flush=True)
+    idle_w = measure_idle_power(seconds=5.0)
+    print(f" {idle_w:.2f} W" if idle_w is not None else " n/a (no tegrastats)")
+
+    power = PowerMonitor(idle_power_w=idle_w).start()  # tegrastats (no-op off-Jetson)
     benchmark_start = time.time()
     n_batches = 0
 
@@ -134,6 +140,10 @@ def run_benchmark(n_samples=1000, batch_size=10):
     energy_per_inf_mj = None
     if power_stats.get("energy_j") is not None and total_predictions > 0:
         energy_per_inf_mj = round(power_stats["energy_j"] * 1000.0 / total_predictions, 3)
+    energy_active_per_inf_mj = None
+    if power_stats.get("energy_active_j") is not None and total_predictions > 0:
+        energy_active_per_inf_mj = round(
+            power_stats["energy_active_j"] * 1000.0 / total_predictions, 3)
 
     throughput = total_predictions / total_time
     avg_batch_latency = statistics.mean(batch_latencies)
@@ -156,13 +166,13 @@ def run_benchmark(n_samples=1000, batch_size=10):
     print(f"  Batch size:           {batch_size}")
     print(f"  Num batches:          {n_batches}")
 
-    print(f"\n  --- Latency (per batch of {batch_size}) ---")
+    print(f"\n  --- Inference latency (per batch of {batch_size}; preprocess+predict, NOT end-to-end) ---")
     print(f"  Mean:                 {avg_batch_latency:.1f} ms")
     print(f"  Median (P50):         {p50_batch:.1f} ms")
     print(f"  P95:                  {p95_batch:.1f} ms")
     print(f"  P99:                  {p99_batch:.1f} ms")
 
-    print(f"\n  --- Latency (per sample) ---")
+    print(f"\n  --- Inference latency (per sample) ---")
     print(f"  Mean:                 {avg_per_sample:.1f} ms")
 
     print(f"\n  --- System Resources ---")
@@ -171,11 +181,14 @@ def run_benchmark(n_samples=1000, batch_size=10):
     if avg_temp:
         print(f"  Avg Temperature:      {avg_temp:.1f} C")
     if power_stats.get("power_available"):
-        print(f"\n  --- Energy (tegrastats) ---")
+        print(f"\n  --- Energy (tegrastats, total-board rail) ---")
         print(f"  Avg power:            {power_stats['avg_power_w']:.2f} W")
         print(f"  Peak power:           {power_stats['peak_power_w']:.2f} W")
+        print(f"  Idle power:           {power_stats.get('idle_power_w')} W")
+        print(f"  Active power:         {power_stats.get('active_power_w')} W  (avg - idle)")
         print(f"  Energy (window):      {power_stats['energy_j']:.2f} J")
-        print(f"  Energy/inference:     {energy_per_inf_mj:.3f} mJ")
+        print(f"  Energy/inf (raw):     {energy_per_inf_mj:.3f} mJ")
+        print(f"  Energy/inf (active):  {energy_active_per_inf_mj} mJ  (idle-subtracted; the comparable figure)")
     else:
         print("\n  [INFO] Power: tegrastats unavailable (not a Jetson?) — energy skipped.")
 
@@ -183,6 +196,9 @@ def run_benchmark(n_samples=1000, batch_size=10):
     print(f"  Spark init time:      {spark_init_time:.1f}s")
     print(f"  Model load time:      {model_load_time:.1f}s")
     print(f"  Attack rate:          {total_attacks/total_predictions*100:.1f}%")
+    print("  [NOTE] Test data is synthetic (uniform noise); throughput/latency/energy")
+    print("         are representative but the attack rate above is NOT meaningful.")
+    print("         For reported attack-F1 use replayed CICIDS2017 via the edge pipeline.")
 
     results = {
         "device": "NVIDIA Jetson Orin Nano Super (8GB)",
@@ -202,8 +218,13 @@ def run_benchmark(n_samples=1000, batch_size=10):
         "avg_temp_celsius": round(avg_temp, 1) if avg_temp else None,
         "avg_power_w": power_stats.get("avg_power_w"),
         "peak_power_w": power_stats.get("peak_power_w"),
+        "idle_power_w": power_stats.get("idle_power_w"),
+        "active_power_w": power_stats.get("active_power_w"),
         "energy_j": power_stats.get("energy_j"),
+        "energy_active_j": power_stats.get("energy_active_j"),
         "energy_per_inference_mj": energy_per_inf_mj,
+        "energy_active_per_inference_mj": energy_active_per_inf_mj,
+        "latency_kind": "inference_only (preprocess+predict); end-to-end not captured by this single-node micro-benchmark",
         "power_available": power_stats.get("power_available", False),
         "spark_init_time_s": round(spark_init_time, 1),
         "model_load_time_s": round(model_load_time, 1),
@@ -226,8 +247,8 @@ def run_benchmark(n_samples=1000, batch_size=10):
     print(r"  \textbf{Metric} & \textbf{Value} \\")
     print(r"  \midrule")
     print(f"  Throughput & {throughput:.1f} samples/s \\\\")
-    print(f"  Latency (mean) & {avg_per_sample:.1f} ms \\\\")
-    print(f"  Latency P95 & {p95_batch:.1f} ms \\\\")
+    print(f"  Inference latency (mean) & {avg_per_sample:.1f} ms \\\\")
+    print(f"  Inference latency P95 & {p95_batch:.1f} ms \\\\")
     print(f"  CPU utilization & {avg_cpu:.1f}\\% \\\\")
     print(f"  RAM utilization & {avg_mem:.1f}\\% \\\\")
     if avg_temp:

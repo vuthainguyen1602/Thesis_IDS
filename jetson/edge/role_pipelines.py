@@ -153,8 +153,18 @@ class FullPipeline(PipelineBase):
         if stats["batch_size"] > 0 and anomaly_time_ms > 0:
             per_item_time = (stats["inference_time_ms"] + anomaly_time_ms) / stats["batch_size"]
 
-        for _ in range(stats["batch_size"]):
-            self.monitor.record_prediction(inference_time_ms=per_item_time, is_attack=False)
+        # End-to-end latency per flow = verdict time - producer send time
+        # (data_sender stamps ``_timestamp``). This captures Kafka consume +
+        # queueing + inference, not just on-node inference. Requires the sender
+        # host and this node to share an NTP-synced clock; otherwise the offset
+        # biases the absolute value (relative comparisons across modes hold).
+        now_done = time.time()
+        for msg in messages:
+            send_ts = msg.get("_timestamp") if isinstance(msg, dict) else None
+            e2e_ms = ((now_done - send_ts) * 1000.0
+                      if isinstance(send_ts, (int, float)) and send_ts > 0 else None)
+            self.monitor.record_prediction(
+                inference_time_ms=per_item_time, is_attack=False, end_to_end_ms=e2e_ms)
 
         if stats["attacks_found"] > 0:
             for _ in range(stats["attacks_found"]):

@@ -47,10 +47,16 @@ def _parse_power_w(line: str):
 
 
 class PowerMonitor:
-    def __init__(self, interval_ms: int = 200, tegrastats: str = "tegrastats"):
+    def __init__(self, interval_ms: int = 200, tegrastats: str = "tegrastats",
+                 idle_power_w: float = None):
         self.interval_ms = interval_ms
         self.tegrastats = tegrastats
         self.available = shutil.which(tegrastats) is not None
+        # Baseline (idle) board power. When set, the report also exposes the
+        # *active* (incremental) energy = (avg - idle) x duration, which is the
+        # meaningful figure for comparing inference cost across deployment modes
+        # — raw board energy is dominated by the always-on idle draw (JVM, OS).
+        self.idle_power_w = idle_power_w
         self._proc = None
         self._thread = None
         self._samples = []          # instantaneous power (W)
@@ -104,7 +110,7 @@ class PowerMonitor:
                 "duration_s": round(duration_s, 2),
             }
         avg_w = statistics.mean(self._samples)
-        return {
+        out = {
             "power_available": True,
             "avg_power_w": round(avg_w, 2),
             "peak_power_w": round(max(self._samples), 2),
@@ -112,4 +118,25 @@ class PowerMonitor:
             "energy_j": round(avg_w * duration_s, 2),
             "power_samples": len(self._samples),
             "duration_s": round(duration_s, 2),
+            "idle_power_w": None,
+            "active_power_w": None,
+            "energy_active_j": None,
         }
+        if self.idle_power_w is not None:
+            active_w = max(avg_w - self.idle_power_w, 0.0)
+            out["idle_power_w"] = round(self.idle_power_w, 2)
+            out["active_power_w"] = round(active_w, 2)
+            out["energy_active_j"] = round(active_w * duration_s, 2)
+        return out
+
+
+def measure_idle_power(seconds: float = 5.0, interval_ms: int = 200,
+                       tegrastats: str = "tegrastats"):
+    """Sample board power for ``seconds`` with no workload to get the idle
+    baseline (W). Returns ``None`` off-Jetson (tegrastats absent)."""
+    pm = PowerMonitor(interval_ms=interval_ms, tegrastats=tegrastats).start()
+    if not pm.available:
+        pm.stop()
+        return None
+    time.sleep(seconds)
+    return pm.stop().get("avg_power_w")

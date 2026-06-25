@@ -225,3 +225,18 @@ Configuration variables in `config.py`:
 - Compare 1-node vs 2-node latency/throughput with `scripts/benchmark.py`.
 - Filter Grafana panels by the `host` tag to visualize each Jetson.
 - Use the PostgreSQL `node_id` column to analyze load distribution across nodes.
+
+### Measurement notes (latency & energy)
+
+- **End-to-end latency** (send → verdict) is computed from the producer's
+  `_timestamp`; for the absolute value to be meaningful the **sender host and
+  both Jetson nodes must share an NTP-synced clock** (e.g. `sudo timedatectl
+  set-ntp true` on all hosts). Relative comparisons across modes hold even
+  without NTP. Each node also reports inference-only latency separately.
+- **Latency percentiles** (p50/p95/p99) are computed by each node from its raw
+  per-flow samples; the cluster p95 is the **worst node's** p95 — never a
+  percentile of per-host mean latencies.
+- **Energy** is reported both raw and **idle-subtracted (active)** per node via
+  `tegrastats`. For pipeline-split (Mode A) the comparable figure is the **sum
+  of both nodes'** active energy (gate on Jetson #1 + classifier on Jetson #2),
+  divided by the number of classified flows.

@@ -54,6 +54,17 @@ class InfluxDBStorage:
             .time(now, WritePrecision.NS)
         )
 
+        # Latency percentiles (computed by the node from raw samples) + true
+        # end-to-end latency. Written only when present so older callers still
+        # work. The aggregator reads these instead of taking a percentile of
+        # per-host mean values.
+        for fld in ("latency_p50_ms", "latency_p95_ms", "latency_p99_ms",
+                    "e2e_latency_avg_ms", "e2e_latency_p50_ms",
+                    "e2e_latency_p95_ms", "e2e_latency_p99_ms"):
+            val = metrics.get(fld)
+            if val is not None:
+                prediction_point = prediction_point.field(fld, float(val))
+
         self.write_api.write(
             bucket=self.bucket,
             org=self.org,

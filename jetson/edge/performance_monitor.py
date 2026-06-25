@@ -5,10 +5,31 @@ import os
 import sys
 import time
 import threading
+from collections import deque
+
 import psutil
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import METRICS_PUSH_INTERVAL
+
+
+def _round(v, ndigits=3):
+    return round(v, ndigits) if v is not None else None
+
+
+def _percentile(sorted_vals, q):
+    """Nearest-rank percentile on an already-sorted list (q in [0, 1])."""
+    if not sorted_vals:
+        return None
+    if len(sorted_vals) == 1:
+        return sorted_vals[0]
+    idx = int(round(q * (len(sorted_vals) - 1)))
+    return sorted_vals[idx]
+
+
+# Cap the per-window raw-sample buffers so a long run cannot grow memory without
+# bound; a few thousand points per window is more than enough for stable p95/p99.
+_MAX_SAMPLES = 20000
 
 
 class PerformanceMonitor:
@@ -21,16 +42,34 @@ class PerformanceMonitor:
         self._predictions_count = 0
         self._attacks_count = 0
         self._total_inference_ms = 0.0
+        # Raw per-sample latency buffers for the current push window. Percentiles
+        # (p50/p95/p99) MUST be computed from these raw distributions — taking a
+        # percentile of already-averaged values (e.g. per-host means) is invalid.
+        self._inf_latencies = deque(maxlen=_MAX_SAMPLES)   # preprocess+predict (ms)
+        self._e2e_latencies = deque(maxlen=_MAX_SAMPLES)    # send -> verdict (ms)
         self._window_start = time.time()
 
         self._running = False
         self._thread = None
         self._lock = threading.Lock()
 
-    def record_prediction(self, inference_time_ms: float, is_attack: bool):
+    def record_prediction(self, inference_time_ms: float, is_attack: bool,
+                          end_to_end_ms: float = None):
+        """Record one verdict.
+
+        ``inference_time_ms`` is the on-node preprocess+predict cost. When the
+        producer stamps a send time (``_timestamp``) into the message, pass
+        ``end_to_end_ms`` (now - send_time) so the true end-to-end latency
+        distribution — Kafka consume + queueing + inference + result write — is
+        captured, not just inference.
+        """
         with self._lock:
             self._predictions_count += 1
             self._total_inference_ms += inference_time_ms
+            if inference_time_ms > 0:
+                self._inf_latencies.append(inference_time_ms)
+            if end_to_end_ms is not None and end_to_end_ms >= 0:
+                self._e2e_latencies.append(end_to_end_ms)
             if is_attack:
                 self._attacks_count += 1
 
@@ -65,17 +104,33 @@ class PerformanceMonitor:
             avg_latency = (self._total_inference_ms / self._predictions_count
                           if self._predictions_count > 0 else 0)
 
+            inf_sorted = sorted(self._inf_latencies)
+            e2e_sorted = sorted(self._e2e_latencies)
+
             metrics = {
                 "throughput_rps": round(throughput, 2),
                 "predictions_count": self._predictions_count,
                 "attacks_count": self._attacks_count,
                 "avg_latency_ms": round(avg_latency, 3),
+                # Inference-latency percentiles from raw samples.
+                "latency_p50_ms": _round(_percentile(inf_sorted, 0.50)),
+                "latency_p95_ms": _round(_percentile(inf_sorted, 0.95)),
+                "latency_p99_ms": _round(_percentile(inf_sorted, 0.99)),
+                # End-to-end (send -> verdict) percentiles, populated only when
+                # the producer stamps a send time into the message.
+                "e2e_latency_avg_ms": _round(
+                    sum(e2e_sorted) / len(e2e_sorted) if e2e_sorted else None),
+                "e2e_latency_p50_ms": _round(_percentile(e2e_sorted, 0.50)),
+                "e2e_latency_p95_ms": _round(_percentile(e2e_sorted, 0.95)),
+                "e2e_latency_p99_ms": _round(_percentile(e2e_sorted, 0.99)),
                 "window_seconds": round(elapsed, 1),
             }
 
             self._predictions_count = 0
             self._attacks_count = 0
             self._total_inference_ms = 0.0
+            self._inf_latencies.clear()
+            self._e2e_latencies.clear()
             self._window_start = time.time()
 
         return metrics

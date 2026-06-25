@@ -155,7 +155,7 @@ def query_influx_metrics(window_minutes: int) -> dict[str, dict]:
 from(bucket: "{INFLUXDB_BUCKET}")
   |> range(start: -{window_minutes}m)
   |> filter(fn: (r) => r._measurement == "prediction_metrics")
-  |> filter(fn: (r) => r._field == "throughput_rps" or r._field == "avg_latency_ms")
+  |> filter(fn: (r) => r._field == "throughput_rps" or r._field == "avg_latency_ms" or r._field == "latency_p50_ms" or r._field == "latency_p95_ms" or r._field == "latency_p99_ms" or r._field == "e2e_latency_avg_ms" or r._field == "e2e_latency_p95_ms")
   |> group(columns: ["host", "_field"])
   |> mean()
 """
@@ -267,6 +267,9 @@ def collect_metrics(window_minutes: int, deploy_mode: str) -> dict:
     throughputs = []
     latencies = []
 
+    node_p95s = []
+    e2e_p95s = []
+    e2e_avgs = []
     for host in hosts:
         pred = influx_pred.get(host, {})
         sys_m = influx_sys.get(host, {})
@@ -276,20 +279,38 @@ def collect_metrics(window_minutes: int, deploy_mode: str) -> dict:
             throughputs.append(tp)
         if lat > 0:
             latencies.append(lat)
+        if pred.get("latency_p95_ms"):
+            node_p95s.append(pred["latency_p95_ms"])
+        if pred.get("e2e_latency_p95_ms"):
+            e2e_p95s.append(pred["e2e_latency_p95_ms"])
+        if pred.get("e2e_latency_avg_ms"):
+            e2e_avgs.append(pred["e2e_latency_avg_ms"])
         nodes.append({
             "node_id": host,
             "throughput_rps": tp,
             "avg_latency_ms": lat,
+            "latency_p50_ms": pred.get("latency_p50_ms"),
+            "latency_p95_ms": pred.get("latency_p95_ms"),
+            "latency_p99_ms": pred.get("latency_p99_ms"),
+            "e2e_latency_avg_ms": pred.get("e2e_latency_avg_ms"),
+            "e2e_latency_p95_ms": pred.get("e2e_latency_p95_ms"),
             "cpu_percent": sys_m.get("cpu_percent"),
             "memory_percent": sys_m.get("memory_percent"),
             "cpu_temp_celsius": sys_m.get("cpu_temp_celsius"),
         })
 
+    # Cluster tail latency = worst node's p95, computed by each node from its RAW
+    # per-flow latency samples. Do NOT take a percentile of per-host *mean*
+    # latencies — that is statistically meaningless with only 1-2 hosts.
     aggregate = {
         "throughput_rps_sum": round(sum(throughputs), 2) if throughputs else None,
         "throughput_rps_mean": round(statistics.mean(throughputs), 2) if throughputs else None,
         "latency_avg_ms": round(statistics.mean(latencies), 2) if latencies else None,
-        "latency_p95_ms": round(percentile(latencies, 0.95), 2) if latencies else None,
+        "latency_p95_ms": round(max(node_p95s), 2) if node_p95s else None,
+        "e2e_latency_avg_ms": round(statistics.mean(e2e_avgs), 2) if e2e_avgs else None,
+        "e2e_latency_p95_ms": round(max(e2e_p95s), 2) if e2e_p95s else None,
+        "latency_note": ("p95 = max of per-node window p95 (from raw samples); "
+                         "e2e = send->verdict, assumes NTP-synced clocks"),
     }
 
     return {
