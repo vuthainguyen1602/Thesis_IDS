@@ -1,0 +1,28 @@
+# ==============================================================================
+# IDS on Apache Spark — Python dependencies (Mac master / driver side)
+# Pinned to match the Jetson workers (jetson/requirements.txt) so the Spark
+# standalone master and workers run the SAME Spark version. A version mismatch
+# between master and workers prevents the cluster from connecting.
+#
+#   python -m venv venv && source venv/bin/activate
+#   pip install -r requirements.txt
+# ==============================================================================
+
+# Spark (must match jetson/requirements.txt exactly: master/worker same version)
+pyspark==3.4.1
+
+# Core data / ML
+numpy==1.26.4
+pandas==2.2.2
+scipy==1.13.1
+scikit-learn==1.4.2
+xgboost==2.0.3
+shap==0.45.0
+pyarrow==16.1.0
+
+# Plotting (figures)
+matplotlib==3.8.4
+seaborn==0.13.2
+
+# Config
+python-dotenv==1.0.0

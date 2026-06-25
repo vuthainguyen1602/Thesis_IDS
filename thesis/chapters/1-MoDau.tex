@@ -3,7 +3,7 @@
 Trong kỷ nguyên của Cách mạng Công nghiệp 4.0, \ac{iot} đang phát triển nhanh và được ứng dụng rộng rãi trong nhiều lĩnh vực như nhà thông minh, y tế, giao thông, công nghiệp thông minh,... Sự bùng nổ về số lượng thiết bị \ac{iot} dẫn đến sự gia tăng đáng kể về lưu lượng và loại hình dữ liệu truyền trong mạng. Tuy nhiên, các thiết bị \ac{iot} thường có khả năng xử lý hạn chế và thiếu các cơ chế bảo mật mạnh, khiến chúng trở thành mục tiêu dễ bị tấn công bởi tin tặc.
 
 Để đối phó với các mối đe dọa an ninh mạng, các hệ thống phát hiện xâm nhập
-(\ac{ids}) đang được nghiên cứu và phát triển rộng rãi. Đặc biệt, trong những năm gần đây, việc kết hợp học máy (\ac{ml}) với các nền tảng xử lý dữ liệu lớn giúp hệ thống có khả năng phát hiện các tấn công mới (zero-day) và thích nghi với môi trường mạng thay đổi liên tục.
+(\ac{ids}) đang được nghiên cứu và phát triển rộng rãi. Đặc biệt, trong những năm gần đây, việc kết hợp học máy (\ac{ml}) với các nền tảng xử lý dữ liệu lớn giúp hệ thống nâng cao độ chính xác phát hiện và thích nghi tốt hơn với môi trường mạng thay đổi liên tục. Cần lưu ý rằng bộ phân loại chính trong luận văn là mô hình học có giám sát trên CICIDS2017 nên chỉ phát hiện được các họ tấn công đã biết; khả năng phát hiện hành vi bất thường chưa từng thấy (nếu có) đến từ cổng phát hiện bất thường (anomaly gate) học không giám sát, chứ không phải từ bộ phân loại.
 Tuy nhiên, phần lớn các nghiên cứu hiện nay tập trung vào việc xây dựng mô
 hình học máy trên tập dữ liệu tĩnh, dung lượng nhỏ và huấn luyện ngoại tuyến (offline).
 
@@ -57,6 +57,8 @@ Apache Spark, với khả năng xử lý dữ liệu phân tán và tốc độ 
   \item \textbf{Phương pháp phát hiện bất thường}: Áp dụng các thuật toán học máy được triển khai và tối ưu hóa trong môi trường Spark để đảm bảo khả năng mở rộng và hiệu suất cao.
   \item \textbf{Môi trường triển khai}: Thử nghiệm hệ thống trên một môi trường giả lập mạng \ac{iot} và bộ dữ liệu mô phỏng công khai (CICIDS2017) nhằm đánh giá khả năng phát hiện bất thường.
 \end{itemize}
+
+\textbf{Mô hình mối đe dọa (threat model).} Luận văn giả định kẻ tấn công nằm bên trong hoặc ở biên mạng \ac{iot} và tìm cách né tránh phát hiện; phạm vi bảo vệ giới hạn ở việc phát hiện các tấn công đã biết theo kiểu CICIDS2017, dưới dạng phân loại nhị phân Benign/Attack. Các kịch bản đối kháng chủ động (adversarial/evasion) nhằm cố ý đánh lừa mô hình nằm ngoài phạm vi đánh giá của luận văn.
 
 \section{Phương pháp nghiên cứu}
 \label{sec:PhuongPhap}

@@ -43,7 +43,6 @@ if _needs_ml_deps; then
     else
         pip install $PIP_OPTS pandas matplotlib seaborn pyarrow xgboost shap
     fi
-    pip install $PIP_OPTS synapseml 2>/dev/null || true
 else
     echo "[OK] ML deps already installed on $(hostname)"
 fi

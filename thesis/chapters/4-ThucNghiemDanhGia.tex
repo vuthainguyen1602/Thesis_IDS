@@ -17,7 +17,11 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
 
 \section{Kết quả thực nghiệm}
 
-\noindent\fbox{\parbox{\linewidth}{\small \textbf{Lưu ý về số liệu.} Các giá trị hiệu năng trong mục này được đánh dấu \ph{\dots} là \emph{chỗ trống} cần điền lại sau khi chạy lại pipeline theo cấu hình \emph{đã loại trừ rò rỉ} (đã loại đặc trưng \texttt{destination\_port} và loại bỏ trùng lặp ở mức đặc trưng — xem Chương~\ref{c:phuongphapthuchien}). Các số liệu cũ (gần như tuyệt đối) thu được khi chưa loại rò rỉ và \emph{không} được dùng làm kết quả công bố. Giá trị điền vào lấy từ các tệp \texttt{results/*/...csv} tương ứng.}}
+% Lưu ý cho tác giả (không in ra luận văn): các giá trị \ph{...} trong mục này là chỗ trống
+% cần điền lại sau khi chạy lại pipeline theo cấu hình đã loại trừ rò rỉ (đã loại
+% destination_port và loại bỏ trùng lặp ở mức đặc trưng — xem Chương ref{c:phuongphapthuchien}).
+% Các số liệu cũ (gần như tuyệt đối) thu được khi chưa loại rò rỉ và KHÔNG dùng làm kết quả công bố.
+% Giá trị điền vào lấy từ các tệp results/*/...csv tương ứng.
 
 \vspace{1em}
 Bảng \ref{tab:model_parameters} tóm tắt các thiết lập tham số tối ưu cho các mô hình học máy được sử dụng trong nghiên cứu này, dựa trên các nghiên cứu gần đây và quá trình thực nghiệm thực tế.
@@ -97,7 +101,7 @@ MLP                    & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 \end{tabular*}
 \end{table}
 
-Sau khi loại trừ rò rỉ dữ liệu, cần điền lại các giá trị trên từ \texttt{results/ml\_01\_baseline/} (và \texttt{ml\_07\_cross\_method\_comparison/cross\_method\_summary.csv}) rồi phân tích: nhóm mô hình dựa trên cây (Random Forest, \ac{xgb}, GBT) dự kiến vẫn dẫn đầu, nhưng F1 sẽ thấp hơn mức gần-tuyệt-đối trước đây và phản ánh đúng độ khó thực của bài toán; kết luận ``mô hình nào tốt nhất'' chỉ đưa ra khi chênh lệch vượt khoảng tin cậy (xem mục kiểm định thống kê).
+Sau khi loại trừ rò rỉ dữ liệu, cần điền lại các giá trị trên từ \texttt{results/ml\_01\_baseline/} (và \texttt{ml\_07\_cross\_method\_comparison/cross\_method\_summary.csv}) rồi phân tích: nhóm mô hình dựa trên cây (Random Forest, \ac{xgb}, GBT) dự kiến vẫn dẫn đầu, nhưng F1 sẽ thấp hơn mức gần-tuyệt-đối trước đây và phản ánh đúng độ khó thực của bài toán; kết luận ``mô hình nào tốt nhất'' chỉ đưa ra khi chênh lệch vượt khoảng tin cậy (xem mục kiểm định thống kê). Do dữ liệu mất cân bằng mạnh, AUC-PR và recall trên lớp tấn công được ưu tiên hơn Accuracy khi diễn giải, vì Accuracy có thể lạc quan giả (một mô hình luôn đoán lớp benign chiếm đa số vẫn đạt Accuracy cao).
 
 \subsection{Kịch bản 2: So sánh chiến lược giảm chiều dữ liệu}
 Chúng tôi thực hiện so sánh 3 chiến lược chính nhằm giảm số lượng đặc trưng nhưng vẫn đảm bảo hiệu năng:
@@ -290,7 +294,7 @@ CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & \ph{} \\ \bottomrule
 
 \subsection{Đánh giá đa lớp theo loại tấn công}
 \label{sec:multiclass}
-Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; để bộc lộ điểm yếu thực sự, luận văn bổ sung đánh giá \emph{đa lớp theo từng loại tấn công} (precision/recall/F1 từng lớp, macro-F1 và ma trận nhầm lẫn). Các lớp đa số (DoS/DDoS, PortScan) đạt recall cao, trong khi các lớp hiếm (\ph{Heartbleed, Infiltration, Web Attack...}) có recall thấp hơn rõ rệt --- đây là nơi các phương pháp lựa chọn đặc trưng khác biệt nhất. Kết quả chi tiết theo từng lớp được trình bày trong Bảng~\ref{tab:per_class}, và ma trận nhầm lẫn đa lớp tương ứng được minh họa ở Hình~\ref{fig:confusion_matrix}.
+Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; để bộc lộ điểm yếu thực sự, luận văn bổ sung đánh giá \emph{đa lớp theo từng loại tấn công} (precision/recall/F1 từng lớp, macro-F1 và ma trận nhầm lẫn). Các lớp đa số (DoS/DDoS, PortScan) đạt recall cao, trong khi các lớp hiếm (Heartbleed, Infiltration, Web Attack) có recall thấp hơn rõ rệt --- đây là nơi các phương pháp lựa chọn đặc trưng khác biệt nhất. Kết quả chi tiết theo từng lớp được trình bày trong Bảng~\ref{tab:per_class}, và ma trận nhầm lẫn đa lớp tương ứng được minh họa ở Hình~\ref{fig:confusion_matrix}.
 
 \begin{table}[htbp]
 \centering
@@ -299,11 +303,14 @@ Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; đ�
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
 \textbf{Lớp} & \textbf{Support} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\ \midrule
-\ph{Benign} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ph{DoS/DDoS} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ph{PortScan} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ph{lớp hiếm 1} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ph{lớp hiếm 2} & \ph{} & \ph{} & \ph{} & \ph{} \\ \midrule
+Benign & \ph{} & \ph{} & \ph{} & \ph{} \\
+DoS/DDoS & \ph{} & \ph{} & \ph{} & \ph{} \\
+PortScan & \ph{} & \ph{} & \ph{} & \ph{} \\
+Brute-force & \ph{} & \ph{} & \ph{} & \ph{} \\
+Web Attack & \ph{} & \ph{} & \ph{} & \ph{} \\
+Botnet & \ph{} & \ph{} & \ph{} & \ph{} \\
+Infiltration & \ph{} & \ph{} & \ph{} & \ph{} \\
+Heartbleed & \ph{} & \ph{} & \ph{} & \ph{} \\ \midrule
 \multicolumn{2}{l}{\textbf{macro-F1 / weighted-F1}} & \multicolumn{3}{c}{\ph{} / \ph{}} \\ \bottomrule
 \end{tabular*}
 \end{table}
@@ -413,7 +420,7 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
 \begin{itemize}
     \item \textbf{Chế độ A -- Pipeline split} (khuyến nghị): Jetson~\#1 = cổng bất thường (anomaly gate), Jetson~\#2 = bộ phân loại (classifier) (như mô tả trên), giúp giảm tải Spark nhờ lọc lưu lượng bình thường sớm.
     \item \textbf{Chế độ B -- Mở rộng theo chiều ngang (Horizontal scaling)}: cả hai Jetson chạy pipeline đầy đủ trong cùng một nhóm tiêu thụ (consumer group) của Kafka nhằm tăng thông lượng.
-    \item \textbf{Chế độ C -- Spark cluster}: Jetson~\#1 làm Spark master, Jetson~\#2 làm worker, phân tán suy luận Spark.
+    \item \textbf{Chế độ C -- Spark cluster}: máy chủ MacBook làm Spark master, hai Jetson làm worker, phân tán suy luận Spark trên cụm.
 \end{itemize}
 
 Kiến trúc này đảm bảo tính mô-đun, tách biệt các thành phần xử lý, đồng thời phù hợp với mô hình triển khai phân tán trên các thiết bị biên có tài nguyên hạn chế như Jetson Orin Nano Super.
@@ -437,7 +444,7 @@ Kiến trúc này đảm bảo tính mô-đun, tách biệt các thành phần x
 
 \subsection{Lựa chọn mô hình cho thiết bị biên}
 
-Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguyên: RAM 8\,GB chia sẻ giữa CPU và GPU (trong đó PySpark JVM chiếm một phần đáng kể), CPU ARM, cùng ràng buộc về nhiệt độ/băng thông tại biên. Ba mô hình đại diện cho ba thử nghiệm khác nhau được chọn để đánh giá:
+Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguyên: RAM 8\,GB chia sẻ giữa CPU và GPU (trong đó PySpark JVM chiếm một phần đáng kể), CPU ARM, cùng ràng buộc về nhiệt độ/băng thông tại biên. Cũng cần nhấn mạnh rằng việc chọn Apache Spark trên Jetson 8\,GB phải chịu chi phí JVM/Spark đáng kể; Spark được dùng ở đây nhằm \emph{nhất quán} với pha huấn luyện phân tán, chứ không nhằm tối ưu độ trễ suy luận trên một nút --- so sánh với sklearn/ONNX/TensorRT là hướng nghiên cứu tương lai. Ba mô hình đại diện cho ba thử nghiệm khác nhau được chọn để đánh giá:
 
 \begin{enumerate}
     \item \textbf{Decision Tree} -- Mô hình cây đơn lẻ, đại diện cho cách tiếp cận đơn giản nhất.
@@ -507,7 +514,7 @@ Về tiêu chí \emph{nhận biết ràng buộc biên} (edge-aware), Decision T
 
 \subsection{Kết quả đo hiệu năng (benchmark) trên Jetson Orin Nano Super}
 
-Bảng \ref{tab:edge_benchmark} trình bày kết quả đo hiệu năng (benchmark) thực tế trên Jetson Orin Nano Super với 500 mẫu dữ liệu, kích thước batch = 10.
+Bảng \ref{tab:edge_benchmark} trình bày kết quả đo hiệu năng (benchmark) thực tế trên Jetson Orin Nano Super với 500 mẫu dữ liệu, kích thước batch = 10. Cần lưu ý rằng độ trễ báo cáo ở đây là \emph{độ trễ suy luận} (inference latency): phép đo hiện chỉ tính thời gian tiền xử lý cộng suy luận, \emph{chưa} bao gồm thời gian truyền Kafka, hàng đợi và ghi cơ sở dữ liệu; việc đo độ trễ đầu cuối (end-to-end) thật sự là hướng đo tiếp theo.
 
 \begin{table}[htbp]
 \centering
@@ -515,7 +522,7 @@ Bảng \ref{tab:edge_benchmark} trình bày kết quả đo hiệu năng (benchm
 \label{tab:edge_benchmark}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
 \toprule
-\textbf{Mô hình} & \textbf{Thông lượng} & \textbf{Độ trễ} & \textbf{CPU} & \textbf{RAM} & \textbf{Kích thước} \\
+\textbf{Mô hình} & \textbf{Thông lượng} & \textbf{Độ trễ suy luận} & \textbf{CPU} & \textbf{RAM} & \textbf{Kích thước} \\
                   & \textbf{(samples/s)} & \textbf{(ms/sample)} & \textbf{(\%)} & \textbf{(\%)} & \textbf{(MB)} \\ \midrule
 Decision Tree     & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 \ac{gbt}               & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
@@ -543,7 +550,7 @@ C: Spark cluster        & \ph{} & \ph{} & N/A   & \ph{} & \ph{} \\ \bottomrule
 \end{tabular*}
 \end{table}
 
-Phân tích kỳ vọng: chế độ \emph{pipeline split} giảm tải Spark theo tỷ lệ bỏ qua tại cổng (gate-skip; cổng lọc phần lớn lưu lượng bình thường trước khi gọi bộ phân loại); \emph{mở rộng theo chiều ngang} (horizontal scaling) tăng thông lượng khi số phân vùng (partition) Kafka $\geq 2$; \emph{Spark cluster} thêm chi phí điều phối trên phần cứng Nano nên chỉ hữu ích khi mô hình/batch vượt bộ nhớ một nút. Năng lượng mỗi suy luận được đo trực tiếp trên Jetson bằng \texttt{tegrastats} (tích phân công suất rail tổng theo thời gian, chia cho số luồng đã phân loại); nhờ cổng lọc sớm lưu lượng bình thường, chế độ pipeline split giảm năng lượng/suy luận so với chạy một nút --- lợi ích mà chỉ riêng thông lượng/độ trễ không thể hiện được.
+Phân tích kỳ vọng: chế độ \emph{pipeline split} giảm tải Spark theo tỷ lệ bỏ qua tại cổng (gate-skip; cổng lọc phần lớn lưu lượng bình thường trước khi gọi bộ phân loại); \emph{mở rộng theo chiều ngang} (horizontal scaling) tăng thông lượng khi số phân vùng (partition) Kafka $\geq 2$; \emph{Spark cluster} thêm chi phí điều phối trên phần cứng Nano nên chỉ hữu ích khi mô hình/batch vượt bộ nhớ một nút. Năng lượng mỗi suy luận được đo trực tiếp trên Jetson bằng \texttt{tegrastats} (tích phân công suất rail tổng theo thời gian, chia cho số luồng đã phân loại); nhờ cổng lọc sớm lưu lượng bình thường, chế độ pipeline split giảm năng lượng/suy luận so với chạy một nút --- lợi ích mà chỉ riêng thông lượng/độ trễ không thể hiện được. Cần lưu ý rằng chỉ số mJ/suy luận hiện chưa trừ công suất nền (idle) của thiết bị, và với chế độ pipeline split phải cộng năng lượng của cả hai nút Jetson; các điểm này sẽ được tinh chỉnh khi điền số liệu cuối cùng.
 
 \pagebreak
 

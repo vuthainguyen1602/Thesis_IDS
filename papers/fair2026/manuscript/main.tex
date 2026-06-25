@@ -31,7 +31,7 @@
 \AtBeginDocument{\babelshorthandoff{"}\babelshorthandoff{'}}
 
 % Visible placeholder for a not-yet-filled empirical value.
-\newcommand{\ph}[1]{{\color{red}\textbf{[#1]}}}
+\newcommand{\ph}[1]{{\color{gray}\textit{[#1]}}}
 
 \graphicspath{{../../../results/ml_07_cross_method_comparison/}{../../../results/ml_05_shap_explainability/}{../../../results/ml_09_multiclass_eval/}{../../../results/ml_10_leakage_ablation/}}
 
@@ -326,7 +326,7 @@ Trên tập giữ lại tách rời, thứ hạng các phương pháp \ph{giữ 
 
 \textbf{Hợp lệ nội tại.} Xếp hạng RF/SHAP được rút từ tập huấn luyện gốc và giữ cố định qua các lần lấy mẫu lại. Cách làm này nhất quán với thiết kế ``cấu hình định trước'', nhưng có thể tạo rò rỉ nhẹ ở phần ranking. Re-rank theo từng lần lấy mẫu sẽ chặt chẽ hơn nhưng tốn kém (đặc biệt SHAP); chúng tôi nêu rõ đánh đổi này. Tương tự, việc chọn Top-3 mô hình thành phần cho ensemble dựa trên F1 trên \emph{tập kiểm tra} (thay vì một tập kiểm định (validation) tách riêng) có thể gây thiên lệch lạc quan nhẹ; dùng tập kiểm định riêng hoặc kiểm định chéo (cross-validation) để chọn mô hình thành phần sẽ chặt chẽ hơn. Ngoài ra, cân bằng lớp được áp đồng nhất cho bảy mô hình (Mục~\ref{sec:hparams}) nhưng \emph{không} cho MLP do Spark ML không hỗ trợ trọng số mẫu cho mô hình này; kết quả MLP vì vậy nên được đọc với lưu ý đó.
 
-\textbf{Hợp lệ ngoại tại.} CICIDS2017 (2017) có thể không phản ánh lưu lượng hiện tại; cần kiểm chứng trên các bộ mới hơn (CSE-CIC-IDS2018, CIC-IoT). Phép chia ngẫu nhiên mặc định trộn thời gian; chế độ chia theo thời gian được hỗ trợ để đánh giá sát thực tế hơn. Kết luận tổng quát hoá liên bộ (Mục~\ref{sec:cross-dataset}) dựa trên \emph{mẫu phân tầng đại diện} của CSE-CIC-IDS2018 (do giới hạn tài nguyên biên), không phải toàn bộ; kích thước mẫu được báo cáo tường minh và việc mở rộng lên toàn bộ là hướng tiếp theo.
+\textbf{Hợp lệ ngoại tại.} CICIDS2017 (2017) có thể không phản ánh lưu lượng hiện tại; cần kiểm chứng trên các bộ mới hơn (CSE-CIC-IDS2018, CIC-IoT). Phép chia ngẫu nhiên mặc định trộn thời gian; chế độ chia theo thời gian được hỗ trợ để đánh giá sát thực tế hơn. Kết luận tổng quát hoá liên bộ (Mục~\ref{sec:cross-dataset}) dựa trên \emph{mẫu phân tầng đại diện} của CSE-CIC-IDS2018 (do giới hạn tài nguyên biên), không phải toàn bộ; kích thước mẫu được báo cáo tường minh và việc mở rộng lên toàn bộ là hướng tiếp theo. Mô hình giả định phân bố tấn công xấp xỉ CICIDS2017 và chưa được đánh giá trước lưu lượng cố ý né tránh (adversarial evasion). Ngoài ra, việc loại bỏ trùng lặp ở mức đặc trưng (Mục~\ref{sec:leakage}) tự nó làm thay đổi phân bố lớp giữa lành tính và tấn công, nên cần lưu ý khi diễn giải kết quả.
 
 \textbf{Hợp lệ thống kê.} Cỡ mẫu nhỏ ($N{=}6$) khiến \emph{độ mạnh} (power) của kiểm định thấp: vì permutation test hai phía, $p$ nhỏ nhất có thể đạt chỉ là $2/2^N$, nên $N{=}6$ vừa đủ chạm ngưỡng $0{,}05$ và khó phát hiện hiệu ứng nhỏ. Hơn nữa, các lần lấy mẫu lại \emph{chồng lấn} nhau nên vi phạm giả định độc lập của phân phối $t$, làm khoảng tin cậy theo $t$ chuẩn bị hẹp một cách lạc quan. Vì vậy chúng tôi khuyến nghị dùng corrected resampled $t$-test (Nadeau--Bengio), vốn hiệu chỉnh phương sai cho phần chồng lấn giữa các lần lấy mẫu, hoặc tăng $N$ (kèm cross-validation lồng) để củng cố kết luận.
 

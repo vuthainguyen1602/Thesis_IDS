@@ -307,7 +307,10 @@ java -version
 ### 2. Install Core Python Dependencies
 
 ```bash
-pip install pyspark numpy pandas matplotlib seaborn scikit-learn
+# Recommended: pinned set (matches the Jetson workers' Spark version 3.4.1)
+pip install -r requirements.txt
+# or manually (keep pyspark==3.4.1 to match the workers):
+pip install pyspark==3.4.1 numpy pandas matplotlib seaborn scikit-learn
 ```
 
 ### 3. Install XGBoost (for Spark)

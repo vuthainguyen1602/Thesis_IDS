@@ -36,13 +36,14 @@ Dữ liệu lớn (\textit{Big Data}) là một thuật ngữ được sử dụ
 
 Ngày nay, kích thước của các tập dữ liệu có thể được coi là dữ liệu lớn dao động từ \textbf{terabyte}, \textbf{petabyte} đến \textbf{exabyte}. Khái niệm về dữ liệu lớn sẽ phụ thuộc vào ngành công nghiệp, cách dữ liệu được sử dụng, lượng dữ liệu lịch sử liên quan và nhiều đặc điểm khác.
 
-Dữ liệu lớn thường được nhận diện thông qua năm đặc điểm cốt lõi: \textbf{Khối lượng} (\textit{Volume}), \textbf{Tốc độ} (\textit{Velocity}), \textbf{Tính đa dạng} (\textit{Variety}), \textbf{Tính xác thực} (\textit{Veracity}) và \textbf{Giá trị} (\textit{Value}). Đây là những yếu tố quan trọng giúp phân biệt dữ liệu lớn với các loại dữ liệu thông thường, phản ánh quy mô, tốc độ phát sinh, sự phong phú về định dạng, độ tin cậy và tiềm năng khai thác thông tin từ dữ liệu.
+Dữ liệu lớn thường được nhận diện thông qua năm đặc điểm cốt lõi: \textbf{Khối lượng} (\textit{Volume}), \textbf{Tốc độ} (\textit{Velocity}), \textbf{Tính đa dạng} (\textit{Variety}), \textbf{Tính xác thực} (\textit{Veracity}) và \textbf{Giá trị} (\textit{Value}) (Hình~\ref{fig:bigdata}). Đây là những yếu tố quan trọng giúp phân biệt dữ liệu lớn với các loại dữ liệu thông thường, phản ánh quy mô, tốc độ phát sinh, sự phong phú về định dạng, độ tin cậy và tiềm năng khai thác thông tin từ dữ liệu.
 
 \vspace*{1ex}
     \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{img/bigdata.png}
     \caption{Mô hình 5V của dữ liệu lớn \cite{Husamaldin2019}}
+    \label{fig:bigdata}
     \end{figure}
 \vspace*{1ex}
 \begin{itemize}
@@ -61,13 +62,14 @@ Trong những năm gần đây, các nền tảng xử lý dữ liệu lớn nh�
 
 Bên cạnh đó, Spark cung cấp giao diện lập trình linh hoạt thông qua các API hỗ trợ nhiều ngôn ngữ phổ biến như Java, Scala, Python và R, giúp việc phát triển và triển khai ứng dụng trở nên thuận tiện hơn.
 
-Apache Spark bao gồm nhiều thành phần chính tạo thành một hệ sinh thái hoàn chỉnh, hỗ trợ đa dạng các tác vụ phân tích dữ liệu như xử lý dữ liệu tuần tự, truy vấn SQL, phân tích luồng dữ liệu thời gian thực, học máy và xử lý đồ thị.
+Apache Spark bao gồm nhiều thành phần chính tạo thành một hệ sinh thái hoàn chỉnh, hỗ trợ đa dạng các tác vụ phân tích dữ liệu như xử lý dữ liệu tuần tự, truy vấn SQL, phân tích luồng dữ liệu thời gian thực, học máy và xử lý đồ thị (Hình~\ref{fig:spark}).
 
 \vspace*{1ex}
     \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{img/spark.png}
     \caption{Các thành phần của Apache Spark}
+    \label{fig:spark}
     \end{figure}
 \vspace*{1ex}
 Apache Spark bao gồm nhiều thành phần cốt lõi, mỗi thành phần đảm nhận một chức năng cụ thể trong quá trình xử lý dữ liệu lớn:
@@ -85,13 +87,14 @@ Apache Spark bao gồm nhiều thành phần cốt lõi, mỗi thành phần đ�
 \end{itemize}
 
 \subsection{Kiến trúc của Apache Spark}
-Kiến trúc của Apache Spark được xây dựng theo mô hình master–worker trên nền tảng xử lý phân tán. Thành phần trung tâm là \textbf{Spark Driver}, chịu trách nhiệm điều phối quá trình thực thi ứng dụng, bao gồm việc lên lịch, phân phối tác vụ và giám sát tiến trình. Driver tạo ra một phiên bản logic gọi là \textit{DAG} (Directed Acyclic Graph) để xác định luồng thực thi công việc.
+Kiến trúc của Apache Spark được xây dựng theo mô hình master–worker trên nền tảng xử lý phân tán. Thành phần trung tâm là \textbf{Spark Driver}, chịu trách nhiệm điều phối quá trình thực thi ứng dụng, bao gồm việc lên lịch, phân phối tác vụ và giám sát tiến trình. Driver tạo ra một phiên bản logic gọi là \textit{DAG} (Directed Acyclic Graph) để xác định luồng thực thi công việc; tổng quan kiến trúc master--worker được minh họa ở Hình~\ref{fig:spark-structure}.
 
 \vspace*{1ex}
     \begin{figure}[ht]
     \centering
     \includegraphics[width=0.85\textwidth]{img/spark-structure.png}
     \caption{Sơ đồ kiến trúc hệ thống Apache Spark}
+    \label{fig:spark-structure}
     \end{figure}
 \vspace*{1ex}
 
@@ -255,9 +258,9 @@ Kỹ thuật \ac{el} đã chứng minh được tính hiệu quả cao trong nhi
 
 Một số phương pháp phổ biến của \ac{el} bao gồm:
 \begin{itemize}
-    \item \textbf{Voting}: Với bài toán phân loại, mỗi mô hình con bỏ phiếu cho một lớp và lớp có số phiếu cao nhất sẽ là đầu ra cuối cùng (đa số phiếu hoặc trung bình xác suất). Các bước của voting được mô tả chi tiết ở \textbf{\textit{Thuật toán \ref{voting_ag1}}}.
-    \item \textbf{Boosting}: Huấn luyện các mô hình tuần tự, trong đó mỗi mô hình mới tập trung vào các mẫu mà mô hình trước đã dự đoán sai (ví dụ: \ac{gbt}, AdaBoost, \ac{xgb}). Các bước của boosting được mô tả chi tiết ở \textbf{\textit{Thuật toán \ref{boosting_ag1}}}.
-    \item \textbf{Bagging (Bootstrap Aggregating)}: Huấn luyện nhiều mô hình trên các tập con ngẫu nhiên (lấy mẫu có hoàn lại) của tập dữ liệu gốc, sau đó tổng hợp kết quả dự đoán (ví dụ: Random Forest). Các bước của bagging được mô tả chi tiết ở \textbf{\textit{Thuật toán \ref{bagging_ag1}}}.
+    \item \textbf{Voting}: Với bài toán phân loại, mỗi mô hình con bỏ phiếu cho một lớp và lớp có số phiếu cao nhất sẽ là đầu ra cuối cùng (đa số phiếu hoặc trung bình xác suất). Các bước của voting được mô tả chi tiết ở Thuật toán~\ref{voting_ag1}.
+    \item \textbf{Boosting}: Huấn luyện các mô hình tuần tự, trong đó mỗi mô hình mới tập trung vào các mẫu mà mô hình trước đã dự đoán sai (ví dụ: \ac{gbt}, AdaBoost, \ac{xgb}). Các bước của boosting được mô tả chi tiết ở Thuật toán~\ref{boosting_ag1}.
+    \item \textbf{Bagging (Bootstrap Aggregating)}: Huấn luyện nhiều mô hình trên các tập con ngẫu nhiên (lấy mẫu có hoàn lại) của tập dữ liệu gốc, sau đó tổng hợp kết quả dự đoán (ví dụ: Random Forest). Các bước của bagging được mô tả chi tiết ở Thuật toán~\ref{bagging_ag1}.
 \end{itemize}
 
 \ac{el} đặc biệt hữu ích trong các hệ thống phát hiện xâm nhập (\ac{ids}) vì cần phân tích lượng lớn dữ liệu phức tạp, và việc kết hợp nhiều mô hình có thể giúp tăng khả năng phát hiện các gói tin bất thường mà một mô hình đơn lẻ có thể bỏ sót.

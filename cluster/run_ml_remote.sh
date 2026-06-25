@@ -51,8 +51,6 @@ set -euo pipefail
 cd "$REMOTE_ROOT"
 if [ -d jetson/venv/bin ]; then source jetson/venv/bin/activate; elif [ -d venv/bin ]; then source venv/bin/activate; fi
 python -c "import pandas, matplotlib, seaborn, pyarrow, xgboost, shap; print('[OK] Core ML deps ready on driver')"
-python -c "from synapse.ml.lightgbm import LightGBMClassifier; print('[OK] LightGBM ready')" \
-    || echo "[WARN] LightGBM not ready (synapseml or Java backend missing)"
 export JAVA_HOME="\${JAVA_HOME:-\$(dirname "\$(dirname "\$(readlink -f "\$(which java)")")")}"
 export PATH="\$JAVA_HOME/bin:\$PATH"
 echo "[INFO] JAVA_HOME=\$JAVA_HOME"
