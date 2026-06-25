@@ -4,6 +4,7 @@
   \label{tab:related-work}
   \centering
   \small
+  \resizebox{\textwidth}{!}{%
   \begin{tabular}{|p{2.2cm}|p{2.5cm}|p{1.5cm}|p{2.0cm}|p{2.5cm}|}
     \hline
     \textbf{Work} & \textbf{Focus} & \textbf{Platform} & \textbf{Streaming} & \textbf{Our difference} \\
@@ -18,5 +19,6 @@
     NVIDIA Jetson~\cite{nvidia2019jetson} & Embedded GPU & Jetson Orin & --- & Role-based pipelines + Influx metrics \\
     \textbf{This work} & \textbf{Distributed edge IDS} & \textbf{2$\times$ Jetson} & \textbf{Kafka} & \textbf{Modes A/B/C + open scripts} \\
     \hline
-  \end{tabular}
+  \end{tabular}%
+  }
 \end{table}

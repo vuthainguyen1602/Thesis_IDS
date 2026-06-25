@@ -34,10 +34,11 @@
 
 \titlerunning{Distributed Edge IDS on Jetson Orin Nano Super}
 
-\author{Nguyễn Vũ Thái\inst{1} \and
-Bùi Văn Dũng\inst{2,3}}
+\author{Thai Nguyen Vu\inst{1} \and
+Dung Bui Van\inst{2,3} \and
+Tri Nhut Do\inst{2,3}}
 
-\authorrunning{N. V. Thái et al.}
+\authorrunning{T. N. Vu et al.}
 
 \institute{University of Transport and Communications, Ho Chi Minh City Campus, Vietnam\\
 \email{nvthai@utc2.edu.vn}
@@ -45,31 +46,31 @@ Bùi Văn Dũng\inst{2,3}}
 Vietnam National University Ho Chi Minh City, Vietnam
 \and
 University of Information Technology, Vietnam\\
-\email{dungbv.17@grad.uit.edu.vn}}
+\email{dungbv.17@grad.uit.edu.vn, trinhutdo@uit.edu.vn}}
 
 \maketitle
 
 \begin{abstract}
-Deploying machine-learning-based intrusion detection on resource-constrained edge devices requires balancing accuracy, latency, and operational cost. We present a split-deployment IDS architecture across two NVIDIA Jetson Orin Nano Super devices connected through Apache Kafka~\cite{kreps2011kafka}. The system implements a two-stage pipeline: (1) a lightweight autoencoder anomaly gate on Jetson~\#1 filters benign traffic, and (2) a PySpark \texttt{PipelineModel} classifier on Jetson~\#2 processes only suspicious flows. Central infrastructure (Kafka, PostgreSQL, InfluxDB, Grafana) runs on a host PC. The classifier is the model selected by our companion Spark ML study under a \emph{leakage-aware} evaluation (label-leaking port features removed, feature-level duplicate flows eliminated). We evaluate three distributed modes---pipeline split, horizontal Kafka consumer scaling, and a Spark standalone cluster---streaming CICIDS2017 network flows~\cite{sharafaldin2018toward}. Results show that the anomaly gate reduces Spark inference load while preserving detection accuracy, with \ph{p95}\,ms p95 batch latency on Jetson Orin Nano Super under \ph{load} flows/s.
+Deploying machine-learning-based intrusion detection on resource-constrained edge devices requires balancing accuracy, latency, and operational cost. We present a split-deployment IDS architecture across two NVIDIA Jetson Orin Nano Super devices connected through Apache Kafka~\cite{kreps2011kafka}. The system implements a two-stage pipeline: (1) a lightweight autoencoder anomaly gate on Jetson~\#1 filters benign traffic, and (2) a PySpark \texttt{PipelineModel} classifier on Jetson~\#2 processes only suspicious flows. Central infrastructure (Kafka, PostgreSQL, InfluxDB, Grafana) runs on a host PC. The classifier is the model selected by our companion Spark ML study under a \emph{leakage-aware} evaluation (label-leaking port features removed, feature-level duplicate flows eliminated). We evaluate three distributed modes (pipeline split, horizontal Kafka consumer scaling, and a Spark standalone cluster) while streaming CICIDS2017 network flows~\cite{sharafaldin2018toward}. We report throughput, latency, and the gate's recall--skip trade-off across the three deployment modes; quantitative results, including p95 batch latency on Jetson Orin Nano Super under streaming load, are filled in after benchmarking.
 
 \keywords{Intrusion detection \and Edge computing \and Jetson Orin Nano Super \and Kafka \and PySpark \and Stream processing.}
 \end{abstract}
 
 \section{Introduction}
 
-Network intrusion detection systems (IDS) increasingly must operate closer to data sources to reduce bandwidth and response time~\cite{shi2016edge}. Edge devices such as the NVIDIA Jetson Orin Nano Super offer limited CPU, memory, and thermal headroom, making monolithic ML inference challenging. A practical edge IDS must therefore decide \emph{which} model to deploy (small, accurate, explainable) and \emph{how} to distribute inference across nodes under streaming load.
+Network intrusion detection systems (IDS) increasingly must operate closer to data sources to reduce bandwidth and response time~\cite{shi2016edge}. Edge devices such as the NVIDIA Jetson Orin Nano Super offer limited CPU, memory, and thermal headroom, making monolithic ML inference challenging. A practical edge IDS must therefore decide \emph{which} model to deploy---one that is small, accurate, and explainable---and \emph{how} to distribute inference across nodes under streaming load.
 
 \textbf{Contributions.}
 (1) A two-stage distributed IDS combining a lightweight anomaly gate with a Spark-based classifier;
 (2) Three deployment modes for a two-node Jetson cluster (pipeline split, horizontal scaling, Spark standalone cluster);
-(3) An end-to-end performance evaluation reporting throughput, latency percentiles, and per-node resource usage---metrics offline studies omit;
+(3) An end-to-end performance evaluation reporting throughput, latency percentiles, and per-node resource usage, which are metrics that offline studies typically omit;
 (4) Open, reproducible scripts integrated with a \emph{leakage-aware} Spark ML training pipeline, so the deployed model is the one validated under a rigorous offline protocol.
 
 \section{Related Work}
 
-Edge computing pushes analytics closer to data sources to reduce latency and bandwidth~\cite{shi2016edge,hamdan2020edge}. Prior edge IDS studies~\cite{sforzin2016rpids,baalaji2025ensemble,asghar2026hedid} benchmark single-node inference on resource-constrained boards---including recent NVIDIA Jetson deployments---but rarely evaluate multi-node Kafka pipelines with explicit role separation. Streaming platforms such as Kafka~\cite{kreps2011kafka} decouple producers and consumers; however, most ML-based IDS papers~\cite{khraisat2019survey,ferrag2020deep,vinayakumar2019deep} report offline batch accuracy without end-to-end throughput or per-node resource traces.
+Edge computing pushes analytics closer to data sources to reduce latency and bandwidth~\cite{shi2016edge,hamdan2020edge}. Prior edge IDS studies~\cite{sforzin2016rpids,baalaji2025ensemble,asghar2026hedid} benchmark single-node inference on resource-constrained boards, including recent NVIDIA Jetson deployments, but they rarely evaluate multi-node Kafka pipelines with explicit role separation. Streaming platforms such as Kafka~\cite{kreps2011kafka} decouple producers and consumers; however, most ML-based IDS papers~\cite{khraisat2019survey,ferrag2020deep,vinayakumar2019deep} report offline batch accuracy without end-to-end throughput or per-node resource traces.
 
-\textbf{Split inference.} Anomaly-detection surveys~\cite{chandola2009anomaly,ruff2021unifying} motivate two-stage designs: a lightweight gate followed by a heavier classifier. Autoencoder-based detectors~\cite{lopez2020autoencoder,hasan2025iiot} and federated edge IDS~\cite{nguyen2019diot} explore similar ideas on servers or homogeneous edge nodes---and, recently, on a single Jetson Nano~\cite{hasan2025iiot}---but without PySpark MLlib classifiers on NVIDIA Jetson Orin Nano Super~\cite{nvidia2019jetson}. Our companion ML study selects a leak-free SHAP Top-30 model on CICIDS2017~\cite{sharafaldin2018toward,lundberg2017unified}; this paper focuses on \emph{how} to deploy that model across two Jetsons with a measurable gate-skip ratio and three scaling modes. Table~\ref{tab:related-work} positions our system against representative related work.
+\textbf{Split inference.} Anomaly-detection surveys~\cite{chandola2009anomaly,ruff2021unifying} motivate two-stage designs: a lightweight gate followed by a heavier classifier. Autoencoder-based detectors~\cite{lopez2020autoencoder,hasan2025iiot} and federated edge IDS~\cite{nguyen2019diot} explore similar ideas on servers or homogeneous edge nodes, and recently on a single Jetson Nano~\cite{hasan2025iiot}, but none use PySpark MLlib classifiers on the NVIDIA Jetson Orin Nano Super~\cite{nvidia2019jetson}. Our companion ML study selects a leak-free SHAP Top-30 model on CICIDS2017~\cite{sharafaldin2018toward,lundberg2017unified}; this paper focuses on \emph{how} to deploy that model across two Jetsons with a measurable gate-skip ratio and three scaling modes. Table~\ref{tab:related-work} positions our system against representative related work.
 
 \input{../../../papers/latex/related_work_table_soict.tex}
 
@@ -77,7 +78,7 @@ Edge computing pushes analytics closer to data sources to reduce latency and ban
 
 \subsection{Split Deployment Overview}
 
-Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC runs Kafka, PostgreSQL, InfluxDB, and Grafana. Two Jetson Orin Nano Super nodes consume network-flow messages from topic \texttt{ids-network-flow}. In pipeline-split mode, Jetson~\#1 runs the anomaly gate and forwards only \emph{suspicious} flows to topic \texttt{ids-suspicious-flow}; Jetson~\#2 then applies the PySpark classifier and writes classification results back to PostgreSQL. Both nodes stream performance metrics to InfluxDB/Grafana and raise alerts via Email/Slack (dashed arrows in Fig.~\ref{fig:architecture}).
+Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC runs Kafka, PostgreSQL, InfluxDB, and Grafana. Two Jetson Orin Nano Super nodes consume network-flow messages from topic \texttt{ids-network-flow}. In pipeline-split mode, Jetson~\#1 runs the anomaly gate and forwards only \emph{suspicious} flows to topic \texttt{ids-suspicious-flow}. Jetson~\#2 then applies the PySpark classifier and writes the classification results back to PostgreSQL. Both nodes stream performance metrics to InfluxDB/Grafana and raise alerts via Email/Slack (dashed arrows in Fig.~\ref{fig:architecture}).
 
 \begin{figure}[t]
   \centering
@@ -129,7 +130,7 @@ Training and model export run on a Spark standalone cluster (host PC as master, 
 \section{From Spark Training to Edge Deployment}
 \label{sec:bridge}
 
-This paper does \emph{not} compare Spark against Jetson Orin Nano Super as competing platforms. The two components address complementary phases of the same train--deploy pipeline (Fig.~\ref{fig:train-deploy}). Spark answers \emph{which model and how many features} achieve acceptable accuracy on the full CICIDS2017 dataset~\cite{sharafaldin2018toward}; Jetson Orin Nano Super answers \emph{whether that model can run in real time} under memory, thermal, and bandwidth constraints at the network edge~\cite{shi2016edge}.
+This paper does \emph{not} compare Spark against Jetson Orin Nano Super as competing platforms. The two components address complementary phases of the same train--deploy pipeline (Fig.~\ref{fig:train-deploy}). Spark answers \emph{which model and how many features} achieve acceptable accuracy on the full CICIDS2017 dataset~\cite{sharafaldin2018toward}, whereas the Jetson Orin Nano Super answers \emph{whether that model can run in real time} under memory, thermal, and bandwidth constraints at the network edge~\cite{shi2016edge}.
 
 \begin{figure}[htbp]
   \centering
@@ -175,14 +176,14 @@ This paper does \emph{not} compare Spark against Jetson Orin Nano Super as compe
 
 \subsection{Offline Phase (Spark ML), Leakage-Aware}
 
-In our companion ML study, four feature configurations---baseline (all features), RF Importance Top-30, SHAP Top-30, and PCA ($k$=40)---are evaluated under a fixed 80/20 train--test split with eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). PCA uses $k$=40 rather than 30 because it \emph{extracts} components (linear combinations spreading variance across many axes) rather than \emph{selecting} original features, so it needs more components to retain comparable variance; across the common $\{20,30,40\}$ sweep, $k$=40 retains the most variance and is the fairest representative operating point for PCA. LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. Crucially, the offline protocol is \emph{leakage-aware}---that is, it removes information that would not be available at deployment time but otherwise inflates test scores. Motivated by documented labelling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores reported when these leaks are left in. Offline metrics constrain \emph{which} exported model is worth deploying; they are not directly comparable to edge throughput or latency.
+In our companion ML study, we evaluate four feature configurations---baseline (all features), RF Importance Top-30, SHAP Top-30, and PCA ($k$=40)---under a fixed 80/20 train--test split, using eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). PCA uses $k$=40 rather than 30 because it \emph{extracts} components (linear combinations spreading variance across many axes) rather than \emph{selecting} original features, so it needs more components to retain comparable variance; across the common $\{20,30,40\}$ sweep, $k$=40 retains the most variance and is the fairest representative operating point for PCA. LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. Crucially, the offline protocol is \emph{leakage-aware}: it removes information that would be unavailable at deployment time but that otherwise inflates test scores. Motivated by documented labelling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores obtained when these leaks are left in place. Offline metrics constrain \emph{which} exported model is worth deploying; they are not directly comparable to edge throughput or latency.
 
 \begin{table}[htbp]
   \caption{Bridge table: offline Spark selection criteria (leak-free Exp~7 on CICIDS2017). Fill from \texttt{cross\_method\_summary.csv}.}
   \label{tab:spark-edge-bridge}
   \centering
   \small
-  \begin{tabular}{l c c c l}
+  \begin{tabular}{l c c c p{3.2cm}}
     \toprule
     Configuration & F1 & Features & Size (MB) & Edge rationale \\
     \midrule
@@ -196,7 +197,7 @@ In our companion ML study, four feature configurations---baseline (all features)
 
 \subsection{Edge Phase (Jetson Orin Nano Super)}
 
-The exported \texttt{PipelineModel} (VectorAssembler $\rightarrow$ StandardScaler $\rightarrow$ classifier) is loaded on Jetson~\#2 with only the selected SHAP features, reducing assembly and inference cost relative to the $\approx$78-feature baseline. A lightweight sklearn autoencoder gate (Exp~8) on Jetson~\#1 filters benign flows before they reach Spark inference, further lowering load on the classifier node. End-to-end edge evaluation measures throughput (flows/s), latency p50/p95 (ms), per-node CPU/RAM/temperature, attack-class F1, and gate-skip ratio---metrics that offline Spark experiments do not capture.
+The exported \texttt{PipelineModel} (VectorAssembler $\rightarrow$ StandardScaler $\rightarrow$ classifier) is loaded on Jetson~\#2 with only the selected SHAP features, reducing assembly and inference cost relative to the $\approx$78-feature baseline. A lightweight sklearn autoencoder gate (Exp~8) on Jetson~\#1 filters benign flows before they reach Spark inference, further lowering load on the classifier node. End-to-end edge evaluation measures throughput (flows/s), latency p50/p95 (ms), per-node CPU/RAM/temperature, attack-class F1, and gate-skip ratio, none of which the offline Spark experiments capture.
 
 \subsection{Division of Evaluation Metrics}
 
@@ -207,7 +208,7 @@ Table~\ref{tab:metrics-split} clarifies which metric belongs to which phase. Mix
   \label{tab:metrics-split}
   \centering
   \small
-  \begin{tabular}{l l l}
+  \begin{tabular}{p{2.4cm} p{4.2cm} p{4.2cm}}
     \toprule
     Aspect & Spark (offline) & Jetson (edge) \\
     \midrule
@@ -220,7 +221,7 @@ Table~\ref{tab:metrics-split} clarifies which metric belongs to which phase. Mix
   \end{tabular}
 \end{table}
 
-We deploy SHAP Top-30 (with the classifier chosen in Exp~7) on Jetson~\#2 because offline results show near-baseline F1 with substantially fewer features and an acceptable model footprint. Section~\ref{sec:benchmark-results} validates this choice under streaming load; the companion ML paper reports the full four-method comparison and drift analysis.
+We deploy SHAP Top-30 (with the classifier chosen in Exp~7) on Jetson~\#2 because it is intended to retain near-baseline F1 with substantially fewer features and an acceptable model footprint; the offline numbers in Table~\ref{tab:spark-edge-bridge} are filled in to verify this. Section~\ref{sec:benchmark-results} then evaluates the choice under streaming load; the companion ML paper reports the full four-method comparison and drift analysis.
 
 \section{Experimental Setup}
 
@@ -230,7 +231,7 @@ We deploy SHAP Top-30 (with the classifier chosen in Exp~7) on Jetson~\#2 becaus
 
 \subsection{Workloads}
 
-CSV replay through \texttt{data\_sender.py} at \ph{rate} flows/s over CICIDS2017. Reported metrics: throughput, p50/p95 latency, per-node CPU/RAM/temperature, attack-class F1, and gate-skip ratio.
+CSV replay through \texttt{data\_sender.py} at \ph{rate} flows/s over CICIDS2017. Reported metrics: throughput, p50/p95 latency, per-node CPU/RAM/temperature, attack-class F1, gate-skip ratio, and energy-per-inference (mJ, via \texttt{tegrastats}).
 
 \subsection{Baselines}
 
@@ -246,6 +247,7 @@ We run \texttt{run\_benchmarks.sh} on the Jetson hardware in three phases (\text
   \label{tab:benchmark}
   \centering
   \small
+  \resizebox{\textwidth}{!}{%
   \begin{tabular}{l c c c c c}
     \toprule
     Mode & Throughput (flows/s) & Latency p95 (ms) & Gate skip (\%) & Energy/inf.\ (mJ) & Attack F1 \\
@@ -255,10 +257,11 @@ We run \texttt{run\_benchmarks.sh} on the Jetson hardware in three phases (\text
     B: Horizontal & \ph{tpB} & \ph{latB} & N/A & \ph{eB} & \ph{f1B} \\
     C: Spark cluster & \ph{tpC} & \ph{latC} & N/A & \ph{eC} & \ph{f1C} \\
     \bottomrule
-  \end{tabular}
+  \end{tabular}%
+  }
 \end{table}
 
-\textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run; the average rail power is integrated over the window to obtain energy, and divided by the number of classified flows to report energy-per-inference (mJ). Because the anomaly gate offloads a \ph{gsA}\% fraction of benign traffic before the heavier Spark classifier runs, the pipeline-split mode lowers energy-per-inference relative to the single-node baseline (Table~\ref{tab:benchmark}) --- a saving that latency and throughput alone do not expose.
+\textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run; the average rail power is integrated over the window to obtain energy, and divided by the number of classified flows to report energy-per-inference (mJ). If the anomaly gate offloads a \ph{gsA}\% fraction of benign traffic before the heavier Spark classifier runs, the pipeline-split mode is expected to lower energy-per-inference relative to the single-node baseline; however, the added node and extra Kafka hop introduce overhead that may offset this saving, so Table~\ref{tab:benchmark} quantifies whether the net effect holds. This is a dimension that latency and throughput alone do not expose.
 
 \begin{figure}[htbp]
   \centering
@@ -286,13 +289,13 @@ The anomaly gate is a \emph{tunable} filter rather than a single point: sweeping
 
 \section{Discussion}
 
-Pipeline split offloads Spark from the majority of benign traffic; the realized benefit scales with the gate-skip ratio (\ph{gsA}\% in our runs). Horizontal scaling improves throughput when Kafka partitions $\geq 2$. Spark standalone cluster mode adds coordination overhead on the Orin Nano Super and is most useful when model or batch size exceeds single-node memory.
+Pipeline split relieves Spark of most benign traffic, and the realized benefit scales with the gate-skip ratio (\ph{gsA}\% in our runs). Horizontal scaling improves throughput when Kafka partitions $\geq 2$. Spark standalone cluster mode adds coordination overhead on the Orin Nano Super and is most useful when model or batch size exceeds single-node memory.
 
 As summarized in Sec.~\ref{sec:bridge}, offline Spark experiments and edge Jetson benchmarks answer different questions. Feature reduction from $\approx$78 to 30 dimensions (SHAP Top-30) directly reduces \texttt{VectorAssembler} and \texttt{PipelineModel} cost on the Orin Nano Super, while the anomaly gate skips a large fraction of benign flows before Spark inference is invoked. Together, these design choices connect the accuracy-oriented conclusions of the companion ML study to a deployable, measurable edge architecture.
 
 \subsection{Limitations}
 
-Benchmarks are obtained on a two-node lab cluster over WiFi; wired networking and larger clusters may shift latency tails. The anomaly-gate threshold trades attack recall against gate-skip ratio; we characterize this as an operating curve (Fig.~\ref{fig:gate}) rather than a single point, leaving live-traffic re-calibration of the gate to future work. Finally, results are tied to CICIDS2017 replay; live-traffic validation remains future work.
+Benchmarks are obtained on a two-node lab cluster over WiFi; wired networking and larger clusters may shift latency tails. The anomaly-gate threshold trades attack recall against the gate-skip ratio, so we characterize it as an operating curve (Fig.~\ref{fig:gate}) rather than a single point and leave live-traffic re-calibration of the gate to future work. Selecting the deployed model by test-set F1 may introduce a mild optimistic bias; a held-out validation split (or cross-validation) is preferable for model selection. The benchmarks should also be run multiple times to report the variance of latency, and Spark JVM warmup and cold-start effects can inflate early-batch p95 latency, so warmup batches should be discarded before measurement. Finally, our results are tied to CICIDS2017 replay, so validation on live traffic remains future work.
 
 \section{Conclusion}
 
@@ -300,10 +303,10 @@ We presented a reproducible distributed edge IDS for Jetson Orin Nano Super clus
 
 \begin{credits}
 \subsubsection{\ackname}
-This work was conducted at the University of Transport and Communications (Ho Chi Minh City Campus) and the University of Information Technology, Vietnam National University Ho Chi Minh City, as part of a graduation thesis research project.
+This research is funded by the University of Information Technology, Vietnam National University -- Ho Chi Minh City. The work was carried out at the University of Transport and Communications (Ho Chi Minh City Campus) and the University of Information Technology, VNU-HCM, as part of a graduation thesis research project.
 
 \subsubsection{\discintname}
-The authors have no competing interests to declare relevant to this article.
+The authors declare that there is no competing interest.
 \end{credits}
 
 \bibliographystyle{../../latex/splncs04}

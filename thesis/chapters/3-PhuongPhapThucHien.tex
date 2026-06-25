@@ -14,7 +14,7 @@ Trong chương này, luận văn sẽ trình bày phương pháp đề xuất đ
         loop/.style={-{Stealth[length=2.5mm]}, thick, draw=orange!75!black, dashed},
     ]
         \node[io]  (data)  at (0, 0.0)  {\textbf{(1) Thu thập \& Tiền xử lý} --- CICIDS2017\\
-            loại trừ rò rỉ dữ liệu (bỏ \texttt{destination\_port}, khử trùng lặp đặc trưng), chia 80/20};
+            loại trừ rò rỉ dữ liệu (bỏ \texttt{destination\_port}, loại bỏ trùng lặp đặc trưng), chia 80/20};
         \node[ml]  (feat)  at (0,-1.7)  {\textbf{(2) Xây dựng \& lựa chọn đặc trưng}\\
             RF Importance \;$|$\; SHAP \;$|$\; PCA};
         \node[ml]  (train) at (0,-3.4)  {\textbf{(3) Huấn luyện mô hình} --- Apache Spark ML\\
@@ -39,14 +39,14 @@ Trong chương này, luận văn sẽ trình bày phương pháp đề xuất đ
 \end{figure}
 
 \section{Thu thập dữ liệu và tiền xử lý}
-Trong nghiên cứu này, tập dữ liệu được sử dụng là CIC-\ac{ids}2017 được phát hành bởi Viện An ninh mạng Canada (CIC). Tập dữ liệu này được xây dựng nhằm mô phỏng lưu lượng mạng thực tế kết hợp với nhiều loại tấn công mạng hiện đại, phục vụ cho việc huấn luyện và đánh giá các mô hình phát hiện xâm nhập. Tập dữ liệu CIC-\ac{ids}2017 tập trung vào các kịch bản tấn công đơn lẻ trong môi trường kiểm soát. Thông tin chi tiết về tập dữ liệu được trình bày trong Bảng~\textbf{\ref{tab:cicids2017}}.
+Trong nghiên cứu này, tập dữ liệu được sử dụng là CICIDS2017 được phát hành bởi Viện An ninh mạng Canada (CIC). Tập dữ liệu này được xây dựng nhằm mô phỏng lưu lượng mạng thực tế kết hợp với nhiều loại tấn công mạng hiện đại, phục vụ cho việc huấn luyện và đánh giá các mô hình phát hiện xâm nhập. Tập dữ liệu CICIDS2017 tập trung vào các kịch bản tấn công đơn lẻ trong môi trường kiểm soát. Thông tin chi tiết về tập dữ liệu được trình bày trong Bảng~\textbf{\ref{tab:cicids2017}}.
 
 \begin{table}[htbp]
 \centering
-\caption{Mô tả bộ dữ liệu CIC-\ac{ids}2017}
+\caption{Mô tả bộ dữ liệu CICIDS2017}
 \label{tab:cicids2017}
 \renewcommand{\arraystretch}{1.1}
-\begin{tabular}{l@{\hspace{10pt}}l}
+\begin{tabular}{l@{\hspace{10pt}}>{\raggedright\arraybackslash}p{10cm}}
 \toprule
 \textbf{Thuộc tính}              & \textbf{Giá trị} \\
 \midrule
@@ -69,7 +69,7 @@ Nguồn dữ liệu                    & \cite{sharafaldin2018toward} \\
 \textbf{Tiền xử lý dữ liệu}
 Việc tiền xử lý dữ liệu nhằm loại bỏ nhiễu, giá trị ngoại lệ và giá trị bị thiếu được thực hiện trước khi đưa dữ liệu vào huấn luyện mô hình. Các kỹ thuật được áp dụng gồm chuẩn hóa tên cột, căn chỉnh lược đồ giữa các tệp, thay thế giá trị vô cùng, loại bỏ bản ghi trùng lặp/thiếu, và gán nhãn nhị phân (BENIGN $=0$, Attack $=1$).
 
-Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng năng lực mô hình, luận văn áp dụng thêm hai bước \emph{loại trừ rò rỉ dữ liệu} ngay trong giai đoạn tiền xử lý, trước khi phân chia tập: (i) \textbf{loại đặc trưng rò rỉ nhãn} \texttt{destination\_port} (và \texttt{source\_port} nếu có) — vì trong CIC-\ac{ids}2017, mỗi loại tấn công được sinh nhằm vào những cổng dịch vụ cố định nên cổng đích gần như mã hóa trực tiếp nhãn, khiến mô hình ``ghi nhớ'' ánh xạ cổng~$\rightarrow$~nhãn thay vì học hành vi luồng; và (ii) \textbf{khử trùng lặp ở mức đặc trưng} — loại các luồng giống nhau trên toàn bộ cột đặc trưng (không chỉ khử các bản ghi trùng lặp hoàn toàn), tránh việc cùng một mẫu xuất hiện ở cả tập huấn luyện lẫn kiểm tra khi phân chia ngẫu nhiên. Đối với tập dữ liệu CIC-\ac{ids}2017, quá trình tiền xử lý dữ liệu được thể hiện chi tiết ở \textbf{\textit{Thuật toán \ref{data_preparation_ag}}}.
+Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng năng lực mô hình, luận văn áp dụng thêm hai bước \emph{loại trừ rò rỉ dữ liệu} ngay trong giai đoạn tiền xử lý, trước khi phân chia tập: (i) \textbf{loại đặc trưng rò rỉ nhãn} \texttt{destination\_port} (và \texttt{source\_port} nếu có) — vì trong CICIDS2017, mỗi loại tấn công được sinh nhằm vào những cổng dịch vụ cố định nên cổng đích gần như mã hóa trực tiếp nhãn, khiến mô hình ``ghi nhớ'' ánh xạ cổng~$\rightarrow$~nhãn thay vì học hành vi luồng; và (ii) \textbf{loại bỏ trùng lặp ở mức đặc trưng} — loại các luồng giống nhau trên toàn bộ cột đặc trưng (không chỉ khử các bản ghi trùng lặp hoàn toàn), tránh việc cùng một mẫu xuất hiện ở cả tập huấn luyện lẫn kiểm tra khi phân chia ngẫu nhiên. Đối với tập dữ liệu CICIDS2017, quá trình tiền xử lý dữ liệu được thể hiện chi tiết ở \textbf{\textit{Thuật toán \ref{data_preparation_ag}}}.
 
 \begin{algorithm}[htbp]
 \caption{Thuật toán Tiền xử lý Dữ liệu CICIDS2017}
@@ -105,7 +105,7 @@ Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng 
 \State $\mathcal{C}_{\text{exclude}} \gets \{\text{label, label\_binary, source\_ip, destination\_ip, flow\_id, timestamp, protocol,}$
 \Statex \qquad\qquad $\text{\textbf{destination\_port, source\_port}}\}$ \Comment{Loại bỏ đặc trưng gây rò rỉ nhãn}
 \State $\mathcal{F} \gets \{c \in \text{columns}(D) \mid c \notin \mathcal{C}_{\text{exclude}} \wedge \text{dtype}(c) \in \{\text{double, float, int, bigint}\}\}$
-\State $D \gets \text{DropDuplicates}(D, \text{subset}=\mathcal{F})$ \Comment{Khử trùng lặp ở mức đặc trưng trước khi chia}
+\State $D \gets \text{DropDuplicates}(D, \text{subset}=\mathcal{F})$ \Comment{Loại bỏ trùng lặp ở mức đặc trưng trước khi chia}
 
 \State \textbf{Bước 5: Phân chia và lưu trữ}
 \State $D_{\text{train}}, D_{\text{test}} \gets \text{RandomSplit}(D, [\alpha, 1 - \alpha], \text{seed} = 42)$
@@ -116,12 +116,12 @@ Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng 
 
 \textbf{Phân chia tập dữ liệu}
 
-Tập dữ liệu CIC-\ac{ids}2017 được phân chia theo tỷ lệ 80/20 cho huấn luyện và kiểm tra, sử dụng chiến lược \textit{stratified split} để giữ nguyên phân bố nhãn. Các chỉ số hiệu năng được \textbf{công bố trên tập kiểm tra} (tập giữ lại cuối cùng, không tham gia huấn luyện, xếp hạng đặc trưng hay tinh chỉnh siêu tham số); kết quả trên tập huấn luyện chỉ được dùng để chẩn đoán hiện tượng quá khớp (overfitting) hoặc thiếu khớp (underfitting).
+Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn luyện và kiểm tra bằng phép chia ngẫu nhiên (random split) với seed cố định (=42) để đảm bảo tái lập. Các chỉ số hiệu năng được \textbf{công bố trên tập kiểm tra} (tập giữ lại cuối cùng, không tham gia huấn luyện, xếp hạng đặc trưng hay tinh chỉnh siêu tham số); kết quả trên tập huấn luyện chỉ được dùng để chẩn đoán hiện tượng quá khớp (overfitting) hoặc thiếu khớp (underfitting).
 
 
 \section{Lựa chọn đặc trưng và giảm chiều dữ liệu}
 
-Trong quá trình tiền xử lý dữ liệu cho bài toán phát hiện xâm nhập mạng, lựa chọn đặc trưng bao gồm \textbf{chọn đặc trưng} và \textbf{trích xuất đặc trưng} là một bước quan trọng nhằm giảm chiều dữ liệu, loại bỏ những đặc trưng không cần thiết, và cải thiện hiệu suất của mô hình học máy. Dữ liệu số được gom vào vector đặc trưng bằng \texttt{VectorAssembler} (77 thuộc tính số) và được chuẩn hóa bằng \texttt{StandardScaler} (chuẩn hóa Z-score). Ba phương pháp được sử dụng trong luận văn là \textit{\ac{rf}}, \ac{shap} và \ac{pca}.
+Trong quá trình tiền xử lý dữ liệu cho bài toán phát hiện xâm nhập mạng, lựa chọn đặc trưng bao gồm \textbf{chọn đặc trưng} và \textbf{trích xuất đặc trưng} là một bước quan trọng nhằm giảm chiều dữ liệu, loại bỏ những đặc trưng không cần thiết, và cải thiện hiệu suất của mô hình học máy. Dữ liệu số được gom vào vector đặc trưng bằng \texttt{VectorAssembler} (khoảng 78 thuộc tính số trước khi loại cổng; số đặc trưng chính xác sau khi loại \texttt{destination\_port}/\texttt{source\_port} là \ph{}) và được chuẩn hóa bằng \texttt{StandardScaler} (chuẩn hóa Z-score). Ba phương pháp được sử dụng trong luận văn là \textit{\ac{rf}}, \ac{shap} và \ac{pca}.
 
 \begin{enumerate}[label=\alph*)]
     \item \textbf{Principal Component Analysis (\ac{pca})}: Là phương pháp giảm chiều dữ liệu không giám sát, nhằm biến đổi tập đặc trưng ban đầu thành một tập các thành phần chính (principal components) mới không tương quan tuyến tính với nhau và giữ lại phần lớn phương sai của dữ liệu.\ac{pca} thực hiện bằng cách tính ma trận hiệp phương sai và tìm các vector riêng (eigenvectors) tương ứng với các giá trị riêng (eigenvalues). Các thành phần chính được xác định bằng cách giải bài toán:
@@ -188,7 +188,7 @@ thông tin chi tiết về biến thể và phương pháp học.
 \caption{Tám bộ phân loại cơ sở được sử dụng trong pipeline}
 \label{tab:classifiers}
 \renewcommand{\arraystretch}{1.1}
-\begin{tabular}{l@{\hspace{10pt}}l@{\hspace{10pt}}l}
+\begin{tabular}{l@{\hspace{10pt}}l@{\hspace{10pt}}>{\raggedright\arraybackslash}p{5.5cm}}
 \toprule
 \textbf{Thuật toán}              & \textbf{Biến thể / Ghi chú}        & \textbf{Phương pháp học} \\
 \midrule
@@ -248,7 +248,7 @@ Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữ
 \State \textbf{Bước 1: Huấn luyện và đánh giá $K$ mô hình cơ sở}
 \For{$k = 1$ to $K$}
     \State $M_k \gets \text{Train}(\mathcal{L}_k, D)$ \Comment{Huấn luyện mô hình $M_k$ trên tập $D$}
-    \State $F_k \gets \text{F1-Score}(M_k, D)$ \Comment{Tính điểm F1 của mô hình $M_k$}
+    \State $F_k \gets \text{F1-Score}(M_k, D_{\text{test}})$ \Comment{Tính điểm F1 của mô hình $M_k$ trên tập kiểm tra}
 \EndFor
 
 \State \textbf{Bước 2: Chọn Top-3 mô hình có F1 cao nhất}
@@ -262,26 +262,15 @@ Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữ
     \EndFor
 \EndFor
 
-\State \textbf{Bước 4: Kết hợp bằng bầu chọn mềm (Soft Voting)}
+\State \textbf{Bước 4: Kết hợp bằng bầu chọn đa số (Hard/Majority Voting)}
 \For{mỗi mẫu $x_j \in D_{\text{test}}$}
-    \State $\bar{p}_j \gets \frac{1}{3} \displaystyle\sum_{s=1}^{3} P^{(s)}(y=1|x_j)$ \Comment{Tính xác suất trung bình lớp Attack}
-    \If{$\bar{p}_j \geq 0.5$}
-        \State $y_{\text{vote}}^{(j)} \gets 1$ \Comment{Dự đoán: Attack}
+    \State $S_j \gets \displaystyle\sum_{s=1}^{3} \hat{y}_s^{(j)}$ \Comment{Tổng số phiếu dự đoán Attack}
+    \If{$S_j > 3/2$}
+        \State $y_{\text{vote}}^{(j)} \gets 1$ \Comment{Đa số phiếu: Attack}
     \Else
-        \State $y_{\text{vote}}^{(j)} \gets 0$ \Comment{Dự đoán: Benign}
+        \State $y_{\text{vote}}^{(j)} \gets 0$ \Comment{Đa số phiếu: Benign}
     \EndIf
 \EndFor
-
-
-% \State \textbf{Bước 4: Kết hợp bằng bầu chọn mềm (Soft Voting)}
-% \For{mỗi mẫu $x_j \in D_{\text{test}}$}
-%     \State $S_j \gets \displaystyle\sum_{s=1}^{3} \hat{y}_s^{(j)}$ \Comment{Tổng số phiếu bầu dự đoán Attack}
-%     \If{$S_j > 3 / 2$}
-%         \State $y_{\text{vote}}^{(j)} \gets 1$ \Comment{Dự đoán: Attack}
-%     \Else
-%         \State $y_{\text{vote}}^{(j)} \gets 0$ \Comment{Dự đoán: Benign}
-%     \EndIf
-% \EndFor
 
 \State \Return $\{y_{\text{vote}}^{(j)}\}_{j=1}^{m}$
 \end{algorithmic}
@@ -293,7 +282,7 @@ Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữ
 \addcontentsline{toc}{subsection}{b) Áp dụng Bagging}
 Để khai thác hiệu quả sức mạnh của kỹ thuật học máy tổng hợp Bagging, luận văn đề xuất xây dựng một mô hình ensemble lai (Hybrid Bagging Ensemble) dựa trên các mô hình cơ sở có hiệu suất cao nhất ở giai đoạn 1. Cụ thể, thay vì chỉ sử dụng một mô hình đơn lẻ, quy trình bắt đầu bằng việc huấn luyện và đánh giá $K$ thuật toán học cơ sở trên tập dữ liệu huấn luyện $D$. Hiệu năng của từng mô hình được đo lường thông qua chỉ số F1-Score, từ đó lựa chọn ba mô hình có kết quả tốt nhất để đưa vào giai đoạn kết hợp.
 
-Sau khi xác định Top-3 mô hình, phương pháp Bagging được áp dụng theo phân bố bản sao $(3,2,2)$. Đối với mỗi mô hình trong ba mô hình được chọn, nhiều tập dữ liệu bootstrap được tạo ra bằng cách lấy mẫu ngẫu nhiên có hoàn lại từ tập huấn luyện ban đầu. Trên mỗi tập bootstrap này, một bản sao của mô hình tương ứng được huấn luyện độc lập, tạo thành các \textit{bộ học cơ sở (base learners)} trong ensemble. Mỗi base learner được gán trọng số tỷ lệ với F1-Score của mô hình gốc nhằm phản ánh mức độ tin cậy tương đối của nó trong quá trình tổng hợp.
+Sau khi xác định Top-3 mô hình, phương pháp Bagging được áp dụng theo phân bố bản sao $(3,2,2)$. Đối với mỗi mô hình trong ba mô hình được chọn, nhiều tập dữ liệu bootstrap được tạo ra bằng cách lấy mẫu ngẫu nhiên có hoàn lại từ tập huấn luyện ban đầu. Trên mỗi tập bootstrap này, một bản sao của mô hình tương ứng được huấn luyện độc lập, tạo thành các \textit{bộ học cơ sở (base learners)} trong ensemble. Mỗi base learner được gán trọng số tỷ lệ với F1-Score của mô hình gốc nhằm phản ánh mức độ tin cậy tương đối của nó trong quá trình tổng hợp. Việc phân bổ bất đối xứng $(3,2,2)$ --- cấp nhiều bản sao bootstrap hơn cho mô hình hạng cao --- là một lựa chọn thiết kế thực nghiệm nhằm thiên ensemble về phía các bộ học mạnh hơn trong khi vẫn giữ tính đa dạng từ ba thuật toán khác loại; đây là một heuristic, không phải kết quả của tối ưu hoá lý thuyết, và các tỷ lệ khác (chẳng hạn $3$-$3$-$3$) có thể được khảo sát trong nghiên cứu tiếp theo.
 
 Trong giai đoạn dự đoán, toàn bộ các mô hình trong ensemble đưa ra phân phối xác suất dự đoán cho mẫu đầu vào mới. Kết quả cuối cùng được xác định thông qua cơ chế Soft Voting có trọng số, trong đó xác suất của từng lớp được tính bằng tổng có trọng số của các xác suất thành phần. Nhãn dự đoán cuối cùng được chọn là lớp có xác suất tổng hợp lớn nhất.
 
@@ -311,7 +300,7 @@ Cách tiếp cận này cho phép giảm phương sai của các mô hình cơ s
 \State \textbf{Bước 1: Huấn luyện và đánh giá $K$ mô hình cơ sở}
 \For{$k = 1$ to $K$}
     \State $M_k \gets \text{Train}(\mathcal{L}_k, D)$ \Comment{Huấn luyện mô hình $M_k$ trên tập $D$}
-    \State $F_k \gets \text{F1-Score}(M_k, D)$ \Comment{Tính điểm F1 của mô hình $M_k$}
+    \State $F_k \gets \text{F1-Score}(M_k, D_{\text{test}})$ \Comment{Tính điểm F1 của mô hình $M_k$ trên tập kiểm tra}
 \EndFor
 
 \State \textbf{Bước 2: Chọn Top-3 mô hình có F1 cao nhất}
@@ -468,7 +457,7 @@ Mô hình tốt nhất sau đánh giá được đóng gói thành \texttt{Pipel
 \caption{Thông số phần cứng thiết bị biên}
 \label{tab:hardware}
 \renewcommand{\arraystretch}{1.1}
-\begin{tabular}{l@{\hspace{10pt}}l}
+\begin{tabular}{l@{\hspace{10pt}}>{\raggedright\arraybackslash}p{9.5cm}}
 \toprule
 \textbf{Thuộc tính}              & \textbf{Giá trị} \\
 \midrule

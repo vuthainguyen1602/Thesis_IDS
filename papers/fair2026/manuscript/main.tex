@@ -51,12 +51,18 @@ nvthai@utc2.edu.vn}
 \textit{Đại học Quốc gia TP. Hồ Chí Minh} \\
 TP. Hồ Chí Minh, Việt Nam \\
 dungbv.17@grad.uit.edu.vn}
+\and
+\IEEEauthorblockN{Đỗ Trí Nhựt}
+\IEEEauthorblockA{\textit{Trường Đại học Công nghệ Thông tin} \\
+\textit{Đại học Quốc gia TP. Hồ Chí Minh} \\
+TP. Hồ Chí Minh, Việt Nam \\
+trinhutdo@uit.edu.vn}
 }
 
 \maketitle
 
 \begin{abstract}
-Hệ thống phát hiện xâm nhập mạng (IDS) dựa trên học máy thường xử lý hàng trăm đặc trưng luồng mạng, gây tốn kém tính toán và khó triển khai tại biên. Bài báo trình bày một nghiên cứu so sánh có hệ thống bốn chiến lược giảm chiều trên Apache Spark ML --- baseline toàn bộ đặc trưng, lựa chọn theo Random Forest Importance, lựa chọn theo SHAP, và PCA --- trên tám thuật toán phân loại cùng hai phương pháp kết hợp (ensemble), đánh giá trên tập CICIDS2017~\cite{sharafaldin2018toward}. Khác với phần lớn công trình trước, chúng tôi nhấn mạnh \emph{tính nghiêm ngặt của quy trình đánh giá}: (i) loại đặc trưng rò rỉ nhãn \texttt{destination\_port} và khử các luồng trùng lặp ở mức đặc trưng trước khi chia dữ liệu; (ii) cố định cấu hình so sánh \emph{từ trước} (a priori) để tránh thiên lệch chọn lọc; (iii) đánh giá độ bền vững (robustness) trên tập giữ lại (holdout) \emph{tách rời hoàn toàn} khỏi tập huấn luyện; (iv) kiểm định ý nghĩa thống kê bằng kiểm định hoán vị (permutation test) ghép cặp trên nhiều lần lấy mẫu lại dữ liệu; và (v) bổ sung đánh giá đa lớp theo từng loại tấn công. Kết quả cho thấy lựa chọn đặc trưng giữ được phần lớn hiệu năng phân loại trong khi giảm khoảng 60\% số đặc trưng; SHAP Top-30 cân bằng giữa độ chính xác, khả năng giải thích và chi phí, phù hợp để xuất sang thiết bị biên Jetson Orin Nano Super (xem công trình liên quan).
+Hệ thống phát hiện xâm nhập mạng (IDS) dựa trên học máy thường xử lý hàng trăm đặc trưng luồng mạng, gây tốn kém tính toán và khó triển khai tại biên. Bài báo trình bày một nghiên cứu so sánh có hệ thống bốn chiến lược giảm chiều trên Apache Spark ML, gồm baseline dùng toàn bộ đặc trưng, lựa chọn theo Random Forest Importance, lựa chọn theo SHAP và PCA. Mỗi chiến lược được đánh giá trên tám thuật toán phân loại cùng hai phương pháp kết hợp (ensemble), trên tập CICIDS2017~\cite{sharafaldin2018toward}. Khác với phần lớn công trình trước, chúng tôi nhấn mạnh \emph{tính chặt chẽ của quy trình đánh giá}: (i) loại đặc trưng rò rỉ nhãn \texttt{destination\_port} và khử các luồng trùng lặp ở mức đặc trưng trước khi chia dữ liệu; (ii) cố định cấu hình so sánh \emph{từ trước} (a priori) để tránh thiên lệch chọn lọc; (iii) đánh giá độ bền vững (robustness) trên tập giữ lại (holdout) \emph{tách rời hoàn toàn} khỏi tập huấn luyện; (iv) kiểm định ý nghĩa thống kê bằng kiểm định hoán vị (permutation test) ghép cặp trên nhiều lần lấy mẫu lại dữ liệu; và (v) bổ sung đánh giá đa lớp theo từng loại tấn công. Nghiên cứu nhằm kiểm chứng liệu lựa chọn đặc trưng có giữ được phần lớn hiệu năng phân loại khi giảm khoảng 60\% số đặc trưng hay không, và liệu SHAP Top-30 có cân bằng được giữa độ chính xác, khả năng giải thích và chi phí để phù hợp xuất sang thiết bị biên Jetson Orin Nano Super (xem công trình liên quan) hay không; các kết quả định lượng được báo cáo ở mục thực nghiệm.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -66,14 +72,14 @@ Phát hiện xâm nhập, Apache Spark, Lựa chọn đặc trưng, SHAP, Rò r�
 \section{Giới thiệu}
 \label{sec:intro}
 
-Tấn công mạng ngày càng gia tăng về quy mô và độ tinh vi, đòi hỏi các hệ thống IDS vừa chính xác vừa mở rộng được trên dữ liệu lớn~\cite{ring2019survey,khraisat2019survey}. Học máy đã trở thành hướng chủ đạo cho IDS dựa trên bất thường, nhưng các bộ dữ liệu luồng mạng hiện đại như CICIDS2017~\cite{sharafaldin2018toward} cung cấp gần 80 đặc trưng mỗi luồng, làm tăng chi phí huấn luyện, suy luận và bộ nhớ --- đặc biệt nghiêm trọng khi triển khai tại biên. Giảm chiều và lựa chọn đặc trưng vì vậy là bước then chốt, song các chiến lược khác nhau (nhúng, không giám sát, dựa trên giải thích) đo ``mức quan trọng'' theo những cách không tương đương và hiếm khi được so sánh trên cùng một quy trình (pipeline) phân tán.
+Tấn công mạng ngày càng gia tăng về quy mô và độ tinh vi, đòi hỏi các hệ thống IDS vừa chính xác vừa mở rộng được trên dữ liệu lớn~\cite{ring2019survey,khraisat2019survey}. Học máy đã trở thành hướng chủ đạo cho IDS dựa trên bất thường, nhưng các bộ dữ liệu luồng mạng hiện đại như CICIDS2017~\cite{sharafaldin2018toward} cung cấp gần 80 đặc trưng mỗi luồng, làm tăng chi phí huấn luyện, suy luận và bộ nhớ --- đặc biệt nghiêm trọng khi triển khai tại biên. Giảm chiều và lựa chọn đặc trưng vì vậy là bước then chốt. Tuy nhiên, các chiến lược khác nhau như nhúng, không giám sát hay dựa trên giải thích lại đo ``mức quan trọng'' theo những cách không tương đương, và chúng hiếm khi được so sánh trên cùng một quy trình (pipeline) phân tán.
 
-Một vấn đề ít được chú ý nhưng nghiêm trọng không kém là \emph{độ tin cậy của quy trình đánh giá}. Nhiều báo cáo trên CICIDS2017 đạt F1 xấp xỉ tuyệt đối ở bài toán nhị phân; điều này thường là dấu hiệu rò rỉ dữ liệu hơn là năng lực mô hình. \emph{Rò rỉ dữ liệu} là tình huống thông tin lẽ ra không sẵn có ở thời điểm triển khai thực tế lại lọt vào quá trình huấn luyện/đánh giá, khiến điểm số bị thổi phồng và không phản ánh đúng khả năng tổng quát hoá. Các lỗi gán nhãn và trùng lặp luồng trong chính CICIDS2017 đã được ghi nhận và cho thấy ảnh hưởng đáng kể đến kết quả đánh giá~\cite{lanvin2023errors}. Hai nguồn rò rỉ phổ biến: (1) đặc trưng \texttt{destination\_port} mã hoá trực tiếp dịch vụ bị tấn công (CICIDS2017 sinh các kịch bản tấn công nhằm vào cổng cố định), trở thành ``lối tắt'' ghi nhớ ánh xạ cổng~$\rightarrow$~nhãn; và (2) các luồng trùng lặp ở mức đặc trưng không bị loại bởi bước khử trùng lặp hoàn toàn, khiến phép chia ngẫu nhiên đặt cùng một mẫu vào cả tập huấn luyện lẫn tập kiểm tra. Bài báo xử lý cả hai trước khi so sánh phương pháp.
+Một vấn đề ít được chú ý nhưng nghiêm trọng không kém là \emph{độ tin cậy của quy trình đánh giá}. Nhiều báo cáo trên CICIDS2017 đạt F1 xấp xỉ tuyệt đối ở bài toán nhị phân; điều này thường là dấu hiệu rò rỉ dữ liệu hơn là năng lực mô hình. \emph{Rò rỉ dữ liệu} là tình huống thông tin lẽ ra không sẵn có ở thời điểm triển khai thực tế lại lọt vào quá trình huấn luyện/đánh giá, khiến điểm số bị thổi phồng và không phản ánh đúng khả năng tổng quát hoá. Các lỗi gán nhãn và trùng lặp luồng trong chính CICIDS2017 đã được ghi nhận và cho thấy ảnh hưởng đáng kể đến kết quả đánh giá~\cite{lanvin2023errors}. Có hai nguồn rò rỉ phổ biến. Thứ nhất, đặc trưng \texttt{destination\_port} mã hoá trực tiếp dịch vụ bị tấn công, vì CICIDS2017 sinh các kịch bản tấn công nhằm vào cổng cố định, nên nó trở thành ``lối tắt'' để mô hình ghi nhớ ánh xạ cổng~$\rightarrow$~nhãn. Thứ hai, các luồng trùng lặp ở mức đặc trưng không bị loại bởi bước loại bỏ trùng lặp hoàn toàn, khiến phép chia ngẫu nhiên đặt cùng một mẫu vào cả tập huấn luyện lẫn tập kiểm tra. Bài báo xử lý cả hai trước khi so sánh phương pháp.
 
 \textbf{Đóng góp chính.}
 (1) So sánh đồng nhất RF Importance, SHAP và PCA trên cùng tám thuật toán Spark ML và hai ensemble;
 (2) Tích hợp giải thích bằng SHAP~\cite{lundberg2017unified} và đối chiếu trực tiếp với RF Importance~\cite{breiman2001random};
-(3) Một quy trình đánh giá \emph{loại trừ rò rỉ dữ liệu và có kiểm định thống kê}: loại đặc trưng rò rỉ, khử trùng lặp mức đặc trưng, kiểm thử độ bền vững trên tập giữ lại tách rời, kiểm định hoán vị ghép cặp trên nhiều lần lấy mẫu lại;
+(3) Một quy trình đánh giá \emph{loại trừ rò rỉ dữ liệu và có kiểm định thống kê}: loại đặc trưng rò rỉ, loại bỏ trùng lặp mức đặc trưng, kiểm thử độ bền vững trên tập giữ lại tách rời, kiểm định hoán vị ghép cặp trên nhiều lần lấy mẫu lại;
 (4) Đánh giá đa lớp theo từng loại tấn công, làm rõ nơi các phương pháp thực sự khác biệt;
 (5) Khuyến nghị lựa chọn mô hình \emph{nhận biết ràng buộc biên} (edge-aware): cân nhắc đồng thời F1, số đặc trưng và kích thước mô hình cho Jetson Orin Nano Super.
 
@@ -82,9 +88,9 @@ Phần~\ref{sec:related} trình bày nghiên cứu liên quan; Phần~\ref{sec:m
 \section{Nghiên cứu liên quan}
 \label{sec:related}
 
-Các khảo sát IDS~\cite{ring2019survey,khraisat2019survey,ferrag2020deep} cho thấy cả học máy truyền thống lẫn học sâu được áp dụng rộng rãi trên các bộ chuẩn như CICIDS2017~\cite{sharafaldin2018toward}. Nhiều công trình tập trung một thuật toán đơn lẻ --- Random Forest trực tuyến (online)~\cite{alrawashdeh2016toward} hoặc mạng sâu~\cite{vinayakumar2019deep} --- mà chưa so sánh đồng nhất nhiều chiến lược giảm chiều trên cùng một pipeline phân tán. Apache Spark ML~\cite{zaharia2010spark,anderson2017spark} hỗ trợ xử lý quy mô lớn nhưng ít nghiên cứu kết hợp lựa chọn đặc trưng, giải thích mô hình và kiểm định thống kê trong một khung thực nghiệm thống nhất. Các nghiên cứu IDS biên gần đây triển khai mô hình học sâu trên NVIDIA Jetson~\cite{baalaji2025ensemble,asghar2026hedid}, nhưng thường tập trung vào một mô hình đơn lẻ và độ chính xác, hiếm khi so sánh nhiều chiến lược giảm chiều dưới một quy trình đánh giá loại trừ rò rỉ dữ liệu.
+Các khảo sát IDS~\cite{ring2019survey,khraisat2019survey,ferrag2020deep} cho thấy cả học máy truyền thống lẫn học sâu được áp dụng rộng rãi trên các bộ chuẩn như CICIDS2017~\cite{sharafaldin2018toward}. Nhiều công trình chỉ tập trung vào một thuật toán đơn lẻ, chẳng hạn học sâu trực tuyến (online)~\cite{alrawashdeh2016toward} hoặc mạng sâu~\cite{vinayakumar2019deep}, mà chưa so sánh đồng nhất nhiều chiến lược giảm chiều trên cùng một pipeline phân tán. Apache Spark ML~\cite{zaharia2010spark,anderson2017spark} hỗ trợ xử lý quy mô lớn nhưng ít nghiên cứu kết hợp lựa chọn đặc trưng, giải thích mô hình và kiểm định thống kê trong một khung thực nghiệm thống nhất. Các nghiên cứu IDS biên gần đây triển khai mô hình học sâu trên NVIDIA Jetson~\cite{baalaji2025ensemble,asghar2026hedid}, nhưng thường tập trung vào một mô hình đơn lẻ và độ chính xác, hiếm khi so sánh nhiều chiến lược giảm chiều dưới một quy trình đánh giá loại trừ rò rỉ dữ liệu.
 
-\textbf{Lựa chọn đặc trưng.} Lý thuyết lựa chọn biến~\cite{guyon2003introduction} phân biệt ba nhóm: lọc (filter), bao (wrapper) và nhúng (embedded). Random Forest Importance~\cite{breiman2001random} (embedded) và PCA~\cite{jolliffe2002pca} (không giám sát) là hai hướng phổ biến cho IDS nhưng đo những đại lượng khác nhau. SHAP~\cite{lundberg2017unified} cung cấp giải thích cục bộ nhất quán, đã dùng cho IDS~\cite{sarhan2022explainable} song hiếm khi được đối chiếu trực tiếp với RF Importance trên cùng tập huấn luyện Spark.
+\textbf{Lựa chọn đặc trưng.} Lý thuyết lựa chọn biến~\cite{guyon2003introduction} phân biệt ba nhóm: lọc (filter), bao (wrapper) và nhúng (embedded). Random Forest Importance~\cite{breiman2001random} (embedded) và PCA~\cite{jolliffe2002pca} (không giám sát) là hai hướng phổ biến cho IDS nhưng đo những đại lượng khác nhau. SHAP~\cite{lundberg2017unified} cung cấp giải thích cục bộ nhất quán, đã dùng cho IDS~\cite{sarhan2022explainable} nhưng hiếm khi được đối chiếu trực tiếp với RF Importance trên cùng tập huấn luyện Spark.
 
 \textbf{Trôi khái niệm, bất thường và đánh giá.} Sự trôi khái niệm (concept drift)~\cite{gama2014survey} ảnh hưởng độ ổn định IDS theo thời gian; các nghiên cứu bất thường~\cite{chandola2009anomaly,ruff2021unifying,lopez2020autoencoder,hasan2025iiot} thường tách bộ lọc khỏi bộ phân loại, trong đó autoencoder cũng được dùng để giảm chiều đặc trưng cho IDS trên thiết bị biên~\cite{hasan2025iiot}. Tuy nhiên, rò rỉ dữ liệu và kiểm định ý nghĩa thống kê trong so sánh phương pháp ít khi được xử lý tường minh trên CICIDS2017. Bài báo lấp khoảng trống này. Bảng~\ref{tab:related-work} tóm tắt so sánh.
 
@@ -95,7 +101,7 @@ Các khảo sát IDS~\cite{ring2019survey,khraisat2019survey,ferrag2020deep} cho
 
 \subsection{Tổng quan pipeline Spark ML}
 
-Quy trình ngoại tuyến (offline): làm sạch dữ liệu $\rightarrow$ khử trùng lặp $\rightarrow$ \texttt{VectorAssembler} $\rightarrow$ \texttt{StandardScaler} $\rightarrow$ (tuỳ chọn) biến đổi giảm chiều $\rightarrow$ bộ phân loại. Nhãn nhị phân: Benign (0) và Attack (1). Toàn bộ \texttt{fit} của StandardScaler/PCA và việc xếp hạng đặc trưng \emph{chỉ} dùng tập huấn luyện; tập kiểm tra giữ vai trò tập giữ lại (holdout) cuối cùng.
+Quy trình ngoại tuyến (offline) gồm các bước nối tiếp: làm sạch dữ liệu, loại bỏ trùng lặp, \texttt{VectorAssembler}, \texttt{StandardScaler}, biến đổi giảm chiều (tuỳ chọn), rồi đến bộ phân loại. Nhãn nhị phân: Benign (0) và Attack (1). Toàn bộ \texttt{fit} của StandardScaler/PCA và việc xếp hạng đặc trưng \emph{chỉ} dùng tập huấn luyện; tập kiểm tra giữ vai trò tập giữ lại (holdout) cuối cùng.
 
 \subsection{Chuẩn bị dữ liệu loại trừ rò rỉ}
 \label{sec:leakage}
@@ -104,19 +110,19 @@ Chúng tôi gộp tám file CSV CICIDS2017, chuẩn hoá tên cột, thay giá t
 
 \begin{itemize}
   \item \textbf{Loại bỏ đặc trưng gây rò rỉ nhãn.} \texttt{destination\_port} (và \texttt{source\_port} nếu có) bị loại vì mã hoá trực tiếp dịch vụ mục tiêu của tấn công; giữ lại sẽ cho mô hình ghi nhớ ánh xạ cổng~$\rightarrow$~nhãn thay vì học hành vi luồng. Một phân tích loại bỏ (ablation: giữ so với loại cổng) định lượng ảnh hưởng.
-  \item \textbf{Khử trùng lặp ở mức đặc trưng.} Ngoài việc khử các bản ghi trùng lặp hoàn toàn, chúng tôi loại các luồng \emph{trùng nhau trên toàn bộ cột đặc trưng} trước khi chia, ngăn cùng một mẫu xuất hiện ở cả tập huấn luyện và tập kiểm tra.
+  \item \textbf{Loại bỏ trùng lặp ở mức đặc trưng.} Ngoài việc khử các bản ghi trùng lặp hoàn toàn, chúng tôi loại các luồng \emph{trùng nhau trên toàn bộ cột đặc trưng} trước khi chia, ngăn cùng một mẫu xuất hiện ở cả tập huấn luyện và tập kiểm tra.
 \end{itemize}
 
-Sau khi xử lý, dữ liệu được chia thành \textbf{80\% huấn luyện / 20\% kiểm tra} (với seed cố định), lưu dưới định dạng Parquet và tái sử dụng xuyên suốt các thí nghiệm. Số đặc trưng dạng số còn lại là \ph{n\_features}, và số mẫu sau khi khử trùng lặp là \ph{n\_train}/\ph{n\_test}.
+Sau khi xử lý, dữ liệu được chia thành \textbf{80\% huấn luyện / 20\% kiểm tra} (với seed cố định), lưu dưới định dạng Parquet và tái sử dụng xuyên suốt các thí nghiệm. Số đặc trưng dạng số còn lại là \ph{n\_features}, và số mẫu sau khi loại bỏ trùng lặp là \ph{n\_train}/\ph{n\_test}.
 
 \subsection{Bộ phân loại và bốn chiến lược giảm chiều}
 
-Tám thuật toán: Decision Tree, Logistic Regression, SVM (LinearSVC), Naive Bayes, Random Forest, GBT, XGBoost, MLP; cùng hai ensemble (Hybrid Bagging Top-3 có trọng số và Majority Voting). LightGBM bị loại vì thư viện gốc (native, qua SynapseML) chỉ hỗ trợ x86\_64, không chạy được trên thiết bị biên Jetson Orin Nano Super (ARM64) --- mục tiêu triển khai của nghiên cứu --- nên không thể đưa một mô hình LightGBM vào pipeline; XGBoost và GBT đại diện cho họ gradient boosting. Bốn chiến lược: \textbf{Baseline} (toàn bộ đặc trưng); \textbf{RF Top-$K$} ($K \in \{20,30,40\}$); \textbf{SHAP Top-$K$}; \textbf{PCA} ($k \in \{20,30,40\}$). Xếp hạng RF và SHAP \emph{chỉ} dùng tập huấn luyện; SHAP được tính trên mẫu \emph{phân tầng theo lớp} để cả lưu lượng lành tính (benign) lẫn tấn công đều được đại diện. PCA cố định ở $k{=}40$ (nhiều hơn Top-30 của chọn lọc) vì là phép \emph{trích xuất}: mỗi thành phần chính là tổ hợp tuyến tính mang một phần phương sai, nên cần nhiều thành phần hơn để giữ phương sai tương đương; trong dải $\{20,30,40\}$, $k{=}40$ giữ phương sai cao nhất nên là điểm đại diện công bằng nhất cho PCA.
+Tám thuật toán: Decision Tree, Logistic Regression, SVM (LinearSVC), Naive Bayes, Random Forest, GBT, XGBoost, MLP; cùng hai ensemble (Hybrid Bagging Top-3 có trọng số và Majority Voting). LightGBM bị loại vì thư viện gốc (native, qua SynapseML) chỉ hỗ trợ x86\_64 và không chạy được trên thiết bị biên Jetson Orin Nano Super (ARM64), vốn là mục tiêu triển khai của nghiên cứu; do đó không thể đưa một mô hình LightGBM vào pipeline. Trong họ gradient boosting, XGBoost và GBT đóng vai trò đại diện. Bốn chiến lược: \textbf{Baseline} (toàn bộ đặc trưng); \textbf{RF Top-$K$} ($K \in \{20,30,40\}$); \textbf{SHAP Top-$K$}; \textbf{PCA} ($k \in \{20,30,40\}$). Xếp hạng RF và SHAP \emph{chỉ} dùng tập huấn luyện; SHAP được tính trên mẫu \emph{phân tầng theo lớp} để cả lưu lượng lành tính (benign) lẫn tấn công đều được đại diện. PCA được cố định ở $k{=}40$, nhiều hơn so với Top-30 của các phương pháp chọn lọc, vì PCA là một phép \emph{trích xuất}: mỗi thành phần chính là một tổ hợp tuyến tính chỉ mang một phần phương sai, nên cần nhiều thành phần hơn để giữ được phương sai tương đương. Trong dải $\{20,30,40\}$, $k{=}40$ giữ phương sai cao nhất nên là điểm đại diện công bằng nhất cho PCA.
 
 \subsection{Siêu tham số và xử lý mất cân bằng lớp}
 \label{sec:hparams}
 
-Siêu tham số (Bảng~\ref{tab:hparams}) được \emph{cố định từ trước} và dùng chung cho mọi phương pháp giảm chiều, để khác biệt quan sát được phản ánh đúng \emph{phương pháp lựa chọn đặc trưng} chứ không phải việc tinh chỉnh riêng từng mô hình; việc tinh chỉnh siêu tham số được tách thành một giai đoạn riêng (tìm kiếm lưới kết hợp kiểm định chéo) và chỉ áp dụng cho cấu hình được chọn. Các mô hình ngẫu nhiên (RF, GBT, XGBoost, MLP) cố định \texttt{seed} để tái lập. Mất cân bằng lớp được xử lý \emph{đồng nhất}: mọi mô hình hỗ trợ \texttt{weightCol} (Decision Tree, Logistic Regression, SVM, Naive Bayes, Random Forest, GBT) được gán trọng số lớp theo tỷ lệ lành tính/tấn công, tương đương cơ chế \texttt{scale\_pos\_weight} của XGBoost; riêng MLP không hỗ trợ trọng số mẫu trong Spark ML nên được huấn luyện không trọng số (nêu ở phần hạn chế).
+Siêu tham số (Bảng~\ref{tab:hparams}) được \emph{cố định từ trước} và dùng chung cho mọi phương pháp giảm chiều, để khác biệt quan sát được phản ánh đúng \emph{phương pháp lựa chọn đặc trưng} chứ không phải việc tinh chỉnh riêng từng mô hình; việc tinh chỉnh siêu tham số được tách thành một giai đoạn riêng (tìm kiếm lưới kết hợp kiểm định chéo) và chỉ áp dụng cho cấu hình được chọn. Các mô hình ngẫu nhiên (RF, GBT, XGBoost, MLP) cố định \texttt{seed} để tái lập. Mất cân bằng lớp được xử lý \emph{đồng nhất}. Mọi mô hình hỗ trợ \texttt{weightCol}, gồm Decision Tree, Logistic Regression, SVM, Naive Bayes, Random Forest và GBT, đều được gán trọng số lớp theo tỷ lệ lành tính/tấn công, tương đương cơ chế \texttt{scale\_pos\_weight} của XGBoost. Riêng MLP không hỗ trợ trọng số mẫu trong Spark ML nên được huấn luyện không trọng số, như nêu ở phần hạn chế.
 
 \begin{table*}[htbp]
   \caption{Siêu tham số chính của tám bộ phân loại (cố định từ trước).}
@@ -145,16 +151,16 @@ Siêu tham số (Bảng~\ref{tab:hparams}) được \emph{cố định từ trư
 
 Để tránh thiên lệch chọn lọc do thử nhiều cấu hình trên cùng tập kiểm tra, chúng tôi tách \emph{giai đoạn khám phá} (quét $K$, báo cáo đầy đủ theo từng $K$) khỏi \emph{giai đoạn xác nhận} (cố định bốn cấu hình từ trước: Baseline, RF Top-30, SHAP Top-30, PCA $k{=}40$). Kết luận so sánh dựa trên bốn cấu hình cố định, không chọn cấu hình có F1 cao nhất sau khi đã quan sát kết quả trên tập kiểm tra.
 
-\subsection{Quy trình đánh giá nghiêm ngặt}
+\subsection{Quy trình đánh giá chặt chẽ}
 \label{sec:eval}
 
 \textbf{Chỉ số.} Accuracy, Precision, Recall, F1, AUC-ROC, AUC-PR; thời gian huấn luyện/dự đoán; kích thước mô hình. Do dữ liệu mất cân bằng, AUC-PR và recall lớp tấn công được ưu tiên hơn accuracy.
 
-\textbf{Độ bền vững trên tập giữ lại tách rời.} Mô hình tốt nhất mỗi phương pháp được đánh giá lại trên tập giữ lại (holdout) \emph{không giao} với tập huấn luyện. Khi không có dữ liệu nguồn khác, tập này lấy từ tập kiểm tra (vốn đã tách rời tập huấn luyện), \emph{không} tái chia toàn bộ dữ liệu --- tránh đưa mẫu đã huấn luyện vào tập đánh giá độ bền vững.
+\textbf{Độ bền vững trên tập giữ lại tách rời.} Mô hình tốt nhất mỗi phương pháp được đánh giá lại trên tập giữ lại (holdout) \emph{không giao} với tập huấn luyện. Khi không có dữ liệu nguồn khác, tập này được lấy từ tập kiểm tra (vốn đã tách rời tập huấn luyện) chứ \emph{không} tái chia toàn bộ dữ liệu, nhằm tránh đưa mẫu đã huấn luyện vào tập đánh giá độ bền vững.
 
-\textbf{Kiểm định ý nghĩa thống kê.} Hai phương pháp hàng đầu được huấn luyện trên $N$ lần \emph{lấy mẫu lại} tập huấn luyện/kiểm tra độc lập (mặc định $N{=}6$); mỗi vòng cả hai dùng \emph{cùng một} phép chia (ghép cặp). Phương sai do lấy mẫu dữ liệu, không chỉ do khởi tạo mô hình. CI 95\% theo phân phối $t$ ($t_{0.975,N-1}$, không dùng 1{,}96). Ý nghĩa kiểm bằng \emph{permutation test ghép cặp hai phía} trên hiệu F1 từng vòng; do kiểm định hai phía, $p$ nhỏ nhất có thể đạt là $2/2^N$, nên cần $N \geq 6$ để có thể đạt dưới $0{,}05$ (ngược với thiết kế một phép chia cố định / ba seed vốn không vượt qua $p \approx 0{,}125$). Khi cần tiết kiệm chi phí, có thể giảm $N$ và căn cứ kết luận vào khoảng tin cậy và độ lớn hiệu ứng (effect size) thay vì ngưỡng $p$ cố định.
+\textbf{Kiểm định ý nghĩa thống kê.} Hai phương pháp hàng đầu được huấn luyện trên $N$ lần \emph{lấy mẫu lại} độc lập tập huấn luyện/kiểm tra (mặc định $N{=}6$), và ở mỗi vòng cả hai dùng \emph{cùng một} phép chia để ghép cặp. Nhờ đó, phương sai phản ánh tác động của việc lấy mẫu dữ liệu chứ không chỉ của khởi tạo mô hình. Khoảng tin cậy 95\% được tính theo phân phối $t$ ($t_{0.975,N-1}$, không dùng giá trị 1{,}96). Ý nghĩa kiểm bằng \emph{permutation test ghép cặp hai phía} trên hiệu F1 từng vòng; do kiểm định hai phía, $p$ nhỏ nhất có thể đạt là $2/2^N$, nên cần $N \geq 6$ để có thể đạt dưới $0{,}05$ (ngược với thiết kế một phép chia cố định / ba seed vốn không vượt qua $p \approx 0{,}125$). Khi cần tiết kiệm chi phí, có thể giảm $N$ và căn cứ kết luận vào khoảng tin cậy và độ lớn hiệu ứng (effect size) thay vì ngưỡng $p$ cố định.
 
-\textbf{Đánh giá đa lớp.} Vì phân loại nhị phân trên CICIDS2017 gần như tách hoàn toàn, chúng tôi bổ sung đánh giá \emph{đa lớp theo loại tấn công} (precision/recall/F1 từng lớp, macro-F1, ma trận nhầm lẫn) --- nơi các lớp hiếm (Heartbleed, Infiltration, Web Attack, Bot) bộc lộ khác biệt thực sự giữa các phương pháp.
+\textbf{Đánh giá đa lớp.} Vì phân loại nhị phân trên CICIDS2017 gần như tách hoàn toàn, chúng tôi bổ sung đánh giá \emph{đa lớp theo loại tấn công}, gồm precision/recall/F1 từng lớp, macro-F1 và ma trận nhầm lẫn. Chính ở đây, các lớp hiếm như Heartbleed, Infiltration, Web Attack và Bot mới bộc lộ khác biệt thực sự giữa các phương pháp.
 
 \section{Thí nghiệm và kết quả}
 \label{sec:exp}
@@ -171,6 +177,7 @@ Bảng~\ref{tab:port-ablation} định lượng ảnh hưởng của \texttt{des
   \caption{Ảnh hưởng của đặc trưng rò rỉ \texttt{destination\_port} (mô hình tốt nhất, nhị phân).}
   \label{tab:port-ablation}
   \centering
+  \footnotesize
   \begin{tabular}{lccc}
     \toprule
     Cấu hình & F1 & Recall (Attack) & AUC-PR \\
@@ -205,7 +212,7 @@ Bảng~\ref{tab:port-ablation} định lượng ảnh hưởng của \texttt{des
   \label{fig:f1-heatmap}
 \end{figure*}
 
-Bảng~\ref{tab:best-results} tóm tắt mô hình tốt nhất mỗi phương pháp. Lựa chọn đặc trưng (RF/SHAP Top-30) giữ hiệu năng gần baseline trong khi giảm $\approx$60\% số đặc trưng; PCA $k{=}40$ giảm chiều không giám sát với chi phí giải thích.
+Bảng~\ref{tab:best-results} tóm tắt mô hình tốt nhất mỗi phương pháp. Thiết kế so sánh nhằm kiểm chứng liệu lựa chọn đặc trưng (RF/SHAP Top-30) có giữ được hiệu năng gần baseline trong khi giảm $\approx$60\% số đặc trưng hay không; PCA $k{=}40$ giảm chiều không giám sát với chi phí giải thích. Các giá trị định lượng được điền từ \texttt{cross\_method\_summary.csv}.
 
 \begin{table*}[htbp]
   \caption{Tóm tắt mô hình tốt nhất mỗi phương pháp (điền từ \texttt{cross\_method\_summary.csv}).}
@@ -242,6 +249,7 @@ Bảng~\ref{tab:stat} báo cáo F1 trung bình $\pm$ CI 95\% (phân phối $t$) 
   \caption{Ổn định đa lần lấy mẫu và kiểm định ghép cặp (điền từ \texttt{statistical\_validity\_multiseed.csv}).}
   \label{tab:stat}
   \centering
+  \footnotesize
   \begin{tabular}{llcc}
     \toprule
     Phương pháp & Mô hình & F1 (mean $\pm$ CI95) & $p$ (ghép cặp) \\
@@ -285,7 +293,7 @@ Trên tập giữ lại tách rời, thứ hạng các phương pháp \ph{giữ 
 \subsection{Tổng quát hoá liên bộ dữ liệu}
 \label{sec:cross-dataset}
 
-Để vượt khỏi đánh giá \emph{cùng bộ} (in-domain), chúng tôi huấn luyện trên một bộ dữ liệu và kiểm tra trên bộ \emph{khác} (đánh giá \emph{khác bộ}, cross-dataset; và ngược lại) trên tập đặc trưng đã loại trừ rò rỉ \emph{chung} của hai bộ. Khoảng cách giữa F1 cùng bộ (A$\to$A) và F1 khác bộ (A$\to$B) trong Bảng~\ref{tab:cross-dataset} định lượng khả năng \emph{chuyển giao} của mô hình đã loại rò rỉ --- một phép thử dịch chuyển phân phối thực sự, khác với holdout cùng phân phối ở trên. Do CSE-CIC-IDS2018 rất lớn ($\sim$16 triệu luồng), chúng tôi sử dụng \emph{mẫu phân tầng theo nhãn} (tỉ lệ \ph{xd\_frac}, $\sim$\ph{xd\_n2018} luồng, \texttt{seed}=42) bảo toàn tỉ lệ các lớp; CICIDS2017 dùng $\sim$\ph{xd\_n2017} luồng. Các con số mẫu được báo cáo tường minh để bảo đảm tái lập.
+Để vượt khỏi đánh giá \emph{cùng bộ} (in-domain), chúng tôi huấn luyện trên một bộ dữ liệu và kiểm tra trên bộ \emph{khác} (đánh giá \emph{khác bộ}, cross-dataset; và ngược lại) trên tập đặc trưng đã loại trừ rò rỉ \emph{chung} của hai bộ. Khoảng cách giữa F1 cùng bộ (A$\to$A) và F1 khác bộ (A$\to$B) trong Bảng~\ref{tab:cross-dataset} định lượng khả năng \emph{tổng quát hoá} của mô hình đã loại rò rỉ. Đây là một phép thử dịch chuyển phân phối thực sự, khác với holdout cùng phân phối ở trên. Do CSE-CIC-IDS2018 rất lớn ($\sim$16 triệu luồng), chúng tôi sử dụng \emph{mẫu phân tầng theo nhãn} (tỉ lệ \ph{xd\_frac}, $\sim$\ph{xd\_n2018} luồng, \texttt{seed}=42) bảo toàn tỉ lệ các lớp; CICIDS2017 dùng $\sim$\ph{xd\_n2017} luồng. Các con số mẫu được báo cáo tường minh để bảo đảm tái lập.
 
 \begin{table}[htbp]
   \caption{Tổng quát hoá liên bộ dữ liệu (CICIDS2017 $\leftrightarrow$ CSE-CIC-IDS2018, mẫu phân tầng \texttt{seed}=42; điền từ \texttt{cross\_dataset\_results.csv}).}
@@ -307,16 +315,16 @@ Trên tập giữ lại tách rời, thứ hạng các phương pháp \ph{giữ 
 \section{Thảo luận}
 \label{sec:discuss}
 
-\textbf{So sánh phương pháp.} Khi chênh lệch F1 giữa RF Top-30 và SHAP Top-30 nhỏ hơn biên độ dao động giữa các lần lấy mẫu lại và $p>0{,}05$, ta kết luận hai phương pháp \emph{tương đương về mặt thống kê}; khi đó tiêu chí phụ (giải thích, kích thước, ổn định) quyết định lựa chọn triển khai. SHAP Top-30 cung cấp giải thích cục bộ nhất quán, lợi thế cho vận hành SOC.
+\textbf{So sánh phương pháp.} Khi chênh lệch F1 giữa RF Top-30 và SHAP Top-30 nhỏ hơn mức dao động giữa các lần lấy mẫu lại và $p>0{,}05$, ta kết luận hai phương pháp \emph{tương đương về mặt thống kê}; khi đó tiêu chí phụ (giải thích, kích thước, ổn định) quyết định lựa chọn triển khai. SHAP Top-30 cung cấp giải thích cục bộ nhất quán, lợi thế cho vận hành SOC.
 
-\textbf{Cầu nối với thiết bị biên.} Giảm $\approx$60\% số đặc trưng trực tiếp giảm chi phí lắp ráp vector và bộ nhớ mô hình trên Jetson Orin Nano Super. Tiêu chí lựa chọn \emph{nhận biết ràng buộc biên}: không chỉ F1 mà cả số đặc trưng, kích thước mô hình và thời gian dự đoán. Kết quả đo độ trễ và thông lượng (latency/throughput) trên Jetson được trình bày trong công trình liên quan (SOICT 2026).
+\textbf{Cầu nối với thiết bị biên.} Giảm $\approx$60\% số đặc trưng trực tiếp giảm chi phí lắp ráp vector và bộ nhớ mô hình trên Jetson Orin Nano Super. Vì vậy, tiêu chí lựa chọn cần \emph{nhận biết ràng buộc biên}, tức là cân nhắc không chỉ F1 mà cả số đặc trưng, kích thước mô hình và thời gian dự đoán. Kết quả đo độ trễ và thông lượng (latency/throughput) trên Jetson được trình bày trong công trình liên quan (SOICT 2026).
 
-\textbf{Hạn chế của đánh giá nhị phân.} Loại cổng và khử trùng lặp đưa F1 nhị phân về mức thực tế, nhưng phân loại nhị phân vẫn là bài toán tương đối dễ; đánh giá đa lớp mới bộc lộ điểm yếu ở lớp tấn công hiếm và là thước đo phân biệt phương pháp đáng tin cậy hơn.
+\textbf{Hạn chế của đánh giá nhị phân.} Việc loại cổng và loại bỏ trùng lặp đưa F1 nhị phân về mức thực tế, nhưng phân loại nhị phân vẫn là bài toán tương đối dễ. Chỉ khi đánh giá đa lớp, các điểm yếu ở lớp tấn công hiếm mới bộc lộ, và đây cũng là thước đo phân biệt phương pháp đáng tin cậy hơn.
 
 \section{Các mối đe dọa đến tính hợp lệ}
 \label{sec:threats}
 
-\textbf{Hợp lệ nội tại.} Xếp hạng RF/SHAP rút từ tập huấn luyện gốc và giữ cố định qua các lần lấy mẫu lại; nhất quán với thiết kế ``cấu hình định trước'' nhưng có thể tạo rò rỉ nhẹ ở phần ranking. Re-rank theo từng lần lấy mẫu sẽ chặt chẽ hơn nhưng tốn kém (đặc biệt SHAP); chúng tôi nêu rõ đánh đổi này. Ngoài ra, cân bằng lớp được áp đồng nhất cho bảy mô hình (Mục~\ref{sec:hparams}) nhưng \emph{không} cho MLP do Spark ML không hỗ trợ trọng số mẫu cho mô hình này; kết quả MLP vì vậy nên được đọc với lưu ý đó.
+\textbf{Hợp lệ nội tại.} Xếp hạng RF/SHAP được rút từ tập huấn luyện gốc và giữ cố định qua các lần lấy mẫu lại. Cách làm này nhất quán với thiết kế ``cấu hình định trước'', nhưng có thể tạo rò rỉ nhẹ ở phần ranking. Re-rank theo từng lần lấy mẫu sẽ chặt chẽ hơn nhưng tốn kém (đặc biệt SHAP); chúng tôi nêu rõ đánh đổi này. Tương tự, việc chọn Top-3 mô hình thành phần cho ensemble dựa trên F1 trên \emph{tập kiểm tra} (thay vì một tập kiểm định (validation) tách riêng) có thể gây thiên lệch lạc quan nhẹ; dùng tập kiểm định riêng hoặc kiểm định chéo (cross-validation) để chọn mô hình thành phần sẽ chặt chẽ hơn. Ngoài ra, cân bằng lớp được áp đồng nhất cho bảy mô hình (Mục~\ref{sec:hparams}) nhưng \emph{không} cho MLP do Spark ML không hỗ trợ trọng số mẫu cho mô hình này; kết quả MLP vì vậy nên được đọc với lưu ý đó.
 
 \textbf{Hợp lệ ngoại tại.} CICIDS2017 (2017) có thể không phản ánh lưu lượng hiện tại; cần kiểm chứng trên các bộ mới hơn (CSE-CIC-IDS2018, CIC-IoT). Phép chia ngẫu nhiên mặc định trộn thời gian; chế độ chia theo thời gian được hỗ trợ để đánh giá sát thực tế hơn. Kết luận tổng quát hoá liên bộ (Mục~\ref{sec:cross-dataset}) dựa trên \emph{mẫu phân tầng đại diện} của CSE-CIC-IDS2018 (do giới hạn tài nguyên biên), không phải toàn bộ; kích thước mẫu được báo cáo tường minh và việc mở rộng lên toàn bộ là hướng tiếp theo.
 
@@ -325,10 +333,10 @@ Trên tập giữ lại tách rời, thứ hạng các phương pháp \ph{giữ 
 \section{Kết luận}
 \label{sec:conclude}
 
-Bài báo so sánh bốn chiến lược giảm chiều cho IDS trên Spark ML dưới một quy trình đánh giá loại trừ rò rỉ dữ liệu và có kiểm định thống kê. Đóng góp cốt lõi không chỉ là ``phương pháp nào tốt nhất'' mà còn là \emph{cách đánh giá đáng tin cậy}: loại đặc trưng rò rỉ, khử trùng lặp mức đặc trưng, robustness tách rời, kiểm định ghép cặp và đánh giá đa lớp. Hướng phát triển: mở rộng sang RoEduNet và CSE-CIC-IDS2018, tối ưu siêu tham số, và triển khai realtime trên edge.
+Bài báo so sánh bốn chiến lược giảm chiều cho IDS trên Spark ML dưới một quy trình đánh giá loại trừ rò rỉ dữ liệu và có kiểm định thống kê. Đóng góp cốt lõi không chỉ là ``phương pháp nào tốt nhất'' mà còn là \emph{cách đánh giá đáng tin cậy}: loại đặc trưng rò rỉ, loại bỏ trùng lặp mức đặc trưng, robustness tách rời, kiểm định ghép cặp và đánh giá đa lớp. Hướng phát triển: mở rộng sang RoEduNet và CSE-CIC-IDS2018, tối ưu siêu tham số, và triển khai realtime trên edge.
 
 \section*{Lời cảm ơn}
-Nghiên cứu thực hiện tại Trường Đại học Giao thông Vận tải (Phân hiệu TP.HCM) và Trường Đại học Công nghệ Thông tin, ĐHQG TP.HCM, trong khuôn khổ luận văn tốt nghiệp. Các tác giả không có xung đột lợi ích.
+Nghiên cứu được tài trợ bởi Trường Đại học Công nghệ Thông tin, Đại học Quốc gia Thành phố Hồ Chí Minh. Nghiên cứu được thực hiện tại Trường Đại học Giao thông Vận tải (Phân hiệu TP.HCM) và Trường Đại học Công nghệ Thông tin, ĐHQG TP.HCM, trong khuôn khổ luận văn tốt nghiệp. Các tác giả không có xung đột lợi ích.
 
 \bibliographystyle{ieeetr}
 \bibliography{references,../../latex/related_work}

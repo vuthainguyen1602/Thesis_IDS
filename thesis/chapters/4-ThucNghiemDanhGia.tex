@@ -1,5 +1,5 @@
 
-Trong chương này, luận văn trình bày kết quả đạt được khi áp dụng kỹ thuật lựa chọn đặc trưng để huấn luyện các mô hình học máy. Bên cạnh đó, hiệu quả của phương pháp kiểm định chéo cũng được phân tích, cùng với đánh giá kết quả thực nghiệm khi áp dụng các thuật toán học máy như \ac{svm}, \ac{lr}, \ac{nb}, \ac{rf}, \ac{dt}, \ac{gbt} và \ac{xgb} cả trong trường hợp có và không sử dụng kỹ thuật giảm chiều dữ liệu. Ngoài ra, luận văn cũng xác định và trình bày các giá trị tham số tối ưu cho từng thuật toán thông qua phương pháp tìm kiếm theo lưới kết hợp với kiểm định chéo. Dựa trên các kết quả thu được, luận văn sẽ làm rõ vấn đề liệu việc giảm chiều dữ liệu có thực sự cần thiết hay không. Cuối cùng, luận văn đánh giá hiệu quả của các mô hình \ac{el}, sau đó so sánh với các thuật toán học máy truyền thống, từ đó trả lời câu hỏi: \textit{Liệu có nên sử dụng \ac{el} so với các mô hình học máy truyền thống khi làm việc với dữ liệu \ac{iot} hay không?}
+Trong chương này, luận văn trình bày kết quả đạt được khi áp dụng kỹ thuật lựa chọn đặc trưng để huấn luyện các mô hình học máy. Bên cạnh đó, hiệu quả của phương pháp kiểm định chéo cũng được phân tích, cùng với đánh giá kết quả thực nghiệm khi áp dụng các thuật toán học máy như \ac{svm}, \ac{lr}, \ac{nb}, \ac{rf}, \ac{dt}, \ac{gbt}, \ac{xgb} và \ac{mlp} cả trong trường hợp có và không sử dụng kỹ thuật giảm chiều dữ liệu. Ngoài ra, luận văn cũng xác định và trình bày các giá trị tham số tối ưu cho từng thuật toán thông qua phương pháp tìm kiếm theo lưới kết hợp với kiểm định chéo. Dựa trên các kết quả thu được, luận văn sẽ làm rõ vấn đề liệu việc giảm chiều dữ liệu có thực sự cần thiết hay không. Cuối cùng, luận văn đánh giá hiệu quả của các mô hình \ac{el}, sau đó so sánh với các thuật toán học máy truyền thống, từ đó trả lời câu hỏi: \textit{Liệu có nên sử dụng \ac{el} so với các mô hình học máy truyền thống khi làm việc với dữ liệu \ac{iot} hay không?}
 
 \section{Môi trường thực nghiệm}
 
@@ -17,7 +17,7 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
 
 \section{Kết quả thực nghiệm}
 
-\noindent\fbox{\parbox{\linewidth}{\small \textbf{Lưu ý về số liệu.} Các giá trị hiệu năng trong mục này được đánh dấu \ph{\dots} là \emph{chỗ trống} cần điền lại sau khi chạy lại pipeline theo cấu hình \emph{đã loại trừ rò rỉ} (đã loại đặc trưng \texttt{destination\_port} và khử trùng lặp ở mức đặc trưng — xem Chương~\ref{c:phuongphapthuchien}). Các số liệu cũ (gần như tuyệt đối) thu được khi chưa loại rò rỉ và \emph{không} được dùng làm kết quả công bố. Giá trị điền vào lấy từ các tệp \texttt{results/*/...csv} tương ứng.}}
+\noindent\fbox{\parbox{\linewidth}{\small \textbf{Lưu ý về số liệu.} Các giá trị hiệu năng trong mục này được đánh dấu \ph{\dots} là \emph{chỗ trống} cần điền lại sau khi chạy lại pipeline theo cấu hình \emph{đã loại trừ rò rỉ} (đã loại đặc trưng \texttt{destination\_port} và loại bỏ trùng lặp ở mức đặc trưng — xem Chương~\ref{c:phuongphapthuchien}). Các số liệu cũ (gần như tuyệt đối) thu được khi chưa loại rò rỉ và \emph{không} được dùng làm kết quả công bố. Giá trị điền vào lấy từ các tệp \texttt{results/*/...csv} tương ứng.}}
 
 \vspace{1em}
 Bảng \ref{tab:model_parameters} tóm tắt các thiết lập tham số tối ưu cho các mô hình học máy được sử dụng trong nghiên cứu này, dựa trên các nghiên cứu gần đây và quá trình thực nghiệm thực tế.
@@ -69,12 +69,12 @@ Logistic Reg. & maxIter & 200 & Đảm bảo hội tụ trên tập dữ liệu 
 
 \clearpage
 \subsection{Kịch bản 1: Đánh giá hiệu năng cơ sở (Baseline)}
-Trong kịch bản này, tất cả 78 đặc trưng được đưa vào mô hình mà chưa qua bất kỳ bước tuyển chọn đặc trưng hay giảm chiều nào. Mục tiêu là thiết lập một mức hiệu năng tham chiếu cho các thử nghiệm tiếp theo.
+Trong kịch bản này, toàn bộ tập đặc trưng số (khoảng 78 đặc trưng trước khi loại cổng; số chính xác sau khi loại \texttt{destination\_port}/\texttt{source\_port} là \ph{}) được đưa vào mô hình mà chưa qua bất kỳ bước tuyển chọn đặc trưng hay giảm chiều nào. Mục tiêu là thiết lập một mức hiệu năng tham chiếu cho các thử nghiệm tiếp theo.
 
 Kết quả hiệu năng của các thuật toán \ac{ml} đơn lẻ và phương pháp Ensemble được trình bày trong Bảng \ref{tab:exp0_ml_metrics}.
 \begin{table}[htbp]
 \centering
-\caption{Kết quả hiệu năng phân lớp kịch bản Baseline (78 đặc trưng)}
+\caption{Kết quả hiệu năng phân lớp kịch bản Baseline (toàn bộ đặc trưng số, $\approx$78 trước khi loại cổng)}
 \label{tab:exp0_ml_metrics}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc@{}}
 \toprule
@@ -102,7 +102,7 @@ Chúng tôi thực hiện so sánh 3 chiến lược chính nhằm giảm số l
 \begin{enumerate}
     \item \textbf{\ac{rf} Feature Importance}: Trích xuất 30 đặc trưng có điểm số quan trọng cao nhất từ Random Forest.
     \item \textbf{\ac{shap} Importance}: Sử dụng giá trị Shapley từ mô hình \ac{xgb} để chọn ra 30 đặc trưng có ảnh hưởng lớn nhất.
-    \item \textbf{\ac{pca} (k=40)}: Giảm chiều dữ liệu từ không gian 78 chiều xuống 40 thành phần chính.
+    \item \textbf{\ac{pca} (k=40)}: Giảm chiều dữ liệu từ không gian đặc trưng gốc ($\approx$78 chiều trước khi loại cổng) xuống 40 thành phần chính.
 \end{enumerate}
 
 \noindent Lưu ý rằng \ac{pca} dùng $k=40$ --- nhiều hơn 30 đặc trưng của \ac{rf}/\ac{shap} --- vì đây là phép \emph{trích xuất} chứ không phải \emph{chọn lọc}: mỗi thành phần chính chỉ là một tổ hợp tuyến tính mang một phần phương sai, nên cần nhiều thành phần hơn để giữ lượng thông tin (phương sai tích lũy) tương đương với tập 30 đặc trưng gốc. Trong dải quét chung $\{20,30,40\}$, $k=40$ là mức giữ phương sai cao nhất, nên là điểm vận hành đại diện công bằng nhất cho \ac{pca}; ép $k=30$ sẽ làm \ac{pca} mất thêm phương sai và bất lợi khi so sánh.
@@ -116,7 +116,7 @@ Bảng \ref{tab:summary_comparison} tóm tắt sự khác biệt giữa các ph�
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc@{}}
 \toprule
 \textbf{Phương pháp} & \textbf{Đặc trưng} & \textbf{Best Model} & \textbf{F1-Score} & \textbf{Thời gian (s)} & \textbf{Dung lượng (MB)} \\ \midrule
-Baseline (Toàn bộ) & \ph{$\approx$78} & \ph{} & \ph{} & \ph{} & \ph{} \\
+Baseline (Toàn bộ) & \ph{} ($\approx$78 trước khi loại cổng) & \ph{} & \ph{} & \ph{} & \ph{} \\
 \ac{rf} Importance & 30 & \ph{} & \ph{} & \ph{} & \ph{} \\
 \ac{shap} Importance & 30 & \ph{} & \ph{} & \ph{} & \ph{} \\
 \ac{pca} (k=40) & 40 & \ph{} & \ph{} & \ph{} & \ph{} \\ \bottomrule
@@ -187,7 +187,7 @@ Các đặc trưng như \texttt{\path{init_win_bytes_forward}}, \texttt{\path{in
 \subsection{Phân tích rò rỉ dữ liệu (data leakage)}
 \label{sec:leakage_analysis}
 
-Một quan sát quan trọng là khi \emph{giữ} đặc trưng \texttt{destination\_port}, nó luôn nằm trong nhóm đặc trưng quan trọng nhất theo SHAP và kéo F1 nhị phân tiến sát mức tuyệt đối. Điều này không phải là bằng chứng cho thấy mô hình tốt mà là biểu hiện của \emph{rò rỉ nhãn}: trong CIC-\ac{ids}2017, mỗi loại tấn công được sinh nhằm vào những cổng dịch vụ cố định, nên \texttt{destination\_port} gần như tương quan hàm với nhãn. Các lỗi gán nhãn và đặc tính sinh dữ liệu này của CIC-\ac{ids}2017 đã được ghi nhận trong tài liệu và cho thấy ảnh hưởng đáng kể đến kết quả đánh giá~\cite{lanvin2023errors}. Để định lượng, luận văn thực hiện phân tích loại bỏ (ablation) giữ/loại cổng (Bảng~\ref{tab:leakage_ablation}).
+Một quan sát quan trọng là khi \emph{giữ} đặc trưng \texttt{destination\_port}, nó luôn nằm trong nhóm đặc trưng quan trọng nhất theo SHAP và kéo F1 nhị phân tiến sát mức tuyệt đối. Điều này không phải là bằng chứng cho thấy mô hình tốt mà là biểu hiện của \emph{rò rỉ nhãn}: trong CICIDS2017, mỗi loại tấn công được sinh nhằm vào những cổng dịch vụ cố định, nên \texttt{destination\_port} gần như tương quan hàm với nhãn. Các lỗi gán nhãn và đặc tính sinh dữ liệu này của CICIDS2017 đã được ghi nhận trong tài liệu và cho thấy ảnh hưởng đáng kể đến kết quả đánh giá~\cite{lanvin2023errors}. Để định lượng, luận văn thực hiện phân tích loại bỏ (ablation) giữ/loại cổng (Bảng~\ref{tab:leakage_ablation}). Lưu ý rằng pipeline loại bỏ cả \texttt{destination\_port} lẫn \texttt{source\_port}; phân tích ablation tập trung vào \texttt{destination\_port} vì đây là nguồn rò rỉ nhãn chi phối.
 
 \begin{table}[htbp]
 \centering
@@ -214,22 +214,22 @@ Kết quả trong Bảng \ref{tab:exp0_system_performance} cho thấy:
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
 \textbf{Thuật toán} & \textbf{Thời gian HL (s)} & \textbf{Thời gian DB (s)} & \textbf{Kích thước (MB)} \\ \midrule
-Decision Tree          & 12.4 & 0.05 & 0.5 \\
-Logistic Regression    & 15.8 & 0.02 & 0.1 \\
-\ac{svm} (LinearSVC)        & 45.2 & 0.03 & 0.1 \\
-\ac{nb}            & 5.1 & 0.01 & 0.2 \\
-Random Forest          & 124.5 & 0.15 & 45.2 \\
-\ac{gbt}                    & 185.3 & 0.12 & 110.5 \\
-\ac{xgb}                & 95.4 & 0.08 & 25.4 \\
-MLP                    & 320.5 & 0.18 & 5.8 \\ \midrule
-\textbf{Hybrid Bagging}   & \textbf{450.2} & \textbf{0.25} & \textbf{316.5} \\
-\textbf{Majority Voting}  & \textbf{--} & \textbf{0.35} & \textbf{--} \\ \bottomrule
+Decision Tree          & \ph{} & \ph{} & \ph{} \\
+Logistic Regression    & \ph{} & \ph{} & \ph{} \\
+\ac{svm} (LinearSVC)        & \ph{} & \ph{} & \ph{} \\
+\ac{nb}            & \ph{} & \ph{} & \ph{} \\
+Random Forest          & \ph{} & \ph{} & \ph{} \\
+\ac{gbt}                    & \ph{} & \ph{} & \ph{} \\
+\ac{xgb}                & \ph{} & \ph{} & \ph{} \\
+MLP                    & \ph{} & \ph{} & \ph{} \\ \midrule
+\textbf{Hybrid Bagging}   & \ph{} & \ph{} & \ph{} \\
+\textbf{Majority Voting}  & \textbf{--} & \ph{} & \textbf{--} \\ \bottomrule
 \end{tabular*}
 \end{table}
 \begin{itemize}
     \item \textbf{Thời gian huấn luyện}: Các mô hình Gradient Boosting (\ac{gbt}, \ac{xgb}) có thời gian huấn luyện dài nhất nhưng đạt kết quả phân loại cao.
-    \item \textbf{Thời gian dự báo}: Random Forest và \ac{xgb} có thời gian dự báo rất nhanh ($< 0.1s$ cho tập Test), phù hợp cho việc giám sát thời gian thực.
-    \item \textbf{Kích thước mô hình}: Việc sử dụng ít đặc trưng (Top-30) giúp giảm đáng kể kích thước file mô hình (từ 45MB xuống còn 12MB đối với \ac{rf}).
+    \item \textbf{Thời gian dự báo}: Random Forest và \ac{xgb} có thời gian dự báo rất nhanh (\ph{} cho tập Test), phù hợp cho việc giám sát thời gian thực.
+    \item \textbf{Kích thước mô hình}: Việc sử dụng ít đặc trưng (Top-30) giúp giảm đáng kể kích thước file mô hình đối với \ac{rf} (từ \ph{} xuống còn \ph{}).
 \end{itemize}
 
 \subsection{Kiểm định ý nghĩa thống kê}
@@ -352,6 +352,7 @@ Việc tích hợp các công nghệ trên giúp hệ thống đảm bảo khả
 Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc xử lý dữ liệu luồng như minh họa ở Hình~\ref{fig:ids_diagram}. Luồng xử lý tổng thể bao gồm các bước sau:
 \begin{figure}[ht]
     \centering
+    \resizebox{\textwidth}{!}{%
     \begin{tikzpicture}[
         font=\small, >=Stealth,
         every node/.style={align=center},
@@ -377,7 +378,8 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
         % Mũi tên gạch đứt (metric/cảnh báo) đi thẳng vào CẠNH TRÊN của dải, không cắt chữ.
         \draw[dsh] (j1.south) -- (out.north -| j1);
         \draw[dsh] (j2.south) -- (out.north -| j2);
-    \end{tikzpicture}
+    \end{tikzpicture}%
+    }
     \caption{Kiến trúc hệ thống phát hiện xâm nhập phân tán thời gian thực trên cụm 2 Jetson Orin Nano Super}
     \label{fig:ids_diagram}
 \end{figure}
@@ -491,14 +493,14 @@ Bảng \ref{tab:edge_training} trình bày kết quả huấn luyện và đánh
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
 \textbf{Mô hình} & \textbf{F1-Score} & \textbf{Accuracy} & \textbf{Thời gian HL (s)} & \textbf{Kích thước (MB)} \\ \midrule
-Decision Tree    & \ph{} & \ph{} & \textbf{10.7}  & \textbf{0.029} \\
-\ac{gbt}              & \ph{} & \ph{} & 231.3          & 0.862 \\
-Random Forest    & \ph{} & \ph{} & 486.2          & 2.859 \\
+Decision Tree    & \ph{} & \ph{} & \ph{} & \ph{} \\
+\ac{gbt}              & \ph{} & \ph{} & \ph{} & \ph{} \\
+Random Forest    & \ph{} & \ph{} & \ph{} & \ph{} \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-Về tiêu chí \emph{nhận biết ràng buộc biên} (edge-aware), Decision Tree có kích thước mô hình cực nhỏ (0.029 MB), nhỏ hơn Random Forest gần 100 lần và thời gian huấn luyện nhanh gấp 45 lần; F1/Accuracy (điền lại sau khi chạy với cấu hình loại trừ rò rỉ dữ liệu) cần được cân nhắc cùng các chỉ số chi phí này để chọn mô hình triển khai.
+Về tiêu chí \emph{nhận biết ràng buộc biên} (edge-aware), Decision Tree có kích thước mô hình nhỏ nhất (\ph{}), nhỏ hơn Random Forest \ph{} lần và thời gian huấn luyện nhanh hơn \ph{} lần; F1/Accuracy (điền lại sau khi chạy với cấu hình loại trừ rò rỉ dữ liệu) cần được cân nhắc cùng các chỉ số chi phí này để chọn mô hình triển khai.
 
 
 \subsection{Kết quả đo hiệu năng (benchmark) trên Jetson Orin Nano Super}
@@ -513,9 +515,9 @@ Bảng \ref{tab:edge_benchmark} trình bày kết quả đo hiệu năng (benchm
 \toprule
 \textbf{Mô hình} & \textbf{Thông lượng} & \textbf{Độ trễ} & \textbf{CPU} & \textbf{RAM} & \textbf{Kích thước} \\
                   & \textbf{(samples/s)} & \textbf{(ms/sample)} & \textbf{(\%)} & \textbf{(\%)} & \textbf{(MB)} \\ \midrule
-Decision Tree     & \ph{} & \ph{} & \ph{} & \ph{} & \textbf{0.029} \\
-\ac{gbt}               & \ph{} & \ph{} & \ph{} & \ph{}          & 0.862 \\
-Random Forest     & \ph{} & \ph{} & \ph{} & \ph{} & 2.859 \\
+Decision Tree     & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
+\ac{gbt}               & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
+Random Forest     & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -557,9 +559,9 @@ Hình~\ref{fig:benchmark_comparison} minh họa trực quan sự khác biệt gi
 Kết quả benchmark cho thấy sự đánh đổi rõ ràng giữa các chỉ số:
 
 \begin{itemize}
-    \item \textbf{Random Forest} đạt thông lượng cao nhất (\ph{} samples/s) nhờ Spark tối ưu hóa song song trên nhiều cây, nhưng sử dụng RAM nhiều nhất (\ph{}\%) và kích thước mô hình lớn nhất (2.859 MB).
+    \item \textbf{Random Forest} đạt thông lượng cao nhất (\ph{} samples/s) nhờ Spark tối ưu hóa song song trên nhiều cây, nhưng sử dụng RAM nhiều nhất (\ph{}\%) và kích thước mô hình lớn nhất (\ph{}).
     \item \textbf{\ac{gbt}} có hiệu năng trung bình ở tất cả các chỉ số, đóng vai trò cầu nối giữa Decision Tree và Random Forest.
-    \item \textbf{Decision Tree} có F1-Score \ph{} (điền sau khi chạy với cấu hình loại trừ rò rỉ dữ liệu), sử dụng RAM thấp nhất (\ph{}\%), và mô hình có kích thước rất nhỏ (0{,}029\,MB). Mặc dù thông lượng thấp nhất (\ph{} samples/s), giá trị này vẫn đáp ứng yêu cầu giám sát thời gian thực cho mạng quy mô vừa và nhỏ.
+    \item \textbf{Decision Tree} có F1-Score \ph{} (điền sau khi chạy với cấu hình loại trừ rò rỉ dữ liệu), sử dụng RAM thấp nhất (\ph{}\%), và mô hình có kích thước rất nhỏ (\ph{}). Mặc dù thông lượng thấp nhất (\ph{} samples/s), giá trị này vẫn đáp ứng yêu cầu giám sát thời gian thực cho mạng quy mô vừa và nhỏ.
 \end{itemize}
 
 Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữa các tiêu chí lựa chọn mô hình. Decision Tree chiếm ưu thế ở hai tiêu chí quan trọng nhất cho thiết bị biên: RAM thấp và kích thước mô hình nhỏ.
@@ -575,13 +577,13 @@ Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữ
 \begin{enumerate}
     \item \textbf{Độ chính xác}: F1-Score \ph{} -- với tập đặc trưng SHAP Top-30 đã được tuyển chọn (đã loại trừ rò rỉ), cần kiểm chứng liệu một cây quyết định đơn lẻ có đủ khả năng nắm bắt các mẫu phân loại hay không.
     \item \textbf{Hiệu quả tài nguyên}: Chỉ sử dụng 30\% RAM, giảm áp lực lên garbage collector của JVM và đảm bảo tính ổn định lâu dài trên thiết bị giới hạn tài nguyên.
-    \item \textbf{Tính khả chuyển}: Kích thước mô hình 0.029 MB cho phép triển khai trên các thiết bị IoT có bộ nhớ hạn chế hơn.
+    \item \textbf{Tính khả chuyển}: Kích thước mô hình \ph{} cho phép triển khai trên các thiết bị IoT có bộ nhớ hạn chế hơn.
 \end{enumerate}
 
 \section{Thảo luận và So sánh tổng hợp}
-Kết quả thực nghiệm cho thấy việc kết hợp tuyển chọn đặc trưng dựa trên SHAP và phương pháp Ensemble (Hybrid Bagging) là một hướng tiếp cận phù hợp cho hệ thống IDS trên bộ dữ liệu CIC-\ac{ids}2017. Dưới cấu hình đánh giá loại trừ rò rỉ dữ liệu, giải pháp đạt độ chính xác \ph{} (điền lại sau khi chạy) đồng thời tối ưu được thời gian xử lý và dung lượng lưu trữ, phù hợp với ràng buộc của thiết bị biên.
+Kết quả thực nghiệm cho thấy việc kết hợp tuyển chọn đặc trưng dựa trên SHAP và phương pháp Ensemble (Hybrid Bagging) là một hướng tiếp cận phù hợp cho hệ thống IDS trên bộ dữ liệu CICIDS2017. Dưới cấu hình đánh giá loại trừ rò rỉ dữ liệu, giải pháp đạt độ chính xác \ph{} (điền lại sau khi chạy) đồng thời tối ưu được thời gian xử lý và dung lượng lưu trữ, phù hợp với ràng buộc của thiết bị biên.
 
-Đặc biệt, khi triển khai trên thiết bị biên Jetson Orin Nano Super, Decision Tree với SHAP Top-30 đặc trưng đạt F1-Score \ph{} (đã loại trừ rò rỉ), thông lượng \ph{} samples/s, và sử dụng \ph{}\% RAM. Kết quả này chứng minh tính khả thi của việc triển khai hệ thống IDS dựa trên học máy trên các thiết bị biên có tài nguyên giới hạn, mở ra hướng ứng dụng thực tế cho giám sát an ninh mạng phân tán.
+Đặc biệt, khi triển khai trên thiết bị biên Jetson Orin Nano Super, Decision Tree với SHAP Top-30 đặc trưng được kỳ vọng đạt F1-Score \ph{} (đã loại trừ rò rỉ), thông lượng \ph{} samples/s, và sử dụng \ph{}\% RAM. Sau khi điền các số liệu trên, kết quả sẽ cho phép đánh giá tính khả thi của việc triển khai hệ thống IDS dựa trên học máy trên các thiết bị biên có tài nguyên giới hạn, mở ra hướng ứng dụng thực tế cho giám sát an ninh mạng phân tán.
 
 
 
