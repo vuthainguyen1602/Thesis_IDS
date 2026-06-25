@@ -117,7 +117,7 @@ Sau khi xử lý, dữ liệu được chia thành \textbf{80\% huấn luyện /
 
 \subsection{Bộ phân loại và bốn chiến lược giảm chiều}
 
-Tám thuật toán: Decision Tree, Logistic Regression, SVM (LinearSVC), Naive Bayes, Random Forest, GBT, XGBoost, MLP; cùng hai ensemble (Hybrid Bagging Top-3 có trọng số và Majority Voting). LightGBM bị loại vì thư viện gốc (native, qua SynapseML) chỉ hỗ trợ x86\_64 và không chạy được trên thiết bị biên Jetson Orin Nano Super (ARM64), vốn là mục tiêu triển khai của nghiên cứu; do đó không thể đưa một mô hình LightGBM vào pipeline. Trong họ gradient boosting, XGBoost và GBT đóng vai trò đại diện. Bốn chiến lược: \textbf{Baseline} (toàn bộ đặc trưng); \textbf{RF Top-$K$} ($K \in \{20,30,40\}$); \textbf{SHAP Top-$K$}; \textbf{PCA} ($k \in \{20,30,40\}$). Xếp hạng RF và SHAP \emph{chỉ} dùng tập huấn luyện; SHAP được tính trên mẫu \emph{phân tầng theo lớp} để cả lưu lượng lành tính (benign) lẫn tấn công đều được đại diện. PCA được cố định ở $k{=}40$, nhiều hơn so với Top-30 của các phương pháp chọn lọc, vì PCA là một phép \emph{trích xuất}: mỗi thành phần chính là một tổ hợp tuyến tính chỉ mang một phần phương sai, nên cần nhiều thành phần hơn để giữ được phương sai tương đương. Trong dải $\{20,30,40\}$, $k{=}40$ giữ phương sai cao nhất nên là điểm đại diện công bằng nhất cho PCA.
+Tám thuật toán: Decision Tree, Logistic Regression, SVM (LinearSVC), Naive Bayes, Random Forest, GBT, XGBoost, MLP; cùng hai ensemble (Hybrid Bagging Top-3 có trọng số và Soft Voting). LightGBM bị loại vì thư viện gốc (native, qua SynapseML) chỉ hỗ trợ x86\_64 và không chạy được trên thiết bị biên Jetson Orin Nano Super (ARM64), vốn là mục tiêu triển khai của nghiên cứu; do đó không thể đưa một mô hình LightGBM vào pipeline. Trong họ gradient boosting, XGBoost và GBT đóng vai trò đại diện. Bốn chiến lược: \textbf{Baseline} (toàn bộ đặc trưng); \textbf{RF Top-$K$} ($K \in \{20,30,40\}$); \textbf{SHAP Top-$K$}; \textbf{PCA} ($k \in \{20,30,40\}$). Xếp hạng RF và SHAP \emph{chỉ} dùng tập huấn luyện; SHAP được tính trên mẫu \emph{phân tầng theo lớp} để cả lưu lượng lành tính (benign) lẫn tấn công đều được đại diện. PCA được cố định ở $k{=}40$, nhiều hơn so với Top-30 của các phương pháp chọn lọc, vì PCA là một phép \emph{trích xuất}: mỗi thành phần chính là một tổ hợp tuyến tính chỉ mang một phần phương sai, nên cần nhiều thành phần hơn để giữ được phương sai tương đương. Trong dải $\{20,30,40\}$, $k{=}40$ giữ phương sai cao nhất nên là điểm đại diện công bằng nhất cho PCA.
 
 \subsection{Siêu tham số và xử lý mất cân bằng lớp}
 \label{sec:hparams}
@@ -171,7 +171,7 @@ CICIDS2017; chia tập huấn luyện/kiểm tra 80/20 sau khi loại trừ rò 
 
 \subsection{Phân tích loại bỏ đặc trưng cổng (ablation)}
 
-Bảng~\ref{tab:port-ablation} định lượng ảnh hưởng của \texttt{destination\_port}. Khi giữ cổng, F1 nhị phân xấp xỉ tuyệt đối (\ph{f1\_with}); khi loại cổng, F1 giảm còn \ph{f1\_no}, phản ánh năng lực thực. Mọi kết quả phía sau dùng cấu hình \emph{đã loại cổng}.
+Bảng~\ref{tab:port-ablation} và Hình~\ref{fig:leakage-ablation} định lượng ảnh hưởng của \texttt{destination\_port}. Khi giữ cổng, F1 nhị phân xấp xỉ tuyệt đối (\ph{f1\_with}); khi loại cổng, F1 giảm còn \ph{f1\_no}, phản ánh năng lực thực. Mọi kết quả phía sau dùng cấu hình \emph{đã loại cổng}.
 
 \begin{table}[htbp]
   \caption{Ảnh hưởng của đặc trưng rò rỉ \texttt{destination\_port} (mô hình tốt nhất, nhị phân).}
@@ -212,7 +212,7 @@ Bảng~\ref{tab:port-ablation} định lượng ảnh hưởng của \texttt{des
   \label{fig:f1-heatmap}
 \end{figure*}
 
-Bảng~\ref{tab:best-results} tóm tắt mô hình tốt nhất mỗi phương pháp. Thiết kế so sánh nhằm kiểm chứng liệu lựa chọn đặc trưng (RF/SHAP Top-30) có giữ được hiệu năng gần baseline trong khi giảm $\approx$60\% số đặc trưng hay không; PCA $k{=}40$ giảm chiều không giám sát với chi phí giải thích. Các giá trị định lượng được điền từ \texttt{cross\_method\_summary.csv}.
+Bảng~\ref{tab:best-results} tóm tắt mô hình tốt nhất mỗi phương pháp, và Hình~\ref{fig:f1-heatmap} trực quan hoá F1 theo từng cặp phương pháp~$\times$~thuật toán. Thiết kế so sánh nhằm kiểm chứng liệu lựa chọn đặc trưng (RF/SHAP Top-30) có giữ được hiệu năng gần baseline trong khi giảm $\approx$60\% số đặc trưng hay không; PCA $k{=}40$ giảm chiều không giám sát với chi phí giải thích. Các giá trị định lượng được điền từ \texttt{cross\_method\_summary.csv}.
 
 \begin{table*}[htbp]
   \caption{Tóm tắt mô hình tốt nhất mỗi phương pháp (điền từ \texttt{cross\_method\_summary.csv}).}
@@ -317,7 +317,7 @@ Trên tập giữ lại tách rời, thứ hạng các phương pháp \ph{giữ 
 
 \textbf{So sánh phương pháp.} Khi chênh lệch F1 giữa RF Top-30 và SHAP Top-30 nhỏ hơn mức dao động giữa các lần lấy mẫu lại và $p>0{,}05$, ta kết luận hai phương pháp \emph{tương đương về mặt thống kê}; khi đó tiêu chí phụ (giải thích, kích thước, ổn định) quyết định lựa chọn triển khai. SHAP Top-30 cung cấp giải thích cục bộ nhất quán, lợi thế cho vận hành SOC.
 
-\textbf{Cầu nối với thiết bị biên.} Giảm $\approx$60\% số đặc trưng trực tiếp giảm chi phí lắp ráp vector và bộ nhớ mô hình trên Jetson Orin Nano Super. Vì vậy, tiêu chí lựa chọn cần \emph{nhận biết ràng buộc biên}, tức là cân nhắc không chỉ F1 mà cả số đặc trưng, kích thước mô hình và thời gian dự đoán. Kết quả đo độ trễ và thông lượng (latency/throughput) trên Jetson được trình bày trong công trình liên quan (SOICT 2026).
+\textbf{Cầu nối với thiết bị biên.} Giảm $\approx$60\% số đặc trưng trực tiếp giảm chi phí lắp ráp vector và bộ nhớ mô hình trên Jetson Orin Nano Super. Vì vậy, tiêu chí lựa chọn cần \emph{nhận biết ràng buộc biên}, tức là cân nhắc không chỉ F1 mà cả số đặc trưng, kích thước mô hình và thời gian huấn luyện/dự đoán (Hình~\ref{fig:timing}). Kết quả đo độ trễ và thông lượng (latency/throughput) trên Jetson được trình bày trong công trình liên quan (SOICT 2026).
 
 \textbf{Hạn chế của đánh giá nhị phân.} Việc loại cổng và loại bỏ trùng lặp đưa F1 nhị phân về mức thực tế, nhưng phân loại nhị phân vẫn là bài toán tương đối dễ. Chỉ khi đánh giá đa lớp, các điểm yếu ở lớp tấn công hiếm mới bộc lộ, và đây cũng là thước đo phân biệt phương pháp đáng tin cậy hơn.
 
@@ -328,7 +328,7 @@ Trên tập giữ lại tách rời, thứ hạng các phương pháp \ph{giữ 
 
 \textbf{Hợp lệ ngoại tại.} CICIDS2017 (2017) có thể không phản ánh lưu lượng hiện tại; cần kiểm chứng trên các bộ mới hơn (CSE-CIC-IDS2018, CIC-IoT). Phép chia ngẫu nhiên mặc định trộn thời gian; chế độ chia theo thời gian được hỗ trợ để đánh giá sát thực tế hơn. Kết luận tổng quát hoá liên bộ (Mục~\ref{sec:cross-dataset}) dựa trên \emph{mẫu phân tầng đại diện} của CSE-CIC-IDS2018 (do giới hạn tài nguyên biên), không phải toàn bộ; kích thước mẫu được báo cáo tường minh và việc mở rộng lên toàn bộ là hướng tiếp theo.
 
-\textbf{Hợp lệ thống kê.} Với $N{=}6$ lần lấy mẫu, permutation test vừa đủ để vượt ngưỡng $0{,}05$; tăng $N$, dùng corrected resampled $t$-test (Nadeau--Bengio) hoặc cross-validation lồng sẽ củng cố kết luận.
+\textbf{Hợp lệ thống kê.} Cỡ mẫu nhỏ ($N{=}6$) khiến \emph{độ mạnh} (power) của kiểm định thấp: vì permutation test hai phía, $p$ nhỏ nhất có thể đạt chỉ là $2/2^N$, nên $N{=}6$ vừa đủ chạm ngưỡng $0{,}05$ và khó phát hiện hiệu ứng nhỏ. Hơn nữa, các lần lấy mẫu lại \emph{chồng lấn} nhau nên vi phạm giả định độc lập của phân phối $t$, làm khoảng tin cậy theo $t$ chuẩn bị hẹp một cách lạc quan. Vì vậy chúng tôi khuyến nghị dùng corrected resampled $t$-test (Nadeau--Bengio), vốn hiệu chỉnh phương sai cho phần chồng lấn giữa các lần lấy mẫu, hoặc tăng $N$ (kèm cross-validation lồng) để củng cố kết luận.
 
 \section{Kết luận}
 \label{sec:conclude}

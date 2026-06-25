@@ -116,7 +116,7 @@ Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng 
 
 \textbf{Phân chia tập dữ liệu}
 
-Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn luyện và kiểm tra bằng phép chia ngẫu nhiên (random split) với seed cố định (=42) để đảm bảo tái lập. Các chỉ số hiệu năng được \textbf{công bố trên tập kiểm tra} (tập giữ lại cuối cùng, không tham gia huấn luyện, xếp hạng đặc trưng hay tinh chỉnh siêu tham số); kết quả trên tập huấn luyện chỉ được dùng để chẩn đoán hiện tượng quá khớp (overfitting) hoặc thiếu khớp (underfitting).
+Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn luyện và kiểm tra bằng phép chia ngẫu nhiên (random split) với seed cố định (=42) để đảm bảo tái lập. Các chỉ số hiệu năng được \textbf{công bố trên tập kiểm tra} (tập giữ lại cuối cùng, không tham gia huấn luyện, xếp hạng đặc trưng hay tinh chỉnh siêu tham số); kết quả trên tập huấn luyện chỉ được dùng để chẩn đoán hiện tượng quá khớp (overfitting) hoặc thiếu khớp (underfitting). Đáng lưu ý, \texttt{StandardScaler}, \ac{pca} và việc xếp hạng đặc trưng (RF Importance, \ac{shap}) đều được \emph{fit chỉ trên tập huấn luyện $D_{\text{train}}$} rồi \emph{transform} lên tập kiểm tra, nhằm tránh rò rỉ thông tin từ tập kiểm tra vào quá trình huấn luyện.
 
 
 \section{Lựa chọn đặc trưng và giảm chiều dữ liệu}
@@ -124,7 +124,7 @@ Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn
 Trong quá trình tiền xử lý dữ liệu cho bài toán phát hiện xâm nhập mạng, lựa chọn đặc trưng bao gồm \textbf{chọn đặc trưng} và \textbf{trích xuất đặc trưng} là một bước quan trọng nhằm giảm chiều dữ liệu, loại bỏ những đặc trưng không cần thiết, và cải thiện hiệu suất của mô hình học máy. Dữ liệu số được gom vào vector đặc trưng bằng \texttt{VectorAssembler} (khoảng 78 thuộc tính số trước khi loại cổng; số đặc trưng chính xác sau khi loại \texttt{destination\_port}/\texttt{source\_port} là \ph{}) và được chuẩn hóa bằng \texttt{StandardScaler} (chuẩn hóa Z-score). Ba phương pháp được sử dụng trong luận văn là \textit{\ac{rf}}, \ac{shap} và \ac{pca}.
 
 \begin{enumerate}[label=\alph*)]
-    \item \textbf{Principal Component Analysis (\ac{pca})}: Là phương pháp giảm chiều dữ liệu không giám sát, nhằm biến đổi tập đặc trưng ban đầu thành một tập các thành phần chính (principal components) mới không tương quan tuyến tính với nhau và giữ lại phần lớn phương sai của dữ liệu.\ac{pca} thực hiện bằng cách tính ma trận hiệp phương sai và tìm các vector riêng (eigenvectors) tương ứng với các giá trị riêng (eigenvalues). Các thành phần chính được xác định bằng cách giải bài toán:
+    \item \textbf{Principal Component Analysis (\ac{pca})}: Là phương pháp giảm chiều dữ liệu không giám sát, nhằm biến đổi tập đặc trưng ban đầu thành một tập các thành phần chính (principal components) mới không tương quan tuyến tính với nhau và giữ lại phần lớn phương sai của dữ liệu. \ac{pca} thực hiện bằng cách tính ma trận hiệp phương sai và tìm các vector riêng (eigenvectors) tương ứng với các giá trị riêng (eigenvalues). Các thành phần chính được xác định bằng cách giải bài toán:
 
     \begin{equation}
     \mathbf{C}\mathbf{v} = \lambda \mathbf{v}
@@ -222,22 +222,22 @@ trên tập kiểm tra để xác định top-3 mô hình tốt nhất phục v�
 \midrule
 Hybrid Bagging                  & Top-3 mô hình kết hợp theo sơ đồ $(3\text{-}2\text{-}2)$ sub-samples \\
                                  & với \textit{Weighted Soft Voting} — dự đoán xác suất có trọng số \\
-Majority Voting                 & Hard voting trên Top-3 mô hình theo F1-Score \\
-                                 & Nhãn được chọn theo phiếu đa số từ ba bộ phân loại \\
+Soft Voting                     & Trung bình xác suất Top-3 mô hình theo F1-Score \\
+                                 & Nhãn \textit{Attack} nếu xác suất trung bình $\geq 0{,}5$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection*{a) Áp dụng Voting}
 \addcontentsline{toc}{subsection}{a) Áp dụng Voting}
-Sau khi hoàn tất giai đoạn huấn luyện đơn mô hình, luận văn tiến hành xây dựng mô hình kết hợp dựa trên kỹ thuật Voting để nâng cao độ chính xác và tính ổn định của hệ thống phân loại. Cụ thể, ba mô hình phân loại nhị phân có chỉ số F1-Score cao nhất ở giai đoạn trước sẽ được lựa chọn để tham gia vào quá trình ensemble.
+Sau khi hoàn tất giai đoạn huấn luyện đơn mô hình, luận văn tiến hành xây dựng mô hình kết hợp dựa trên kỹ thuật Voting để nâng cao độ chính xác và tính ổn định của hệ thống phân loại; hai phương pháp tổ hợp được sử dụng được tóm tắt trong Bảng~\ref{tab:ensemble}. Cụ thể, ba mô hình phân loại nhị phân có chỉ số F1-Score cao nhất ở giai đoạn trước sẽ được lựa chọn để tham gia vào quá trình ensemble.
 
-Mỗi mô hình trong tập được chọn sẽ đưa ra dự đoán độc lập cho từng mẫu trong tập kiểm tra. Các dự đoán này sau đó được tổng hợp thông qua cơ chế bầu chọn. Trong trường hợp Majority Voting, nhãn cuối cùng của mỗi mẫu được xác định dựa trên lớp nhận được nhiều phiếu bầu nhất từ các mô hình thành phần. Đối với bài toán phân loại nhị phân, mẫu được gán nhãn \textit{Attack} nếu số lượng mô hình dự đoán lớp 1 lớn hơn một nửa tổng số mô hình, ngược lại sẽ được gán nhãn \textit{Benign}.
+Mỗi mô hình trong tập được chọn sẽ đưa ra dự đoán độc lập cho từng mẫu trong tập kiểm tra. Các dự đoán này sau đó được tổng hợp thông qua cơ chế bầu chọn. Trong trường hợp Soft Voting, xác suất dự đoán lớp \textit{Attack} của các mô hình thành phần được lấy trung bình; mẫu được gán nhãn \textit{Attack} nếu xác suất trung bình đạt từ $0{,}5$ trở lên, ngược lại được gán nhãn \textit{Benign}.
 
 Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữa các mô hình học cơ sở, từ đó giảm sai số do thiên lệch của từng mô hình riêng lẻ và cải thiện khả năng tổng quát hóa trên dữ liệu chưa từng thấy. Nhờ cơ chế kết hợp này, hệ thống có thể nâng cao hiệu suất tổng thể trong việc phát hiện và phân loại chính xác các hành vi xâm nhập mạng. Quy trình chi tiết được trình bày trong \textbf{\textit{Thuật toán \ref{voting_ag}}}.
 
 \begin{algorithm}[htbp]
-\caption{Thuật toán Majority Voting Ensemble}
+\caption{Thuật toán Soft Voting Ensemble}
 \label{voting_ag}
 \begin{algorithmic}[1]
 \Require Tập dữ liệu huấn luyện $D = \{(x_i, y_i)\}_{i=1}^{n}$ với $x_i \in \mathbb{R}^d$, $y_i \in \{0, 1\}$
@@ -255,20 +255,20 @@ Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữ
 \State Sắp xếp $\{M_1, \dots, M_K\}$ theo $F_k$ giảm dần
 \State Chọn 3 mô hình tốt nhất: $\mathcal{S} = \{M^{(1)}, M^{(2)}, M^{(3)}\}$ với $F^{(1)} \geq F^{(2)} \geq F^{(3)}$
 
-\State \textbf{Bước 3: Thu thập dự đoán từ 3 mô hình được chọn}
+\State \textbf{Bước 3: Thu thập xác suất dự đoán từ 3 mô hình được chọn}
 \For{mỗi mẫu $x_j \in D_{\text{test}}$}
     \For{mỗi $M^{(s)} \in \mathcal{S}$, $s = 1, 2, 3$}
-        \State $\hat{y}_s^{(j)} \gets M^{(s)}(x_j)$ \Comment{Dự đoán nhãn từ mô hình $M^{(s)}$}
+        \State $p_s^{(j)} \gets P^{(s)}(y=1 \mid x_j)$ \Comment{Xác suất lớp Attack từ mô hình $M^{(s)}$}
     \EndFor
 \EndFor
 
-\State \textbf{Bước 4: Kết hợp bằng bầu chọn đa số (Hard/Majority Voting)}
+\State \textbf{Bước 4: Kết hợp bằng bầu chọn mềm (Soft Voting)}
 \For{mỗi mẫu $x_j \in D_{\text{test}}$}
-    \State $S_j \gets \displaystyle\sum_{s=1}^{3} \hat{y}_s^{(j)}$ \Comment{Tổng số phiếu dự đoán Attack}
-    \If{$S_j > 3/2$}
-        \State $y_{\text{vote}}^{(j)} \gets 1$ \Comment{Đa số phiếu: Attack}
+    \State $\bar{p}_j \gets \frac{1}{3} \displaystyle\sum_{s=1}^{3} p_s^{(j)}$ \Comment{Trung bình xác suất lớp Attack}
+    \If{$\bar{p}_j \geq 0.5$}
+        \State $y_{\text{vote}}^{(j)} \gets 1$ \Comment{Dự đoán: Attack}
     \Else
-        \State $y_{\text{vote}}^{(j)} \gets 0$ \Comment{Đa số phiếu: Benign}
+        \State $y_{\text{vote}}^{(j)} \gets 0$ \Comment{Dự đoán: Benign}
     \EndIf
 \EndFor
 
@@ -358,7 +358,7 @@ Khả năng giải thích (\ac{xai})  & Biểu đồ SHAP: summary plot, bar cha
 \end{tabular}
 \end{table}
 
-Hiệu năng của mô hình được đánh giá thông qua các chỉ số phân loại phổ biến như Accuracy, Precision, Recall và F1-Score, kết hợp với phân tích đường cong AUC (ROC và PR), chi phí tính toán (thời gian huấn luyện và suy luận), cũng như khả năng giải thích của mô hình (ví dụ: biểu đồ tổng quan SHAP). Để xác thực mô hình phát hiện xâm nhập, tập dữ liệu kiểm tra được sử dụng nhằm đánh giá khả năng tổng quát hóa của mô hình đã huấn luyện, trong đó kết quả dự đoán được đối chiếu với nhãn thực tế và đo lường bằng các thước đo đánh giá. Các chỉ số như \ac{ac}, \ac{pr}, \ac{re}, \ac{fs} được tính toán theo các công thức trình bày tại \textit{~\ref{eq:accuracy}, ~\ref{eq:precision}, ~\ref{eq:recall}, ~\ref{eq:f1score}}. Những kết quả này là cơ sở quan trọng để so sánh giữa các phương pháp lựa chọn đặc trưng và lựa chọn mô hình phù hợp cho triển khai thực tế.
+Hiệu năng của mô hình được đánh giá thông qua các chỉ số phân loại phổ biến như Accuracy, Precision, Recall và F1-Score, kết hợp với phân tích đường cong AUC (ROC và PR), chi phí tính toán (thời gian huấn luyện và suy luận), cũng như khả năng giải thích của mô hình (ví dụ: biểu đồ tổng quan SHAP); các tiêu chí đánh giá được tổng hợp trong Bảng~\ref{tab:evaluation}. Để xác thực mô hình phát hiện xâm nhập, tập dữ liệu kiểm tra được sử dụng nhằm đánh giá khả năng tổng quát hóa của mô hình đã huấn luyện, trong đó kết quả dự đoán được đối chiếu với nhãn thực tế và đo lường bằng các thước đo đánh giá. Các chỉ số như \ac{ac}, \ac{pr}, \ac{re}, \ac{fs} được tính toán theo các công thức trình bày tại \textit{~\ref{eq:accuracy}, ~\ref{eq:precision}, ~\ref{eq:recall}, ~\ref{eq:f1score}}. Những kết quả này là cơ sở quan trọng để so sánh giữa các phương pháp lựa chọn đặc trưng và lựa chọn mô hình phù hợp cho triển khai thực tế.
 
 \begin{equation}
 \text{Accuracy (\ac{ac})} = \frac{TP + TN}{TP + TN + FP + FN}
@@ -450,7 +450,7 @@ Quy trình này giúp đảm bảo lựa chọn được tổ hợp siêu tham s
 
 \pagebreak
 \section{Triển khai biên}
-Mô hình tốt nhất sau đánh giá được đóng gói thành \texttt{PipelineModel} và triển khai trên một cụm \emph{hai} thiết bị biên NVIDIA Jetson Orin Nano Super (CPU ARM 64-bit + GPU NVIDIA), tách vai trò: Jetson~\#1 chạy cổng phát hiện bất thường (autoencoder) để lọc lưu lượng bình thường, Jetson~\#2 chạy bộ phân loại PySpark trên các luồng nghi vấn. Mô hình sau khi huấn luyện trên cụm được chuyển sang thiết bị biên bằng SCP. Quy trình suy luận thời gian thực theo chuỗi: Kafka Consumer nhận dữ liệu mạng (topic \texttt{ids-network-flow}), cổng bất thường chuyển tiếp luồng nghi vấn sang \texttt{ids-suspicious-flow}, PySpark Streaming (micro-batch) xử lý và trích xuất đặc trưng, kết quả dự đoán ghi vào PostgreSQL phục vụ trực quan hóa trên Grafana và kích hoạt cảnh báo khi phát hiện bất thường. Hệ thống hỗ trợ ba chế độ: tách pipeline (pipeline split), mở rộng theo chiều ngang (horizontal scaling) và cụm Spark (Spark cluster).
+Mô hình tốt nhất sau đánh giá được đóng gói thành \texttt{PipelineModel} và triển khai trên một cụm \emph{hai} thiết bị biên NVIDIA Jetson Orin Nano Super (CPU ARM 64-bit + GPU NVIDIA), tách vai trò: Jetson~\#1 chạy cổng phát hiện bất thường (autoencoder) để lọc lưu lượng bình thường, Jetson~\#2 chạy bộ phân loại PySpark trên các luồng nghi vấn. Mô hình sau khi huấn luyện trên cụm được chuyển sang thiết bị biên bằng SCP. Quy trình suy luận thời gian thực theo chuỗi: Kafka Consumer nhận dữ liệu mạng (topic \texttt{ids-network-flow}), cổng bất thường chuyển tiếp luồng nghi vấn sang \texttt{ids-suspicious-flow}, PySpark Streaming (micro-batch) xử lý và trích xuất đặc trưng, kết quả dự đoán ghi vào PostgreSQL phục vụ trực quan hóa trên Grafana và kích hoạt cảnh báo khi phát hiện bất thường. Hệ thống hỗ trợ ba chế độ: tách pipeline (pipeline split), mở rộng theo chiều ngang (horizontal scaling) và cụm Spark (Spark cluster). Thông số phần cứng chi tiết của thiết bị biên được trình bày trong Bảng~\ref{tab:hardware}.
 
 \begin{table}[htbp]
 \centering
@@ -462,11 +462,11 @@ Mô hình tốt nhất sau đánh giá được đóng gói thành \texttt{Pipel
 \textbf{Thuộc tính}              & \textbf{Giá trị} \\
 \midrule
 Nền tảng                         & NVIDIA Jetson Orin Nano Super Developer Kit ($\times 2$) \\
-CPU                              & 6 nhân Arm Cortex-A78AE, 1{,}7 GHz \\
+CPU                              & 6 nhân Arm Cortex-A78AE, 1{,}7\,GHz \\
 GPU                              & NVIDIA Ampere, 1024 nhân CUDA + 32 Tensor Core \\
-RAM                              & 8 GB LPDDR5 (102 GB/s) \\
-Lưu trữ                          & SSD NVMe 256 GB \\
-Hiệu năng AI                     & tới $\sim$67 TOPS (khung 25 W) \\
+RAM                              & 8\,GB LPDDR5 (102\,GB/s) \\
+Lưu trữ                          & SSD NVMe 256\,GB \\
+Hiệu năng AI                     & tới $\sim$67\,TOPS (khung 25\,W) \\
 Hệ điều hành                     & Ubuntu --- NVIDIA JetPack / L4T \\
 Vai trò                          & Worker huấn luyện (Spark) \& thiết bị suy diễn biên \\
 \bottomrule

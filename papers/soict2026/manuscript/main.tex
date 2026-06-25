@@ -51,7 +51,7 @@ University of Information Technology, Vietnam\\
 \maketitle
 
 \begin{abstract}
-Deploying machine-learning-based intrusion detection on resource-constrained edge devices requires balancing accuracy, latency, and operational cost. We present a split-deployment IDS architecture across two NVIDIA Jetson Orin Nano Super devices connected through Apache Kafka~\cite{kreps2011kafka}. The system implements a two-stage pipeline: (1) a lightweight autoencoder anomaly gate on Jetson~\#1 filters benign traffic, and (2) a PySpark \texttt{PipelineModel} classifier on Jetson~\#2 processes only suspicious flows. Central infrastructure (Kafka, PostgreSQL, InfluxDB, Grafana) runs on a host PC. The classifier is the model selected by our companion Spark ML study under a \emph{leakage-aware} evaluation (label-leaking port features removed, feature-level duplicate flows eliminated). We evaluate three distributed modes (pipeline split, horizontal Kafka consumer scaling, and a Spark standalone cluster) while streaming CICIDS2017 network flows~\cite{sharafaldin2018toward}. We report throughput, latency, and the gate's recall--skip trade-off across the three deployment modes; quantitative results, including p95 batch latency on Jetson Orin Nano Super under streaming load, are filled in after benchmarking.
+Deploying machine learning (ML) based intrusion detection on resource-constrained edge devices requires balancing accuracy, latency, and operational cost. We present a split-deployment IDS architecture across two NVIDIA Jetson Orin Nano Super devices connected through Apache Kafka~\cite{kreps2011kafka}. The system implements a two-stage pipeline: (1) a lightweight autoencoder anomaly gate on Jetson~\#1 filters benign traffic, and (2) a PySpark \texttt{PipelineModel} classifier on Jetson~\#2 processes only suspicious flows. Central infrastructure (Kafka, PostgreSQL, InfluxDB, Grafana) runs on a host PC. The classifier is the model selected by our companion Spark ML study under a \emph{leakage-aware} evaluation (label-leaking port features removed, feature-level duplicate flows eliminated). We evaluate three distributed modes (pipeline split, horizontal Kafka consumer scaling, and a Spark standalone cluster) while streaming CICIDS2017 network flows~\cite{sharafaldin2018toward}. We report throughput, latency, and the gate's recall--skip trade-off across the three deployment modes; quantitative results, including p95 batch latency on Jetson Orin Nano Super under streaming load, are filled in after benchmarking.
 
 \keywords{Intrusion detection \and Edge computing \and Jetson Orin Nano Super \and Kafka \and PySpark \and Stream processing.}
 \end{abstract}
@@ -227,7 +227,7 @@ We deploy SHAP Top-30 (with the classifier chosen in Exp~7) on Jetson~\#2 becaus
 
 \subsection{Hardware and Software}
 
-2$\times$ NVIDIA Jetson Orin Nano Super Developer Kit (6-core Arm Cortex-A78AE, NVIDIA Ampere GPU with 1024 CUDA + 32 Tensor cores, 8\,GB LPDDR5, 256\,GB NVMe SSD, $\sim$67 TOPS), host PC running Docker Compose, WiFi LAN. PySpark \ph{spark}, Apache Kafka \ph{kafka}, InfluxDB and Grafana for metrics.
+2$\times$ NVIDIA Jetson Orin Nano Super Developer Kit (6-core Arm Cortex-A78AE, NVIDIA Ampere GPU with 1024 CUDA + 32 Tensor cores, 8\,GB LPDDR5, 256\,GB NVMe SSD, $\sim$67 TOPS), host PC running Docker Compose, Wi-Fi LAN. PySpark \ph{spark}, Apache Kafka \ph{kafka}, InfluxDB and Grafana for metrics.
 
 \subsection{Workloads}
 
@@ -240,7 +240,7 @@ Single-node full pipeline vs.\ distributed modes A (pipeline split), B (horizont
 \section{Results}
 \label{sec:benchmark-results}
 
-We run \texttt{run\_benchmarks.sh} on the Jetson hardware in three phases (\texttt{local}, \texttt{run}, \texttt{merge}). End-to-end distributed metrics are exported to \texttt{summary.csv} and filled into Table~\ref{tab:benchmark}.
+We run \texttt{run\_benchmarks.sh} on the Jetson hardware in three phases (\texttt{local}, \texttt{run}, \texttt{merge}). End-to-end distributed metrics are exported to \texttt{summary.csv} and filled into Table~\ref{tab:benchmark}, with throughput and p95 latency across modes visualized in Fig.~\ref{fig:edge-modes}.
 
 \begin{table}[htbp]
   \caption{Distributed deployment comparison (fill from \texttt{summary.csv} after benchmarks).}
@@ -295,7 +295,7 @@ As summarized in Sec.~\ref{sec:bridge}, offline Spark experiments and edge Jetso
 
 \subsection{Limitations}
 
-Benchmarks are obtained on a two-node lab cluster over WiFi; wired networking and larger clusters may shift latency tails. The anomaly-gate threshold trades attack recall against the gate-skip ratio, so we characterize it as an operating curve (Fig.~\ref{fig:gate}) rather than a single point and leave live-traffic re-calibration of the gate to future work. Selecting the deployed model by test-set F1 may introduce a mild optimistic bias; a held-out validation split (or cross-validation) is preferable for model selection. The benchmarks should also be run multiple times to report the variance of latency, and Spark JVM warmup and cold-start effects can inflate early-batch p95 latency, so warmup batches should be discarded before measurement. Finally, our results are tied to CICIDS2017 replay, so validation on live traffic remains future work.
+Benchmarks are obtained on a two-node lab cluster over Wi-Fi; wired networking and larger clusters may shift latency tails. The anomaly-gate threshold trades attack recall against the gate-skip ratio, so we characterize it as an operating curve (Fig.~\ref{fig:gate}) rather than a single point and leave live-traffic re-calibration of the gate to future work. Selecting the deployed model by test-set F1 may introduce a mild optimistic bias; a held-out validation split (or cross-validation) is preferable for model selection. The benchmarks should also be run multiple times to report the variance of latency, and Spark JVM warmup and cold-start effects can inflate early-batch p95 latency, so warmup batches should be discarded before measurement. Finally, our results are tied to CICIDS2017 replay, so validation on live traffic remains future work.
 
 \section{Conclusion}
 
@@ -306,7 +306,7 @@ We presented a reproducible distributed edge IDS for Jetson Orin Nano Super clus
 This research is funded by the University of Information Technology, Vietnam National University -- Ho Chi Minh City. The work was carried out at the University of Transport and Communications (Ho Chi Minh City Campus) and the University of Information Technology, VNU-HCM, as part of a graduation thesis research project.
 
 \subsubsection{\discintname}
-The authors declare that there is no competing interest.
+The authors declare that there is no competing interests.
 \end{credits}
 
 \bibliographystyle{../../latex/splncs04}

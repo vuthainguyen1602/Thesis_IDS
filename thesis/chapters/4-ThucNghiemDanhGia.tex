@@ -51,9 +51,11 @@ Logistic Reg. & maxIter & 200 & Đảm bảo hội tụ trên tập dữ liệu 
 & maxDepth & 15 & Chiều sâu tối đa của cây rừng. \\
 & featureSubsetStrategy & sqrt & Chọn đặc trưng ngẫu nhiên mỗi nút. \\
 \midrule
-\multirow{2}{*}{\ac{gbt}} 
+\multirow{4}{*}{\ac{gbt}}
 & maxIter & 150 & Số vòng boosting tối đa. \\
 & maxDepth & 6 & Chiều sâu của các cây yếu. \\
+& stepSize & 0{,}05 & Tốc độ học (learning rate) của boosting. \\
+& subsamplingRate & 0{,}8 & Tỉ lệ lấy mẫu dữ liệu mỗi vòng boosting. \\
 \midrule
 \multirow{3}{*}{\ac{xgb}} 
 & n\_estimators & 300 & Số lượng cây boost trong mô hình. \\
@@ -90,12 +92,12 @@ Random Forest          & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 MLP                    & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 \midrule
 \textbf{Hybrid Bagging}   & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\textbf{Majority Voting}  & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
+\textbf{Soft Voting}  & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-Sau khi loại bỏ rò rỉ dữ liệu, cần điền lại các giá trị trên từ \texttt{results/ml\_01\_baseline/} (và \texttt{ml\_07\_cross\_method\_comparison/cross\_method\_summary.csv}) rồi phân tích: nhóm mô hình dựa trên cây (Random Forest, \ac{xgb}, GBT) dự kiến vẫn dẫn đầu, nhưng F1 sẽ thấp hơn mức gần-tuyệt-đối trước đây và phản ánh đúng độ khó thực của bài toán; kết luận ``mô hình nào tốt nhất'' chỉ đưa ra khi chênh lệch vượt khoảng tin cậy (xem mục kiểm định thống kê).
+Sau khi loại trừ rò rỉ dữ liệu, cần điền lại các giá trị trên từ \texttt{results/ml\_01\_baseline/} (và \texttt{ml\_07\_cross\_method\_comparison/cross\_method\_summary.csv}) rồi phân tích: nhóm mô hình dựa trên cây (Random Forest, \ac{xgb}, GBT) dự kiến vẫn dẫn đầu, nhưng F1 sẽ thấp hơn mức gần-tuyệt-đối trước đây và phản ánh đúng độ khó thực của bài toán; kết luận ``mô hình nào tốt nhất'' chỉ đưa ra khi chênh lệch vượt khoảng tin cậy (xem mục kiểm định thống kê).
 
 \subsection{Kịch bản 2: So sánh chiến lược giảm chiều dữ liệu}
 Chúng tôi thực hiện so sánh 3 chiến lược chính nhằm giảm số lượng đặc trưng nhưng vẫn đảm bảo hiệu năng:
@@ -162,7 +164,7 @@ Random Forest          & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 MLP                    & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 \midrule
 \textbf{Hybrid Bagging}   & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\textbf{Majority Voting}  & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
+\textbf{Soft Voting}  & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -223,7 +225,7 @@ Random Forest          & \ph{} & \ph{} & \ph{} \\
 \ac{xgb}                & \ph{} & \ph{} & \ph{} \\
 MLP                    & \ph{} & \ph{} & \ph{} \\ \midrule
 \textbf{Hybrid Bagging}   & \ph{} & \ph{} & \ph{} \\
-\textbf{Majority Voting}  & \textbf{--} & \ph{} & \textbf{--} \\ \bottomrule
+\textbf{Soft Voting}  & \textbf{--} & \ph{} & \textbf{--} \\ \bottomrule
 \end{tabular*}
 \end{table}
 \begin{itemize}
@@ -234,7 +236,7 @@ MLP                    & \ph{} & \ph{} & \ph{} \\ \midrule
 
 \subsection{Kiểm định ý nghĩa thống kê}
 \label{sec:stat_validity}
-Do các con số F1 giữa những phương pháp/thuật toán hàng đầu rất sát nhau, luận văn không kết luận ``mô hình tốt nhất'' chỉ dựa trên một lần đo. Hai phương pháp dẫn đầu được huấn luyện lại trên $N$ lần \emph{lấy mẫu lại} tập huấn luyện/kiểm tra độc lập (mặc định $N{=}6$, ghép cặp trên cùng một phép chia), tính F1 trung bình $\pm$ khoảng tin cậy 95\% (phân phối $t$) và kiểm định \emph{permutation test ghép cặp} (Bảng~\ref{tab:stat_validity}). Kết luận: \ph{tương đương ($p>0{,}05$) / khác biệt có ý nghĩa}.
+Do các con số F1 giữa những phương pháp/thuật toán hàng đầu rất sát nhau, luận văn không kết luận ``mô hình tốt nhất'' chỉ dựa trên một lần đo. Hai phương pháp dẫn đầu được huấn luyện lại trên $N$ lần \emph{lấy mẫu lại} tập huấn luyện/kiểm tra độc lập (mặc định $N{=}6$, ghép cặp trên cùng một phép chia), tính F1 trung bình $\pm$ khoảng tin cậy 95\% (phân phối $t$) và kiểm định \emph{permutation test ghép cặp} (Bảng~\ref{tab:stat_validity}). Kết luận: \ph{tương đương ($p>0{,}05$) / khác biệt có ý nghĩa}. Cần thừa nhận rằng với số lần lấy mẫu lại nhỏ (mặc định $N{=}6$), kiểm định hoán vị ghép cặp có \emph{power thấp} ($p$ nhỏ nhất khả dĩ $\approx 2/2^{N}$) và các lần lấy mẫu lại chồng lấn vi phạm giả định độc lập của phân phối $t$, nên khoảng tin cậy có thể bị đánh giá thấp; hướng cải thiện là dùng corrected resampled $t$-test (Nadeau--Bengio) hoặc tăng $N$.
 
 \begin{table}[htbp]
 \centering
@@ -288,7 +290,7 @@ CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & \ph{} \\ \bottomrule
 
 \subsection{Đánh giá đa lớp theo loại tấn công}
 \label{sec:multiclass}
-Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; để bộc lộ điểm yếu thực sự, luận văn bổ sung đánh giá \emph{đa lớp theo từng loại tấn công} (precision/recall/F1 từng lớp, macro-F1 và ma trận nhầm lẫn). Các lớp đa số (DoS/DDoS, PortScan) đạt recall cao, trong khi các lớp hiếm (\ph{Heartbleed, Infiltration, Web Attack...}) có recall thấp hơn rõ rệt --- đây là nơi các phương pháp lựa chọn đặc trưng khác biệt nhất.
+Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; để bộc lộ điểm yếu thực sự, luận văn bổ sung đánh giá \emph{đa lớp theo từng loại tấn công} (precision/recall/F1 từng lớp, macro-F1 và ma trận nhầm lẫn). Các lớp đa số (DoS/DDoS, PortScan) đạt recall cao, trong khi các lớp hiếm (\ph{Heartbleed, Infiltration, Web Attack...}) có recall thấp hơn rõ rệt --- đây là nơi các phương pháp lựa chọn đặc trưng khác biệt nhất. Kết quả chi tiết theo từng lớp được trình bày trong Bảng~\ref{tab:per_class}, và ma trận nhầm lẫn đa lớp tương ứng được minh họa ở Hình~\ref{fig:confusion_matrix}.
 
 \begin{table}[htbp]
 \centering
