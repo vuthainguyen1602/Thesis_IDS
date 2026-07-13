@@ -98,14 +98,28 @@ def main():
         raise ValueError(f"Missing columns in parquet: {missing}")
 
     train_benign = train_df[train_df["label_binary"] == 0]
-    print(f"[OK] Training AE on benign only: {len(train_benign):,} rows")
 
-    x_train = _safe_matrix(train_benign, feature_cols)
+    # ── Benign validation split for threshold selection ─────────────────────
+    # Thresholds must NEVER be derived from the test distribution (that is an
+    # oracle/peeking threshold). We hold out 10% of benign TRAINING flows as a
+    # calibration set: the AE is fit on the remaining 90%, and every operating
+    # threshold is a quantile of the VALIDATION benign MSE. The test set is
+    # touched exactly once, to report metrics at those pre-committed thresholds.
+    rng = np.random.RandomState(42)
+    val_mask = rng.rand(len(train_benign)) < 0.10
+    fit_benign = train_benign[~val_mask]
+    val_benign = train_benign[val_mask]
+    print(f"[OK] Benign split: fit={len(fit_benign):,}, "
+          f"threshold-validation={len(val_benign):,} (10%, seed=42)")
+
+    x_train = _safe_matrix(fit_benign, feature_cols)
+    x_val = _safe_matrix(val_benign, feature_cols)
     x_test = _safe_matrix(test_df, feature_cols)
     y_test = test_df["label_binary"].values.astype(int)
 
     scaler = StandardScaler()
     x_train_s = scaler.fit_transform(x_train)
+    x_val_s = scaler.transform(x_val)
     x_test_s = scaler.transform(x_test)
 
     ae = MLPRegressor(
@@ -124,12 +138,14 @@ def main():
     )
     ae.fit(x_train_s, x_train_s)
 
-    train_hat = ae.predict(x_train_s)
-    train_mse = _compute_mse(x_train_s, train_hat)
+    # Thresholds from the held-out VALIDATION benign MSE (not fit-set MSE, which
+    # is optimistically low; not test MSE, which would be an oracle threshold).
+    val_hat = ae.predict(x_val_s)
+    val_mse = _compute_mse(x_val_s, val_hat)
 
     default_quantile = 0.995
-    threshold = float(np.quantile(train_mse, default_quantile))
-    print(f"[OK] Threshold (q={default_quantile} on benign train MSE): {threshold:.6f}")
+    threshold = float(np.quantile(val_mse, default_quantile))
+    print(f"[OK] Threshold (q={default_quantile} on benign VALIDATION MSE): {threshold:.6f}")
 
     test_hat = ae.predict(x_test_s)
     test_mse = _compute_mse(x_test_s, test_hat)
@@ -160,31 +176,49 @@ def main():
     print(f"    F1:        {base['f1']:.4f}")
     print(f"    FPR:       {base['fpr']:.4%} (measured on full test)")
 
-    print("\n[Eval] Recall at fixed FPR (threshold derived from BENIGN test distribution):")
+    print("\n[Eval] Recall at target FPR (threshold from benign VALIDATION quantile,")
+    print("       realised FPR measured on test — the deployable procedure):")
+    for target_fpr in (0.01, 0.001):
+        q = 1.0 - target_fpr
+        thr = float(np.quantile(val_mse, q))
+        m = _eval_at_threshold(y_test, test_mse, thr)
+        print(f"  target FPR≈{target_fpr:.1%}: threshold={m['threshold']:.6f} | "
+              f"realised FPR={m['fpr']:.4%} | Recall={m['recall']:.4f} | "
+              f"Precision={m['precision']:.4f} | F1={m['f1']:.4f}")
+
+    # Oracle reference ONLY (threshold from benign TEST quantile). This is NOT a
+    # deployable procedure — it peeks at the test distribution — and exists only
+    # to show how far validation-based calibration is from the oracle. Never
+    # report these numbers as the gate's performance.
+    print("\n[Eval] Oracle reference (test-quantile threshold — NOT deployable, "
+          "for calibration-gap analysis only):")
     for target_fpr in (0.01, 0.001):
         q = 1.0 - target_fpr
         thr = float(np.quantile(benign_mse, q))
         m = _eval_at_threshold(y_test, test_mse, thr)
-        print(f"  @FPR≈{target_fpr:.1%}: threshold={m['threshold']:.6f} | Recall={m['recall']:.4f} | Precision={m['precision']:.4f} | F1={m['f1']:.4f}")
+        print(f"  oracle @FPR≈{target_fpr:.1%}: Recall={m['recall']:.4f} "
+              f"(vs. validation-calibrated above)")
 
     # ── Operating-point sweep ────────────────────────────────────────────────
     # The gate is a TUNABLE filter, not a single point. We sweep the threshold
-    # over quantiles of the benign-train MSE and report, for each, the detection
-    # metrics AND the gate-skip ratio (fraction of test flows the gate marks
-    # benign and thus removes from Spark inference). This characterises the
-    # recall vs. offloading trade-off that a single threshold hides.
+    # over quantiles of the benign VALIDATION MSE (pre-committed before touching
+    # test) and report, for each, the detection metrics AND the gate-skip ratio
+    # (fraction of test flows the gate marks benign and thus removes from Spark
+    # inference). This characterises the recall vs. offloading trade-off that a
+    # single threshold hides. The operating point deployed on the edge must be
+    # chosen from these validation quantiles, never re-tuned on test.
     results_dir = os.path.join(BASE_DIR, "results", "ml_08_anomaly_gate")
     os.makedirs(results_dir, exist_ok=True)
     sweep_q = [0.90, 0.95, 0.975, 0.99, 0.995, 0.999]
     sweep_rows = []
     for q in sweep_q:
-        thr = float(np.quantile(train_mse, q))
+        thr = float(np.quantile(val_mse, q))
         m = _eval_at_threshold(y_test, test_mse, thr)
         gate_skip = float(np.mean(test_mse < thr))  # flows filtered as benign
-        m.update({"train_quantile": q, "gate_skip_ratio": round(gate_skip, 4)})
+        m.update({"val_quantile": q, "gate_skip_ratio": round(gate_skip, 4)})
         sweep_rows.append(m)
     sweep_df = pd.DataFrame(sweep_rows)[
-        ["train_quantile", "threshold", "recall", "precision", "f1", "fpr", "gate_skip_ratio"]
+        ["val_quantile", "threshold", "recall", "precision", "f1", "fpr", "gate_skip_ratio"]
     ]
     sweep_csv = os.path.join(results_dir, "gate_operating_points.csv")
     sweep_df.to_csv(sweep_csv, index=False)
@@ -216,7 +250,11 @@ def main():
     joblib.dump(ae, AE_MODEL_PATH, compress=3)
     joblib.dump(scaler, AE_SCALER_PATH, compress=3)
     with open(AE_THRESHOLD_PATH, "w") as f:
-        json.dump({"threshold": threshold, "quantile": default_quantile}, f, indent=2)
+        json.dump({
+            "threshold": threshold,
+            "quantile": default_quantile,
+            "calibration": "benign_validation_split_10pct_seed42",
+        }, f, indent=2)
 
     print("\n[OK] Exported anomaly artifacts:")
     print(f"  - {AE_MODEL_PATH}")

@@ -749,7 +749,16 @@ def _t_critical_95(n: int) -> float:
         return table[keys[-1]] if keys and df < 40 else 1.96
 
 
-def summarize_metric_runs(run_metrics: list, metric_keys: list = None) -> dict:
+def summarize_metric_runs(run_metrics: list, metric_keys: list = None,
+                          nb_test_train_ratio: float = None) -> dict:
+    """Mean/std/CI over repeated runs.
+
+    ``nb_test_train_ratio`` (rho = n_test / n_train, e.g. 0.25 for an 80/20
+    split) enables the Nadeau–Bengio (2003) variance correction for repeated
+    resampling with overlapping train sets: Var_NB = s^2 * (1/N + rho). The
+    naive t-CI (also reported) assumes independent runs and is optimistically
+    narrow under resampling — publish the NB interval when resamples overlap.
+    """
     if metric_keys is None:
         metric_keys = ["accuracy", "precision", "recall", "f1", "auc_roc", "auc_pr"]
 
@@ -768,16 +777,45 @@ def summarize_metric_runs(run_metrics: list, metric_keys: list = None) -> dict:
         # Small-sample CI must use the t-distribution, not the 1.96 normal
         # approximation: with n=3 the correct factor is t(0.975, df=2)=4.303,
         # so 1.96 understates the interval ~2x and overstates significance.
-        ci95_half = float(_t_critical_95(n) * std_val / np.sqrt(n)) if n > 1 else 0.0
+        t_crit = _t_critical_95(n)
+        ci95_half = float(t_crit * std_val / np.sqrt(n)) if n > 1 else 0.0
         summary[f"{key}_mean"] = mean_val
         summary[f"{key}_std"] = std_val
         summary[f"{key}_ci95_low"] = mean_val - ci95_half
         summary[f"{key}_ci95_high"] = mean_val + ci95_half
+        if nb_test_train_ratio is not None and n > 1:
+            nb_half = float(t_crit * std_val *
+                            np.sqrt(1.0 / n + float(nb_test_train_ratio)))
+            summary[f"{key}_ci95_nb_low"] = mean_val - nb_half
+            summary[f"{key}_ci95_nb_high"] = mean_val + nb_half
         summary[f"{key}_n"] = len(arr)
     return summary
 
 
+def paired_cohens_d(scores_a: list, scores_b: list) -> float:
+    """Cohen's d for paired samples: mean(diff) / std(diff, ddof=1).
+
+    With small N a p-value near its floor says little on its own; the paper's
+    statistical track reports this effect size alongside the CI and p-value.
+    """
+    if len(scores_a) != len(scores_b) or len(scores_a) < 2:
+        return 0.0
+    diffs = np.array(scores_a, dtype=float) - np.array(scores_b, dtype=float)
+    sd = float(np.std(diffs, ddof=1))
+    if sd == 0.0:
+        return 0.0
+    return float(np.mean(diffs)) / sd
+
+
 def permutation_pvalue(scores_a: list, scores_b: list, n_permutations: int = 2000, seed: int = 42) -> float:
+    """Two-sided paired sign-permutation p-value.
+
+    For small N (2^N <= max(n_permutations, 4096)) the full sign-flip
+    distribution is ENUMERATED EXACTLY — with N=6 there are only 64 patterns,
+    so Monte Carlo sampling with replacement would just add estimator noise
+    around the exact floor 2/2^N. Monte Carlo (with the add-one correction) is
+    used only when exhaustive enumeration is too large.
+    """
     if len(scores_a) != len(scores_b) or len(scores_a) < 2:
         return 1.0
 
@@ -785,6 +823,19 @@ def permutation_pvalue(scores_a: list, scores_b: list, n_permutations: int = 200
     arr_b = np.array(scores_b, dtype=float)
     diffs = arr_a - arr_b
     observed = abs(float(np.mean(diffs)))
+    n = len(diffs)
+
+    if 2 ** n <= max(n_permutations, 4096):
+        # Exact enumeration of all 2^n sign patterns (includes the identity, so
+        # p >= 1/2^n by construction; no add-one correction needed).
+        extreme = 0
+        total = 2 ** n
+        for mask in range(total):
+            signs = np.array([1.0 if (mask >> j) & 1 else -1.0 for j in range(n)])
+            perm_stat = abs(float(np.mean(diffs * signs)))
+            if perm_stat >= observed - 1e-15:
+                extreme += 1
+        return extreme / total
 
     rng = np.random.default_rng(seed)
     extreme = 0

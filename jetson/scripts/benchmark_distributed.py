@@ -83,6 +83,75 @@ def percentile(values: list[float], pct: float) -> float:
     return ordered[idx]
 
 
+def epoch_to_rfc3339(epoch: float) -> str:
+    return datetime.fromtimestamp(epoch, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def compute_run_percentiles_from_raw(raw_glob: str, start_epoch: float | None,
+                                     end_epoch: float | None) -> dict[str, dict]:
+    """Run-level latency percentiles from the raw per-flow CSV logs written by
+    PerformanceMonitor (RAW_LATENCY_LOG). This is the statistically valid way to
+    report p50/p95/p99 for a run: percentiles over the FULL raw distribution
+    restricted to the load window — never averages of window-level percentiles.
+
+    Returns {node_id: {n, inference: {p50,p95,p99,mean}, e2e: {...}}}.
+    """
+    per_node_inf: dict[str, list[float]] = {}
+    per_node_e2e: dict[str, list[float]] = {}
+    paths = sorted(glob.glob(raw_glob))
+    if not paths:
+        print(f"[WARN] No raw latency logs match: {raw_glob}")
+        return {}
+
+    for path in paths:
+        with open(path, "r") as f:
+            header = f.readline()
+            if not header.startswith("ts_unix"):
+                f.seek(0)
+            for line in f:
+                parts = line.rstrip("\n").split(",")
+                if len(parts) < 3:
+                    continue
+                try:
+                    ts = float(parts[0])
+                except ValueError:
+                    continue
+                if start_epoch is not None and ts < start_epoch:
+                    continue
+                if end_epoch is not None and ts > end_epoch:
+                    continue
+                node = parts[1] or "unknown"
+                try:
+                    inf_ms = float(parts[2])
+                except ValueError:
+                    inf_ms = None
+                if inf_ms is not None and inf_ms > 0:
+                    per_node_inf.setdefault(node, []).append(inf_ms)
+                if len(parts) >= 4 and parts[3]:
+                    try:
+                        per_node_e2e.setdefault(node, []).append(float(parts[3]))
+                    except ValueError:
+                        pass
+
+    def _stats(vals: list[float]) -> dict:
+        return {
+            "n": len(vals),
+            "mean": round(statistics.mean(vals), 3),
+            "p50": round(percentile(vals, 0.50), 3),
+            "p95": round(percentile(vals, 0.95), 3),
+            "p99": round(percentile(vals, 0.99), 3),
+        }
+
+    out: dict[str, dict] = {}
+    for node in sorted(set(per_node_inf) | set(per_node_e2e)):
+        out[node] = {}
+        if per_node_inf.get(node):
+            out[node]["inference"] = _stats(per_node_inf[node])
+        if per_node_e2e.get(node):
+            out[node]["e2e"] = _stats(per_node_e2e[node])
+    return out
+
+
 def run_local_benchmark(samples: int, batch_size: int) -> dict:
     """Delegate to benchmark.py and enrich with node metadata."""
     script = os.path.join(os.path.dirname(__file__), "benchmark.py")
@@ -143,8 +212,24 @@ def send_kafka_traffic(duration_s: int, rate: int, csv_path: str | None, topic: 
     }
 
 
-def query_influx_metrics(window_minutes: int) -> dict[str, dict]:
-    """Aggregate throughput and latency per host from InfluxDB."""
+def _flux_range(window_minutes: int, start_epoch: float | None,
+                end_epoch: float | None) -> str:
+    """Range clause aligned to the load window when available. Aligning matters:
+    a trailing -Nm window mixes idle/warmup samples into the run statistics."""
+    if start_epoch is not None and end_epoch is not None:
+        return (f"range(start: {epoch_to_rfc3339(start_epoch)}, "
+                f"stop: {epoch_to_rfc3339(end_epoch)})")
+    return f"range(start: -{window_minutes}m)"
+
+
+def query_influx_metrics(window_minutes: int, start_epoch: float | None = None,
+                         end_epoch: float | None = None) -> dict[str, dict]:
+    """Per-host mean of window-level metrics from InfluxDB.
+
+    NOTE: window-level p95 values averaged over windows are NOT a run-level p95
+    (they smooth the tail). They are kept for dashboarding only; the run-level
+    percentiles used in the paper come from compute_run_percentiles_from_raw().
+    """
     try:
         from influxdb_client import InfluxDBClient
     except ImportError:
@@ -153,7 +238,7 @@ def query_influx_metrics(window_minutes: int) -> dict[str, dict]:
 
     flux = f"""
 from(bucket: "{INFLUXDB_BUCKET}")
-  |> range(start: -{window_minutes}m)
+  |> {_flux_range(window_minutes, start_epoch, end_epoch)}
   |> filter(fn: (r) => r._measurement == "prediction_metrics")
   |> filter(fn: (r) => r._field == "throughput_rps" or r._field == "avg_latency_ms" or r._field == "latency_p50_ms" or r._field == "latency_p95_ms" or r._field == "latency_p99_ms" or r._field == "e2e_latency_avg_ms" or r._field == "e2e_latency_p95_ms")
   |> group(columns: ["host", "_field"])
@@ -177,7 +262,53 @@ from(bucket: "{INFLUXDB_BUCKET}")
     return per_host
 
 
-def query_postgres_gate_skip(window_minutes: int) -> dict:
+def query_postgres_final_throughput(window_minutes: int,
+                                    start_epoch: float | None = None,
+                                    end_epoch: float | None = None) -> dict:
+    """Pipeline throughput = FINAL verdicts per second within the load window.
+
+    Summing per-node throughput_rps double-counts flows in pipeline-split mode
+    (the same flow passes gate then classifier). Every flow gets exactly one row
+    in ``predictions`` at the stage that issued its final verdict (gate-skip ->
+    benign at the gate node; forwarded -> classifier verdict), so counting rows
+    per second is the correct pipeline-level throughput for every mode.
+    """
+    try:
+        import psycopg2
+    except ImportError:
+        print("[WARN] psycopg2 not installed; skipping Postgres throughput query")
+        return {}
+
+    end = end_epoch if end_epoch is not None else time.time()
+    start = start_epoch if start_epoch is not None else end - window_minutes * 60
+    duration = max(end - start, 1e-9)
+    conn = psycopg2.connect(
+        host=POSTGRES_HOST,
+        port=POSTGRES_PORT,
+        dbname=POSTGRES_DB,
+        user=POSTGRES_USER,
+        password=POSTGRES_PASSWORD,
+    )
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT COUNT(*) FROM predictions WHERE timestamp >= %s AND timestamp <= %s",
+                (start, end),
+            )
+            total = int(cur.fetchone()[0] or 0)
+    finally:
+        conn.close()
+
+    return {
+        "final_verdicts": total,
+        "window_s": round(duration, 1),
+        "throughput_final_rps": round(total / duration, 2),
+    }
+
+
+def query_postgres_gate_skip(window_minutes: int,
+                             start_epoch: float | None = None,
+                             end_epoch: float | None = None) -> dict:
     """Estimate gate skip ratio from stored predictions."""
     try:
         import psycopg2
@@ -185,7 +316,8 @@ def query_postgres_gate_skip(window_minutes: int) -> dict:
         print("[WARN] psycopg2 not installed; skipping Postgres query")
         return {}
 
-    since = time.time() - window_minutes * 60
+    since = start_epoch if start_epoch is not None else time.time() - window_minutes * 60
+    until = end_epoch if end_epoch is not None else time.time()
     conn = psycopg2.connect(
         host=POSTGRES_HOST,
         port=POSTGRES_PORT,
@@ -207,9 +339,9 @@ def query_postgres_gate_skip(window_minutes: int) -> dict:
                            OR prediction = 1
                     ) AS total_gate_events
                 FROM predictions
-                WHERE timestamp >= %s
+                WHERE timestamp >= %s AND timestamp <= %s
                 """,
-                (since,),
+                (since, until),
             )
             row = cur.fetchone()
             benign_skipped = int(row[0] or 0)
@@ -225,7 +357,8 @@ def query_postgres_gate_skip(window_minutes: int) -> dict:
     }
 
 
-def query_system_metrics(window_minutes: int) -> dict[str, dict]:
+def query_system_metrics(window_minutes: int, start_epoch: float | None = None,
+                         end_epoch: float | None = None) -> dict[str, dict]:
     try:
         from influxdb_client import InfluxDBClient
     except ImportError:
@@ -233,7 +366,7 @@ def query_system_metrics(window_minutes: int) -> dict[str, dict]:
 
     flux = f"""
 from(bucket: "{INFLUXDB_BUCKET}")
-  |> range(start: -{window_minutes}m)
+  |> {_flux_range(window_minutes, start_epoch, end_epoch)}
   |> filter(fn: (r) => r._measurement == "system_metrics")
   |> filter(fn: (r) => r._field == "cpu_percent" or r._field == "memory_percent" or r._field == "cpu_temp_celsius")
   |> group(columns: ["host", "_field"])
@@ -257,10 +390,16 @@ from(bucket: "{INFLUXDB_BUCKET}")
     return per_host
 
 
-def collect_metrics(window_minutes: int, deploy_mode: str) -> dict:
-    influx_pred = query_influx_metrics(window_minutes)
-    influx_sys = query_system_metrics(window_minutes)
-    gate = query_postgres_gate_skip(window_minutes)
+def collect_metrics(window_minutes: int, deploy_mode: str,
+                    start_epoch: float | None = None,
+                    end_epoch: float | None = None,
+                    raw_latency_glob: str | None = None) -> dict:
+    influx_pred = query_influx_metrics(window_minutes, start_epoch, end_epoch)
+    influx_sys = query_system_metrics(window_minutes, start_epoch, end_epoch)
+    gate = query_postgres_gate_skip(window_minutes, start_epoch, end_epoch)
+    final_tp = query_postgres_final_throughput(window_minutes, start_epoch, end_epoch)
+    raw_stats = (compute_run_percentiles_from_raw(raw_latency_glob, start_epoch, end_epoch)
+                 if raw_latency_glob else {})
 
     hosts = sorted(set(influx_pred) | set(influx_sys))
     nodes = []
@@ -299,17 +438,43 @@ def collect_metrics(window_minutes: int, deploy_mode: str) -> dict:
             "cpu_temp_celsius": sys_m.get("cpu_temp_celsius"),
         })
 
-    # Cluster tail latency = worst node's p95, computed by each node from its RAW
-    # per-flow latency samples. Do NOT take a percentile of per-host *mean*
-    # latencies — that is statistically meaningless with only 1-2 hosts.
+    # --- Run-level latency (preferred: raw per-flow logs) -------------------
+    # Percentiles MUST come from the full raw distribution of the load window.
+    # InfluxDB only stores window-level p95s; their mean/max is a fallback
+    # approximation, and is labelled as such so it never silently enters the
+    # paper table.
+    run_inf_p95 = None
+    run_e2e_p95 = None
+    latency_source = None
+    if raw_stats:
+        inf_p95s = [v["inference"]["p95"] for v in raw_stats.values() if "inference" in v]
+        e2e_p95s_raw = [v["e2e"]["p95"] for v in raw_stats.values() if "e2e" in v]
+        run_inf_p95 = round(max(inf_p95s), 3) if inf_p95s else None
+        run_e2e_p95 = round(max(e2e_p95s_raw), 3) if e2e_p95s_raw else None
+        latency_source = "raw_per_flow_logs"
+    elif node_p95s:
+        run_inf_p95 = round(max(node_p95s), 2)
+        run_e2e_p95 = round(max(e2e_p95s), 2) if e2e_p95s else None
+        latency_source = "influx_window_p95_APPROXIMATION_DO_NOT_PUBLISH"
+        print("[WARN] No raw latency logs supplied (--raw-latency-glob). "
+              "Falling back to mean-of-window p95 from InfluxDB — this "
+              "underestimates the tail and must NOT be used in the paper.")
+
+    # --- Pipeline throughput -------------------------------------------------
+    # In split mode, summing per-node rates double-counts forwarded flows; the
+    # correct figure is final verdicts/s from Postgres. Per-node rates are kept
+    # for diagnosis only.
     aggregate = {
-        "throughput_rps_sum": round(sum(throughputs), 2) if throughputs else None,
-        "throughput_rps_mean": round(statistics.mean(throughputs), 2) if throughputs else None,
+        "throughput_final_rps": final_tp.get("throughput_final_rps"),
+        "throughput_rps_per_node_sum_DIAGNOSTIC_ONLY": (
+            round(sum(throughputs), 2) if throughputs else None),
         "latency_avg_ms": round(statistics.mean(latencies), 2) if latencies else None,
-        "latency_p95_ms": round(max(node_p95s), 2) if node_p95s else None,
+        "latency_p95_ms": run_inf_p95,
         "e2e_latency_avg_ms": round(statistics.mean(e2e_avgs), 2) if e2e_avgs else None,
-        "e2e_latency_p95_ms": round(max(e2e_p95s), 2) if e2e_p95s else None,
-        "latency_note": ("p95 = max of per-node window p95 (from raw samples); "
+        "e2e_latency_p95_ms": run_e2e_p95,
+        "latency_source": latency_source,
+        "latency_note": ("run-level p95 = worst node's percentile over its RAW "
+                         "per-flow samples within [load_start, load_end]; "
                          "e2e = send->verdict, assumes NTP-synced clocks"),
     }
 
@@ -317,8 +482,12 @@ def collect_metrics(window_minutes: int, deploy_mode: str) -> dict:
         "benchmark_type": "collect",
         "deploy_mode": deploy_mode,
         "window_minutes": window_minutes,
+        "load_start_epoch": start_epoch,
+        "load_end_epoch": end_epoch,
         "timestamp": utc_now_iso(),
         "gate_skip": gate,
+        "final_throughput": final_tp,
+        "raw_latency_per_node": raw_stats,
         "nodes": nodes,
         "aggregate": aggregate,
         "device": detect_device_name(),
@@ -334,19 +503,37 @@ def run_end_to_end(
     warmup_s: int,
     window_minutes: int,
     csv_path: str | None,
+    raw_latency_glob: str | None = None,
 ) -> dict:
-    print(f"\n[WAIT] Warmup {warmup_s}s — ensure edge pipelines are running...")
-    time.sleep(warmup_s)
+    # Warmup MUST be representative load, not an idle sleep: JVM/JIT and Spark
+    # code paths only warm up under traffic. Warmup samples are excluded from
+    # the measured window below (they fall before load_start).
+    warmup_info = None
+    if warmup_s > 0:
+        print(f"\n[WARMUP] Sending {warmup_s}s of warmup traffic at {rate} flows/s "
+              f"(excluded from measurement)...")
+        warmup_info = send_kafka_traffic(warmup_s, rate, csv_path, KAFKA_TOPIC)
+        time.sleep(2)  # small gap so warmup flows drain out of the queues
 
+    load_start = time.time()
     send_info = send_kafka_traffic(duration_s, rate, csv_path, KAFKA_TOPIC)
-    print(f"\n[WAIT] Draining metrics for {window_minutes} min window...")
+    load_end = time.time()
+    print(f"\n[WAIT] Draining metrics (load window "
+          f"{epoch_to_rfc3339(load_start)} .. {epoch_to_rfc3339(load_end)})...")
     time.sleep(min(30, window_minutes * 10))
 
-    collect_info = collect_metrics(window_minutes, deploy_mode)
+    collect_info = collect_metrics(
+        window_minutes, deploy_mode,
+        start_epoch=load_start, end_epoch=load_end,
+        raw_latency_glob=raw_latency_glob,
+    )
     return {
         "benchmark_type": "run",
         "deploy_mode": deploy_mode,
+        "warmup": warmup_info,
         "send": send_info,
+        "load_start_epoch": load_start,
+        "load_end_epoch": load_end,
         "collect": collect_info,
         "timestamp": utc_now_iso(),
         "node_id": EDGE_NODE_ID,
@@ -375,9 +562,13 @@ def row_from_result(data: dict) -> dict:
     return {
         "mode": mode,
         "node_id": data.get("node_id", EDGE_NODE_ID),
-        "throughput_rps": agg.get("throughput_rps_sum") or data.get("throughput_rps"),
+        # Pipeline throughput = final verdicts/s (Postgres). Never the per-node
+        # sum, which double-counts forwarded flows in split mode.
+        "throughput_rps": agg.get("throughput_final_rps") or data.get("throughput_rps"),
         "latency_p95_ms": agg.get("latency_p95_ms") or data.get("latency_batch_p95_ms"),
         "latency_avg_ms": agg.get("latency_avg_ms") or data.get("latency_per_sample_ms"),
+        "e2e_latency_p95_ms": agg.get("e2e_latency_p95_ms"),
+        "latency_source": agg.get("latency_source"),
         "gate_skip_pct": gate.get("gate_skip_pct"),
         "attack_f1": data.get("attack_f1"),
         "cpu_percent": data.get("avg_cpu_percent"),
@@ -400,6 +591,7 @@ def merge_results(input_glob: str, output_csv: str) -> None:
 
     fieldnames = [
         "mode", "node_id", "throughput_rps", "latency_p95_ms", "latency_avg_ms",
+        "e2e_latency_p95_ms", "latency_source",
         "gate_skip_pct", "attack_f1", "cpu_percent", "memory_percent", "device", "timestamp",
     ]
     os.makedirs(os.path.dirname(output_csv) or ".", exist_ok=True)
@@ -409,6 +601,47 @@ def merge_results(input_glob: str, output_csv: str) -> None:
         writer.writerows(rows)
 
     print(f"[OK] Merged {len(rows)} runs -> {output_csv}")
+
+    # Warn loudly if any run's tail latency came from the InfluxDB fallback.
+    bad = [r for r in rows if r.get("latency_source")
+           and "APPROXIMATION" in str(r["latency_source"])]
+    if bad:
+        print(f"[WARN] {len(bad)} run(s) lack raw latency logs — their p95 is an "
+              "approximation and must not be published. Re-run with RAW_LATENCY_LOG "
+              "set on each node and pass --raw-latency-glob.")
+
+    # Repeated runs per mode -> mean ± std for the paper table.
+    per_mode: dict[str, list[dict]] = {}
+    for r in rows:
+        per_mode.setdefault(str(r["mode"]), []).append(r)
+    summary_rows = []
+    for mode, mode_rows in sorted(per_mode.items()):
+        def _vals(key):
+            return [float(r[key]) for r in mode_rows if r.get(key) is not None]
+        def _mean_std(key):
+            v = _vals(key)
+            if not v:
+                return None, None
+            return (round(statistics.mean(v), 2),
+                    round(statistics.stdev(v), 2) if len(v) > 1 else 0.0)
+        tp_m, tp_s = _mean_std("throughput_rps")
+        p95_m, p95_s = _mean_std("latency_p95_ms")
+        summary_rows.append({
+            "mode": mode, "n_runs": len(mode_rows),
+            "throughput_rps_mean": tp_m, "throughput_rps_std": tp_s,
+            "latency_p95_ms_mean": p95_m, "latency_p95_ms_std": p95_s,
+        })
+    stats_csv = output_csv.replace(".csv", "_mean_std.csv")
+    with open(stats_csv, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(summary_rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(summary_rows)
+    print(f"[OK] Per-mode mean±std ({len(summary_rows)} modes) -> {stats_csv}")
+    for s in summary_rows:
+        if s["n_runs"] < 3:
+            print(f"[WARN] mode '{s['mode']}' has only {s['n_runs']} run(s); "
+                  "use >=3 (ideally 5) repeats before reporting mean±std.")
+
     print_latex_table(rows)
 
 
@@ -446,23 +679,77 @@ def cmd_send(args: argparse.Namespace) -> None:
 
 
 def cmd_collect(args: argparse.Namespace) -> None:
-    payload = collect_metrics(args.window_minutes, args.mode)
+    payload = collect_metrics(
+        args.window_minutes, args.mode,
+        start_epoch=args.start_epoch, end_epoch=args.end_epoch,
+        raw_latency_glob=args.raw_latency_glob,
+    )
     out = args.output or default_output_path("collect")
     save_json(payload, out)
 
 
 def cmd_run(args: argparse.Namespace) -> None:
-    payload = run_end_to_end(
-        deploy_mode=args.mode,
-        duration_s=args.duration,
-        rate=args.rate,
-        warmup_s=args.warmup,
-        window_minutes=args.window_minutes,
-        csv_path=args.csv,
-    )
-    out = args.output or default_output_path(f"run_{args.mode}")
+    for rep in range(args.repeats):
+        if args.repeats > 1:
+            print(f"\n===== Repeat {rep + 1}/{args.repeats} (mode={args.mode}) =====")
+        payload = run_end_to_end(
+            deploy_mode=args.mode,
+            duration_s=args.duration,
+            rate=args.rate,
+            warmup_s=args.warmup if rep == 0 else max(args.warmup // 3, 5),
+            window_minutes=args.window_minutes,
+            csv_path=args.csv,
+            raw_latency_glob=args.raw_latency_glob,
+        )
+        payload["repeat_index"] = rep
+        if args.repeats > 1 or not args.output:
+            out = default_output_path(f"run_{args.mode}_rep{rep}")
+        else:
+            out = args.output
+        save_json(payload, out)
+        print_latex_table([row_from_result(payload)])
+        if rep < args.repeats - 1:
+            time.sleep(args.cooldown)
+    if args.repeats < 3:
+        print(f"\n[WARN] Only {args.repeats} repeat(s). Use --repeats 5 for "
+              "publishable mean±std.")
+
+
+def cmd_node_power(args: argparse.Namespace) -> None:
+    """Per-node energy measurement DURING a distributed run.
+
+    Start this on EACH Jetson before the orchestrator sends load, with
+    --duration >= warmup + load duration. It measures the idle baseline first,
+    then samples tegrastats for the window and reports raw + idle-subtracted
+    (active) energy. In pipeline-split mode the paper figure is the SUM of both
+    nodes' active energy divided by the number of classified flows.
+    """
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from edge.power_monitor import PowerMonitor, measure_idle_power
+
+    print(f"[POWER] Measuring idle baseline for {args.idle_seconds}s "
+          "(make sure NO load is being sent)...")
+    idle_w = measure_idle_power(seconds=args.idle_seconds)
+    if idle_w is None:
+        print("[ERR] tegrastats unavailable — is this a Jetson?")
+        sys.exit(1)
+    print(f"[POWER] Idle baseline: {idle_w:.2f} W. Sampling for {args.duration}s — "
+          "start the load now.")
+
+    pm = PowerMonitor(idle_power_w=idle_w).start()
+    time.sleep(args.duration)
+    stats = pm.stop()
+    payload = {
+        "benchmark_type": "node_power",
+        "node_id": EDGE_NODE_ID,
+        "role": EDGE_NODE_ROLE,
+        "device": detect_device_name(),
+        "idle_seconds": args.idle_seconds,
+        "timestamp": utc_now_iso(),
+        **stats,
+    }
+    out = args.output or default_output_path("power")
     save_json(payload, out)
-    print_latex_table([row_from_result(payload)])
 
 
 def cmd_merge(args: argparse.Namespace) -> None:
@@ -491,18 +778,41 @@ def build_parser() -> argparse.ArgumentParser:
     p_collect = sub.add_parser("collect", help="Query InfluxDB/Postgres metrics")
     p_collect.add_argument("--window-minutes", type=int, default=5)
     p_collect.add_argument("--mode", default=os.getenv("BENCHMARK_DEPLOY_MODE", "split"))
+    p_collect.add_argument("--start-epoch", type=float, default=None,
+                           help="Load window start (unix epoch) to align queries")
+    p_collect.add_argument("--end-epoch", type=float, default=None,
+                           help="Load window end (unix epoch)")
+    p_collect.add_argument("--raw-latency-glob", default=None,
+                           help="Glob of RAW_LATENCY_LOG CSVs pulled from the nodes "
+                                "(required for publishable run-level p95)")
     p_collect.add_argument("--output", default=None)
     p_collect.set_defaults(func=cmd_collect)
 
-    p_run = sub.add_parser("run", help="Warmup + send + collect (distributed)")
+    p_run = sub.add_parser("run", help="Warmup (real load) + send + collect (distributed)")
     p_run.add_argument("--mode", choices=["single", "split", "horizontal", "spark_cluster"], default="split")
     p_run.add_argument("--duration", type=int, default=60)
     p_run.add_argument("--rate", type=int, default=100)
-    p_run.add_argument("--warmup", type=int, default=15)
+    p_run.add_argument("--warmup", type=int, default=30,
+                       help="Seconds of REAL warmup traffic before the measured window")
+    p_run.add_argument("--repeats", type=int, default=5,
+                       help="Number of measured repetitions (>=3 for mean±std)")
+    p_run.add_argument("--cooldown", type=int, default=20,
+                       help="Seconds between repetitions")
     p_run.add_argument("--window-minutes", type=int, default=5)
     p_run.add_argument("--csv", default=None)
+    p_run.add_argument("--raw-latency-glob", default=None,
+                       help="Glob of RAW_LATENCY_LOG CSVs (mounted/synced from nodes)")
     p_run.add_argument("--output", default=None)
     p_run.set_defaults(func=cmd_run)
+
+    p_power = sub.add_parser("node-power",
+                             help="Per-node tegrastats energy sampling during a run")
+    p_power.add_argument("--duration", type=int, default=90,
+                         help="Sampling window (>= warmup + load duration)")
+    p_power.add_argument("--idle-seconds", type=float, default=30.0,
+                         help="Idle baseline sampling time BEFORE load starts")
+    p_power.add_argument("--output", default=None)
+    p_power.set_defaults(func=cmd_node_power)
 
     p_merge = sub.add_parser("merge", help="Merge JSON results into paper CSV")
     p_merge.add_argument("--input", default="../../papers/soict2026/results/benchmarks/*.json")

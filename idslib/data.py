@@ -11,11 +11,85 @@ def _clean_name(col_name: str) -> str:
     return new_name.strip("_")
 
 
+# CSE-CIC-IDS2018 ships CICFlowMeter-v3 ABBREVIATED headers ("Tot Fwd Pkts",
+# "TotLen Fwd Pkts", "Init Fwd Win Byts", ...) while CICIDS2017 uses the long
+# names ("Total Fwd Packets", ...). Without harmonisation the cross-dataset
+# feature intersection (ml_11) is computed on cleaned NAMES and would be nearly
+# empty / semantically wrong. This map renames the cleaned 2018-style names to
+# the 2017 canonical names; 2017 headers never use the abbreviated forms, so
+# applying it unconditionally is a no-op for 2017 data.
+CICIDS2018_TO_2017_ALIASES = {
+    "dst_port": "destination_port",
+    "src_port": "source_port",
+    "tot_fwd_pkts": "total_fwd_packets",
+    "tot_bwd_pkts": "total_backward_packets",
+    "totlen_fwd_pkts": "total_length_of_fwd_packets",
+    "totlen_bwd_pkts": "total_length_of_bwd_packets",
+    "fwd_pkt_len_max": "fwd_packet_length_max",
+    "fwd_pkt_len_min": "fwd_packet_length_min",
+    "fwd_pkt_len_mean": "fwd_packet_length_mean",
+    "fwd_pkt_len_std": "fwd_packet_length_std",
+    "bwd_pkt_len_max": "bwd_packet_length_max",
+    "bwd_pkt_len_min": "bwd_packet_length_min",
+    "bwd_pkt_len_mean": "bwd_packet_length_mean",
+    "bwd_pkt_len_std": "bwd_packet_length_std",
+    "flow_byts_s": "flow_bytes_s",
+    "flow_pkts_s": "flow_packets_s",
+    "fwd_iat_tot": "fwd_iat_total",
+    "bwd_iat_tot": "bwd_iat_total",
+    "fwd_header_len": "fwd_header_length",
+    "bwd_header_len": "bwd_header_length",
+    "fwd_pkts_s": "fwd_packets_s",
+    "bwd_pkts_s": "bwd_packets_s",
+    "pkt_len_min": "min_packet_length",
+    "pkt_len_max": "max_packet_length",
+    "pkt_len_mean": "packet_length_mean",
+    "pkt_len_std": "packet_length_std",
+    "pkt_len_var": "packet_length_variance",
+    "fin_flag_cnt": "fin_flag_count",
+    "syn_flag_cnt": "syn_flag_count",
+    "rst_flag_cnt": "rst_flag_count",
+    "psh_flag_cnt": "psh_flag_count",
+    "ack_flag_cnt": "ack_flag_count",
+    "urg_flag_cnt": "urg_flag_count",
+    "cwe_flag_cnt": "cwe_flag_count",
+    "ece_flag_cnt": "ece_flag_count",
+    "pkt_size_avg": "average_packet_size",
+    "fwd_seg_size_avg": "avg_fwd_segment_size",
+    "bwd_seg_size_avg": "avg_bwd_segment_size",
+    "fwd_byts_b_avg": "fwd_avg_bytes_bulk",
+    "fwd_pkts_b_avg": "fwd_avg_packets_bulk",
+    "fwd_blk_rate_avg": "fwd_avg_bulk_rate",
+    "bwd_byts_b_avg": "bwd_avg_bytes_bulk",
+    "bwd_pkts_b_avg": "bwd_avg_packets_bulk",
+    "bwd_blk_rate_avg": "bwd_avg_bulk_rate",
+    "subflow_fwd_pkts": "subflow_fwd_packets",
+    "subflow_fwd_byts": "subflow_fwd_bytes",
+    "subflow_bwd_pkts": "subflow_bwd_packets",
+    "subflow_bwd_byts": "subflow_bwd_bytes",
+    "init_fwd_win_byts": "init_win_bytes_forward",
+    "init_bwd_win_byts": "init_win_bytes_backward",
+    "fwd_act_data_pkts": "act_data_pkt_fwd",
+    "fwd_seg_size_min": "min_seg_size_forward",
+}
+
+
+def _canonical_name(col_name: str) -> str:
+    cleaned = _clean_name(col_name)
+    return CICIDS2018_TO_2017_ALIASES.get(cleaned, cleaned)
+
+
 def clean_column_names(df):
     # Single projection instead of one withColumnRenamed per column (avoids a
-    # deep, O(n) logical plan for ~78 columns).
+    # deep, O(n) logical plan for ~78 columns). Names are cleaned AND harmonised
+    # to the CICIDS2017 canonical vocabulary (see CICIDS2018_TO_2017_ALIASES).
+    aliased = [c for c in df.columns
+               if _clean_name(c) in CICIDS2018_TO_2017_ALIASES]
+    if aliased:
+        print(f"  [INFO] Harmonised {len(aliased)} CICFlowMeter-v3 (IDS2018-style) "
+              f"column names to CICIDS2017 canonical names.")
     return df.select(
-        [F.col("`" + c + "`").alias(_clean_name(c)) for c in df.columns]
+        [F.col("`" + c + "`").alias(_canonical_name(c)) for c in df.columns]
     )
 
 

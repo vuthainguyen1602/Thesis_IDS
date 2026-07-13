@@ -75,8 +75,37 @@ select_cols = feature_cols + ["label_binary"]
 # ranking reflects both benign and attack flows.
 sample_df = stratified_sample(train_df, select_cols, "label_binary", sample_size)
 pdf = sample_df.toPandas()
-X_sample = pdf[feature_cols].values
-print(f"  SHAP sample: {len(pdf)} rows, attack ratio {pdf['label_binary'].mean():.2%}")
+
+# CRITICAL — SHAP inputs must live in the SAME feature space the booster was
+# trained on. The XGBoost stage consumes `features_scaled` (StandardScaler,
+# withMean/withStd), so the sample must be transformed through the FITTED
+# assembler + scaler from the trained pipeline. Feeding raw feature values here
+# would evaluate the tree split thresholds (learned on scaled inputs) against
+# unscaled data, producing meaningless attributions.
+from pyspark.ml.functions import vector_to_array
+
+_fitted_assembler = None
+_fitted_scaler = None
+for stage in model_xgb.stages:
+    name = type(stage).__name__
+    if "VectorAssembler" in name:
+        _fitted_assembler = stage
+    elif "StandardScaler" in name:
+        _fitted_scaler = stage
+if _fitted_assembler is None or _fitted_scaler is None:
+    raise RuntimeError("Fitted assembler/scaler not found in the XGBoost pipeline; "
+                       "SHAP inputs cannot be placed in the training feature space.")
+
+_scaled_sample = _fitted_scaler.transform(_fitted_assembler.transform(sample_df))
+X_sample = np.array(
+    _scaled_sample.select(vector_to_array("features_scaled").alias("x"))
+    .toPandas()["x"].tolist(),
+    dtype=np.float64,
+)
+assert X_sample.shape[1] == len(feature_cols), (
+    f"Scaled sample has {X_sample.shape[1]} dims, expected {len(feature_cols)}")
+print(f"  SHAP sample: {len(pdf)} rows (transformed through fitted scaler), "
+      f"attack ratio {pdf['label_binary'].mean():.2%}")
 
 xgb_model = None
 for stage in model_xgb.stages:
@@ -116,6 +145,22 @@ plt.close()
 shap_csv_path = os.path.join(base_output, "shap_feature_importance.csv")
 shap_importance_df.to_csv(shap_csv_path, index=False)
 print(f"[INFO] Saved: {shap_csv_path}")
+
+# Beeswarm summary plot: shows per-observation SHAP values (direction + spread
+# + feature-value colouring), complementing the mean|SHAP| bar ranking above.
+# The thesis (fig:shap_beeswarm) includes this figure alongside the bar chart.
+try:
+    plt.figure()
+    shap.summary_plot(shap_values, X_sample, feature_names=feature_cols,
+                      max_display=30, show=False)
+    beeswarm_path = os.path.join(base_output, "shap_summary_beeswarm.png")
+    plt.gcf().set_size_inches(12, 10)
+    plt.tight_layout()
+    plt.savefig(beeswarm_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"[INFO] Saved: {beeswarm_path}")
+except Exception as e:
+    print(f"[WARN] Beeswarm plot skipped: {e}")
 
 
 all_results = {}

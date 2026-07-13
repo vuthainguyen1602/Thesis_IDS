@@ -136,11 +136,45 @@ if __name__ == "__main__":
     # on feature columns BEFORE splitting closes this. Disable with
     # IDS_DEDUP_ON_FEATURES=0 to reproduce the legacy (leakier) behaviour.
     if os.environ.get("IDS_DEDUP_ON_FEATURES", "1") == "1":
+        # Deterministic dedup with explicit LABEL-COLLISION handling.
+        #
+        # dropDuplicates(feature_cols) keeps an ARBITRARY row per group (it
+        # depends on partitioning), which (a) is not reproducible across runs/
+        # clusters despite the fixed seed, and (b) silently assigns a random
+        # label when two flows share all features but disagree on the label
+        # (BENIGN vs Attack) — a known artefact of CICIDS2017 (Lanvin et al.).
+        #
+        # Policy: groups whose members disagree on label_binary are DROPPED
+        # entirely (contradictory ground truth); within agreeing groups one row
+        # is kept via a deterministic ordering. Counts are logged for the paper.
+        from pyspark.sql import Window
+
         before = df.count()
-        df = df.dropDuplicates(feature_cols)
+        grp = Window.partitionBy(*feature_cols)
+        order = Window.partitionBy(*feature_cols).orderBy(
+            F.col("label_binary").desc(), F.col("label").asc(),
+        )
+        df_marked = (
+            df.withColumn("_n_labels",
+                          F.size(F.collect_set("label_binary").over(grp)))
+              .withColumn("_rn", F.row_number().over(order))
+        )
+        conflict_rows = df_marked.filter(F.col("_n_labels") > 1)
+        n_conflict_rows = conflict_rows.count()
+        n_conflict_groups = (
+            conflict_rows.select(*feature_cols).distinct().count()
+            if n_conflict_rows > 0 else 0
+        )
+        df = (
+            df_marked.filter((F.col("_n_labels") == 1) & (F.col("_rn") == 1))
+                     .drop("_n_labels", "_rn")
+        )
         after = df.count()
-        print(f"Feature-level dedup: {before:,} -> {after:,} "
-              f"(removed {before - after:,} near-duplicate flows)")
+        print(f"Feature-level dedup (deterministic): {before:,} -> {after:,}")
+        print(f"  - label-collision groups dropped: {n_conflict_groups:,} "
+              f"({n_conflict_rows:,} rows with contradictory labels)")
+        print(f"  - near-duplicate rows removed:    "
+              f"{before - after - n_conflict_rows:,}")
 
     # ── Optional stratified subsample (for very large datasets, e.g. CSE-CIC-
     # IDS2018 ~16M flows on 8GB Jetsons). IDS_SAMPLE_FRAC in (0,1) keeps a

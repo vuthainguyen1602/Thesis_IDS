@@ -39,8 +39,25 @@ OUT_DIR = os.path.join("results", "ml_10_leakage_ablation")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # Fixed, a-priori model so the comparison is purely about the feature set.
-RF_NUM_TREES = int(os.environ.get("IDS_ABLATION_NUM_TREES", "100"))
-RF_MAX_DEPTH = int(os.environ.get("IDS_ABLATION_MAX_DEPTH", "10"))
+# Configuration MUST match the paper's hyper-parameter table (tab:hparams:
+# RF numTrees=200, maxDepth=15, class weights via weightCol) — otherwise the
+# ablation rows are not comparable with the main results tables.
+RF_NUM_TREES = int(os.environ.get("IDS_ABLATION_NUM_TREES", "200"))
+RF_MAX_DEPTH = int(os.environ.get("IDS_ABLATION_MAX_DEPTH", "15"))
+
+
+def _with_class_weights(train_df):
+    """Inverse-frequency class weights — same uniform imbalance handling the
+    paper declares for every weightCol-aware model."""
+    from pyspark.sql import functions as F
+    counts = {int(r["label_binary"]): r["count"]
+              for r in train_df.groupBy("label_binary").count().collect()}
+    total = sum(counts.values())
+    n_classes = max(len(counts), 1)
+    weights = {lbl: total / (n_classes * c) for lbl, c in counts.items() if c > 0}
+    expr = F.when(F.col("label_binary") == 1, float(weights.get(1, 1.0))) \
+            .otherwise(float(weights.get(0, 1.0)))
+    return train_df.withColumn("class_weight", expr)
 
 
 def _build_pipeline(feature_cols):
@@ -52,6 +69,7 @@ def _build_pipeline(feature_cols):
     )
     clf = RandomForestClassifier(
         featuresCol="features", labelCol="label_binary",
+        weightCol="class_weight",
         numTrees=RF_NUM_TREES, maxDepth=RF_MAX_DEPTH, seed=42,
     )
     return Pipeline(stages=[assembler, scaler, clf])
@@ -59,7 +77,8 @@ def _build_pipeline(feature_cols):
 
 def _run(train_df, test_df, feature_cols, title):
     pipeline = _build_pipeline(feature_cols)
-    _model, _preds, metrics = train_and_evaluate(pipeline, train_df, test_df, title)
+    _model, _preds, metrics = train_and_evaluate(
+        pipeline, _with_class_weights(train_df), test_df, title)
     return metrics
 
 

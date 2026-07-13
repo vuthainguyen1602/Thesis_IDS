@@ -21,6 +21,7 @@ from shared_utils import (
     train_and_evaluate,
     summarize_metric_runs,
     permutation_pvalue,
+    paired_cohens_d,
     plot_comparison,
     plot_training_time,
     print_summary_table,
@@ -67,13 +68,29 @@ def _is_meta_ensemble(model_name: str) -> bool:
 
 
 def _pick_best_model(results: dict, single_classifiers_only: bool = False):
+    """Select the best model per method on VALIDATION F1 when available.
+
+    Selecting on test F1 would make every downstream number (stat track,
+    robustness, per-class) conditional on a test-set peek — exactly the
+    selection leakage the paper claims to close. ``val_f1`` is produced by
+    run_all_classifiers(val_df=...); the test-F1 fallback exists only for
+    legacy CSVs and warns loudly.
+    """
     candidates = results
     if single_classifiers_only:
         filtered = {k: v for k, v in results.items() if not _is_meta_ensemble(k)}
         if filtered:
             candidates = filtered
-    best_model = max(candidates, key=lambda k: candidates[k].get("f1", 0))
-    return best_model, candidates[best_model].get("f1", 0)
+    has_val = any(v.get("val_f1") is not None for v in candidates.values())
+    rank_key = "val_f1" if has_val else "f1"
+    if not has_val:
+        print("  [WARN] val_f1 missing from results — falling back to TEST F1 for "
+              "model selection. This reintroduces selection leakage; regenerate "
+              "results with a validation split before publishing.")
+    best_model = max(candidates, key=lambda k: candidates[k].get(rank_key) or 0)
+    # Return the ranking score (validation-based when available) so downstream
+    # method ordering is also leakage-free.
+    return best_model, candidates[best_model].get(rank_key) or 0
 
 
 def _build_best_per_method(all_method_results: dict) -> dict:
@@ -91,7 +108,7 @@ def _build_best_per_method(all_method_results: dict) -> dict:
 
 
 _METRIC_KEYS = [
-    "accuracy", "precision", "recall", "f1", "auc_roc", "auc_pr",
+    "accuracy", "precision", "recall", "f1", "val_f1", "auc_roc", "auc_pr",
     "training_time", "prediction_time", "model_size_mb",
 ]
 
@@ -137,10 +154,14 @@ def _run_statistical_validity_track(
               f"permutation test can only reach p>=2/2^{STAT_N_SPLITS}="
               f"{2.0/(2**STAT_N_SPLITS):.3f}. Use >=6 for p<0.05, or rely on the CI.")
 
+    # Both the model per method and the pair of methods entering the test are
+    # ranked on VALIDATION F1 (best_per_method comes from _pick_best_model,
+    # which prefers val_f1) — the test set plays no role in these choices, so
+    # the p-value below is not conditioned on a test-set peek.
     sorted_methods = sorted(best_per_method.keys(), key=lambda m: best_per_method[m]["best_f1"], reverse=True)
     top_methods = sorted_methods[:2]
 
-    # Resolve the (fixed, a-priori) model per method once.
+    # Resolve the (validation-selected, fixed before testing) model per method once.
     method_model = {
         m: _trainable_model_name(m, best_per_method[m]["best_model"], all_method_results)
         for m in top_methods
@@ -174,8 +195,14 @@ def _run_statistical_validity_track(
     df.unpersist()
     stats_records = []
     for method_name in top_methods:
+        # Nadeau–Bengio correction: the N resamples share overlapping training
+        # data, so the naive t-CI is optimistically narrow. rho = n_test/n_train
+        # = 0.2/0.8 = 0.25 for the 80/20 resampling used here. The paper reports
+        # the NB interval (f1_ci95_nb_*); the naive one is kept for comparison.
         agg = summarize_metric_runs(
-            method_split_metrics[method_name], metric_keys=["f1", "auc_pr", "accuracy"]
+            method_split_metrics[method_name],
+            metric_keys=["f1", "auc_pr", "accuracy"],
+            nb_test_train_ratio=0.25,
         )
         stats_records.append({
             "Method": method_name,
@@ -186,23 +213,36 @@ def _run_statistical_validity_track(
             "f1_std": agg.get("f1_std"),
             "f1_ci95_low": agg.get("f1_ci95_low"),
             "f1_ci95_high": agg.get("f1_ci95_high"),
+            "f1_ci95_nb_low": agg.get("f1_ci95_nb_low"),
+            "f1_ci95_nb_high": agg.get("f1_ci95_nb_high"),
         })
 
     pvalue = 1.0
+    effect_size = 0.0
     if len(top_methods) == 2:
-        # Paired permutation test on the per-split F1 differences.
+        # Paired permutation test on the per-split F1 differences. With N=6 the
+        # 2^6=64 sign patterns are enumerated exactly inside permutation_pvalue.
         pvalue = permutation_pvalue(
             method_split_f1[top_methods[0]],
             method_split_f1[top_methods[1]],
             n_permutations=2000,
             seed=42,
         )
+        effect_size = paired_cohens_d(
+            method_split_f1[top_methods[0]],
+            method_split_f1[top_methods[1]],
+        )
         min_p = 2.0 / (2 ** STAT_N_SPLITS)  # two-sided sign-permutation floor
         print(f"\n[INFO] Paired permutation p-value ({top_methods[0]} vs "
-              f"{top_methods[1]}): {pvalue:.6f}  (two-sided min achievable ≈ {min_p:.4f})")
+              f"{top_methods[1]}): {pvalue:.6f}  (exact enumeration; two-sided "
+              f"min achievable = {min_p:.4f})")
+        print(f"[INFO] Paired Cohen's d (effect size): {effect_size:.3f} — report "
+              "alongside the p-value; with N=6 a non-significant p is weak "
+              "evidence of equivalence on its own.")
 
     stats_df = pd.DataFrame(stats_records)
     stats_df["pvalue_vs_other_top_method"] = pvalue
+    stats_df["paired_cohens_d"] = effect_size
     stats_csv = os.path.join(output_dir, "statistical_validity_multiseed.csv")
     stats_df.to_csv(stats_csv, index=False)
     print(f"[INFO] Saved: {stats_csv}")
@@ -552,8 +592,7 @@ if __name__ == "__main__":
     for method, results in all_method_results.items():
         for model, metrics in results.items():
             row = {"Method": method, "Model": model}
-            for key in ["accuracy", "precision", "recall", "f1", "auc_roc", "auc_pr",
-                         "training_time", "prediction_time", "model_size_mb"]:
+            for key in _METRIC_KEYS:
                 row[key] = metrics.get(key, None)
             summary_rows.append(row)
 
@@ -574,7 +613,11 @@ if __name__ == "__main__":
         _single_df = summary_df[~summary_df["Model"].apply(_is_meta_ensemble)]
         if _single_df.empty:
             _single_df = summary_df
-        best_idx = _single_df.groupby("Method")["f1"].idxmax()
+        # Match the leakage-free selection rule: rank on validation F1 when
+        # available so the timing figure shows the same models the paper reports.
+        _rank_col = ("val_f1" if ("val_f1" in _single_df.columns
+                                  and _single_df["val_f1"].notna().any()) else "f1")
+        best_idx = _single_df.groupby("Method")[_rank_col].idxmax()
         best = _single_df.loc[best_idx].copy()
         _order = ["Baseline", "RF Importance", "SHAP", "PCA"]
         best["__o"] = best["Method"].apply(

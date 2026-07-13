@@ -236,6 +236,25 @@ Configuration variables in `config.py`:
 - **Latency percentiles** (p50/p95/p99) are computed by each node from its raw
   per-flow samples; the cluster p95 is the **worst node's** p95 — never a
   percentile of per-host mean latencies.
+- **Raw latency logs (required for the paper numbers):** set
+  `RAW_LATENCY_LOG=~/ids_raw_latency_$(hostname).csv` on each node **before**
+  starting the pipelines. Window-level p95s pushed to InfluxDB are for
+  dashboards only; the *run-level* p95 is computed by the orchestrator from
+  these raw CSVs restricted to the exact load window
+  (`benchmark_distributed.py collect --raw-latency-glob '.../ids_raw_latency_*.csv'`).
+  Without them, `collect` falls back to an InfluxDB approximation and labels it
+  `DO_NOT_PUBLISH`.
+- **Per-node energy during a distributed run:** on each Jetson run
+  `./papers/soict2026/run_benchmarks.sh node-power` (measures a 30 s idle
+  baseline first, then samples tegrastats through the load window). Mode A's
+  paper figure is the **sum of both nodes' active energy** ÷ classified flows.
+- **Repetitions & warmup:** `run` defaults to 5 repeats with real warmup
+  traffic excluded from the measured window; `merge` writes
+  `summary_mean_std.csv` per mode. Do a load sweep (`BENCHMARK_RATE=50|100|200`)
+  so throughput/latency are reported relative to saturation.
+- **Pipeline throughput** is counted as **final verdicts/s from Postgres**
+  within the load window — never the sum of per-node rates, which double-counts
+  forwarded flows in Mode A.
 - **Energy** is reported both raw and **idle-subtracted (active)** per node via
   `tegrastats`. For pipeline-split (Mode A) the comparable figure is the **sum
   of both nodes'** active energy (gate on Jetson #1 + classifier on Jetson #2),

@@ -34,10 +34,31 @@ _MAX_SAMPLES = 20000
 
 class PerformanceMonitor:
 
-    def __init__(self, influxdb_storage=None, push_interval=None, node_id="edge-node-1"):
+    def __init__(self, influxdb_storage=None, push_interval=None, node_id="edge-node-1",
+                 raw_log_path=None):
         self.influxdb_storage = influxdb_storage
         self.push_interval = push_interval or METRICS_PUSH_INTERVAL
         self.node_id = node_id
+        # Raw per-flow latency log (CSV, append). Window-level percentiles pushed
+        # to InfluxDB are NOT sufficient for run-level tail statistics: averaging
+        # window p95s underestimates the tail. The benchmark orchestrator computes
+        # the run-level p50/p95/p99 from this file instead.
+        # Enable via constructor arg or env RAW_LATENCY_LOG=/path/to/file.csv
+        self.raw_log_path = raw_log_path or os.getenv("RAW_LATENCY_LOG") or None
+        self._raw_log_fh = None
+        if self.raw_log_path:
+            try:
+                new_file = not os.path.exists(self.raw_log_path)
+                log_dir = os.path.dirname(self.raw_log_path)
+                if log_dir:
+                    os.makedirs(log_dir, exist_ok=True)
+                self._raw_log_fh = open(self.raw_log_path, "a", buffering=1)
+                if new_file:
+                    self._raw_log_fh.write("ts_unix,node_id,inference_ms,e2e_ms\n")
+                print(f"[OK] Raw latency log: {self.raw_log_path}")
+            except OSError as e:
+                print(f"  [WARN] Cannot open raw latency log {self.raw_log_path}: {e}")
+                self._raw_log_fh = None
 
         self._predictions_count = 0
         self._attacks_count = 0
@@ -72,6 +93,11 @@ class PerformanceMonitor:
                 self._e2e_latencies.append(end_to_end_ms)
             if is_attack:
                 self._attacks_count += 1
+            if self._raw_log_fh is not None:
+                e2e_str = f"{end_to_end_ms:.3f}" if (end_to_end_ms is not None
+                                                     and end_to_end_ms >= 0) else ""
+                self._raw_log_fh.write(
+                    f"{time.time():.3f},{self.node_id},{inference_time_ms:.3f},{e2e_str}\n")
 
     def get_system_metrics(self) -> dict:
         cpu_percent = psutil.cpu_percent(interval=0.5)
@@ -175,3 +201,9 @@ class PerformanceMonitor:
         if self._thread:
             self._thread.join(timeout=5)
             print("[OK] Performance Monitor stopped")
+        if self._raw_log_fh is not None:
+            try:
+                self._raw_log_fh.close()
+            except OSError:
+                pass
+            self._raw_log_fh = None

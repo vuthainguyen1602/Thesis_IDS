@@ -49,13 +49,31 @@ RF_NUM_TREES = int(os.environ.get("IDS_XD_NUM_TREES", "200"))
 RF_MAX_DEPTH = int(os.environ.get("IDS_XD_MAX_DEPTH", "15"))
 
 
+def _with_class_weights(train_df):
+    """Add inverse-frequency class weights, matching the uniform imbalance
+    handling (weightCol) declared for all weight-aware models in the paper —
+    the cross-dataset RF must not silently train unweighted."""
+    from pyspark.sql import functions as F
+    counts = {int(r["label_binary"]): r["count"]
+              for r in train_df.groupBy("label_binary").count().collect()}
+    total = sum(counts.values())
+    n_classes = max(len(counts), 1)
+    weights = {lbl: total / (n_classes * c) for lbl, c in counts.items() if c > 0}
+    expr = F.when(F.col("label_binary") == 1, float(weights.get(1, 1.0))) \
+            .otherwise(float(weights.get(0, 1.0)))
+    print(f"  Class weights (inverse frequency): {weights}")
+    return train_df.withColumn("class_weight", expr)
+
+
 def _fit(train_df, feature_cols):
+    train_df = _with_class_weights(train_df)
     pipeline = Pipeline(stages=[
         VectorAssembler(inputCols=feature_cols, outputCol="features_raw",
                         handleInvalid="keep"),
         StandardScaler(inputCol="features_raw", outputCol="features",
                        withMean=True, withStd=True),
         RandomForestClassifier(featuresCol="features", labelCol="label_binary",
+                               weightCol="class_weight",
                                numTrees=RF_NUM_TREES, maxDepth=RF_MAX_DEPTH, seed=42),
     ])
     return pipeline.fit(train_df)
@@ -83,18 +101,40 @@ def main():
     _, trainB, testB, featsB = load_and_prepare_data(spark, data_dir=DIR_B)
 
     # Common leak-free feature set (both already exclude leaky port features),
-    # preserving dataset-A column order for determinism.
+    # preserving dataset-A column order for determinism. Column names of both
+    # datasets are harmonised to the CICIDS2017 canonical vocabulary at
+    # preparation time (idslib.data.CICIDS2018_TO_2017_ALIASES), so this
+    # intersection compares semantics, not spelling variants.
     setB = set(featsB)
     common = [f for f in featsA if f in setB]
+    only_a = sorted(set(featsA) - setB)
+    only_b = sorted(setB - set(featsA))
     print("\n" + "=" * 70)
     print("  EXPERIMENT 11: CROSS-DATASET GENERALIZATION")
     print("=" * 70)
     print(f"  A = {NAME_A} ({DIR_A}): {len(featsA)} features")
     print(f"  B = {NAME_B} ({DIR_B}): {len(featsB)} features")
     print(f"  Common leak-free features: {len(common)}")
+    if only_a:
+        print(f"  Only in A ({len(only_a)}): {', '.join(only_a[:10])}"
+              f"{'...' if len(only_a) > 10 else ''}")
+    if only_b:
+        print(f"  Only in B ({len(only_b)}): {', '.join(only_b[:10])}"
+              f"{'...' if len(only_b) > 10 else ''}")
     if not common:
         raise ValueError("No common features between the two datasets after "
                          "leakage-aware preparation.")
+    if len(common) < 0.5 * min(len(featsA), len(featsB)):
+        print(f"  [WARN] Common feature set ({len(common)}) is under half of the "
+              "smaller dataset's features — check that ml_00 was re-run for BOTH "
+              "datasets AFTER the 2018->2017 column-alias harmonisation, "
+              "otherwise the intersection is on stale un-harmonised parquet.")
+
+    # Persist the mapping/intersection for the paper (reviewers must be able to
+    # verify which features the cross-dataset comparison actually used).
+    with open(os.path.join(OUT_DIR, "common_features.txt"), "w") as f:
+        f.write("\n".join(common) + "\n")
+    print(f"  [INFO] Common feature list saved -> {os.path.join(OUT_DIR, 'common_features.txt')}")
 
     keep = common + ["label_binary"]
     trainA, testA = trainA.select(keep), testA.select(keep)
