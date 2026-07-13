@@ -1,0 +1,344 @@
+% FAIR'2026 — IEEE conference template (IEEEtran, XeLaTeX, English)
+% English translation of the Vietnamese submission (main.tex). Kept in sync.
+% Compile: xelatex -> bibtex -> xelatex x2
+% Requires: IEEEtran.cls (in ../IEEE-conference-template-062824/), ieeetr.bst.
+%
+% RESULT PLACEHOLDERS: every empirical number is wrapped in \ph{...}. After
+% re-running the (leakage-free) pipeline, replace each \ph{...} with the value
+% from the corresponding results/*.csv. Do NOT reuse the legacy F1=1.000
+% numbers — they came from a configuration with destination_port leakage and
+% feature-level duplicate flows, both now removed.
+%
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+\setotherlanguage{vietnamese}
+\input{../../../papers/latex/fonts-xelatex-vi.tex}
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{textcomp}
+\usepackage{xcolor}
+% babel defines \babelshorthandoff; under polyglossia it is undefined, so
+% provide a no-op fallback to avoid an "Undefined control sequence" at
+% \begin{document} (Vietnamese shorthands are not active under polyglossia).
+\providecommand{\babelshorthandoff}[1]{}
+\AtBeginDocument{\babelshorthandoff{"}\babelshorthandoff{'}}
+
+% Visible placeholder for a not-yet-filled empirical value.
+\newcommand{\ph}[1]{{\color{gray}\textit{[#1]}}}
+
+\graphicspath{{../../../results/ml_07_cross_method_comparison/}{../../../results/ml_05_shap_explainability/}{../../../results/ml_09_multiclass_eval/}{../../../results/ml_10_leakage_ablation/}}
+
+\begin{document}
+
+\title{A Comparison of Dimensionality Reduction and Feature Selection for Network Intrusion Detection on Apache Spark ML with a Leakage-Aware Evaluation Pipeline}
+
+\author{%
+\IEEEauthorblockN{Nguyễn Vũ Thái}
+\IEEEauthorblockA{\textit{University of Transport and Communications} \\
+\textit{Ho Chi Minh City Campus} \\
+Ho Chi Minh City, Vietnam \\
+nvthai@utc2.edu.vn}
+\and
+\IEEEauthorblockN{Bùi Văn Dũng}
+\IEEEauthorblockA{\textit{University of Information Technology} \\
+\textit{VNU-HCM} \\
+Ho Chi Minh City, Vietnam \\
+dungbv.17@grad.uit.edu.vn}
+\and
+\IEEEauthorblockN{Đỗ Trí Nhựt}
+\IEEEauthorblockA{\textit{University of Information Technology} \\
+\textit{VNU-HCM} \\
+Ho Chi Minh City, Vietnam \\
+trinhutdo@uit.edu.vn}
+}
+
+\maketitle
+
+\begin{abstract}
+Machine-learning-based network intrusion detection systems (IDS) typically process hundreds of network-flow features, which is computationally expensive and hard to deploy at the edge. This paper presents a systematic comparative study of four dimensionality-reduction strategies on Apache Spark ML: a baseline using all features, selection by Random Forest Importance, selection by SHAP, and PCA. Each strategy is evaluated across eight classification algorithms together with two ensemble methods on the CICIDS2017 dataset~\cite{sharafaldin2018toward}. Unlike most prior work, we emphasize the \emph{rigor of the evaluation pipeline}: (i) we remove the label-leaking feature \texttt{destination\_port} and deduplicate flows at the feature level before splitting the data; (ii) we fix the comparison configuration \emph{a priori} to avoid selection bias; (iii) we select models on a validation set held out from the training set, together with an in-distribution stability check and a \emph{cross-dataset} generalization evaluation (CICIDS2017~$\leftrightarrow$~CSE-CIC-IDS2018); (iv) we assess statistical significance using a paired permutation test over multiple data resamplings, together with Nadeau--Bengio corrected confidence intervals and effect sizes; and (v) we add a per-attack-type multiclass evaluation. The study aims to verify whether feature selection retains most of the classification performance while cutting the number of features by about 60\%, and whether SHAP Top-30 balances accuracy, explainability, and cost so as to be suitable for export to the Jetson Orin Nano Super edge device (see the related work); the quantitative results are reported in the experimental section.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Intrusion detection, Apache Spark, Feature selection, SHAP, Data leakage
+\end{IEEEkeywords}
+
+\section{Introduction}
+\label{sec:intro}
+
+Cyberattacks are growing in scale and sophistication, demanding IDS that are both accurate and scalable on large data~\cite{ring2019survey,khraisat2019survey}. Machine learning has become the dominant approach for anomaly-based IDS, but modern network-flow datasets such as CICIDS2017~\cite{sharafaldin2018toward} provide nearly 80 features per flow, which increases training, inference, and memory cost --- especially critical for edge deployment. Dimensionality reduction and feature selection are therefore key steps. However, different strategies such as embedded, unsupervised, or explanation-based ones measure ``importance'' in non-equivalent ways, and they are rarely compared under the same distributed pipeline.
+
+A less-discussed but equally serious issue is the \emph{trustworthiness of the evaluation pipeline}. Many reports on CICIDS2017 achieve near-perfect binary F1; this is usually a sign of data leakage rather than of model capability. \emph{Data leakage} is the situation in which information that should not be available at real deployment time enters the training/evaluation process, inflating scores so that they no longer reflect true generalization. Labeling errors and duplicate flows in CICIDS2017 itself have been documented and shown to affect evaluation results substantially~\cite{lanvin2023errors}. There are two common sources of leakage. First, the \texttt{destination\_port} feature directly encodes the attacked service, because CICIDS2017 generates attack scenarios aimed at fixed ports, so it becomes a ``shortcut'' for the model to memorize the port~$\rightarrow$~label mapping. Second, feature-level duplicate flows are not removed by full-duplicate removal, so a random split places the same sample into both the training and test sets. This paper handles both before comparing methods.
+
+\textbf{Main contributions.}
+(1) A uniform comparison of RF Importance, SHAP, and PCA over the same eight Spark ML algorithms and two ensembles;
+(2) Integration of SHAP-based explanation~\cite{lundberg2017unified} with a direct contrast against RF Importance~\cite{breiman2001random};
+(3) A \emph{leakage-aware and statistically tested} evaluation pipeline: removing the leaking feature, deterministic feature-level deduplication (label-conflicting groups are removed entirely), model selection on a validation set held out from the training set, and a paired permutation test (exact enumeration) over multiple resamplings with Nadeau--Bengio correction and effect size;
+(4) A per-attack-type multiclass evaluation, clarifying where the methods truly differ;
+(5) An \emph{edge-aware} model-selection recommendation: jointly considering F1, the number of features, and model size for the Jetson Orin Nano Super.
+
+Section~\ref{sec:related} presents related work; Section~\ref{sec:method} describes the method and evaluation pipeline; Section~\ref{sec:exp} reports the experiments; Section~\ref{sec:discuss} discusses; Section~\ref{sec:threats} states threats to validity; and Section~\ref{sec:conclude} concludes.
+
+\section{Related Work}
+\label{sec:related}
+
+IDS surveys~\cite{ring2019survey,khraisat2019survey,ferrag2020deep} show that both traditional machine learning and deep learning are widely applied on standard benchmarks such as CICIDS2017~\cite{sharafaldin2018toward}. Many works focus on a single algorithm, for instance online deep learning~\cite{alrawashdeh2016toward} or deep networks~\cite{vinayakumar2019deep}, without a uniform comparison of multiple dimensionality-reduction strategies on the same distributed pipeline. Apache Spark ML~\cite{zaharia2010spark,meng2016mllib} supports large-scale processing, but few studies combine feature selection, model explanation, and statistical testing in a single unified experimental framework. Recent edge IDS studies deploy deep-learning models on NVIDIA Jetson~\cite{baalaji2025ensemble,asghar2026hedid}, but they typically focus on a single model and on accuracy, and rarely compare multiple dimensionality-reduction strategies under a leakage-aware evaluation pipeline.
+
+\textbf{Feature selection.} Variable-selection theory~\cite{guyon2003introduction} distinguishes three groups: filter, wrapper, and embedded. Random Forest Importance~\cite{breiman2001random} (embedded) and PCA~\cite{jolliffe2002pca} (unsupervised) are two popular directions for IDS but measure different quantities. SHAP~\cite{lundberg2017unified} provides consistent local explanations and has been used for IDS~\cite{sarhan2022explainable}, but is rarely contrasted directly with RF Importance on the same Spark training set.
+
+\textbf{Concept drift, anomaly, and evaluation.} Concept drift~\cite{gama2014survey} affects IDS stability over time; anomaly-detection studies~\cite{chandola2009anomaly,ruff2021unifying,lopez2017autoencoder,hasan2025iiot} typically separate the filter from the classifier, and autoencoders are also used to reduce feature dimensionality for IDS on edge devices~\cite{hasan2025iiot}. However, data leakage and statistical-significance testing in method comparison are rarely handled explicitly on CICIDS2017. This paper fills that gap. Table~\ref{tab:related-work} summarizes the comparison.
+
+\input{../../../papers/latex/related_work_table_fair_en.tex}
+
+\section{Method}
+\label{sec:method}
+
+\subsection{Overview of the Spark ML pipeline}
+
+The offline pipeline consists of sequential steps: data cleaning, deduplication, \texttt{VectorAssembler}, \texttt{StandardScaler}, an (optional) dimensionality-reduction transform, and then the classifier. Binary labels: Benign (0) and Attack (1). The entire \texttt{fit} of StandardScaler/PCA and the feature ranking use \emph{only} the training set; the test set serves as the final holdout.
+
+\subsection{Leakage-aware data preparation}
+\label{sec:leakage}
+
+We merge the eight CICIDS2017 CSV files, normalize column names, replace infinite/missing values, and then apply two leakage-removal steps \emph{before} splitting the data:
+
+\begin{itemize}
+  \item \textbf{Removing the label-leaking feature.} \texttt{destination\_port} (and \texttt{source\_port} if present) is removed because it directly encodes the target service of the attack; keeping it would let the model memorize the port~$\rightarrow$~label mapping instead of learning flow behavior. An ablation (keep vs. remove the port) quantifies the impact.
+  \item \textbf{Feature-level deduplication (deterministic).} Beyond removing fully duplicate records, we remove flows that are \emph{identical across all feature columns} before splitting, preventing the same sample from appearing in both the training and test sets. For groups of flows that are feature-identical but have \emph{conflicting labels} (Benign and Attack --- a known error in CICIDS2017~\cite{lanvin2023errors}), the entire group is removed rather than arbitrarily keeping one row depending on data partitioning; the numbers of removed groups and rows are reported (\ph{n\_conflict\_groups} groups, \ph{n\_conflict\_rows} rows), ensuring the deduplication result is deterministic and reproducible.
+\end{itemize}
+
+After processing, the data are split into \textbf{80\% training / 20\% test} (with a fixed seed), stored in Parquet format, and reused throughout the experiments. The number of remaining numeric features is \ph{n\_features}, and the number of samples after deduplication is \ph{n\_train}/\ph{n\_test}.
+
+\subsection{Classifiers and the four dimensionality-reduction strategies}
+
+Eight algorithms: Decision Tree, Logistic Regression, SVM (LinearSVC), Naive Bayes, Random Forest, GBT, XGBoost, MLP; together with two ensembles (weighted Hybrid Bagging Top-3 and Soft Voting). LightGBM is excluded because its native library (via SynapseML) supports only x86\_64 and cannot run on the Jetson Orin Nano Super edge device (ARM64), which is the deployment target of this study; therefore a LightGBM model cannot be included in the pipeline. Within the gradient-boosting family, XGBoost and GBT act as representatives. The four strategies: \textbf{Baseline} (all features); \textbf{RF Top-$K$} ($K \in \{20,30,40\}$); \textbf{SHAP Top-$K$}; \textbf{PCA} ($k \in \{20,30,40\}$). The RF and SHAP rankings use \emph{only} the training set; SHAP is computed on a \emph{class-stratified} sample so that both benign and attack traffic are represented. PCA is fixed at $k{=}40$, more than the Top-30 of the selection methods, because PCA is an \emph{extraction}: each principal component is a linear combination carrying only part of the variance, so more components are needed to retain an equivalent amount of variance. Within the range $\{20,30,40\}$, $k{=}40$ retains the most variance and is therefore the fairest representative point for PCA.
+
+\subsection{Hyperparameters and class-imbalance handling}
+\label{sec:hparams}
+
+The hyperparameters (Table~\ref{tab:hparams}) are \emph{fixed a priori} and shared across all dimensionality-reduction methods, so that the observed differences correctly reflect the \emph{feature-selection method} rather than per-model tuning; hyperparameter tuning is separated into a distinct stage (grid search with cross-validation) and applied only to the selected configuration. The stochastic models (RF, GBT, XGBoost, MLP) fix the \texttt{seed} for reproducibility. Class imbalance is handled \emph{uniformly}. Every model that supports \texttt{weightCol} --- namely Decision Tree, Logistic Regression, SVM, Naive Bayes, Random Forest, and GBT --- is assigned class weights according to the benign/attack ratio, equivalent to XGBoost's \texttt{scale\_pos\_weight} mechanism. MLP alone does not support sample weights in Spark ML and is therefore trained without weights, as noted in the limitations.
+
+\begin{table*}[htbp]
+  \caption{Main hyperparameters of the eight classifiers (fixed a priori).}
+  \label{tab:hparams}
+  \centering
+  \small
+  \begin{tabular}{ll}
+    \toprule
+    Model & Main hyperparameters \\
+    \midrule
+    Decision Tree & maxDepth=15, minInstancesPerNode=5, impurity=entropy \\
+    Logistic Regression & maxIter=200, regParam=0.001, L2, threshold=0.5 \\
+    SVM (LinearSVC) & maxIter=200, regParam=0.001 \\
+    Naive Bayes & gaussian, smoothing=1.0 \\
+    Random Forest & numTrees=200, maxDepth=15, featureSubset=sqrt \\
+    GBT & maxIter=150, maxDepth=6, stepSize=0.05, subsample=0.8 \\
+    XGBoost & n\_estimators=300, max\_depth=8, lr=0.05, subsample=0.8, colsample=0.8 \\
+    MLP & layers=[$d$,64,32,2], maxIter=150, stepSize=0.01 \\
+    \midrule
+    \multicolumn{2}{l}{Class balancing: \texttt{weightCol} (6 models) / \texttt{scale\_pos\_weight} (XGBoost); MLP unweighted.} \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\subsection{Two-stage comparison design}
+
+To avoid selection bias from trying many configurations on the same test set, we separate the \emph{exploration stage} (sweeping $K$, fully reported per $K$) from the \emph{confirmation stage} (four configurations fixed a priori: Baseline, RF Top-30, SHAP Top-30, PCA $k{=}40$). The comparative conclusions rest on the four fixed configurations; we do not pick the configuration with the highest F1 after observing the results on the test set. Within each configuration, the \emph{representative model} and the \emph{method pair} entered into statistical testing are also chosen by F1 on a validation set (20\% held out from the training set, fixed seed) --- the test set does not participate in any selection step.
+
+\subsection{Rigorous evaluation pipeline}
+\label{sec:eval}
+
+\textbf{Metrics.} Accuracy, Precision, Recall, F1, AUC-ROC, AUC-PR; training/prediction time; model size. Because the data are imbalanced, AUC-PR and attack-class recall are prioritized over accuracy.
+
+\textbf{In-distribution stability check.} The representative model of each method is re-evaluated on a subset of the test set (disjoint from the training set). To be clear: this is only an \emph{in-distribution stability} check, not a distribution-shift test; the true generalization assessment lies in the cross-dataset experiment (Section~\ref{sec:exp}).
+
+\textbf{Statistical-significance testing.} The two top methods are trained on $N$ independent \emph{resamplings} of the training/test split (default $N{=}6$), and in each round both use the \emph{same} split so as to be paired. As a result, the variance reflects the effect of data sampling rather than only of model initialization. The 95\% confidence interval is computed using the $t$ distribution ($t_{0.975,N-1}$, not the value 1.96); because the resamplings overlap in training data, we report \emph{in parallel} the Nadeau--Bengio corrected confidence interval, with the variance multiplied by $(1/N + n_{\text{test}}/n_{\text{train}})$, and take the corrected interval as the basis for conclusions. Significance is tested by a \emph{two-sided paired permutation test} on the per-round F1 difference, \emph{exactly enumerating} all $2^N$ sign permutations (with $N{=}6$, that is 64 permutations) rather than Monte Carlo sampling; because the test is two-sided, the smallest attainable $p$ is $2/2^N$, so $N \geq 6$ is needed to be able to reach below $0.05$ (in contrast to a single-fixed-split / three-seed design, which cannot get past $p \approx 0.125$). Together with $p$, we report the paired Cohen's $d$ effect size: with small $N$, a non-significant $p$-value is by itself weak evidence for ``equivalence''.
+
+\textbf{Multiclass evaluation.} Because binary classification on CICIDS2017 is almost perfectly separable, we add a \emph{per-attack-type multiclass} evaluation, comprising per-class precision/recall/F1, macro-F1, and a confusion matrix. It is here that rare classes such as Heartbleed, Infiltration, Web Attack, and Bot reveal the real differences among methods.
+
+\section{Experiments and Results}
+\label{sec:exp}
+
+\subsection{Setup}
+
+CICIDS2017; an 80/20 training/test split after leakage removal (Section~\ref{sec:leakage}); Apache Spark \ph{spark}, Java \ph{java}; hardware \ph{hardware}. Every script logs the run configuration (seed, environment variables, library versions) to ensure reproducibility. The full source code, configuration, and feature lists are publicly available at \ph{code repository URL (with commit hash)}; the pipeline can be reproduced on a single machine and does not require an edge-device cluster.
+
+\subsection{Port-feature ablation}
+
+Table~\ref{tab:port-ablation} and Figure~\ref{fig:leakage-ablation} quantify the impact of \texttt{destination\_port}. When the port is kept, binary F1 is near-perfect (\ph{f1\_with}); when the port is removed, F1 drops to \ph{f1\_no}, reflecting the true capability. All subsequent results use the \emph{port-removed} configuration.
+
+\begin{table}[htbp]
+  \caption{Impact of the leaking feature \texttt{destination\_port} (Random Forest fixed a priori per the Table~\ref{tab:hparams} configuration, class-weighted; binary).}
+  \label{tab:port-ablation}
+  \centering
+  \footnotesize
+  \begin{tabular}{lccc}
+    \toprule
+    Configuration & F1 & Recall (Attack) & AUC-PR \\
+    \midrule
+    Keep port & \ph{f1\_with} & \ph{rec\_with} & \ph{pr\_with} \\
+    Remove port (proposed) & \ph{f1\_no} & \ph{rec\_no} & \ph{pr\_no} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \IfFileExists{../../../results/ml_10_leakage_ablation/leakage_ablation.png}{%
+    \includegraphics[width=\columnwidth]{leakage_ablation.png}%
+  }{%
+    \fbox{\parbox{0.9\columnwidth}{\centering\vspace{1.2cm}\ph{Leakage ablation chart --- run ml\_10\_leakage\_ablation.py}\vspace{1.2cm}}}%
+  }
+  \caption{Impact of the leaking feature \texttt{destination\_port} (Random Forest, binary).}
+  \label{fig:leakage-ablation}
+\end{figure}
+
+\subsection{Comparison of the four dimensionality-reduction methods}
+
+\begin{figure*}[htbp]
+  \centering
+  \IfFileExists{../../../results/ml_07_cross_method_comparison/f1_heatmap.png}{%
+    \includegraphics[width=0.92\textwidth]{f1_heatmap.png}%
+  }{%
+    \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.5cm}\ph{F1 heatmap: method x algorithm --- run papers/fair2026/collect\_results.sh}\vspace{1.5cm}}}%
+  }
+  \caption{F1 heatmap by method and algorithm (binary, port removed).}
+  \label{fig:f1-heatmap}
+\end{figure*}
+
+Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\ref{fig:f1-heatmap} visualizes F1 for each method~$\times$~algorithm pair. The comparison design aims to verify whether feature selection (RF/SHAP Top-30) retains near-baseline performance while cutting $\approx$60\% of the features; PCA $k{=}40$ reduces dimensionality in an unsupervised manner at the cost of explainability. The quantitative values are filled in from \texttt{cross\_method\_summary.csv}.
+
+\begin{table*}[htbp]
+  \caption{Summary of the best model per method (filled in from \texttt{cross\_method\_summary.csv}).}
+  \label{tab:best-results}
+  \centering
+  \begin{tabular}{llcccc}
+    \toprule
+    Method & Model & F1 & AUC-PR & Train (s) & Size (MB) \\
+    \midrule
+    Baseline & \ph{m1} & \ph{f1\_1} & \ph{pr\_1} & \ph{t\_1} & \ph{s\_1} \\
+    RF Top-30 & \ph{m2} & \ph{f1\_2} & \ph{pr\_2} & \ph{t\_2} & \ph{s\_2} \\
+    SHAP Top-30 & \ph{m3} & \ph{f1\_3} & \ph{pr\_3} & \ph{t\_3} & \ph{s\_3} \\
+    PCA $k$=40 & \ph{m4} & \ph{f1\_4} & \ph{pr\_4} & \ph{t\_4} & \ph{s\_4} \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\begin{figure}[htbp]
+  \centering
+  \IfFileExists{../../../results/ml_07_cross_method_comparison/train_predict_time.png}{%
+    \includegraphics[width=\columnwidth]{train_predict_time.png}%
+  }{%
+    \fbox{\parbox{0.9\columnwidth}{\centering\vspace{1.2cm}\ph{Training/prediction time --- run ml\_07\_cross\_method\_comparison.py}\vspace{1.2cm}}}%
+  }
+  \caption{Training and inference time of the representative model of each method, measured on the Spark cluster used for training (Section~\ref{sec:exp}); inference latency/throughput measurements on the edge device belong to the related work (SOICT 2026), not this paper.}
+  \label{fig:timing}
+\end{figure}
+
+\subsection{Statistical testing (paired resampling)}
+
+Table~\ref{tab:stat} reports the mean F1 $\pm$ 95\% CI ($t$ distribution) over $N{=}6$ resamplings for the two top methods, together with the paired permutation-test $p$-value. Conclusion: \ph{the two methods are equivalent ($p=$\,...) / significantly different}.
+
+\begin{table}[htbp]
+  \caption{Multi-resampling stability and paired testing (filled in from \texttt{statistical\_validity\_multiseed.csv}).}
+  \label{tab:stat}
+  \centering
+  \footnotesize
+  \begin{tabular}{llcc}
+    \toprule
+    Method & Model & F1 (mean $\pm$ CI95) & $p$ (paired) \\
+    \midrule
+    \ph{methodA} & \ph{modelA} & \ph{f1A} $\pm$ \ph{ciA} & \multirow{2}{*}{\ph{pval}} \\
+    \ph{methodB} & \ph{modelB} & \ph{f1B} $\pm$ \ph{ciB} & \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Robustness and multiclass evaluation}
+
+In the in-distribution stability check (a subset of the test set), the ranking of the methods \ph{is preserved/changes}; details in \texttt{robustness\_holdout\_summary.csv}. The multiclass evaluation (Figure~\ref{fig:cm}, Table~\ref{tab:perclass}) shows that the majority classes achieve high recall, while rare classes such as \ph{rare class} have substantially lower recall (\ph{recall}) --- where feature selection makes the clearest difference.
+
+\begin{figure}[htbp]
+  \centering
+  \IfFileExists{../../../results/ml_09_multiclass_eval/confusion_matrix.png}{%
+    \includegraphics[width=\columnwidth]{confusion_matrix.png}%
+  }{%
+    \fbox{\parbox{0.9\columnwidth}{\centering\vspace{1.2cm}\ph{Multiclass confusion matrix --- run ml\_09\_multiclass\_eval.py}\vspace{1.2cm}}}%
+  }
+  \caption{Multiclass confusion matrix (row-normalized).}
+  \label{fig:cm}
+\end{figure}
+
+\begin{table}[htbp]
+  \caption{Per-class Precision/Recall/F1 (extracted from \texttt{per\_class\_metrics.csv}).}
+  \label{tab:perclass}
+  \centering
+  \begin{tabular}{lcccc}
+    \toprule
+    Class & Support & Precision & Recall & F1 \\
+    \midrule
+    \ph{class 1} & \ph{sup1} & \ph{p1} & \ph{r1} & \ph{cf1} \\
+    \ph{class 2} & \ph{sup2} & \ph{p2} & \ph{r2} & \ph{cf2} \\
+    \multicolumn{5}{c}{\ph{... remaining classes; add macro-F1 / weighted-F1 rows}} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Cross-dataset generalization}
+\label{sec:cross-dataset}
+
+To go beyond \emph{in-domain} evaluation, we train on one dataset and test on a \emph{different} one (\emph{cross-dataset} evaluation; and vice versa) on the \emph{shared} leakage-free feature set of the two datasets. The gap between in-domain F1 (A$\to$A) and cross-dataset F1 (A$\to$B) in Table~\ref{tab:cross-dataset} quantifies the \emph{generalization} ability of the leakage-free model. This is a genuine distribution-shift test, unlike the in-distribution holdout above. Because CSE-CIC-IDS2018 is very large ($\sim$16 million flows), we use a \emph{label-stratified} sample (fraction \ph{xd\_frac}, $\sim$\ph{xd\_n2018} flows, \texttt{seed}=42) that preserves the class proportions; CICIDS2017 uses $\sim$\ph{xd\_n2017} flows. The sample sizes are reported explicitly to ensure reproducibility.
+
+\begin{table}[htbp]
+  \caption{Cross-dataset generalization (CICIDS2017 $\leftrightarrow$ CSE-CIC-IDS2018, stratified sample \texttt{seed}=42; filled in from \texttt{cross\_dataset\_results.csv}).}
+  \label{tab:cross-dataset}
+  \centering
+  \small
+  \begin{tabular}{llcc}
+    \toprule
+    Train & Test & Type & F1 \\
+    \midrule
+    CICIDS2017 & CICIDS2017 & in-domain & \ph{xd\_aa} \\
+    CICIDS2017 & CSE-CIC-2018 & cross-dataset & \ph{xd\_ab} \\
+    CSE-CIC-2018 & CSE-CIC-2018 & in-domain & \ph{xd\_bb} \\
+    CSE-CIC-2018 & CICIDS2017 & cross-dataset & \ph{xd\_ba} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Discussion}
+\label{sec:discuss}
+
+\textbf{Method comparison.} When the F1 gap between RF Top-30 and SHAP Top-30 is smaller than the variation across resamplings and $p>0.05$, we conclude that the two methods are \emph{statistically equivalent}; in that case secondary criteria (explainability, size, stability) decide the deployment choice. SHAP Top-30 provides consistent local explanations, an advantage for SOC operations.
+
+\textbf{Bridge to the edge device.} Cutting $\approx$60\% of the features directly reduces the vector-assembly cost and the model memory footprint on the Jetson Orin Nano Super. The selection criterion therefore needs to be \emph{edge-aware}, that is, to consider not only F1 but also the number of features, the model size, and the training/prediction time (Figure~\ref{fig:timing}). Latency and throughput measurements on the Jetson are presented in the related work (SOICT 2026).
+
+\textbf{Limitations of the binary evaluation.} Removing the port and deduplicating brings binary F1 down to a realistic level, but binary classification remains a relatively easy task. Only under multiclass evaluation do the weaknesses on rare attack classes emerge, and this is also a more reliable metric for distinguishing methods.
+
+\section{Threats to Validity}
+\label{sec:threats}
+
+\textbf{Internal validity.} The RF/SHAP rankings are derived from the original training set and kept fixed across resamplings. This is consistent with the ``a priori configuration'' design, but may introduce slight leakage in the ranking part. Re-ranking per resampling would be more rigorous but costly (especially SHAP); we make this trade-off explicit. The selection of the Top-3 component models for the ensemble is performed on a separate \emph{validation set} held out from the training set, so the test set does not participate in model selection; the trade-off is that the base models are trained on a smaller portion of the data after extracting the validation set. In addition, class balancing is applied uniformly to seven models (Section~\ref{sec:hparams}) but \emph{not} to MLP, because Spark ML does not support sample weights for this model; the MLP result should therefore be read with that caveat.
+
+\textbf{External validity.} CICIDS2017 (2017) may not reflect current traffic; verification on newer datasets (CSE-CIC-IDS2018, CIC-IoT) is needed. The default random split shuffles time; a time-based split mode is supported for a more realistic evaluation. The cross-dataset generalization conclusion (Section~\ref{sec:cross-dataset}) is based on a \emph{representative stratified sample} of CSE-CIC-IDS2018 (due to edge resource limits), not the whole dataset; the sample size is reported explicitly, and scaling to the full dataset is the next direction. The model assumes an attack distribution approximating CICIDS2017 and has not been evaluated against deliberately evasive (adversarial evasion) traffic. Moreover, feature-level deduplication (Section~\ref{sec:leakage}) itself changes the class distribution between benign and attack, which should be kept in mind when interpreting the results.
+
+\textbf{Statistical validity.} The small sample size ($N{=}6$) gives the test low \emph{power}: because the permutation test is two-sided, the smallest attainable $p$ is only $2/2^N$, so $N{=}6$ just barely reaches the $0.05$ threshold and can hardly detect small effects. Furthermore, the resamplings \emph{overlap}, thus violating the independence assumption of the $t$ distribution; therefore the Nadeau--Bengio corrected confidence interval is reported in parallel (Section~\ref{sec:eval}) and is the primary basis for conclusions, while the standard $t$ interval is for reference only. A remaining limitation is that the RF/SHAP feature ranking is kept fixed across resamplings (no per-round re-ranking), creating a mild selection leakage favoring the two feature-selection branches; per-round re-ranking (feasible for RF) is the next reinforcement direction, together with increasing $N$ with nested cross-validation.
+
+\section{Conclusion}
+\label{sec:conclude}
+
+This paper compares four dimensionality-reduction strategies for IDS on Spark ML under a leakage-aware and statistically tested evaluation pipeline. The core contribution is not merely ``which method is best'' but also \emph{how to evaluate reliably}: removing the leaking feature, deterministic feature-level deduplication, model selection on a validation set, exact-enumeration paired testing with Nadeau--Bengio correction, multiclass evaluation, and CICIDS2017$\leftrightarrow$CSE-CIC-IDS2018 cross-dataset generalization (Section~\ref{sec:cross-dataset}). Future directions: scaling to the full CSE-CIC-IDS2018 and to newer datasets (RoEduNet, CIC-IoT), verifying the transferability of the SHAP Top-30 set itself between the two datasets, hyperparameter optimization, and real-time deployment on the edge.
+
+\section*{Acknowledgment}
+This research was funded by the University of Information Technology, Vietnam National University Ho Chi Minh City. The work was carried out at the University of Transport and Communications (Ho Chi Minh City Campus) and the University of Information Technology, VNU-HCM, as part of a graduation thesis. The authors declare no conflict of interest.
+
+\bibliographystyle{ieeetr}
+\bibliography{references,../../latex/related_work}
+
+\end{document}

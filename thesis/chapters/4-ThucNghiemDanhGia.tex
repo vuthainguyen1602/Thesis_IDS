@@ -1,5 +1,5 @@
 
-Trong chương này, luận văn trình bày kết quả đạt được khi áp dụng kỹ thuật lựa chọn đặc trưng để huấn luyện các mô hình học máy. Bên cạnh đó, hiệu quả của phương pháp kiểm định chéo cũng được phân tích, cùng với đánh giá kết quả thực nghiệm khi áp dụng các thuật toán học máy như \ac{svm}, \ac{lr}, \ac{nb}, \ac{rf}, \ac{dt}, \ac{gbt}, \ac{xgb} và \ac{mlp} cả trong trường hợp có và không sử dụng kỹ thuật giảm chiều dữ liệu. Ngoài ra, luận văn cũng xác định và trình bày các giá trị tham số tối ưu cho từng thuật toán thông qua phương pháp tìm kiếm theo lưới kết hợp với kiểm định chéo. Dựa trên các kết quả thu được, luận văn sẽ làm rõ vấn đề liệu việc giảm chiều dữ liệu có thực sự cần thiết hay không. Cuối cùng, luận văn đánh giá hiệu quả của các mô hình \ac{el}, sau đó so sánh với các thuật toán học máy truyền thống, từ đó trả lời câu hỏi: \textit{Liệu có nên sử dụng \ac{el} so với các mô hình học máy truyền thống khi làm việc với dữ liệu \ac{iot} hay không?}
+Trong chương này, luận văn trình bày kết quả đạt được khi áp dụng kỹ thuật lựa chọn đặc trưng để huấn luyện các mô hình học máy. Bên cạnh đó, quy trình tinh chỉnh siêu tham số bằng tìm kiếm lưới kết hợp kiểm tra chéo (cross-validation) cũng được trình bày, cùng với đánh giá kết quả thực nghiệm khi áp dụng các thuật toán học máy như \ac{svm}, \ac{lr}, \ac{nb}, \ac{rf}, \ac{dt}, \ac{gbt}, \ac{xgb} và \ac{mlp} cả trong trường hợp có và không sử dụng kỹ thuật giảm chiều dữ liệu. Ngoài ra, luận văn cũng xác định và trình bày các giá trị tham số tối ưu cho từng thuật toán thông qua phương pháp tìm kiếm theo lưới kết hợp với kiểm tra chéo (cross-validation). Dựa trên các kết quả thu được, luận văn sẽ làm rõ vấn đề liệu việc giảm chiều dữ liệu có thực sự cần thiết hay không. Cuối cùng, luận văn đánh giá hiệu quả của các mô hình \ac{el}, sau đó so sánh với các thuật toán học máy truyền thống, từ đó trả lời câu hỏi: \textit{Liệu có nên sử dụng \ac{el} so với các mô hình học máy truyền thống khi làm việc với dữ liệu \ac{iot} hay không?}
 
 \section{Môi trường thực nghiệm}
 
@@ -7,7 +7,7 @@ Việc \emph{huấn luyện} mô hình được thực hiện trên một \textb
 
 \begin{itemize}
   \item \textbf{Máy chủ (Spark master):} máy tính xách tay MacBook Air, vi xử lý Apple M3, RAM 16 GB, macOS Sonoma 14.3 --- đảm nhận điều phối cụm (master), tiền xử lý dữ liệu thô (CSV $\rightarrow$ Parquet) và chạy hạ tầng Docker (Kafka, PostgreSQL, InfluxDB, Grafana).
-  \item \textbf{Hai nút worker:} \textbf{NVIDIA Jetson Orin Nano Super Developer Kit} --- CPU 6 nhân Arm Cortex-A78AE (1{,}7\,GHz), GPU kiến trúc NVIDIA Ampere 1024 nhân CUDA + 32 Tensor Core, RAM 8\,GB LPDDR5 (băng thông 102\,GB/s), lưu trữ SSD NVMe 256\,GB, hiệu năng AI tới $\sim$67 TOPS trong khung 25\,W; hệ điều hành Ubuntu (NVIDIA JetPack/L4T). Jetson~\#1 đồng thời chạy tiến trình \emph{driver} của Spark.
+  \item \textbf{Hai nút worker:} \textbf{NVIDIA Jetson Orin Nano Super Developer Kit} --- cấu hình chi tiết (CPU/GPU/RAM/lưu trữ) nêu tại Bảng~\ref{tab:hardware}, Chương~3; hệ điều hành Ubuntu (NVIDIA JetPack/L4T). Jetson~\#1 đồng thời chạy tiến trình \emph{driver} của Spark (driver là tiến trình điều khiển ứng dụng, khác với vai trò \emph{master} điều phối cụm của MacBook).
   \item \textbf{Phần mềm:} Python 3, Apache Spark / PySpark \ph{phiên bản}, MLlib; cấu hình cụm tiêu biểu: \texttt{executor.memory}=3\,GB, \texttt{executor.cores}=4, \texttt{driver.memory}=3\,GB, \texttt{shuffle.partitions}=32; mỗi Jetson được cấp 8\,GB swap trên ổ NVMe để tránh tràn bộ nhớ khi cao điểm (xem \texttt{cluster/spark\_cluster.env}, \texttt{cluster/setup\_swap\_jetson.sh}).
 \end{itemize}
 
@@ -24,7 +24,7 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
 % Giá trị điền vào lấy từ các tệp results/*/...csv tương ứng.
 
 \vspace{1em}
-Bảng \ref{tab:model_parameters} tóm tắt các thiết lập tham số tối ưu cho các mô hình học máy được sử dụng trong nghiên cứu này, dựa trên các nghiên cứu gần đây và quá trình thực nghiệm thực tế.
+Bảng \ref{tab:model_parameters} tóm tắt thiết lập tham số của các mô hình học máy được sử dụng trong nghiên cứu này. Trong đó, \ac{xgb} và MLP được tinh chỉnh bằng Grid Search kết hợp kiểm tra chéo (Kịch bản 3); các mô hình còn lại dùng bộ tham số cố định từ trước, lựa chọn dựa trên các nghiên cứu gần đây và thực nghiệm sơ bộ, nhằm bảo đảm khác biệt quan sát được giữa các phương pháp giảm chiều phản ánh đúng phương pháp thay vì mức độ tinh chỉnh riêng từng mô hình.
 
 \begin{table}[htbp]
 \centering
@@ -41,14 +41,14 @@ Bảng \ref{tab:model_parameters} tóm tắt các thiết lập tham số tối 
 & impurity & entropy & Tiêu chí chia nhánh tối ưu. \\
 \midrule
 Logistic Reg. & maxIter & 200 & Đảm bảo hội tụ trên tập dữ liệu lớn. \\
-& regParam & 0.001 & Kiểm soát regularization. \\
-& elasticNetParam & 0.0 & Sử dụng Ridge (L2) ổn định hơn. \\
+& regParam & 0{,}001 & Kiểm soát regularization. \\
+& elasticNetParam & 0{,}0 & Sử dụng Ridge (L2) ổn định hơn. \\
 \midrule
 \ac{svm} (LinearSVC) & maxIter & 200 & Số lần lặp tối ưu hóa biên. \\
-& regParam & 0.001 & Tham số điều chuẩn biên quyết định. \\
+& regParam & 0{,}001 & Tham số điều chuẩn biên quyết định. \\
 \midrule
 \ac{nb} & modelType & gaussian & Phù hợp cho đặc trưng liên tục. \\
-& smoothing & 1.0 & Làm mượt Laplace. \\
+& smoothing & 1{,}0 & Làm mượt Laplace. \\
 \midrule
 \multirow{3}{*}{Random Forest} 
 & numTrees & 200 & Đảm bảo độ ổn định kết quả. \\
@@ -64,10 +64,10 @@ Logistic Reg. & maxIter & 200 & Đảm bảo hội tụ trên tập dữ liệu 
 \multirow{3}{*}{\ac{xgb}} 
 & n\_estimators & 300 & Số lượng cây boost trong mô hình. \\
 & max\_depth & 8 & Chiều sâu tối đa mỗi cây. \\
-& learning\_rate & 0.05 & Kiểm soát mức độ học của cây mới. \\
+& learning\_rate & 0{,}05 & Kiểm soát mức độ học của cây mới. \\
 \midrule
 \multirow{2}{*}{MLP}
-& layers & [dim, 64, 32, 2] & Mạng nơ-ron 2 lớp ẩn. \\
+& layers & [$d$, 64, 32, 2] & Mạng nơ-ron 2 lớp ẩn ($d$ = số đặc trưng đầu vào). \\
 & maxIter & 150 & Số vòng lặp huấn luyện tối đa. \\
 \bottomrule
 \end{tabular*}
@@ -75,13 +75,14 @@ Logistic Reg. & maxIter & 200 & Đảm bảo hội tụ trên tập dữ liệu 
 
 \clearpage
 \subsection{Kịch bản 1: Đánh giá hiệu năng cơ sở (Baseline)}
-Trong kịch bản này, toàn bộ tập đặc trưng số (khoảng 78 đặc trưng trước khi loại cổng; số chính xác sau khi loại \texttt{destination\_port}/\texttt{source\_port} là \ph{}) được đưa vào mô hình mà chưa qua bất kỳ bước tuyển chọn đặc trưng hay giảm chiều nào. Mục tiêu là thiết lập một mức hiệu năng tham chiếu cho các thử nghiệm tiếp theo.
+Trong kịch bản này, toàn bộ tập đặc trưng số (khoảng 78 đặc trưng trước khi loại cổng; số chính xác sau khi loại \texttt{destination\_port}/\texttt{source\_port} là \ph{}) được đưa vào mô hình mà chưa qua bất kỳ bước lựa chọn đặc trưng hay giảm chiều nào. Mục tiêu là thiết lập một mức hiệu năng tham chiếu cho các thử nghiệm tiếp theo.
 
 Kết quả hiệu năng của các thuật toán \ac{ml} đơn lẻ và phương pháp Ensemble được trình bày trong Bảng \ref{tab:exp0_ml_metrics}.
 \begin{table}[htbp]
 \centering
 \caption{Kết quả hiệu năng phân lớp kịch bản Baseline (toàn bộ đặc trưng số, $\approx$78 trước khi loại cổng)}
 \label{tab:exp0_ml_metrics}
+\small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc@{}}
 \toprule
 \textbf{Thuật toán} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{AUC-ROC} & \textbf{AUC-\ac{pr}} \\ 
@@ -101,7 +102,8 @@ MLP                    & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 \end{tabular*}
 \end{table}
 
-Sau khi loại trừ rò rỉ dữ liệu, cần điền lại các giá trị trên từ \texttt{results/ml\_01\_baseline/} (và \texttt{ml\_07\_cross\_method\_comparison/cross\_method\_summary.csv}) rồi phân tích: nhóm mô hình dựa trên cây (Random Forest, \ac{xgb}, GBT) dự kiến vẫn dẫn đầu, nhưng F1 sẽ thấp hơn mức gần-tuyệt-đối trước đây và phản ánh đúng độ khó thực của bài toán; kết luận ``mô hình nào tốt nhất'' chỉ đưa ra khi chênh lệch vượt khoảng tin cậy (xem mục kiểm định thống kê). Do dữ liệu mất cân bằng mạnh, AUC-PR và recall trên lớp tấn công được ưu tiên hơn Accuracy khi diễn giải, vì Accuracy có thể lạc quan giả (một mô hình luôn đoán lớp benign chiếm đa số vẫn đạt Accuracy cao).
+% (Ghi chú nội bộ: điền số liệu từ results/ml_01_baseline/ và ml_07_cross_method_comparison/cross_method_summary.csv sau khi chạy pipeline loại trừ rò rỉ.)
+Với cấu hình đã loại trừ rò rỉ dữ liệu, nhóm mô hình dựa trên cây (Random Forest, \ac{xgb}, GBT) được kỳ vọng dẫn đầu, với F1 thấp hơn mức gần-tuyệt-đối của các cấu hình có rò rỉ và phản ánh đúng độ khó thực của bài toán; kết luận ``mô hình nào tốt nhất'' chỉ được đưa ra khi chênh lệch vượt khoảng tin cậy (xem mục kiểm định thống kê). Do dữ liệu mất cân bằng mạnh, AUC-PR và recall trên lớp tấn công được ưu tiên hơn Accuracy khi diễn giải, vì Accuracy có thể lạc quan giả (một mô hình luôn đoán lớp benign chiếm đa số vẫn đạt Accuracy cao).
 
 \subsection{Kịch bản 2: So sánh chiến lược giảm chiều dữ liệu}
 Chúng tôi thực hiện so sánh 3 chiến lược chính nhằm giảm số lượng đặc trưng nhưng vẫn đảm bảo hiệu năng:
@@ -113,15 +115,15 @@ Chúng tôi thực hiện so sánh 3 chiến lược chính nhằm giảm số l
 
 \noindent Lưu ý rằng \ac{pca} dùng $k=40$ --- nhiều hơn 30 đặc trưng của \ac{rf}/\ac{shap} --- vì đây là phép \emph{trích xuất} chứ không phải \emph{chọn lọc}: mỗi thành phần chính chỉ là một tổ hợp tuyến tính mang một phần phương sai, nên cần nhiều thành phần hơn để giữ lượng thông tin (phương sai tích lũy) tương đương với tập 30 đặc trưng gốc. Trong dải quét chung $\{20,30,40\}$, $k=40$ là mức giữ phương sai cao nhất, nên là điểm vận hành đại diện công bằng nhất cho \ac{pca}; ép $k=30$ sẽ làm \ac{pca} mất thêm phương sai và bất lợi khi so sánh.
 
-Bảng \ref{tab:summary_comparison} tóm tắt sự khác biệt giữa các phương pháp (điền lại từ \texttt{cross\_method\_summary.csv} sau khi chạy với cấu hình loại trừ rò rỉ dữ liệu). Mục tiêu là kiểm chứng giả thuyết: lựa chọn đặc trưng (\ac{rf}/\ac{shap} Top-30) giữ được hiệu năng gần với baseline trong khi giảm hơn 60\% số đặc trưng, qua đó phù hợp cho triển khai biên.
+Bảng \ref{tab:summary_comparison} tóm tắt sự khác biệt giữa các phương pháp. Mô hình đại diện (cột \emph{Mô hình tốt nhất}) của mỗi phương pháp được chọn theo F1 trên tập kiểm định (validation) tách từ tập huấn luyện --- tập kiểm tra không tham gia khâu chọn lọc này. Mục tiêu là kiểm chứng giả thuyết: lựa chọn đặc trưng (\ac{rf}/\ac{shap} Top-30) giữ được hiệu năng gần với baseline trong khi giảm hơn 60\% số đặc trưng, qua đó phù hợp cho triển khai biên.
 
 \begin{table}[htbp]
 \centering
-\caption{So sánh hiệu năng tốt nhất của các phương pháp tuyển chọn đặc trưng và giảm chiều}
+\caption{So sánh hiệu năng tốt nhất của các phương pháp lựa chọn đặc trưng và giảm chiều}
 \label{tab:summary_comparison}
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc@{}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
 \toprule
-\textbf{Phương pháp} & \textbf{Đặc trưng} & \textbf{Best Model} & \textbf{F1-Score} & \textbf{Thời gian (s)} & \textbf{Dung lượng (MB)} \\ \midrule
+\textbf{Phương pháp} & \textbf{Đặc trưng} & \textbf{Mô hình tốt nhất} & \textbf{F1-Score} & \textbf{Thời gian huấn luyện (s)} & \textbf{Dung lượng (MB)} \\ \midrule
 Baseline (Toàn bộ) & \ph{} ($\approx$78 trước khi loại cổng) & \ph{} & \ph{} & \ph{} & \ph{} \\
 \ac{rf} Importance & 30 & \ph{} & \ph{} & \ph{} & \ph{} \\
 \ac{shap} Importance & 30 & \ph{} & \ph{} & \ph{} & \ph{} \\
@@ -129,13 +131,13 @@ Baseline (Toàn bộ) & \ph{} ($\approx$78 trước khi loại cổng) & \ph{} &
 \end{tabular*}
 \end{table}
 
-Ngoài ra, sự so sánh trực tiếp giữa hai phương pháp tuyển chọn đặc trưng dựa trên độ quan trọng của \ac{rf} và \ac{shap} được chi tiết hóa trong Bảng \ref{tab:rf_vs_shap}.
+Ngoài ra, sự so sánh trực tiếp giữa hai phương pháp lựa chọn đặc trưng dựa trên độ quan trọng của \ac{rf} và \ac{shap} được chi tiết hóa trong Bảng \ref{tab:rf_vs_shap}.
 
 \begin{table}[htbp]
 \centering
-\caption{So sánh hiệu năng tuyển chọn đặc trưng: \ac{rf} Importance vs \ac{shap} Importance (Top-30)}
+\caption{So sánh hiệu năng lựa chọn đặc trưng: \ac{rf} Importance vs \ac{shap} Importance (Top-30)}
 \label{tab:rf_vs_shap}
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
 \textbf{Thuật toán} & \textbf{F1 (\ac{rf} Top-30)} & \textbf{F1 (\ac{shap} Top-30)} & \textbf{Chênh lệch (\%)} \\ \midrule
 Random Forest & \ph{} & \ph{} & \ph{} \\
@@ -146,14 +148,16 @@ Decision Tree & \ph{} & \ph{} & \ph{} \\ \bottomrule
 \end{table}
 
 \subsection{Kịch bản 3: Tối ưu hóa tham số}
-Sau khi chọn được bộ đặc trưng tối ưu từ \ac{shap}, các mô hình được tinh chỉnh tham số thông qua phương pháp Grid Search với Cross-validation (áp dụng cho \ac{xgb} và MLP).
-Kết quả tinh chỉnh (điền lại từ \texttt{ml\_03\_hyperparameter\_tuning/}) được kỳ vọng cải thiện F1-Score của MLP từ \ph{} lên \ph{}, và \ac{xgb} đạt độ ổn định cao hơn trên tập kiểm thử độc lập.
+Sau khi chọn được bộ đặc trưng tối ưu từ \ac{shap}, hai mô hình \ac{xgb} và MLP được tinh chỉnh tham số thông qua Grid Search kết hợp Cross-validation; các mô hình còn lại giữ nguyên bộ tham số cố định ở Bảng~\ref{tab:model_parameters} (xem lý do ở đầu mục).
+% (Ghi chú nội bộ: điền số liệu từ results/ml_03_hyperparameter_tuning/.)
+Kết quả tinh chỉnh được kỳ vọng cải thiện F1-Score của MLP từ \ph{} lên \ph{}, và \ac{xgb} đạt độ ổn định cao hơn trên tập kiểm thử độc lập.
 
 Kết quả hiệu năng của phương pháp Tối ưu hoá tham số được trình bày trong Bảng \ref{tab:exp2_ml_metrics}.
 \begin{table}[htbp]
 \centering
 \caption{Kết quả hiệu năng phân lớp kịch bản Tối ưu hoá tham số}
 \label{tab:exp2_ml_metrics}
+\small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc@{}}
 \toprule
 \textbf{Thuật toán} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{AUC-ROC} & \textbf{AUC-\ac{pr}} \\ 
@@ -184,9 +188,20 @@ Tính giải thích (explainability) là một thành phần thiết yếu trong
     \label{fig:shap_summary}
 \end{figure}
 
-Hình~\ref{fig:shap_summary} trình bày biểu đồ SHAP Summary. Để tránh rò rỉ, giá trị SHAP được tính trên một \emph{mẫu phân tầng theo lớp lấy từ tập huấn luyện} (không phải tập kiểm thử). Trong biểu đồ, mỗi điểm đại diện cho một quan sát; trục hoành thể hiện giá trị SHAP (dương đẩy dự đoán về lớp tấn công, âm đẩy về lớp bình thường); màu sắc biểu diễn giá trị đặc trưng từ thấp đến cao. Độ phân tán theo trục hoành phản ánh mức độ ảnh hưởng của đặc trưng, độ tập trung thể hiện tính ổn định của tác động.
+Hình~\ref{fig:shap_summary} xếp hạng 30 đặc trưng quan trọng nhất theo giá trị trung bình tuyệt đối của SHAP (mean $|\text{SHAP}|$): thanh càng dài, đặc trưng càng ảnh hưởng lớn đến quyết định phân loại xét trên toàn bộ mẫu. Để tránh rò rỉ, giá trị SHAP được tính trên một \emph{mẫu phân tầng theo lớp lấy từ tập huấn luyện} (không phải tập kiểm thử); mẫu này được biến đổi qua đúng bộ chuẩn hoá (StandardScaler) đã fit trên tập huấn luyện trước khi tính SHAP, bảo đảm không gian đầu vào của phép giải thích trùng khớp với không gian đầu vào mà mô hình đã học.
 
-Bên cạnh đó, giá trị trung bình tuyệt đối của SHAP (mean $|\text{SHAP}|$) được dùng để xếp hạng mức quan trọng tổng thể. \emph{Lưu ý:} hình và danh sách đặc trưng quan trọng cần được \textbf{tạo lại trên tập đặc trưng đã loại trừ rò rỉ} (đã loại \texttt{destination\_port}); sau khi chạy lại, các đặc trưng có mean$|\text{SHAP}|$ lớn nhất là: \ph{đặc trưng 1}, \ph{đặc trưng 2}, \ph{đặc trưng 3}, \ph{đặc trưng 4} (điền từ \texttt{ml\_06\_feature\_selection\_shap/shap\_feature\_importance.csv}).
+\begin{figure}[ht]
+    \centering
+    \IfFileExists{img/shap_summary_beeswarm.png}{\includegraphics[width=0.92\linewidth]{img/shap_summary_beeswarm.png}}{\fbox{\parbox{0.9\linewidth}{\centering\vspace{1.4cm}\ph{Biểu đồ SHAP beeswarm --- chạy ml\_06\_feature\_selection\_shap.py rồi \texttt{thesis/collect\_figures.sh}}\vspace{1.4cm}}}}
+    \caption{Biểu đồ SHAP Summary (beeswarm): phân bố và hướng tác động của từng đặc trưng}
+    \label{fig:shap_beeswarm}
+\end{figure}
+
+Bổ sung cho xếp hạng tổng thể, Hình~\ref{fig:shap_beeswarm} trình bày biểu đồ SHAP Summary dạng beeswarm: mỗi điểm đại diện cho một quan sát; trục hoành thể hiện giá trị SHAP (dương đẩy dự đoán về lớp tấn công, âm đẩy về lớp bình thường); màu sắc biểu diễn giá trị đặc trưng từ thấp đến cao. Độ phân tán theo trục hoành phản ánh mức độ ảnh hưởng của đặc trưng, độ tập trung thể hiện tính ổn định của tác động.
+
+% (Ghi chú nội bộ: hình và danh sách phải được tạo lại trên tập đặc trưng đã loại rò rỉ;
+% điền từ ml_06_feature_selection_shap/shap_feature_importance.csv.)
+Bên cạnh đó, giá trị trung bình tuyệt đối của SHAP (mean $|\text{SHAP}|$) được dùng để xếp hạng mức quan trọng tổng thể. Trên tập đặc trưng đã loại trừ rò rỉ, các đặc trưng có mean$|\text{SHAP}|$ lớn nhất là: \ph{đặc trưng 1}, \ph{đặc trưng 2}, \ph{đặc trưng 3}, \ph{đặc trưng 4}.
 
 Các đặc trưng như \texttt{\path{init_win_bytes_forward}}, \texttt{\path{init_win_bytes_backward}} (kích thước cửa sổ TCP giai đoạn khởi tạo) và \texttt{\path{bwd_packet_length_std}}, \texttt{\path{packet_length_std}} (sự biến thiên độ dài gói tin) phản ánh đặc tính phân phối lưu lượng — là các tín hiệu mạng có ý nghĩa, không phụ thuộc vào định danh dịch vụ. Việc loại \texttt{destination\_port} buộc mô hình dựa vào các đặc trưng hành vi này thay vì ghi nhớ ánh xạ cổng~$\rightarrow$~nhãn.
 
@@ -197,7 +212,7 @@ Một quan sát quan trọng là khi \emph{giữ} đặc trưng \texttt{destinat
 
 \begin{table}[htbp]
 \centering
-\caption{Phân tích loại bỏ (ablation) rò rỉ: ảnh hưởng của đặc trưng \texttt{destination\_port} (mô hình tốt nhất, nhị phân)}
+\caption{Phân tích loại bỏ (ablation) rò rỉ: ảnh hưởng của đặc trưng \texttt{destination\_port} (Random Forest cố định a priori: \texttt{numTrees}=200, \texttt{maxDepth}=15, có trọng số lớp; nhị phân)}
 \label{tab:leakage_ablation}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
@@ -207,7 +222,9 @@ Loại \texttt{destination\_port} (đề xuất) & \ph{} & \ph{} & \ph{} \\ \bot
 \end{tabular*}
 \end{table}
 
-Cách tạo số liệu: chạy hai lượt — lượt rò rỉ (\texttt{IDS\_KEEP\_PORT\_FEATURES=1 IDS\_DEDUP\_ON\_FEATURES=0}) và lượt đề xuất (mặc định) — rồi điền $\Delta$F1 vào bảng. Mức chênh lệch chính là phần hiệu năng \emph{bị thổi phồng} do rò rỉ. Mọi kết quả khác trong luận văn dùng cấu hình đã loại cổng.
+% (Ghi chú nội bộ: chạy hai lượt — lượt rò rỉ IDS_KEEP_PORT_FEATURES=1 IDS_DEDUP_ON_FEATURES=0
+% và lượt đề xuất mặc định — rồi điền Delta F1 vào bảng.)
+Cả hai lượt dùng cùng một cấu hình Random Forest cố định từ trước (200 cây, độ sâu 15, trọng số lớp --- khớp Bảng~\ref{tab:model_parameters}) để cô lập đúng ảnh hưởng của đặc trưng rò rỉ. Mức chênh lệch F1 giữa hai hàng chính là phần hiệu năng \emph{bị thổi phồng} do rò rỉ. Mọi kết quả khác trong luận văn dùng cấu hình đã loại cổng.
 
 \subsection{Phân tích hiệu năng hệ thống}
 Bên cạnh độ chính xác, hiệu năng hệ thống về thời gian và tài nguyên là yếu tố then chốt cho việc triển khai thực tế.
@@ -219,7 +236,7 @@ Kết quả trong Bảng \ref{tab:exp0_system_performance} cho thấy:
 \label{tab:exp0_system_performance}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
-\textbf{Thuật toán} & \textbf{Thời gian HL (s)} & \textbf{Thời gian DB (s)} & \textbf{Kích thước (MB)} \\ \midrule
+\textbf{Thuật toán} & \textbf{Thời gian huấn luyện (s)} & \textbf{Thời gian dự đoán (s)} & \textbf{Kích thước (MB)} \\ \midrule
 Decision Tree          & \ph{} & \ph{} & \ph{} \\
 Logistic Regression    & \ph{} & \ph{} & \ph{} \\
 \ac{svm} (LinearSVC)        & \ph{} & \ph{} & \ph{} \\
@@ -240,27 +257,28 @@ MLP                    & \ph{} & \ph{} & \ph{} \\ \midrule
 
 \subsection{Kiểm định ý nghĩa thống kê}
 \label{sec:stat_validity}
-Do các con số F1 giữa những phương pháp/thuật toán hàng đầu rất sát nhau, luận văn không kết luận ``mô hình tốt nhất'' chỉ dựa trên một lần đo. Hai phương pháp dẫn đầu được huấn luyện lại trên $N$ lần \emph{lấy mẫu lại} tập huấn luyện/kiểm tra độc lập (mặc định $N{=}6$, ghép cặp trên cùng một phép chia), tính F1 trung bình $\pm$ khoảng tin cậy 95\% (phân phối $t$) và kiểm định \emph{permutation test ghép cặp} (Bảng~\ref{tab:stat_validity}). Kết luận: \ph{tương đương ($p>0{,}05$) / khác biệt có ý nghĩa}. Cần thừa nhận rằng với số lần lấy mẫu lại nhỏ (mặc định $N{=}6$), kiểm định hoán vị ghép cặp có \emph{power thấp} ($p$ nhỏ nhất khả dĩ $\approx 2/2^{N}$) và các lần lấy mẫu lại chồng lấn vi phạm giả định độc lập của phân phối $t$, nên khoảng tin cậy có thể bị đánh giá thấp; hướng cải thiện là dùng corrected resampled $t$-test (Nadeau--Bengio) hoặc tăng $N$.
+Do các con số F1 giữa những phương pháp/thuật toán hàng đầu rất sát nhau, luận văn không kết luận ``mô hình tốt nhất'' chỉ dựa trên một lần đo. Mô hình đại diện của mỗi phương pháp, cũng như \emph{cặp phương pháp dẫn đầu} được đưa vào kiểm định, đều được chọn theo F1 trên tập kiểm định (validation, 20\% tách từ tập huấn luyện, \texttt{seed}=42) --- tập kiểm tra không tham gia khâu chọn lọc. Hai phương pháp này sau đó được huấn luyện lại trên $N$ lần \emph{lấy mẫu lại} tập huấn luyện/kiểm tra (mặc định $N{=}6$, ghép cặp trên cùng một phép chia ở mỗi vòng), tính F1 trung bình kèm \emph{hai} loại khoảng tin cậy 95\%: khoảng tin cậy $t$ thông thường và khoảng tin cậy hiệu chỉnh \emph{Nadeau--Bengio} --- phương sai nhân hệ số $(1/N + n_{\text{test}}/n_{\text{train}})$ để bù tương quan giữa các lần lấy mẫu lại chồng lấn; khoảng Nadeau--Bengio được dùng làm căn cứ kết luận chính. Ý nghĩa thống kê được kiểm bằng \emph{permutation test ghép cặp hai phía}, \emph{liệt kê đầy đủ} toàn bộ $2^N = 64$ hoán vị đổi dấu (kiểm định chính xác, không xấp xỉ Monte Carlo), do đó $p$ nhỏ nhất khả dĩ là $2/64 \approx 0{,}031$; độ lớn hiệu ứng được báo cáo bằng Cohen's $d$ ghép cặp (Bảng~\ref{tab:stat_validity}). Kết luận: \ph{tương đương ($p>0{,}05$) / khác biệt có ý nghĩa}. Cần thừa nhận rằng với $N{=}6$, kiểm định có \emph{power thấp}; vì vậy một giá trị $p$ không có ý nghĩa tự nó chỉ là bằng chứng yếu cho ``tương đương'', và kết luận được căn cứ đồng thời vào khoảng tin cậy Nadeau--Bengio và Cohen's $d$; tăng $N$ (kèm cross-validation lồng) là hướng củng cố tiếp theo.
 
 \begin{table}[htbp]
 \centering
 \caption{Ổn định đa lần lấy mẫu và kiểm định ghép cặp (từ \texttt{statistical\_validity\_multiseed.csv})}
 \label{tab:stat_validity}
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
+\small
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcccc@{}}
 \toprule
-\textbf{Phương pháp} & \textbf{Mô hình} & \textbf{F1 (mean $\pm$ CI95)} & \textbf{$p$ (ghép cặp)} \\ \midrule
-\ph{PP A} & \ph{} & \ph{} $\pm$ \ph{} & \multirow{2}{*}{\ph{}} \\
-\ph{PP B} & \ph{} & \ph{} $\pm$ \ph{} & \\ \bottomrule
+\textbf{Phương pháp} & \textbf{Mô hình} & \textbf{\shortstack{F1 (mean $\pm$\\CI95 $t$)}} & \textbf{\shortstack{CI95\\Nadeau--Bengio}} & \textbf{\shortstack{$p$\\(ghép cặp)}} & \textbf{Cohen's $d$} \\ \midrule
+\ph{PP A} & \ph{} & \ph{} $\pm$ \ph{} & [\ph{}; \ph{}] & \multirow{2}{*}{\ph{}} & \multirow{2}{*}{\ph{}} \\
+\ph{PP B} & \ph{} & \ph{} $\pm$ \ph{} & [\ph{}; \ph{}] & & \\ \bottomrule
 \end{tabular*}
 \end{table}
 
-\subsection{Đánh giá độ bền vững (robustness)}
+\subsection{Kiểm tra độ ổn định trong-phân-phối}
 \label{sec:robustness}
-Mô hình tốt nhất của mỗi phương pháp được đánh giá lại trên một tập giữ lại \emph{tách rời hoàn toàn} khỏi tập huấn luyện (Bảng~\ref{tab:robustness}), nhằm kiểm tra mức suy giảm hiệu năng khi gặp dữ liệu chưa thấy.
+Mô hình đại diện của mỗi phương pháp được đánh giá lại trên một mẫu con của tập kiểm tra (không giao với tập huấn luyện; Bảng~\ref{tab:robustness}). Cần nói rõ: đây chỉ là phép kiểm tra \emph{độ ổn định cùng phân phối} (in-distribution), không phải kiểm thử dịch chuyển phân phối; đánh giá tổng quát hoá thực sự nằm ở thí nghiệm liên bộ dữ liệu (Mục~\ref{sec:cross-dataset}).
 
 \begin{table}[htbp]
 \centering
-\caption{Hiệu năng trên tập giữ lại tách rời (từ \texttt{robustness\_holdout\_summary.csv})}
+\caption{Kiểm tra độ ổn định trong-phân-phối trên mẫu con tập kiểm tra (từ \texttt{robustness\_holdout\_summary.csv})}
 \label{tab:robustness}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
 \toprule
@@ -274,9 +292,9 @@ Baseline & \ph{} & \ph{} & \ph{} \\
 
 \subsubsection{Tổng quát hoá liên bộ dữ liệu}
 \label{sec:cross-dataset}
-Đánh giá trên tập giữ lại ở trên là phép thử \emph{cùng bộ} (in-domain, cùng phân phối). Để kiểm chứng khả năng \emph{khái quát hoá} thực sự, mô hình được huấn luyện trên một bộ dữ liệu và kiểm tra trên bộ \emph{khác} (đánh giá \emph{khác bộ}, cross-dataset; và ngược lại) trên tập đặc trưng đã loại trừ rò rỉ \emph{chung} của hai bộ. Khoảng cách giữa F1 cùng bộ và F1 khác bộ (Bảng~\ref{tab:cross_dataset}) định lượng mức suy giảm khi gặp dịch chuyển phân phối --- một thước đo robustness chặt chẽ hơn holdout cùng phân phối.
+Đánh giá trên tập giữ lại ở trên là phép thử \emph{cùng bộ} (in-domain, cùng phân phối). Để kiểm chứng khả năng \emph{khái quát hoá} thực sự, mô hình được huấn luyện trên một bộ dữ liệu và kiểm tra trên bộ \emph{khác} (đánh giá \emph{khác bộ}, cross-dataset; và ngược lại) trên tập đặc trưng đã loại trừ rò rỉ \emph{chung} của hai bộ. Do hai bộ dữ liệu đặt tên cột khác nhau (CSE-CIC-IDS2018 dùng tên viết tắt kiểu CICFlowMeter v3), tên cột của CSE-CIC-IDS2018 được ánh xạ về tên chuẩn của CICIDS2017 qua một bảng bí danh (alias) tường minh trong mã nguồn; danh sách đặc trưng chung sau ánh xạ được lưu tại \texttt{common\_features.txt} để bảo đảm tái lập. Mô hình dùng cho thí nghiệm là Random Forest có trọng số lớp (\texttt{weightCol}), nhất quán với cơ chế xử lý mất cân bằng ở Chương~3. Khoảng cách giữa F1 cùng bộ và F1 khác bộ (Bảng~\ref{tab:cross_dataset}) định lượng mức suy giảm khi gặp dịch chuyển phân phối --- một thước đo robustness chặt chẽ hơn holdout cùng phân phối.
 
-Do CSE-CIC-IDS2018 có quy mô rất lớn ($\sim$16 triệu luồng, $\sim$6\,GB), vượt khả năng xử lý thoải mái của thiết bị biên Jetson (8\,GB), thí nghiệm này dùng \emph{mẫu phân tầng theo nhãn} của CSE-CIC-IDS2018 (tỉ lệ \ph{xd\_frac}, $\sim$\ph{xd\_n2018} luồng, \texttt{seed}=42, công tắc \texttt{IDS\_SAMPLE\_FRAC}) nhằm bảo toàn tỉ lệ các lớp trong khi vừa với phần cứng; CICIDS2017 dùng $\sim$\ph{xd\_n2017} luồng. Các con số mẫu được báo cáo tường minh để bảo đảm tính tái lập; việc mở rộng lên toàn bộ CSE-CIC-IDS2018 là hướng phát triển tiếp theo.
+Do CSE-CIC-IDS2018~\cite{CSECICIDS2018} có quy mô rất lớn ($\sim$16 triệu luồng, $\sim$6\,GB), vượt khả năng xử lý thoải mái của thiết bị biên Jetson (8\,GB), thí nghiệm này dùng \emph{mẫu phân tầng theo nhãn} của CSE-CIC-IDS2018 (tỉ lệ \ph{xd\_frac}, $\sim$\ph{xd\_n2018} luồng, \texttt{seed}=42, công tắc \texttt{IDS\_SAMPLE\_FRAC}) nhằm bảo toàn tỉ lệ các lớp trong khi vừa với phần cứng; CICIDS2017 dùng $\sim$\ph{xd\_n2017} luồng. Các con số mẫu được báo cáo tường minh để bảo đảm tính tái lập; việc mở rộng lên toàn bộ CSE-CIC-IDS2018 là hướng phát triển tiếp theo.
 
 \begin{table}[htbp]
 \centering
@@ -294,7 +312,7 @@ CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & \ph{} \\ \bottomrule
 
 \subsection{Đánh giá đa lớp theo loại tấn công}
 \label{sec:multiclass}
-Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; để bộc lộ điểm yếu thực sự, luận văn bổ sung đánh giá \emph{đa lớp theo từng loại tấn công} (precision/recall/F1 từng lớp, macro-F1 và ma trận nhầm lẫn). Các lớp đa số (DoS/DDoS, PortScan) đạt recall cao, trong khi các lớp hiếm (Heartbleed, Infiltration, Web Attack) có recall thấp hơn rõ rệt --- đây là nơi các phương pháp lựa chọn đặc trưng khác biệt nhất. Kết quả chi tiết theo từng lớp được trình bày trong Bảng~\ref{tab:per_class}, và ma trận nhầm lẫn đa lớp tương ứng được minh họa ở Hình~\ref{fig:confusion_matrix}.
+Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; để bộc lộ điểm yếu thực sự, luận văn bổ sung đánh giá \emph{đa lớp theo từng loại tấn công} (precision/recall/F1 từng lớp, macro-F1 và ma trận nhầm lẫn). Để bảo đảm đủ mẫu cho các lớp hiếm, 14 loại tấn công gốc được gộp theo họ tấn công (ví dụ các biến thể DoS/DDoS gộp thành một nhóm, ba biến thể Web Attack gộp thành một nhóm), cùng với lớp Benign; sơ đồ ánh xạ nhãn gốc $\rightarrow$ nhóm lớp được ghi trong mã nguồn tiền xử lý. Các lớp đa số (DoS/DDoS, PortScan) đạt recall cao, trong khi các lớp hiếm (Heartbleed, Infiltration, Web Attack) có recall thấp hơn rõ rệt --- đây là nơi các phương pháp lựa chọn đặc trưng khác biệt nhất. Kết quả chi tiết theo từng lớp được trình bày trong Bảng~\ref{tab:per_class}, và ma trận nhầm lẫn đa lớp tương ứng được minh họa ở Hình~\ref{fig:confusion_matrix}.
 
 \begin{table}[htbp]
 \centering
@@ -330,9 +348,9 @@ Heartbleed & \ph{} & \ph{} & \ph{} & \ph{} \\ \midrule
 
 Trong phần này, luận văn đề xuất xây dựng một hệ thống phát hiện xâm nhập mạng \ac{ids} \emph{phân tán} triển khai trên một cụm \textbf{hai thiết bị biên NVIDIA Jetson Orin Nano Super} nhằm đánh giá khả năng hoạt động trong môi trường tài nguyên hạn chế. Hệ thống được thiết kế theo kiến trúc xử lý dữ liệu thời gian thực hai tầng: một \emph{cổng phát hiện bất thường} (anomaly gate) bằng autoencoder nhẹ lọc bớt lưu lượng bình thường trên Jetson~\#1, và một \emph{bộ phân loại} PySpark \texttt{PipelineModel} chỉ xử lý các luồng nghi vấn trên Jetson~\#2. Hạ tầng trung tâm (Apache Kafka cho truyền tải thông điệp, PostgreSQL để quản lý dữ liệu, InfluxDB để lưu chỉ số hiệu năng theo thời gian, Grafana để trực quan hóa và Mailtrap để kiểm thử cảnh báo qua email) chạy trên một máy chủ điều phối.
 
-NVIDIA Jetson Orin Nano Super là một máy tính nhúng (single-board computer) tích hợp CPU kiến trúc ARM 64-bit và GPU NVIDIA, hỗ trợ tăng tốc suy luận học máy ngay tại biên. Cấu hình cụ thể sử dụng trong thực nghiệm: \ph{model/CPU/GPU}, RAM \ph{}, hệ điều hành \ph{Ubuntu/L4T (JetPack)}. Do hạn chế về tài nguyên tính toán so với máy chủ truyền thống, việc triển khai trên Jetson Orin Nano Super cho phép đánh giá khả năng tối ưu hóa mô hình và hiệu năng suy luận trong điều kiện phần cứng nhúng (edge computing).
+NVIDIA Jetson Orin Nano Super là một máy tính nhúng (single-board computer) tích hợp CPU kiến trúc ARM 64-bit và GPU NVIDIA, hỗ trợ tăng tốc suy luận học máy ngay tại biên; cấu hình chi tiết đã nêu tại Bảng~\ref{tab:hardware} (Chương~3) và mục Môi trường thực nghiệm. Do hạn chế về tài nguyên tính toán so với máy chủ truyền thống, việc triển khai trên Jetson Orin Nano Super cho phép đánh giá khả năng tối ưu hóa mô hình và hiệu năng suy luận trong điều kiện phần cứng nhúng (edge computing).
 
-Mô hình có hiệu suất tối ưu được xác định trong Phần 4.2 sẽ được tích hợp vào pipeline xử lý nhằm thực hiện nhiệm vụ phát hiện và phân loại lưu lượng mạng thành hai nhóm: \textit{Benign} và \textit{Attack}. Các chỉ số đánh giá bao gồm độ chính xác (Accuracy), Precision, Recall, F1-Score, thời gian dự đoán trung bình cho mỗi mẫu, thông lượng xử lý (throughput) và mức tiêu thụ tài nguyên hệ thống (CPU, RAM). Kết quả thực nghiệm cho phép phân tích tính khả thi của việc triển khai hệ thống \ac{ids} dựa trên học máy trong môi trường thiết bị biên có tài nguyên giới hạn.
+Mô hình có hiệu năng tối ưu được xác định trong Phần 4.2 sẽ được tích hợp vào pipeline xử lý nhằm thực hiện nhiệm vụ phát hiện và phân loại lưu lượng mạng thành hai nhóm: \textit{Benign} và \textit{Attack}. Các chỉ số đánh giá bao gồm độ chính xác (Accuracy), Precision, Recall, F1-Score, thời gian dự đoán trung bình cho mỗi mẫu, thông lượng xử lý (throughput) và mức tiêu thụ tài nguyên hệ thống (CPU, RAM). Kết quả thực nghiệm cho phép phân tích tính khả thi của việc triển khai hệ thống \ac{ids} dựa trên học máy trong môi trường thiết bị biên có tài nguyên giới hạn.
 
 \subsection{Các công cụ sử dụng trong hệ thống}
 
@@ -340,7 +358,7 @@ Trong hệ thống phát hiện xâm nhập mạng \ac{ids} được đề xuấ
 
 \begin{itemize}
 
-    \item \textbf{Apache Kafka} -- Là nền tảng truyền tải thông điệp phân tán (distributed event streaming platform), được sử dụng để tiếp nhận và phân phối dữ liệu luồng theo cơ chế publish-subscribe. Trong hệ thống, Kafka đóng vai trò trung gian giữa nguồn dữ liệu (CICIDS2017 được mô phỏng bằng Python script) và thiết bị Jetson Orin Nano Super, đảm bảo khả năng truyền tải bất đồng bộ, chịu lỗi và mở rộng linh hoạt.
+    \item \textbf{Apache Kafka}~\cite{Kreps2011} -- Là nền tảng truyền tải thông điệp phân tán (distributed event streaming platform), được sử dụng để tiếp nhận và phân phối dữ liệu luồng theo cơ chế publish-subscribe. Trong hệ thống, Kafka đóng vai trò trung gian giữa nguồn dữ liệu (CICIDS2017 được mô phỏng bằng Python script) và thiết bị Jetson Orin Nano Super, đảm bảo khả năng truyền tải bất đồng bộ, chịu lỗi và mở rộng linh hoạt.
 
     \item \textbf{Apache Spark Streaming} -- Là thành phần xử lý dữ liệu luồng thời gian thực. Spark Streaming nhận dữ liệu từ Kafka Consumer, thực hiện các bước tiền xử lý đặc trưng và chuyển dữ liệu đến mô hình học máy đã được huấn luyện để thực hiện suy luận.
 
@@ -372,7 +390,7 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
         arr/.style ={-{Stealth[length=2.5mm]}, thick, draw=gray!60!black},
         dsh/.style={-{Stealth[length=2.5mm]}, thick, draw=cyan!50!black, dashed},
     ]
-        \node[pc]  (pc)  at (0, 0.0)   {\textbf{Máy chủ điều phối (PC --- Docker)}\\[2pt]
+        \node[pc]  (pc)  at (0, 0.0)   {\textbf{Máy chủ điều phối (MacBook --- Docker)}\\[2pt]
             Apache Kafka \;$|$\; PostgreSQL \;$|$\; InfluxDB \;$|$\; Grafana \;$|$\; \texttt{data\_sender.py}};
         \node[jet] (j1)  at (-4.6,-3.6) {\textbf{Jetson Orin Nano Super \#1}\\[2pt] \texttt{anomaly\_gate}\\[2pt]
             Autoencoder lọc bớt\\ lưu lượng bình thường};
@@ -420,24 +438,24 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
 \begin{itemize}
     \item \textbf{Chế độ A -- Pipeline split} (khuyến nghị): Jetson~\#1 = cổng bất thường (anomaly gate), Jetson~\#2 = bộ phân loại (classifier) (như mô tả trên), giúp giảm tải Spark nhờ lọc lưu lượng bình thường sớm.
     \item \textbf{Chế độ B -- Mở rộng theo chiều ngang (Horizontal scaling)}: cả hai Jetson chạy pipeline đầy đủ trong cùng một nhóm tiêu thụ (consumer group) của Kafka nhằm tăng thông lượng.
-    \item \textbf{Chế độ C -- Spark cluster}: máy chủ MacBook làm Spark master, hai Jetson làm worker, phân tán suy luận Spark trên cụm.
+    \item \textbf{Chế độ C -- Spark cluster}: máy chủ MacBook làm Spark master, hai Jetson làm worker, phân tán suy luận Spark trên cụm. Nhất quán với nguyên tắc ở mục Môi trường thực nghiệm, MacBook chỉ đảm nhận điều phối (master), không chạy executor --- toàn bộ tính toán suy luận vẫn nằm trên hai Jetson.
 \end{itemize}
 
 Kiến trúc này đảm bảo tính mô-đun, tách biệt các thành phần xử lý, đồng thời phù hợp với mô hình triển khai phân tán trên các thiết bị biên có tài nguyên hạn chế như Jetson Orin Nano Super.
 
-\textbf{Đặc tả cổng bất thường (operating point).} Cổng autoencoder là một bộ lọc \emph{điều chỉnh được} chứ không phải một điểm cố định: nâng ngưỡng giúp giảm tải (offload) nhiều lưu lượng bình thường hơn khỏi Spark (tăng tỷ lệ bỏ qua tại cổng, gate-skip) nhưng có thể giảm recall trên lớp tấn công. Bảng~\ref{tab:gate_oc} trình bày đường đánh đổi giữa recall và mức giảm tải (recall--offload) khi quét ngưỡng; điểm vận hành được chọn theo ngân sách độ trễ/độ chính xác của triển khai.
+\textbf{Đặc tả cổng bất thường (operating point).} Cổng autoencoder là một bộ lọc \emph{điều chỉnh được} chứ không phải một điểm cố định: nâng ngưỡng giúp giảm tải (offload) nhiều lưu lượng bình thường hơn khỏi Spark (tăng tỷ lệ bỏ qua tại cổng, gate-skip) nhưng có thể giảm recall trên lớp tấn công. Ngưỡng của cổng được chọn theo phân vị (quantile) của sai số tái tạo tính trên một \emph{tập kiểm định benign} --- 10\% tách từ phần lưu lượng bình thường của tập huấn luyện (\texttt{seed}=42); tập kiểm tra không tham gia việc chọn ngưỡng, tránh rò rỉ kiểu ``ngưỡng oracle''. Bảng~\ref{tab:gate_oc} trình bày đường đánh đổi giữa recall và mức giảm tải (recall--offload) khi quét các mức quantile trên tập kiểm định này; điểm vận hành được chọn theo ngân sách độ trễ/độ chính xác của triển khai.
 
 \begin{table}[htbp]
 \centering
-\caption{Điểm vận hành của cổng bất thường khi quét ngưỡng (từ \texttt{gate\_operating\_points.csv})}
+\caption{Điểm vận hành của cổng bất thường khi quét quantile trên tập kiểm định benign (10\% benign train, \texttt{seed}=42; từ \texttt{gate\_operating\_points.csv}). FPR ở đây là tỷ lệ luồng benign bị cổng chuyển nhầm sang bộ phân loại, không phải FPR của toàn hệ thống.}
 \label{tab:gate_oc}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
-\textbf{Quantile} & \textbf{Ngưỡng} & \textbf{Recall (Attack)} & \textbf{FPR} & \textbf{Bỏ qua cổng (\%)} \\ \midrule
-0.90 & \ph{} & \ph{} & \ph{} & \ph{} \\
-0.95 & \ph{} & \ph{} & \ph{} & \ph{} \\
-0.99 & \ph{} & \ph{} & \ph{} & \ph{} \\
-0.995 & \ph{} & \ph{} & \ph{} & \ph{} \\ \bottomrule
+\textbf{Quantile (validation)} & \textbf{Ngưỡng} & \textbf{Recall (Attack)} & \textbf{FPR} & \textbf{Tỷ lệ bỏ qua tại cổng (\%)} \\ \midrule
+0{,}90 & \ph{} & \ph{} & \ph{} & \ph{} \\
+0{,}95 & \ph{} & \ph{} & \ph{} & \ph{} \\
+0{,}99 & \ph{} & \ph{} & \ph{} & \ph{} \\
+0{,}995 & \ph{} & \ph{} & \ph{} & \ph{} \\ \bottomrule
 \end{tabular*}
 \end{table}
 
@@ -454,16 +472,19 @@ Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguy
 
 Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc trưng và triển khai dưới dạng PySpark PipelineModel.
 
+% LƯU Ý: các ảnh chụp màn hình cũ (hệ Raspberry Pi) đã được chuyển vào img/legacy/
+% vì KHÔNG khớp phần cứng Jetson của luận văn. Chụp lại từ cụm Jetson Orin Nano Super
+% (hostname/series phải hiển thị jetson, model SHAP Top-30 mới) rồi đặt vào img/.
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.9\textwidth]{img/pipeline_terminal.png}
+    \IfFileExists{img/pipeline_terminal.png}{\includegraphics[width=0.9\textwidth]{img/pipeline_terminal.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Ảnh terminal pipeline --- chụp lại trên cụm Jetson Orin Nano Super}\vspace{1.2cm}}}}
     \caption{Giao diện terminal khi pipeline IDS hoạt động trên Jetson Orin Nano Super}
     \label{fig:pipeline_terminal}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.9\textwidth]{img/grafana_dashboard.png}
+    \IfFileExists{img/grafana_dashboard.png}{\includegraphics[width=0.9\textwidth]{img/grafana_dashboard.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Dashboard Grafana hiệu năng --- chụp lại từ cụm Jetson}\vspace{1.2cm}}}}
     \caption{Dashboard Grafana giám sát hiệu năng IDS theo thời gian thực}
     \label{fig:grafana_dashboard}
 \end{figure}
@@ -471,29 +492,29 @@ Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.9\textwidth]{img/mailtrap_alert.png}
+    \IfFileExists{img/mailtrap_alert.png}{\includegraphics[width=0.9\textwidth]{img/mailtrap_alert.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Email cảnh báo Mailtrap --- chụp lại từ hệ chạy trên Jetson}\vspace{1.2cm}}}}
     \caption{Email cảnh báo tấn công được gửi qua Mailtrap trong môi trường kiểm thử}
     \label{fig:mailtrap_alert}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.9\textwidth]{img/grafana_attacks.png}
+    \IfFileExists{img/grafana_attacks.png}{\includegraphics[width=0.9\textwidth]{img/grafana_attacks.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Dashboard Grafana chi tiết tấn công --- chụp lại từ cụm Jetson}\vspace{1.2cm}}}}
     \caption{Dashboard Grafana hiển thị chi tiết các cuộc tấn công được phát hiện và phân loại theo thời gian}
     \label{fig:grafana_attacks}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.9\textwidth]{img/slack_alert.png}
+    \IfFileExists{img/slack_alert.png}{\includegraphics[width=0.9\textwidth]{img/slack_alert.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Thông báo Slack --- chụp lại từ hệ chạy trên Jetson}\vspace{1.2cm}}}}
     \caption{Thông báo cảnh báo tấn công được gửi qua Slack Incoming Webhook}
     \label{fig:slack_alert}
 \end{figure}
 
 Hình~\ref{fig:pipeline_terminal} minh họa giao diện terminal thực tế khi pipeline IDS đang xử lý dữ liệu trên Jetson Orin Nano Super, bao gồm thông tin về thông lượng, độ trễ và số lượng tấn công phát hiện được. Hai dashboard Grafana (Hình~\ref{fig:grafana_dashboard} và Hình~\ref{fig:grafana_attacks}) cho phép giám sát hiệu năng hệ thống và chi tiết các cuộc tấn công theo thời gian thực. Khi phát hiện tấn công, hệ thống tự động gửi cảnh báo qua nhiều kênh: email thông qua Mailtrap SMTP (Hình~\ref{fig:mailtrap_alert}) và tin nhắn Slack (Hình~\ref{fig:slack_alert}).
-\subsection{Kết quả đánh giá trên thiết bị huấn luyện mô hình}
+\subsection{Kết quả huấn luyện các mô hình ứng viên trên cụm Spark}
 
-Bảng \ref{tab:edge_training} trình bày kết quả huấn luyện và đánh giá trên thiết bị huấn luyện mô hình trước khi triển khai.
+Bảng \ref{tab:edge_training} trình bày kết quả huấn luyện và đánh giá ba mô hình ứng viên trên cụm Spark (mô tả ở mục Môi trường thực nghiệm) trước khi triển khai xuống thiết bị biên.
 
 \begin{table}[htbp]
 \centering
@@ -501,7 +522,7 @@ Bảng \ref{tab:edge_training} trình bày kết quả huấn luyện và đánh
 \label{tab:edge_training}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
-\textbf{Mô hình} & \textbf{F1-Score} & \textbf{Accuracy} & \textbf{Thời gian HL (s)} & \textbf{Kích thước (MB)} \\ \midrule
+\textbf{Mô hình} & \textbf{F1-Score} & \textbf{Accuracy} & \textbf{Thời gian huấn luyện (s)} & \textbf{Kích thước (MB)} \\ \midrule
 Decision Tree    & \ph{} & \ph{} & \ph{} & \ph{} \\
 \ac{gbt}              & \ph{} & \ph{} & \ph{} & \ph{} \\
 Random Forest    & \ph{} & \ph{} & \ph{} & \ph{} \\
@@ -509,21 +530,22 @@ Random Forest    & \ph{} & \ph{} & \ph{} & \ph{} \\
 \end{tabular*}
 \end{table}
 
-Về tiêu chí \emph{nhận biết ràng buộc biên} (edge-aware), Decision Tree có kích thước mô hình nhỏ nhất (\ph{}), nhỏ hơn Random Forest \ph{} lần và thời gian huấn luyện nhanh hơn \ph{} lần; F1/Accuracy (điền lại sau khi chạy với cấu hình loại trừ rò rỉ dữ liệu) cần được cân nhắc cùng các chỉ số chi phí này để chọn mô hình triển khai.
+Về tiêu chí \emph{nhận biết ràng buộc biên} (edge-aware), Decision Tree có kích thước mô hình nhỏ nhất (\ph{}), nhỏ hơn Random Forest \ph{} lần và thời gian huấn luyện nhanh hơn \ph{} lần; F1/Accuracy cần được cân nhắc cùng các chỉ số chi phí này để chọn mô hình triển khai.
 
 
 \subsection{Kết quả đo hiệu năng (benchmark) trên Jetson Orin Nano Super}
 
-Bảng \ref{tab:edge_benchmark} trình bày kết quả đo hiệu năng (benchmark) thực tế trên Jetson Orin Nano Super với 500 mẫu dữ liệu, kích thước batch = 10. Cần lưu ý rằng độ trễ báo cáo ở đây là \emph{độ trễ suy luận} (inference latency): phép đo hiện chỉ tính thời gian tiền xử lý cộng suy luận, \emph{chưa} bao gồm thời gian truyền Kafka, hàng đợi và ghi cơ sở dữ liệu; việc đo độ trễ đầu cuối (end-to-end) thật sự là hướng đo tiếp theo.
+Bảng \ref{tab:edge_benchmark} trình bày kết quả đo hiệu năng (benchmark) thực tế trên Jetson Orin Nano Super. Mỗi cấu hình được đo lặp lại 5 lần; trước mỗi cửa sổ đo có giai đoạn khởi động (warm-up) bằng chính lưu lượng thật để làm nóng JVM/JIT, và dữ liệu warm-up bị loại khỏi cửa sổ đo; kết quả báo cáo là trung bình $\pm$ độ lệch chuẩn qua các lần chạy. Hai loại độ trễ được ghi nhận: (i) \emph{độ trễ suy luận} (tiền xử lý + dự đoán) trên từng nút, và (ii) \emph{độ trễ đầu cuối} (từ thời điểm producer gửi đến khi có phán quyết) tính từ nhãn thời gian của producer --- giá trị tuyệt đối của loại (ii) chỉ có ý nghĩa khi các máy đồng bộ đồng hồ NTP. Các phân vị độ trễ (p50/p95/p99) được tính ở mức từng lần chạy từ \emph{log thô theo từng luồng} trong đúng cửa sổ tải; với cụm nhiều nút, p95 báo cáo là p95 của nút xấu nhất (không lấy phân vị của các giá trị trung bình theo nút).
 
 \begin{table}[htbp]
 \centering
 \caption{So sánh hiệu năng triển khai trên Jetson Orin Nano Super}
 \label{tab:edge_benchmark}
+\small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
 \toprule
-\textbf{Mô hình} & \textbf{Thông lượng} & \textbf{Độ trễ suy luận} & \textbf{CPU} & \textbf{RAM} & \textbf{Kích thước} \\
-                  & \textbf{(samples/s)} & \textbf{(ms/sample)} & \textbf{(\%)} & \textbf{(\%)} & \textbf{(MB)} \\ \midrule
+\textbf{Mô hình} & \textbf{Thông lượng} & \textbf{Độ trễ suy luận (ms)} & \textbf{CPU} & \textbf{RAM} & \textbf{Kích thước} \\
+                  & \textbf{(mẫu/giây)} & \textbf{p50 / p95 / p99} & \textbf{(\%)} & \textbf{(\%)} & \textbf{(MB)} \\ \midrule
 Decision Tree     & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 \ac{gbt}               & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 Random Forest     & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
@@ -540,9 +562,10 @@ Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của S
 \caption{Chi phí suy luận một nút trên cùng mô hình/đặc trưng (Spark vs sklearn vs ONNX)}
 \label{tab:engines_thesis}
 \renewcommand{\arraystretch}{1.1}
+\small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
-\textbf{Engine} & \textbf{Thông lượng (flows/s)} & \textbf{Độ trễ p95 (ms)} & \textbf{RAM (\%)} & \textbf{Năng lượng/suy luận (mJ)} \\ \midrule
+\textbf{Engine} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ\\p95 (ms)}} & \textbf{RAM (\%)} & \textbf{\shortstack{Năng lượng\\/suy luận (mJ)}} \\ \midrule
 PySpark (triển khai) & \ph{} & \ph{} & \ph{} & \ph{} \\
 scikit-learn         & \ph{} & \ph{} & \ph{} & \ph{} \\
 ONNX Runtime         & \ph{} & \ph{} & \ph{} & \ph{} \\
@@ -552,7 +575,8 @@ ONNX Runtime         & \ph{} & \ph{} & \ph{} & \ph{} \\
 
 \subsection{Kết quả ba chế độ triển khai phân tán}
 
-Ngoài việc so sánh các mô hình trên một nút, luận văn đánh giá ba chế độ triển khai phân tán trên cụm hai Jetson Orin Nano Super (Bảng~\ref{tab:edge_modes}). Chỉ số chính gồm thông lượng đầu cuối (flows/s), độ trễ p95 (ms), tỷ lệ gate-skip (\% lưu lượng bình thường được cổng lọc khỏi suy luận Spark) và F1 trên lớp tấn công. Các giá trị điền lại từ \texttt{papers/soict2026/results/benchmarks/summary.csv} sau khi chạy \texttt{run\_benchmarks.sh} trên phần cứng Jetson.
+% (Ghi chú nội bộ: điền từ papers/soict2026/results/benchmarks/summary.csv sau khi chạy run_benchmarks.sh.)
+Ngoài việc so sánh các mô hình trên một nút, luận văn đánh giá ba chế độ triển khai phân tán trên cụm hai Jetson Orin Nano Super (Bảng~\ref{tab:edge_modes}). Chỉ số chính gồm thông lượng, độ trễ p95 (ms), tỷ lệ bỏ qua tại cổng (gate-skip: \% lưu lượng bình thường được cổng lọc khỏi suy luận Spark) và F1 trên lớp tấn công. \emph{Thông lượng} được định nghĩa là số \emph{phán quyết cuối cùng} ghi vào PostgreSQL trên giây (một luồng nhận phán quyết hoặc tại cổng --- nếu bị bỏ qua là benign --- hoặc tại bộ phân loại), không cộng dồn sản lượng của hai tầng để tránh đếm trùng luồng được chuyển tiếp ở chế độ pipeline split.
 
 \begin{table}[htbp]
 \centering
@@ -561,7 +585,7 @@ Ngoài việc so sánh các mô hình trên một nút, luận văn đánh giá 
 \small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
 \toprule
-\textbf{Chế độ} & \textbf{Thông lượng (flows/s)} & \textbf{Độ trễ p95 (ms)} & \textbf{Gate skip (\%)} & \textbf{Năng lượng/suy luận (mJ)} & \textbf{F1 (Attack)} \\ \midrule
+\textbf{Chế độ} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ\\p95 (ms)}} & \textbf{\shortstack{Bỏ qua\\tại cổng (\%)}} & \textbf{\shortstack{Năng lượng\\/suy luận (mJ)}} & \textbf{\shortstack{F1\\(Attack)}} \\ \midrule
 Một nút (single)        & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 A: Pipeline split       & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
 B: Horizontal scaling   & \ph{} & \ph{} & N/A   & \ph{} & \ph{} \\
@@ -569,7 +593,7 @@ C: Spark cluster        & \ph{} & \ph{} & N/A   & \ph{} & \ph{} \\ \bottomrule
 \end{tabular*}
 \end{table}
 
-Phân tích kỳ vọng: chế độ \emph{pipeline split} giảm tải Spark theo tỷ lệ bỏ qua tại cổng (gate-skip; cổng lọc phần lớn lưu lượng bình thường trước khi gọi bộ phân loại); \emph{mở rộng theo chiều ngang} (horizontal scaling) tăng thông lượng khi số phân vùng (partition) Kafka $\geq 2$; \emph{Spark cluster} thêm chi phí điều phối trên phần cứng Nano nên chỉ hữu ích khi mô hình/batch vượt bộ nhớ một nút. Năng lượng mỗi suy luận được đo trực tiếp trên Jetson bằng \texttt{tegrastats} (tích phân công suất rail tổng theo thời gian, chia cho số luồng đã phân loại); nhờ cổng lọc sớm lưu lượng bình thường, chế độ pipeline split giảm năng lượng/suy luận so với chạy một nút --- lợi ích mà chỉ riêng thông lượng/độ trễ không thể hiện được. Cần lưu ý rằng chỉ số mJ/suy luận hiện chưa trừ công suất nền (idle) của thiết bị, và với chế độ pipeline split phải cộng năng lượng của cả hai nút Jetson; các điểm này sẽ được tinh chỉnh khi điền số liệu cuối cùng.
+Phân tích kỳ vọng: chế độ \emph{pipeline split} giảm tải Spark theo tỷ lệ bỏ qua tại cổng (gate-skip; cổng lọc phần lớn lưu lượng bình thường trước khi gọi bộ phân loại); \emph{mở rộng theo chiều ngang} (horizontal scaling) tăng thông lượng khi số phân vùng (partition) Kafka $\geq 2$; \emph{Spark cluster} thêm chi phí điều phối trên phần cứng Nano nên chỉ hữu ích khi mô hình/batch vượt bộ nhớ một nút. \emph{Năng lượng mỗi suy luận} được đo riêng cho từng nút Jetson bằng \texttt{tegrastats}: công suất rail tổng được lấy mẫu suốt cửa sổ tải và tích phân theo thời gian, \emph{có trừ} đường nền công suất nghỉ (idle baseline) đo trước mỗi lần chạy, rồi chia cho số luồng đã phân loại; với chế độ pipeline split, năng lượng báo cáo là \emph{tổng năng lượng hoạt động của cả hai nút} (cổng trên Jetson~\#1 + bộ phân loại trên Jetson~\#2). Hai lưu ý trung thực: (i) đường nền idle đo một lần trước mỗi run nên chưa bắt được trôi công suất do nhiệt trong run; (ii) phần tiết kiệm nhờ gate-skip chưa trừ chi phí của chính autoencoder --- vốn chạy trên 100\% luồng.
 
 \pagebreak
 
@@ -587,9 +611,9 @@ Hình~\ref{fig:benchmark_comparison} minh họa trực quan sự khác biệt gi
 Kết quả benchmark cho thấy sự đánh đổi rõ ràng giữa các chỉ số:
 
 \begin{itemize}
-    \item \textbf{Random Forest} đạt thông lượng cao nhất (\ph{} samples/s) nhờ Spark tối ưu hóa song song trên nhiều cây, nhưng sử dụng RAM nhiều nhất (\ph{}\%) và kích thước mô hình lớn nhất (\ph{}).
+    \item \textbf{Random Forest} đạt thông lượng cao nhất (\ph{} mẫu/giây) nhờ Spark tối ưu hóa song song trên nhiều cây, nhưng sử dụng RAM nhiều nhất (\ph{}\%) và kích thước mô hình lớn nhất (\ph{}).
     \item \textbf{\ac{gbt}} có hiệu năng trung bình ở tất cả các chỉ số, đóng vai trò cầu nối giữa Decision Tree và Random Forest.
-    \item \textbf{Decision Tree} có F1-Score \ph{} (điền sau khi chạy với cấu hình loại trừ rò rỉ dữ liệu), sử dụng RAM thấp nhất (\ph{}\%), và mô hình có kích thước rất nhỏ (\ph{}). Mặc dù thông lượng thấp nhất (\ph{} samples/s), giá trị này vẫn đáp ứng yêu cầu giám sát thời gian thực cho mạng quy mô vừa và nhỏ.
+    \item \textbf{Decision Tree} có F1-Score \ph{}, sử dụng RAM thấp nhất (\ph{}\%), và mô hình có kích thước rất nhỏ (\ph{}). Mặc dù thông lượng thấp nhất (\ph{} mẫu/giây), giá trị này vẫn đáp ứng yêu cầu giám sát thời gian thực cho mạng quy mô vừa và nhỏ.
 \end{itemize}
 
 Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữa các tiêu chí lựa chọn mô hình. Decision Tree chiếm ưu thế ở hai tiêu chí quan trọng nhất cho thiết bị biên: RAM thấp và kích thước mô hình nhỏ.
@@ -603,15 +627,15 @@ Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữ
 
 \textbf{Decision Tree được chọn} làm mô hình triển khai chính trên thiết bị biên dựa trên ba tiêu chí:
 \begin{enumerate}
-    \item \textbf{Độ chính xác}: F1-Score \ph{} -- với tập đặc trưng SHAP Top-30 đã được tuyển chọn (đã loại trừ rò rỉ), cần kiểm chứng liệu một cây quyết định đơn lẻ có đủ khả năng nắm bắt các mẫu phân loại hay không.
-    \item \textbf{Hiệu quả tài nguyên}: Chỉ sử dụng 30\% RAM, giảm áp lực lên garbage collector của JVM và đảm bảo tính ổn định lâu dài trên thiết bị giới hạn tài nguyên.
+    \item \textbf{Chất lượng phát hiện}: F1-Score \ph{} -- với tập đặc trưng SHAP Top-30 đã được lựa chọn (đã loại trừ rò rỉ), cần kiểm chứng liệu một cây quyết định đơn lẻ có đủ khả năng nắm bắt các mẫu phân loại hay không.
+    \item \textbf{Hiệu quả tài nguyên}: Chỉ sử dụng \ph{}\% RAM, giảm áp lực lên garbage collector của JVM và đảm bảo tính ổn định lâu dài trên thiết bị giới hạn tài nguyên.
     \item \textbf{Tính khả chuyển}: Kích thước mô hình \ph{} cho phép triển khai trên các thiết bị IoT có bộ nhớ hạn chế hơn.
 \end{enumerate}
 
 \section{Thảo luận và So sánh tổng hợp}
-Kết quả thực nghiệm cho thấy việc kết hợp tuyển chọn đặc trưng dựa trên SHAP và phương pháp Ensemble (Hybrid Bagging) là một hướng tiếp cận phù hợp cho hệ thống IDS trên bộ dữ liệu CICIDS2017. Dưới cấu hình đánh giá loại trừ rò rỉ dữ liệu, giải pháp đạt độ chính xác \ph{} (điền lại sau khi chạy) đồng thời tối ưu được thời gian xử lý và dung lượng lưu trữ, phù hợp với ràng buộc của thiết bị biên.
+Kết quả thực nghiệm cho thấy việc kết hợp lựa chọn đặc trưng dựa trên SHAP và phương pháp ensemble (Hybrid Bagging) là một hướng tiếp cận phù hợp cho hệ thống IDS trên bộ dữ liệu CICIDS2017. Dưới cấu hình đánh giá loại trừ rò rỉ dữ liệu, giải pháp đạt F1-Score \ph{} đồng thời tối ưu được thời gian xử lý và dung lượng lưu trữ, phù hợp với ràng buộc của thiết bị biên.
 
-Đặc biệt, khi triển khai trên thiết bị biên Jetson Orin Nano Super, Decision Tree với SHAP Top-30 đặc trưng được kỳ vọng đạt F1-Score \ph{} (đã loại trừ rò rỉ), thông lượng \ph{} samples/s, và sử dụng \ph{}\% RAM. Sau khi điền các số liệu trên, kết quả sẽ cho phép đánh giá tính khả thi của việc triển khai hệ thống IDS dựa trên học máy trên các thiết bị biên có tài nguyên giới hạn, mở ra hướng ứng dụng thực tế cho giám sát an ninh mạng phân tán.
+Đặc biệt, khi triển khai trên thiết bị biên Jetson Orin Nano Super, Decision Tree với SHAP Top-30 đặc trưng được kỳ vọng đạt F1-Score \ph{} (đã loại trừ rò rỉ), thông lượng \ph{} mẫu/giây, và sử dụng \ph{}\% RAM. Sau khi điền các số liệu trên, kết quả sẽ cho phép đánh giá tính khả thi của việc triển khai hệ thống IDS dựa trên học máy trên các thiết bị biên có tài nguyên giới hạn, mở ra hướng ứng dụng thực tế cho giám sát an ninh mạng phân tán.
 
 
 
