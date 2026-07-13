@@ -1,7 +1,7 @@
-Chương này trình bày các nền tảng lý thuyết liên quan đến đề tài, bao gồm tổng quan về Internet vạn vật (\ac{iot}), các mối đe dọa an ninh trong hệ thống \ac{iot}, và vai trò của hệ thống phát hiện xâm nhập (\ac{ids}). Bên cạnh đó, trong chương này, luận văn cũng giới thiệu kiến trúc và khả năng của Apache Spark trong xử lý dữ liệu lớn, các kỹ thuật học máy ứng dụng trong phát hiện bất thường và cách Spark MLlib hỗ trợ xây dựng mô hình học máy phân tán. Cuối cùng, chương đề cập đến một số nghiên cứu liên quan nhằm làm rõ khoảng trống mà luận văn hướng đến giải quyết.
+Chương này trình bày các nền tảng lý thuyết liên quan đến đề tài, bao gồm tổng quan về Internet vạn vật (\ac{iot}), các mối đe dọa an ninh trong hệ thống \ac{iot}, và vai trò của hệ thống phát hiện xâm nhập (\ac{ids}). Bên cạnh đó, trong chương này, luận văn cũng giới thiệu kiến trúc và khả năng của Apache Spark trong xử lý dữ liệu lớn, các kỹ thuật học máy ứng dụng trong phát hiện xâm nhập và cách Spark MLlib hỗ trợ xây dựng mô hình học máy phân tán. (Các nghiên cứu liên quan và khoảng trống nghiên cứu đã được khảo sát ở Chương~1.)
 
 \section{Tổng quan về \ac{iot}}
-Internet of Things (\ac{iot}) là mạng lưới các thiết bị vật lý được tích hợp cảm biến, phần mềm và khả năng kết nối mạng, cho phép thu thập và trao đổi dữ liệu qua Internet \cite{Atzori2010}. \ac{iot} bao gồm các thiết bị như cảm biến môi trường, thiết bị gia dụng thông minh và phương tiện giao thông tạo ra khối lượng dữ liệu lớn với đặc điểm đa dạng, tốc độ cao và yêu cầu xử lý thời gian thực. Theo Cisco (2023), số lượng thiết bị \ac{iot} toàn cầu dự kiến đạt 29,4 tỷ vào năm 2030, nhấn mạnh tầm quan trọng của bảo mật trong lĩnh vực này \cite{Cisco2023}. Kiến trúc \ac{iot} thường được chia thành ba tầng:
+Internet of Things (\ac{iot}) là mạng lưới các thiết bị vật lý được tích hợp cảm biến, phần mềm và khả năng kết nối mạng, cho phép thu thập và trao đổi dữ liệu qua Internet \cite{Atzori2010}. \ac{iot} bao gồm các thiết bị như cảm biến môi trường, thiết bị gia dụng thông minh và phương tiện giao thông tạo ra khối lượng dữ liệu lớn với đặc điểm đa dạng, tốc độ cao và yêu cầu xử lý thời gian thực. Theo báo cáo Cisco Annual Internet Report (2018--2023), tổng số thiết bị nối mạng toàn cầu được dự báo đạt khoảng 29,3 tỷ vào năm 2023, trong đó khoảng một nửa là kết nối máy-với-máy (M2M/\ac{iot}), nhấn mạnh tầm quan trọng của bảo mật trong lĩnh vực này \cite{Cisco2023}. Kiến trúc \ac{iot} thường được chia thành ba tầng:
 \begin{itemize}
   \item \textbf{Tầng nhận thức}: Thu thập dữ liệu từ cảm biến và thiết bị.
   \item \textbf{Tầng mạng}: Truyền tải dữ liệu qua các giao thức như MQTT, CoAP hoặc HTTP.
@@ -25,7 +25,7 @@ Hệ thống phát hiện xâm nhập (\ac{ids}) giám sát và phân tích ho�
 \begin{itemize}
   \item \textbf{Signature-based \ac{ids}}: Sử dụng các mẫu tấn công đã biết, hiệu quả với các mối đe dọa quen thuộc nhưng hạn chế với các tấn công mới.
   \item \textbf{Anomaly-based \ac{ids}}: Phát hiện hành vi bất thường dựa trên mô hình hoạt động bình thường, phù hợp với các cuộc tấn công chưa biết.
-  \item \textbf{Hybrid \ac{ids}}: Kết hợp cả hai phương pháp để tăng độ chính xác \cite{Bhadauria2012}.
+  \item \textbf{Hybrid \ac{ids}}: Kết hợp cả hai phương pháp để tăng độ chính xác \cite{Liao2013}.
 \end{itemize}
 
 Trong \ac{iot}, \ac{ids} phải xử lý khối lượng dữ liệu lớn và đáp ứng yêu cầu thời gian thực, đồng thời phù hợp với tài nguyên hạn chế của thiết bị. Các giải pháp \ac{ids} dựa trên dữ liệu lớn và học máy, như sử dụng Apache Spark, là hướng đi tiềm năng để giải quyết các thách thức này \cite{HaddadPajouh2021}.
@@ -42,7 +42,7 @@ Dữ liệu lớn thường được nhận diện thông qua năm đặc điể
     \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{img/bigdata.png}
-    \caption{Mô hình 5V của dữ liệu lớn \cite{Husamaldin2019}}
+    \caption{Mô hình 5V của dữ liệu lớn \cite{Husamaldin2020}}
     \label{fig:bigdata}
     \end{figure}
 \vspace*{1ex}
@@ -58,7 +58,7 @@ Dữ liệu sinh ra từ các thiết bị \ac{iot} được xem là một trong
 
 \subsection{Các thành phần của Apache Spark}
 
-Trong những năm gần đây, các nền tảng xử lý dữ liệu lớn như Apache Spark đã thu hút sự quan tâm rộng rãi từ cộng đồng nghiên cứu và công nghiệp. Apache Spark là một hệ thống xử lý dữ liệu phân tán quy mô lớn, có khả năng thực thi nhanh các tác vụ trên các cụm dữ liệu lớn. So với Hadoop MapReduce, Spark có thể đạt tốc độ xử lý nhanh hơn khoảng 100 lần trong một số trường hợp nhờ vào khả năng xử lý trong bộ nhớ (\textit{in-memory processing}) \cite{Karau2015}.
+Trong những năm gần đây, các nền tảng xử lý dữ liệu lớn như Apache Spark đã thu hút sự quan tâm rộng rãi từ cộng đồng nghiên cứu và công nghiệp. Apache Spark là một hệ thống xử lý dữ liệu phân tán quy mô lớn, có khả năng thực thi nhanh các tác vụ trên các cụm dữ liệu lớn. So với Hadoop MapReduce, Spark có thể đạt tốc độ xử lý nhanh hơn khoảng 100 lần trong một số trường hợp nhờ vào khả năng xử lý trong bộ nhớ (\textit{in-memory processing}) \cite{Zaharia2016,Karau2015}.
 
 Bên cạnh đó, Spark cung cấp giao diện lập trình linh hoạt thông qua các API hỗ trợ nhiều ngôn ngữ phổ biến như Java, Scala, Python và R, giúp việc phát triển và triển khai ứng dụng trở nên thuận tiện hơn.
 
@@ -68,7 +68,7 @@ Apache Spark bao gồm nhiều thành phần chính tạo thành một hệ sinh
     \begin{figure}[ht]
     \centering
     \includegraphics[width=0.8\textwidth]{img/spark.png}
-    \caption{Các thành phần của Apache Spark}
+    \caption{Các thành phần của Apache Spark \cite{Karau2015}}
     \label{fig:spark}
     \end{figure}
 \vspace*{1ex}
@@ -93,7 +93,7 @@ Kiến trúc của Apache Spark được xây dựng theo mô hình master–wor
     \begin{figure}[ht]
     \centering
     \includegraphics[width=0.85\textwidth]{img/spark-structure.png}
-    \caption{Sơ đồ kiến trúc hệ thống Apache Spark}
+    \caption{Sơ đồ kiến trúc hệ thống Apache Spark \cite{Zaharia2016}}
     \label{fig:spark-structure}
     \end{figure}
 \vspace*{1ex}
@@ -107,10 +107,10 @@ Học máy (\ac{ml}) đã trở thành một công cụ thiết yếu trong vi�
 \begin{itemize}
 \item \textbf{Học có giám sát (Supervised Learning)}: Sử dụng dữ liệu đã được gán nhãn để huấn luyện mô hình phân loại. Một số thuật toán điển hình gồm \ac{rf}, \ac{svm} và Mạng nơ-ron nhân tạo (Neural Networks).
 \item \textbf{Học không giám sát (Unsupervised Learning)}: Áp dụng cho các tình huống không có nhãn, tập trung vào việc phát hiện các mẫu bất thường. K-Means là một thuật toán phổ biến trong nhóm này.
-\item \textbf{Học tăng cường (Reinforcement Learning)}: Mô hình học dựa trên phản hồi từ môi trường nhằm tối ưu hóa hành vi hoặc quyết định của hệ thống theo thời gian.
+\item \textbf{Học tăng cường (Reinforcement Learning)}: Mô hình học dựa trên phản hồi từ môi trường nhằm tối ưu hóa hành vi hoặc quyết định của hệ thống theo thời gian; hướng này không thuộc phạm vi thực nghiệm của luận văn và chỉ được nêu để hoàn chỉnh bức tranh phân loại.
 \end{itemize}
 
-Trong bối cảnh mạng \ac{iot}, học máy được ứng dụng rộng rãi để phân tích lưu lượng dữ liệu và nhận diện các loại tấn công như DDoS, botnet hay giả mạo gói tin. Theo nghiên cứu của Koroniotis và cộng sự (2020), mô hình \ac{rf} triển khai trên nền tảng Apache Spark đã đạt độ chính xác rất cao khi phát hiện tấn công SYN-DOS, đồng thời đảm bảo tốc độ xử lý cao, phù hợp với yêu cầu thời gian thực của môi trường \ac{iot} \cite{Koroniotis2020}. Tuy nhiên, các kết quả gần như tuyệt đối (xấp xỉ 100\%) trên các tập dữ liệu công khai cần được xem xét thận trọng, vì chúng thường là dấu hiệu của rò rỉ dữ liệu (data leakage) hơn là năng lực thực sự của mô hình. \emph{Rò rỉ dữ liệu} là tình huống trong đó thông tin lẽ ra không sẵn có ở thời điểm triển khai thực tế lại lọt vào quá trình huấn luyện hoặc đánh giá, khiến điểm số bị thổi phồng và không phản ánh đúng khả năng tổng quát hoá của mô hình. Luận văn này nhận diện và xử lý vấn đề đó một cách tường minh ở Chương~\ref{c:thucnghiemdanhgia}.
+Trong bối cảnh mạng \ac{iot}, học máy được ứng dụng rộng rãi để phân tích lưu lượng dữ liệu và nhận diện các loại tấn công như DDoS, botnet hay giả mạo gói tin. Chẳng hạn, Koroniotis và cộng sự (2019) xây dựng bộ dữ liệu Bot-IoT và báo cáo các mô hình học máy, học sâu đạt độ chính xác gần tuyệt đối khi phát hiện các tấn công DoS/DDoS trong môi trường \ac{iot} \cite{Koroniotis2019}. Tuy nhiên, các kết quả gần như tuyệt đối (xấp xỉ 100\%) trên các tập dữ liệu công khai cần được xem xét thận trọng, vì chúng thường là dấu hiệu của rò rỉ dữ liệu (data leakage) hơn là năng lực thực sự của mô hình. \emph{Rò rỉ dữ liệu} là tình huống trong đó thông tin lẽ ra không sẵn có ở thời điểm triển khai thực tế lại lọt vào quá trình huấn luyện hoặc đánh giá, khiến điểm số bị thổi phồng và không phản ánh đúng khả năng tổng quát hoá của mô hình. Luận văn này nhận diện và xử lý vấn đề đó một cách tường minh ở Chương~\ref{c:thucnghiemdanhgia}.
 
 Tuy nhiên, việc ứng dụng học máy trong hệ thống \ac{iot} vẫn còn gặp nhiều thách thức vì yêu cầu xử lý theo thời gian thực và hạn chế về tài nguyên tính toán. Việc tích hợp học máy với các nền tảng xử lý dữ liệu lớn như Apache Spark mang lại lợi thế đáng kể, giúp xử lý khối lượng dữ liệu lớn với tốc độ cao và hỗ trợ triển khai các thuật toán học máy hiệu quả trong môi trường phân tán.
 \subsection{Một số thuật toán học máy}
@@ -126,7 +126,7 @@ Kết quả cuối cùng được xác định bằng cách:
     \item Trong bài toán hồi quy: lấy giá trị trung bình từ các dự đoán của từng cây.
 \end{itemize}
 
-Việc kết hợp nhiều cây giúp \ac{rf} giảm thiểu hiện tượng quá khớp (\textit{overfitting}) vốn là một nhược điểm thường gặp của các cây quyết định đơn lẻ. Khi số lượng cây trong rừng tăng lên, hiệu suất dự đoán của mô hình có xu hướng ổn định và cải thiện hơn.
+Việc kết hợp nhiều cây giúp \ac{rf} giảm thiểu hiện tượng quá khớp (\textit{overfitting}) vốn là một nhược điểm thường gặp của các cây quyết định đơn lẻ. Khi số lượng cây trong rừng tăng lên, hiệu năng dự đoán của mô hình có xu hướng ổn định và cải thiện hơn.
 \item \textbf{Hồi quy logistic (\ac{lr})} là một phương pháp thống kê được giới thiệu bởi David Cox vào cuối thập niên 1950. Đây là một kỹ thuật học máy có giám sát thường được sử dụng để giải quyết các bài toán phân loại nhị phân, trong đó biến đầu ra (phản hồi) là một biến định tính, nhận giá trị \texttt{0} hoặc \texttt{1}. Mô hình hồi quy logistic cho phép ước tính xác suất xảy ra của một sự kiện cụ thể dựa trên một hoặc nhiều biến đầu vào (độc lập). Một trong những điểm mạnh của phương pháp này là khả năng xác định mức độ ảnh hưởng của từng yếu tố đến xác suất xuất hiện của kết quả, giúp các nhà phân tích hiểu rõ hơn mối quan hệ giữa biến đầu vào và đầu ra \cite{cox1958regression}.
 
 Về mặt toán học, hàm hồi quy logistic được biểu diễn dưới dạng tuyến tính như sau:
@@ -151,7 +151,7 @@ P(Y_i = 1 \mid \mathbf{x}_i) = \frac{1}{1 + e^{-z_i}}
 
 Trong quá trình huấn luyện, mô hình tìm các hệ số $\beta_j$ tối ưu sao cho hàm mất mát (cross-entropy loss) được tối thiểu hóa.
 
-\item \textbf{\ac{gbt}} là một phương pháp học máy tăng cường (\textit{boosting}) sử dụng các cây quyết định như mô hình học yếu (weak learners). Ý tưởng chính của boosting là xây dựng một mô hình mạnh bằng cách kết hợp nhiều mô hình học yếu được huấn luyện theo trình tự tuần tự. Ở mỗi bước, thuật toán cố gắng giảm thiểu lỗi của mô hình trước bằng cách học từ phần dư (residual) hoặc gradient của hàm mất mát \cite{friedman2001greedy}. Quá trình huấn luyện \ac{gbt} gồm các bước:
+\item \textbf{\ac{gbt}} là một phương pháp \textit{boosting} (kết hợp tuần tự các mô hình học yếu; lưu ý phân biệt với ``học tăng cường'' -- reinforcement learning) sử dụng các cây quyết định như mô hình học yếu (weak learners). Ý tưởng chính của boosting là xây dựng một mô hình mạnh bằng cách kết hợp nhiều mô hình học yếu được huấn luyện theo trình tự tuần tự. Ở mỗi bước, thuật toán cố gắng giảm thiểu lỗi của mô hình trước bằng cách học từ phần dư (residual) hoặc gradient của hàm mất mát \cite{friedman2001greedy}. Quá trình huấn luyện \ac{gbt} gồm các bước:
 \begin{itemize}
     \item Bắt đầu với một mô hình dự đoán ban đầu (thường là giá trị trung bình với bài toán hồi quy).
     \item Tính toán sai số còn lại giữa nhãn thực và dự đoán.
@@ -171,21 +171,7 @@ Trong đó:
     \item $\eta$ là hệ số học (learning rate), thường $\eta \in (0, 1)$.
 \end{itemize}
 
-\item \textbf{\ac{lgbm}} là một framework triển khai thuật toán \ac{gbt}, được phát triển nhằm tối ưu hóa tốc độ huấn luyện và khả năng mở rộng trên các tập dữ liệu lớn \cite{ke2017lightgbm}. Đây là một phương pháp học tập tăng cường (\textit{boosting}) trong đó các cây quyết định được xây dựng tuần tự, mỗi cây mới được huấn luyện để giảm sai số của mô hình trước đó thông qua gradient của hàm mất mát \cite{friedman2001greedy}. 
-
-Giả sử $F_0(x)$ là mô hình khởi tạo ban đầu, mô hình tại bước $m$ được cập nhật như sau:
-
-\begin{equation}
-F_m(x) = F_{m-1}(x) + \eta h_m(x)
-\end{equation}
-
-Trong đó:
-\begin{itemize}
-    \item $h_m(x)$ là cây quyết định thứ $m$ học theo gradient của hàm mất mát,
-    \item $\eta$ là hệ số học (\textit{learning rate}), thường $\eta \in (0,1)$.
-\end{itemize}
-
-Khác với \ac{gbt} truyền thống, \ac{lgbm} sử dụng cơ chế phát triển cây theo hướng leaf-wise thay vì level-wise, đồng thời áp dụng thuật toán histogram-based splitting và kỹ thuật Gradient-based One-Side Sampling (GOSS) nhằm giảm chi phí tính toán và tăng tốc độ huấn luyện. Tuy nhiên, do thư viện gốc của \ac{lgbm} (thông qua SynapseML) chỉ hỗ trợ kiến trúc x86\_64 và không chạy được trên thiết bị biên ARM (Jetson Orin Nano Super) — mục tiêu triển khai của luận văn — nên \ac{lgbm} \emph{không} được đưa vào bộ thuật toán so sánh thực nghiệm; XGBoost và GBT đại diện cho họ gradient boosting.
+\item \textbf{\ac{lgbm}} là một framework triển khai thuật toán \ac{gbt}, được phát triển nhằm tối ưu hóa tốc độ huấn luyện và khả năng mở rộng trên các tập dữ liệu lớn \cite{ke2017lightgbm}, với cùng sơ đồ cập nhật boosting theo gradient đã trình bày ở mục \ac{gbt} phía trên. Khác với \ac{gbt} truyền thống, \ac{lgbm} sử dụng cơ chế phát triển cây theo hướng leaf-wise thay vì level-wise, đồng thời áp dụng thuật toán histogram-based splitting và kỹ thuật Gradient-based One-Side Sampling (GOSS) nhằm giảm chi phí tính toán và tăng tốc độ huấn luyện. Tuy nhiên, \ac{lgbm} \emph{không} được đưa vào bộ thuật toán so sánh thực nghiệm vì lý do tương thích phần cứng trình bày ở Chương~3; XGBoost và GBT đại diện cho họ gradient boosting.
 
 \item \textbf{\ac{nb}} là một phương pháp phân loại xác suất dựa trên định lý Bayes với giả định độc lập có điều kiện giữa các đặc trưng \cite{mccallum1998comparison}. Mặc dù giả định này thường không hoàn toàn đúng trong thực tế, mô hình vẫn cho hiệu quả tốt trong nhiều bài toán phân loại dữ liệu nhiều chiều.
 
@@ -223,7 +209,7 @@ với điều kiện:
 y_i(w \cdot x_i + b) \ge 1
 \end{equation}
 
-Trong trường hợp dữ liệu không tuyến tính, \ac{svm} sử dụng kỹ thuật \textit{kernel trick} để ánh xạ dữ liệu sang không gian chiều cao hơn, cho phép phân tách tuyến tính trong không gian mới. Nhờ cơ chế tối ưu hóa chặt chẽ, \ac{svm} thường đạt hiệu suất cao trong các bài toán phân loại với dữ liệu chiều cao.
+Trong trường hợp dữ liệu không tuyến tính, \ac{svm} sử dụng kỹ thuật \textit{kernel trick} để ánh xạ dữ liệu sang không gian chiều cao hơn, cho phép phân tách tuyến tính trong không gian mới. Nhờ cơ chế tối ưu hóa chặt chẽ, \ac{svm} thường đạt hiệu năng cao trong các bài toán phân loại với dữ liệu chiều cao.
 
 \item \textbf{Multilayer Perceptron - MLP} là một mô hình học sâu cơ bản gồm nhiều lớp ẩn, có khả năng mô hình hóa các mối quan hệ phi tuyến giữa các đặc trưng \cite{rumelhart1986learning}. 
 
@@ -241,7 +227,7 @@ a = \sigma(z)
 
 Trong đó $\sigma(\cdot)$ có thể là các hàm kích hoạt như sigmoid, tanh hoặc ReLU. Quá trình huấn luyện sử dụng thuật toán lan truyền ngược (\textit{backpropagation}) nhằm cập nhật trọng số thông qua tối thiểu hóa hàm mất mát bằng gradient descent. MLP có khả năng biểu diễn mạnh nhưng yêu cầu dữ liệu huấn luyện đủ lớn và quá trình điều chỉnh siêu tham số cẩn thận để tránh hiện tượng quá khớp.
 
-\item \textbf{\ac{xgb}} là một phiên bản cải tiến của thuật toán \ac{gbt} truyền thống, được đề xuất bởi Chen và Guestrin vào năm 2016. \ac{xgb} được thiết kế để tối ưu hóa tốc độ huấn luyện, hiệu suất mô hình, và khả năng xử lý dữ liệu quy mô lớn trong các hệ thống tính toán phân tán \cite{chen2016xgboost}. \ac{xgb} sử dụng các chiến lược sau để cải thiện hiệu năng:
+\item \textbf{\ac{xgb}} là một phiên bản cải tiến của thuật toán \ac{gbt} truyền thống, được đề xuất bởi Chen và Guestrin vào năm 2016. \ac{xgb} được thiết kế để tối ưu hóa tốc độ huấn luyện, hiệu năng mô hình, và khả năng xử lý dữ liệu quy mô lớn trong các hệ thống tính toán phân tán \cite{chen2016xgboost}. \ac{xgb} sử dụng các chiến lược sau để cải thiện hiệu năng:
 \begin{itemize}
     \item Ánh xạ gradient và Hessian để tối ưu hóa hiệu quả (second-order optimization).
     \item Cắt tỉa cây (pruning) theo độ phức tạp thay vì độ sâu cố định.
@@ -300,7 +286,7 @@ Một số phương pháp phổ biến của \ac{el} bao gồm:
 \end{algorithm}
 
 \begin{algorithm}[htbp]
-\caption{Boosting: Học tăng cường tuần tự}
+\caption{Boosting: Kết hợp tuần tự các mô hình học yếu}
 \label{boosting_ag1}
 \textbf{Đầu vào:}
 \begin{itemize}
@@ -308,13 +294,13 @@ Một số phương pháp phổ biến của \ac{el} bao gồm:
   \item Số lượng vòng lặp (mô hình yếu): $T$
 \end{itemize}
 
-\textbf{Đầu ra:} Mô hình tăng cường $F_T(x)$
+\textbf{Đầu ra:} Mô hình boosting $F_T(x)$
 
 \begin{algorithmic}[1]
 \State \textbf{Khởi tạo:} $F_0(x) \gets 0$ \Comment{Mô hình khởi đầu có thể là 0 hoặc dự đoán trung bình}
 \For{$t = 1$ to $T$}
-    \State Tính phần dư (residuals) cho từng mẫu: $r_i^{(t)} = y_i - F_{t-1}(x_i)$
-    \State Huấn luyện mô hình yếu $h_t(x)$ trên các phần dư $r_i^{(t)}$
+    \State Tính giả-phần-dư (pseudo-residuals) theo gradient âm của hàm mất mát: $r_i^{(t)} = -\left[\dfrac{\partial L(y_i, F(x_i))}{\partial F(x_i)}\right]_{F = F_{t-1}}$ \Comment{Với mất mát bình phương (hồi quy), rút gọn thành $y_i - F_{t-1}(x_i)$; với phân loại dùng log-loss}
+    \State Huấn luyện mô hình yếu $h_t(x)$ trên các giả-phần-dư $r_i^{(t)}$
     \State Cập nhật mô hình: $F_t(x) = F_{t-1}(x) + \eta \cdot h_t(x)$
 \EndFor
 \State \Return $F_T(x)$
@@ -326,7 +312,7 @@ Một số phương pháp phổ biến của \ac{el} bao gồm:
 \label{bagging_ag1}
 \textbf{Đầu vào:}
 \begin{itemize}
-  \item Tập huấn luyện $\mathcal{D} = \{(x_i, y_i)\}_{i=1}^N$, với $x_i \in \mathbb{R}^d$, $y_i \in \{1, 2, \dots, C\}$
+  \item Tập huấn luyện $\mathcal{D} = \{(x_i, y_i)\}_{i=1}^N$, với $x_i \in \mathbb{R}^d$, $y_i \in \{0, 1\}$ (tổng quát: $C$ lớp)
   \item Số lượng mô hình cơ sở: $K$
 \end{itemize}
 

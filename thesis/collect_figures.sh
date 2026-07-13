@@ -25,6 +25,7 @@ echo "Collecting thesis figures into thesis/img/ ..."
 
 # Script-generated figures (names already match what the thesis imports)
 copy "$RES/ml_06_feature_selection_shap/shap_feature_importance_top30.png" "shap_feature_importance_top30.png"
+copy "$RES/ml_06_feature_selection_shap/shap_summary_beeswarm.png"          "shap_summary_beeswarm.png"
 copy "$RES/ml_09_multiclass_eval/confusion_matrix.png"                     "confusion_matrix.png"
 
 echo
@@ -35,3 +36,9 @@ echo "  - pipeline_terminal / grafana_dashboard / grafana_attacks / mailtrap_ale
 echo "      these are live-system screenshots — capture and drop into thesis/img/"
 echo
 echo "Done. Figures missing from thesis/img/ render as a red placeholder box (\\IfFileExists)."
+echo
+echo "WARNING: img/legacy/ contains the OLD Raspberry-Pi-era figures (wrong hardware,"
+echo "pre-leakage-fix results — the old SHAP plot even ranks destination_port #2)."
+echo "NEVER copy them back. Re-capture everything on the Jetson Orin Nano Super cluster"
+echo "with the leak-free SHAP Top-30 model; hostnames/series in screenshots must show"
+echo "the Jetson nodes, not 'raspberrypi'."

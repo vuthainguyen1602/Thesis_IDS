@@ -1,24 +1,27 @@
 % Vietnamese comparison table — \input from FAIR main.tex
 % Full-width (table*): the 5 fixed-width columns exceed a single IEEE column,
 % which previously overflowed into the neighbouring column and covered text.
+% NOTE: the "Điểm khác biệt" column must only claim things the paper actually
+% reports (no concept-drift / multi-seed claims); theory/survey-only entries
+% (Guyon, Gama) were removed as they are not comparable experimental baselines.
 \begin{table*}[!t]
   \caption{So sánh với các nghiên cứu IDS liên quan trên CICIDS2017 và Spark/edge.}
   \label{tab:related-work}
   \centering
   \small
-  \begin{tabular}{|p{2.6cm}|p{2.9cm}|p{1.8cm}|p{2.7cm}|p{4.2cm}|}
+  \begin{tabular}{|p{2.6cm}|p{2.9cm}|p{2.2cm}|p{2.3cm}|p{4.2cm}|}
     \hline
-    \textbf{Công trình} & \textbf{Trọng tâm} & \textbf{Dữ liệu} & \textbf{Giảm chiều / XAI} & \textbf{Điểm khác biệt} \\
+    \textbf{Công trình} & \textbf{Trọng tâm} & \textbf{Dữ liệu} & \textbf{Giảm chiều / XAI} & \textbf{Điểm khác biệt của bài này} \\
     \hline
-    Khraisat et al.~\cite{khraisat2019survey} & Khảo sát IDS & Nhiều & Tổng quát & So sánh đồng nhất 4 chiến lược trên cùng quy trình \\
-    Vinayakumar et al.~\cite{vinayakumar2019deep} & Học sâu cho IDS & CICIDS2017 & Không & 8 thuật toán Spark ML + 2 mô hình kết hợp \\
-    Ferrag et al.~\cite{ferrag2020deep} & Học sâu + so sánh & Nhiều & Không & RF/SHAP/PCA có kiểm định trôi khái niệm \\
-    Alrawashdeh \& Purdy~\cite{alrawashdeh2016toward} & Học sâu trực tuyến & Máy trạm & Không & SHAP giải thích + kiểm thử độ bền vững \\
-    Sarhan et al.~\cite{sarhan2022explainable} & XAI cho IDS & NSL-KDD & SHAP & SHAP trên Spark + xuất 30 đặc trưng cho biên \\
-    Guyon \& Elisseeff~\cite{guyon2003introduction} & Lý thuyết lựa chọn đặc trưng & --- & Bao/lọc & Ứng dụng RF Top-$K$ và SHAP Top-$K$ \\
-    Gama et al.~\cite{gama2014survey} & Trôi khái niệm & --- & --- & Theo dõi trôi khái niệm + kiểm định đa seed \\
-    L{\'o}pez-Mart{\'i}n et al.~\cite{lopez2020autoencoder} & Bộ tự mã hoá & NSL-KDD & AE & Cổng AE tách khỏi bộ phân loại Spark (SOICT) \\
-    \textbf{Bài báo này} & \textbf{Lựa chọn đặc trưng + Spark ML} & \textbf{CICIDS2017} & \textbf{RF/SHAP/PCA} & \textbf{Quy trình thống nhất + 3 nhánh đánh giá} \\
+    Khraisat et al.~\cite{khraisat2019survey} & Khảo sát IDS & Nhiều & Tổng quát & So sánh thực nghiệm đồng nhất 4 chiến lược trên cùng một quy trình \\
+    Vinayakumar et al.~\cite{vinayakumar2019deep} & Học sâu cho IDS & CICIDS2017 & Không & 8 thuật toán Spark ML + 2 ensemble; kiểm soát rò rỉ dữ liệu tường minh \\
+    Ferrag et al.~\cite{ferrag2020deep} & Học sâu, so sánh nhiều bộ dữ liệu & Nhiều & Không & So sánh RF/SHAP/PCA dưới quy trình loại trừ rò rỉ + kiểm định thống kê ghép cặp \\
+    Alrawashdeh \& Purdy~\cite{alrawashdeh2016toward} & Học sâu trực tuyến & NSL-KDD & Không & Đánh giá có kiểm soát rò rỉ; SHAP giải thích mô hình \\
+    Sarhan et al.~\cite{sarhan2022explainable} & XAI cho IDS & NetFlow (NF-*) & SHAP & SHAP trên Spark ML; so sánh trực tiếp với RF Importance và PCA trên CICIDS2017 \\
+    Baalaji et al.~\cite{baalaji2025ensemble} & Ensemble học sâu trên IoT-edge & IoT-edge & Không & So sánh nhiều chiến lược giảm chiều thay vì một mô hình; kiểm định thống kê \\
+    Asghar et al.~\cite{asghar2026hedid} & IDS biên giải thích được & Nhiều & Metaheuristic & Quy trình loại trừ rò rỉ + đánh giá liên bộ dữ liệu 2017$\leftrightarrow$2018 \\
+    Hasan et al.~\cite{hasan2025iiot} & AE học đặc trưng cho IIoT-edge & IIoT & Autoencoder & Lựa chọn đặc trưng có giám sát (RF/SHAP) so với trích xuất; chọn mô hình trên validation \\
+    \textbf{Bài báo này} & \textbf{Lựa chọn đặc trưng + Spark ML} & \textbf{CICIDS2017, CSE-CIC-IDS2018} & \textbf{RF/SHAP/PCA} & \textbf{Quy trình thống nhất: loại rò rỉ, chọn trên validation, hoán vị chính xác + Nadeau--Bengio, đa lớp, liên bộ dữ liệu} \\
     \hline
   \end{tabular}
 \end{table*}
