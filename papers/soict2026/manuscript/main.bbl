@@ -19,8 +19,9 @@ Baalaji, K., et~al.: Deep learning-based ensemble stacking for enhanced
   \textbf{7}, ~928 (2025). \doi{10.1007/s42452-025-06871-z}
 
 \bibitem{chandola2009anomaly}
-Chandola, V., Banerjee, A., Kumar, V.: Anomaly detection: A survey. In: ACM
-  Computing Surveys. vol.~41, pp. 1--58 (2009)
+Chandola, V., Banerjee, A., Kumar, V.: Anomaly detection: A survey. ACM
+  Computing Surveys  \textbf{41}(3),  1--58 (2009).
+  \doi{10.1145/1541880.1541882}
 
 \bibitem{ferrag2020deep}
 Ferrag, M.A., Maglaras, L., Janicke, H., Jiang, J., Shu, L.: Deep learning for
@@ -44,8 +45,8 @@ Khraisat, A., Gondal, I., Vamplew, P., Kamruzzaman, J.: Survey of intrusion
   \textbf{2}(1),  1--22 (2019)
 
 \bibitem{kreps2011kafka}
-Kreps, J., et~al.: Kafka: a distributed messaging system for log processing.
-  In: NetDB (2011)
+Kreps, J., Narkhede, N., Rao, J.: Kafka: a distributed messaging system for log
+  processing. In: Proceedings of the NetDB Workshop (2011)
 
 \bibitem{lanvin2023errors}
 Lanvin, M., Gimenez, P.F., Han, Y., Majorczyk, F., M{\'e}, L., Totel, {\'E}.:
@@ -54,7 +55,7 @@ Lanvin, M., Gimenez, P.F., Han, Y., Majorczyk, F., M{\'e}, L., Totel, {\'E}.:
   Systems (CRiSIS 2022), Revised Selected Papers. pp. 18--33. Lecture Notes in
   Computer Science, Springer (2023). \doi{10.1007/978-3-031-31108-6_2}
 
-\bibitem{lopez2020autoencoder}
+\bibitem{lopez2017autoencoder}
 Lopez-Martin, M., Carro, B., Sanchez-Esguevillas, A., Lloret, J.: Conditional
   variational autoencoder for prediction and feature recovery applied to
   intrusion detection in iot. Sensors  \textbf{17}(9), ~1967 (2017).
@@ -76,8 +77,9 @@ Nguyen, T.D., Marchal, S., Miettinen, M., Fereidooni, H., Asokan, N., Sadeghi,
   \url{https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/}
 
 \bibitem{ruff2021unifying}
-Ruff, L., et~al.: A unifying review of deep and shallow anomaly detection.
-  Proceedings of the IEEE  \textbf{109}(5),  756--795 (2021)
+Ruff, L., Kauffmann, J.R., Vandermeulen, R.A., Montavon, G., Samek, W., Kloft,
+  M., Dietterich, T.G., M{\"u}ller, K.R.: A unifying review of deep and shallow
+  anomaly detection. Proceedings of the IEEE  \textbf{109}(5),  756--795 (2021)
 
 \bibitem{sforzin2016rpids}
 Sforzin, A., G{\'o}mez~M{\'a}rmol, F., Conti, M., Bohli, J.M.: {RPiDS}:
@@ -88,12 +90,14 @@ Sforzin, A., G{\'o}mez~M{\'a}rmol, F., Conti, M., Bohli, J.M.: {RPiDS}:
 
 \bibitem{sharafaldin2018toward}
 Sharafaldin, I., Lashkari, A.H., Ghorbani, A.A.: Toward generating a new
-  intrusion detection dataset and intrusion traffic characterization. ICISSp
-  pp. 108--116 (2018)
+  intrusion detection dataset and intrusion traffic characterization. In:
+  Proceedings of the 4th International Conference on Information Systems
+  Security and Privacy (ICISSP). pp. 108--116 (2018)
 
 \bibitem{shi2016edge}
-Shi, W., et~al.: Edge computing: Vision and challenges. In: IEEE Internet of
-  Things Journal. vol.~3, pp. 637--646 (2016)
+Shi, W., Cao, J., Zhang, Q., Li, Y., Xu, L.: Edge computing: Vision and
+  challenges. IEEE Internet of Things Journal  \textbf{3}(5),  637--646 (2016).
+  \doi{10.1109/JIOT.2016.2579198}
 
 \bibitem{vinayakumar2019deep}
 Vinayakumar, R., Alazab, M., Soman, K.P., Poornachandran, P., Al-Nemrat, A.,
@@ -101,7 +105,8 @@ Vinayakumar, R., Alazab, M., Soman, K.P., Poornachandran, P., Al-Nemrat, A.,
   system. IEEE Access  \textbf{7},  41525--41550 (2019)
 
 \bibitem{zaharia2010spark}
-Zaharia, M., et~al.: Spark: Cluster computing with working sets. HotCloud
-  (2010)
+Zaharia, M., Chowdhury, M., Franklin, M.J., Shenker, S., Stoica, I.: Spark:
+  Cluster computing with working sets. In: Proceedings of the 2nd USENIX
+  Workshop on Hot Topics in Cloud Computing (HotCloud'10) (2010)
 
 \end{thebibliography}
