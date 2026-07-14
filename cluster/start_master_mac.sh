@@ -34,6 +34,11 @@ echo "================================================================"
 # Spark sbin treats SPARK_MASTER as rsync host:path (legacy HOD), not spark:// URL.
 unset SPARK_MASTER
 
+# Tolerate transient worker starvation on the 8GB Jetsons (heavy training +
+# swap can stall the worker daemon past the default 60s heartbeat, causing the
+# master to wrongly declare it DEAD). 300s gives slack for spikes / WiFi blips.
+export SPARK_MASTER_OPTS="${SPARK_MASTER_OPTS:-} -Dspark.worker.timeout=300"
+
 "$SPARK_HOME/sbin/start-master.sh" \
     --host "$MASTER_HOST" \
     --port "$MASTER_PORT" \
