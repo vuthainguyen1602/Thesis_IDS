@@ -183,6 +183,13 @@ def create_spark_session(app_name: str = "IDS_Binary_Prediction") -> SparkSessio
         # Mac-only scripts (ml_00, save_model): raw CSV / local paths — never use cluster.
         master = "local[*]"
         cluster = False
+        # In local mode `spark.driver.memory` set on the builder is ignored (the
+        # driver JVM is this very process, already launched with a ~1g default
+        # heap). Set the heap at JVM launch via PYSPARK_SUBMIT_ARGS so the wide
+        # groupBy dedup in ml_00 doesn't OOM.
+        _mem = os.environ.get("SPARK_DRIVER_MEMORY", "8g")
+        os.environ.setdefault(
+            "PYSPARK_SUBMIT_ARGS", f"--driver-memory {_mem} pyspark-shell")
     else:
         master = os.environ.get("SPARK_MASTER", "")
         cluster = is_cluster_mode(master)
@@ -192,6 +199,11 @@ def create_spark_session(app_name: str = "IDS_Binary_Prediction") -> SparkSessio
         .appName(app_name)
         .master(master)
         .config("spark.sql.adaptive.enabled", "true")
+        # Disable constraint propagation: the feature-level dedup in ml_00 groups
+        # by ~78 columns, which makes Catalyst build an enormous ExpressionSet at
+        # planning time (OOM in getAllValidConstraints). This flag skips that step;
+        # it only affects optimizer hints, not results.
+        .config("spark.sql.constraintPropagation.enabled", "false")
         .config("spark.network.timeout", "800s")
         .config("spark.executor.heartbeatInterval", "100s")
     )
