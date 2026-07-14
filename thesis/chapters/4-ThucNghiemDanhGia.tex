@@ -36,13 +36,15 @@ Bảng \ref{tab:model_parameters} tóm tắt thiết lập tham số của các 
 \toprule
 \textbf{Mô hình} & \textbf{Tham số} & \textbf{Giá trị} & \textbf{Ý nghĩa/Mô tả} \\
 \midrule
-\multirow{2}{*}{Decision Tree} 
+\multirow{3}{*}{Decision Tree}
 & maxDepth & 15 & Bắt các mẫu tấn công phức tạp. \\
 & impurity & entropy & Tiêu chí chia nhánh tối ưu. \\
+& minInstancesPerNode & 5 & Số mẫu tối thiểu tại mỗi nút lá. \\
 \midrule
-Logistic Reg. & maxIter & 200 & Đảm bảo hội tụ trên tập dữ liệu lớn. \\
+\multirow{4}{*}{Logistic Reg.} & maxIter & 200 & Đảm bảo hội tụ trên tập dữ liệu lớn. \\
 & regParam & 0{,}001 & Kiểm soát regularization. \\
 & elasticNetParam & 0{,}0 & Sử dụng Ridge (L2) ổn định hơn. \\
+& threshold & 0{,}5 & Ngưỡng quyết định nhị phân. \\
 \midrule
 \ac{svm} (LinearSVC) & maxIter & 200 & Số lần lặp tối ưu hóa biên. \\
 & regParam & 0{,}001 & Tham số điều chuẩn biên quyết định. \\
@@ -61,14 +63,17 @@ Logistic Reg. & maxIter & 200 & Đảm bảo hội tụ trên tập dữ liệu 
 & stepSize & 0{,}05 & Tốc độ học (learning rate) của boosting. \\
 & subsamplingRate & 0{,}8 & Tỉ lệ lấy mẫu dữ liệu mỗi vòng boosting. \\
 \midrule
-\multirow{3}{*}{\ac{xgb}} 
+\multirow{5}{*}{\ac{xgb}}
 & n\_estimators & 300 & Số lượng cây boost trong mô hình. \\
 & max\_depth & 8 & Chiều sâu tối đa mỗi cây. \\
 & learning\_rate & 0{,}05 & Kiểm soát mức độ học của cây mới. \\
+& subsample & 0{,}8 & Tỉ lệ lấy mẫu dữ liệu mỗi cây. \\
+& colsample\_bytree & 0{,}8 & Tỉ lệ lấy mẫu đặc trưng mỗi cây. \\
 \midrule
-\multirow{2}{*}{MLP}
+\multirow{3}{*}{MLP}
 & layers & [$d$, 64, 32, 2] & Mạng nơ-ron 2 lớp ẩn ($d$ = số đặc trưng đầu vào). \\
 & maxIter & 150 & Số vòng lặp huấn luyện tối đa. \\
+& stepSize & 0{,}01 & Tốc độ học của mạng nơ-ron. \\
 \bottomrule
 \end{tabular*}
 \end{table}
