@@ -125,7 +125,45 @@ Each node tags metrics with \texttt{EDGE\_NODE\_ID} in InfluxDB and PostgreSQL. 
 
 \section{Implementation}
 
-Training and model export run on a Spark standalone cluster (host PC as master, two Jetson Orin Nano Super devices as workers) using Apache Spark ML~\cite{zaharia2010spark}. The edge stack is implemented in Python (\texttt{jetson/edge/}) with configurable roles via environment variables. Every offline run logs its configuration (random seed, leakage/dedup switches, library versions) so each exported model is traceable to the exact pipeline that produced it.
+Training and model export run on a Spark standalone cluster (host PC as master, two Jetson Orin Nano Super devices as workers) using Apache Spark ML~\cite{zaharia2010spark}; the cluster topology is shown in Fig.~\ref{fig:spark-cluster}. The host only coordinates (Spark master) and does \emph{not} run an executor, so all reported training compute reflects the two homogeneous Jetson workers rather than the stronger host CPU. The edge stack is implemented in Python (\texttt{jetson/edge/}) with configurable roles via environment variables. Every offline run logs its configuration (random seed, leakage/dedup switches, library versions) so each exported model is traceable to the exact pipeline that produced it.
+
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[
+      font=\small, >=Stealth, every node/.style={align=center},
+      master/.style={draw=gray!65,        thick, rounded corners, fill=gray!8,   text width=12.6cm, minimum height=1.2cm, inner sep=4pt},
+      work/.style  ={draw=green!55!black,  thick, rounded corners, fill=green!8,  text width=5.6cm,  minimum height=2.2cm, inner sep=5pt},
+      store/.style ={draw=blue!55,         thick, rounded corners, fill=blue!5,   text width=5.6cm,  minimum height=0.8cm, inner sep=3pt},
+      lbl/.style   ={font=\footnotesize, fill=white, inner sep=1.5pt, text=gray!35!black},
+      dn/.style    ={-{Stealth[length=2.6mm]}, thick, draw=gray!55!black},
+      up/.style    ={-{Stealth[length=2.6mm]}, thick, draw=orange!75!black, dashed},
+  ]
+    \node[master] (m) at (0,0) {\textbf{Coordinator --- MacBook Air (Apple M3, 16\,GB)}\\[2pt]
+        Spark \textbf{Master} (cluster coordination) \;$|$\; CSV\,$\rightarrow$\,Parquet preprocessing \;$|$\; Docker: Kafka / PostgreSQL / InfluxDB / Grafana\\[1pt]
+        \textit{No executor --- does not run training compute}};
+    \node[work] (w1) at (-3.6,-4.0) {\textbf{Jetson Orin Nano Super \#1}\\[1pt]
+        Spark \textbf{Worker} + \textbf{Driver}\\[2pt]
+        Executor: cores=4, mem=3\,GB\\
+        Data partitions\\
+        swap 8\,GB (NVMe)};
+    \node[work] (w2) at ( 3.6,-4.0) {\textbf{Jetson Orin Nano Super \#2}\\[1pt]
+        Spark \textbf{Worker}\\[2pt]
+        Executor: cores=4, mem=3\,GB\\
+        Data partitions\\
+        swap 8\,GB (NVMe)};
+    \node[store] (s1) at (-3.6,-6.1) {Parquet (synced)};
+    \node[store] (s2) at ( 3.6,-6.1) {Parquet (synced)};
+    \draw[dn] (m.south -| w1) -- node[lbl]{tasks\\ + partitions} (w1.north);
+    \draw[dn] (m.south -| w2) -- node[lbl]{tasks\\ + partitions} (w2.north);
+    \draw[up] (w1.west) -- ++(-0.7,0) node[lbl,pos=1,anchor=east,xshift=-1pt]{results\\ (shuffle/collect)} |- (m.west);
+    \draw[up] (w2.east) -- ++( 0.7,0) |- (m.east);
+    \draw[dn] (w1.south) -- (s1.north);
+    \draw[dn] (w2.south) -- (s2.north);
+  \end{tikzpicture}}
+  \caption{Apache Spark standalone training cluster: the host acts as \emph{master} (coordination only, no executor), while two Jetson Orin Nano Super devices are the \emph{worker}/\emph{executor} nodes; Parquet data is partitioned and synced to both, with results gathered via shuffle/collect.}
+  \label{fig:spark-cluster}
+\end{figure}
 
 \section{From Spark Training to Edge Deployment}
 \label{sec:bridge}

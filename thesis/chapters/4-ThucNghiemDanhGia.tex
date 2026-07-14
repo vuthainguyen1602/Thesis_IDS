@@ -11,9 +11,47 @@ Việc \emph{huấn luyện} mô hình được thực hiện trên một \textb
   \item \textbf{Phần mềm:} Python 3, Apache Spark / PySpark \ph{phiên bản}, MLlib; cấu hình cụm tiêu biểu: \texttt{executor.memory}=3\,GB, \texttt{executor.cores}=4, \texttt{driver.memory}=3\,GB, \texttt{shuffle.partitions}=32; mỗi Jetson được cấp 8\,GB swap trên ổ NVMe để tránh tràn bộ nhớ khi cao điểm (xem \texttt{cluster/spark\_cluster.env}, \texttt{cluster/setup\_swap\_jetson.sh}).
 \end{itemize}
 
-Các thuật toán học máy, phương pháp giảm chiều và các bước đánh giá đều được triển khai bằng PySpark và thực thi phân tán trên hai nút Jetson; tập dữ liệu Parquet được đồng bộ sang cả hai worker trước khi huấn luyện.
+Các thuật toán học máy, phương pháp giảm chiều và các bước đánh giá đều được triển khai bằng PySpark và thực thi phân tán trên hai nút Jetson; tập dữ liệu Parquet được đồng bộ sang cả hai worker trước khi huấn luyện. Kiến trúc cụm huấn luyện phân tán --- gồm vai trò \textit{master} điều phối trên MacBook và hai \textit{worker}/\textit{executor} trên Jetson --- được minh họa ở Hình~\ref{fig:spark_cluster}. Cần phân biệt rõ với Hình~\ref{fig:ids_diagram} (pha suy luận): cùng một cặp Jetson nhưng ở pha huấn luyện đóng vai trò worker của cụm Spark, còn ở pha suy luận đóng vai trò cổng lọc (gate) và bộ phân loại.
 
 Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai trò \textit{master} điều phối cụm cùng tiền xử lý và hạ tầng dịch vụ, mà \emph{không} tham gia tính toán huấn luyện (không chạy \textit{executor}). Lựa chọn này là có chủ đích: toàn bộ số liệu hiệu năng được báo cáo nhằm phản ánh trung thực khả năng \emph{huấn luyện phân tán ngay trên phần cứng biên} Jetson --- đúng với mục tiêu cốt lõi của luận văn. Nếu đưa MacBook (vi xử lý Apple M3, mạnh hơn đáng kể) vào làm nút tính toán, phần lớn khối lượng công việc sẽ dồn về máy chủ, gây mất cân bằng tải (hiện tượng \textit{straggler}) và làm sai lệch các phép đo thời gian/thông lượng, khiến kết quả không còn phản ánh đúng năng lực của cụm biên. Vì vậy, cụm đo đạc được giữ \emph{đồng nhất} gồm hai nút Jetson; máy chủ chỉ được dùng để phát triển và kiểm thử nhanh trong giai đoạn xây dựng pipeline.
+
+\begin{figure}[!ht]
+    \centering
+    \begin{tikzpicture}[
+        font=\small, >=Stealth,
+        every node/.style={align=center},
+        master/.style={draw=gray!65,        thick, rounded corners, fill=gray!8,   text width=12.6cm, minimum height=1.25cm, inner sep=4pt},
+        work/.style  ={draw=green!55!black,  thick, rounded corners, fill=green!8,  text width=5.6cm,  minimum height=2.35cm, inner sep=5pt},
+        store/.style ={draw=blue!55,         thick, rounded corners, fill=blue!5,   text width=5.6cm,  minimum height=0.85cm, inner sep=3pt},
+        lbl/.style   ={font=\footnotesize, fill=white, inner sep=1.5pt, text=gray!35!black},
+        dn/.style    ={-{Stealth[length=2.6mm]}, thick, draw=gray!55!black},
+        up/.style    ={-{Stealth[length=2.6mm]}, thick, draw=orange!75!black, dashed},
+    ]
+        \node[master] (m) at (0,0) {\textbf{Máy chủ điều phối --- MacBook Air (Apple M3, 16\,GB)}\\[2pt]
+            Spark \textbf{Master} (điều phối cụm) \;$|$\; Tiền xử lý CSV\,$\rightarrow$\,Parquet \;$|$\; Docker: Kafka / PostgreSQL / InfluxDB / Grafana\\[1pt]
+            \textit{Không chạy executor --- không tham gia tính toán huấn luyện}};
+        \node[work] (w1) at (-3.6,-4.15) {\textbf{Jetson Orin Nano Super \#1}\\[1pt]
+            Spark \textbf{Worker} + \textbf{Driver}\\[2pt]
+            Executor: cores=4, mem=3\,GB\\
+            Phân vùng dữ liệu (partitions)\\
+            swap 8\,GB (NVMe)};
+        \node[work] (w2) at ( 3.6,-4.15) {\textbf{Jetson Orin Nano Super \#2}\\[1pt]
+            Spark \textbf{Worker}\\[2pt]
+            Executor: cores=4, mem=3\,GB\\
+            Phân vùng dữ liệu (partitions)\\
+            swap 8\,GB (NVMe)};
+        \node[store] (s1) at (-3.6,-6.35) {Parquet (đồng bộ)};
+        \node[store] (s2) at ( 3.6,-6.35) {Parquet (đồng bộ)};
+        \draw[dn] (m.south -| w1) -- node[lbl]{giao tác vụ\\ + partition} (w1.north);
+        \draw[dn] (m.south -| w2) -- node[lbl]{giao tác vụ\\ + partition} (w2.north);
+        \draw[up] (w1.west) -- ++(-0.7,0) node[lbl,pos=1,anchor=east,xshift=-1pt]{gom kết quả\\ (shuffle/collect)} |- (m.west);
+        \draw[up] (w2.east) -- ++( 0.7,0) |- (m.east);
+        \draw[dn] (w1.south) -- (s1.north);
+        \draw[dn] (w2.south) -- (s2.north);
+    \end{tikzpicture}
+    \caption{Cụm huấn luyện phân tán Apache Spark Standalone: MacBook giữ vai trò \textit{master} điều phối (không chạy executor), hai Jetson Orin Nano Super là \textit{worker}/\textit{executor} thực thi tính toán; dữ liệu Parquet được phân vùng và đồng bộ sang cả hai nút, kết quả được gom về qua shuffle/collect.}
+    \label{fig:spark_cluster}
+\end{figure}
 
 \section{Kết quả thực nghiệm}
 
