@@ -260,7 +260,7 @@ Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữ
 
 \State \textbf{Bước 1: Huấn luyện và đánh giá $K$ mô hình cơ sở}
 \For{$k = 1$ to $K$}
-    \State $M_k \gets \text{Train}(\mathcal{L}_k, D)$ \Comment{Huấn luyện mô hình $M_k$ trên tập $D$}
+    \State $M_k \gets \text{Train}(\mathcal{L}_k, D \setminus D_{\text{val}})$ \Comment{Huấn luyện trên phần train lõi, tách khỏi $D_{\text{val}}$}
     \State $F_k \gets \text{F1-Score}(M_k, D_{\text{val}})$ \Comment{Tính điểm F1 trên tập kiểm định (validation), không chạm tập kiểm tra}
 \EndFor
 
@@ -313,7 +313,7 @@ Cách tiếp cận này cho phép giảm phương sai của các mô hình cơ s
 
 \State \textbf{Bước 1: Huấn luyện và đánh giá $K$ mô hình cơ sở}
 \For{$k = 1$ to $K$}
-    \State $M_k \gets \text{Train}(\mathcal{L}_k, D)$ \Comment{Huấn luyện mô hình $M_k$ trên tập $D$}
+    \State $M_k \gets \text{Train}(\mathcal{L}_k, D \setminus D_{\text{val}})$ \Comment{Huấn luyện trên phần train lõi, tách khỏi $D_{\text{val}}$}
     \State $F_k \gets \text{F1-Score}(M_k, D_{\text{val}})$ \Comment{Tính điểm F1 trên tập kiểm định (validation), không chạm tập kiểm tra}
 \EndFor
 
@@ -325,7 +325,7 @@ Cách tiếp cận này cho phép giảm phương sai của các mô hình cơ s
 \State $\mathcal{E} \gets \emptyset$ \Comment{Tập ensemble gồm 7 mô hình}
 \For{$j = 1$ to $3$}
     \For{$i = 1$ to $r_j$}
-        \State Tạo tập bootstrap $D_{j,i}$ bằng cách lấy ngẫu nhiên $n$ mẫu từ $D$ \textbf{có hoàn lại}
+        \State Tạo tập bootstrap $D_{j,i}$ bằng cách lấy ngẫu nhiên $n$ mẫu từ $D \setminus D_{\text{val}}$ \textbf{có hoàn lại}
         \State $h_{j,i} \gets \text{Train}(\mathcal{L}^{(j)}, D_{j,i})$ \Comment{Huấn luyện bản sao thứ $i$ của mô hình hạng $j$}
         \State Gán trọng số $w_{j,i} \gets F^{(j)}$ \Comment{Trọng số dựa trên F1-Score}
         \State Thêm $(h_{j,i}, w_{j,i})$ vào $\mathcal{E}$
