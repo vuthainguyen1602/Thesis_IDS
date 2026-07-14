@@ -121,7 +121,28 @@ Connectivity check from Jetson:
 ssh <user>@192.168.1.50 "ping -c 2 192.168.1.165 && nc -zv 192.168.1.165 7077"
 ```
 
-### Step 5 — Mac: sync + train
+### Step 5 — Mac: run everything (one command)
+
+Once the cluster is up (Steps 1–4), a single command runs the full pipeline
+(offline Spark + edge benchmarks) and produces the data for **thesis + FAIR + SOICT**:
+
+```bash
+./run_all.sh
+```
+
+It auto-starts the Mac master, runs `ml_00`→`ml_11` in dependency order, then the
+edge benchmarks. Progress/timing land in `output/run_all_logs/`; if interrupted,
+just re-run `./run_all.sh` — completed steps are skipped (resume markers in
+`.run_all_state/`).
+
+| Command | Effect |
+|---------|--------|
+| `./run_all.sh offline` \| `edge` | run one phase only |
+| `STOP_ON_ERROR=0 ./run_all.sh` | keep going on failure, report at end |
+| `FORCE=1 ./run_all.sh` | re-run from scratch (ignore resume markers) |
+| `RUN_STREAMING=1 ./run_all.sh edge` | include end-to-end streaming benchmark (needs Docker+Kafka) |
+
+To debug a single step instead:
 
 ```bash
 ./cluster/sync_workspace.sh          # if code/config changed on Mac
