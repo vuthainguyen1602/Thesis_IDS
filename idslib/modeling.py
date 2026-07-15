@@ -382,10 +382,15 @@ class BaggingModel:
         return final_res
 
     def save(self, path: str) -> None:
-        raise NotImplementedError(
-            "BaggingModel.save() is not yet implemented. "
-            "Serialise individual base models via model.save(path) instead."
-        )
+        """Serialise every bootstrap sub-model so the ensemble can be measured
+        (get_model_size) and reloaded the same way as a single PipelineModel.
+        Real on-disk size = sum of all sub-models, consistent with Ensemble Voting."""
+        import json
+        os.makedirs(path, exist_ok=True)
+        for i, m in enumerate(self.models):
+            m.save(os.path.join(path, f"submodel_{i}"))
+        with open(os.path.join(path, "bagging_meta.json"), "w") as f:
+            json.dump({"names": self.names, "weights": self.weights}, f)
 
 def train_hybrid_bagging(
     pipeline_distribution, train_df,
@@ -574,9 +579,13 @@ def run_all_classifiers(
         metrics["training_time"] = training_time
         metrics["prediction_time"] = prediction_time
         
-        total_size = sum([results[name].get("model_size_mb", 0.5) * count 
-                         for name, count in zip(top_3, counts)])
-        metrics["model_size_mb"] = total_size
+        # Measure the real serialised size (all 7 sub-models on disk) — the same
+        # way Ensemble Voting is measured — so the two ensembles are comparable.
+        # Fall back to the base-size estimate only if serialisation fails.
+        real_size = get_model_size(ensemble_model)
+        metrics["model_size_mb"] = real_size if real_size and real_size > 0 else sum(
+            results[name].get("model_size_mb", 0.5) * count
+            for name, count in zip(top_3, counts))
         
         display_name = "Hybrid Bagging Ensemble (Top-3 Mixed + Weighted)"
         print_metrics(metrics, title=display_name)
