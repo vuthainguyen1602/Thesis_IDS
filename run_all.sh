@@ -80,8 +80,8 @@ phase_offline() {
   run_step ml_06_shap_selection remote ml_06_feature_selection_shap.py
   run_step ml_01_baseline       remote ml_01_baseline_all_features.py
   run_step ml_04_pca            remote ml_04_dimensionality_reduction_pca.py
-  run_step ml_03_tuning         remote ml_03_hyperparameter_tuning.py
-  run_step ml_07_comparison     remote ml_07_cross_method_comparison.py
+  run_step ml_07_comparison     remote ml_07_cross_method_comparison.py   # writes best_config.json
+  run_step ml_03_tuning         remote ml_03_hyperparameter_tuning.py       # needs best_config.json from ml_07
   run_step ml_09_multiclass     remote ml_09_multiclass_eval.py
   run_step ml_10_leakage_abl    remote ml_10_leakage_ablation.py
   run_step ml_11_cross_dataset  remote ml_11_cross_dataset_eval.py
