@@ -34,5 +34,7 @@ if [ -z "${IDS_CLUSTER_DATA_DIR:-}" ] || [ -z "${CLUSTER_DRIVER:-}" ]; then
     exit 1
 fi
 
-# Auto-trust new host keys (avoids interactive "yes/no" on first SSH).
-export CLUSTER_SSH_OPTS="${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10}"
+# Auto-trust new host keys + keep long-running SSH sessions alive through brief
+# network hiccups (send a keepalive every 30s, tolerate ~10 min unresponsive
+# before dropping) so multi-hour remote steps don't die on a WiFi blip.
+export CLUSTER_SSH_OPTS="${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o ServerAliveInterval=30 -o ServerAliveCountMax=20 -o TCPKeepAlive=yes}"
