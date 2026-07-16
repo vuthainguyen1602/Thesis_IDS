@@ -269,6 +269,36 @@ def _method_slug(name: str) -> str:
     return name.replace(" ", "_").replace("(", "").replace(")", "").replace("=", "_")
 
 
+def _save_method_metrics(method_dir: str, results: dict) -> None:
+    """Persist a method's per-model metrics (metrics.json) so a crash mid-loop
+    can resume: on the next run the method is skipped and its numbers reused."""
+    import json
+    def _coerce(o):
+        try:
+            return float(o)
+        except Exception:
+            return None
+    try:
+        with open(os.path.join(method_dir, "metrics.json"), "w") as f:
+            json.dump(results, f, default=_coerce)
+    except Exception as e:
+        print(f"  [WARN] could not cache method metrics for resume: {e}")
+
+
+def _load_method_metrics(method_dir: str):
+    """Return cached per-model metrics for a method, or None if not cached."""
+    import json
+    path = os.path.join(method_dir, "metrics.json")
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path) as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) and data else None
+    except Exception:
+        return None
+
+
 def _build_method_transform(config, feature_cols):
     extra_stages = []
     if config["type"] == "all":
@@ -418,6 +448,17 @@ if __name__ == "__main__":
         print(f"  METHOD: {method_name}")
         print(f"{'=' * 70}")
 
+        # Per-method resume: if this method already finished in a previous run
+        # (metrics.json present), reuse its numbers and skip retraining. This
+        # protects a multi-hour run from losing completed methods on a crash.
+        _mdir = os.path.join(OUTPUT_DIR, _method_slug(method_name))
+        _cached = _load_method_metrics(_mdir)
+        if _cached is not None and os.environ.get("IDS_EXP7_FORCE_METHODS", "0") != "1":
+            print(f"  [RESUME] Reusing cached metrics for '{method_name}' "
+                  f"(rm {_mdir}/metrics.json or IDS_EXP7_FORCE_METHODS=1 to recompute).")
+            all_method_results[method_name] = _cached
+            continue
+
         extra_stages = []
 
         if config["type"] == "all":
@@ -490,6 +531,8 @@ if __name__ == "__main__":
 
         method_dir = os.path.join(OUTPUT_DIR, _method_slug(method_name))
         os.makedirs(method_dir, exist_ok=True)
+        # Cache this method's metrics immediately so a later crash can resume.
+        _save_method_metrics(method_dir, results)
 
         plot_comparison(
             results,
@@ -734,6 +777,11 @@ if __name__ == "__main__":
     robustness_rows = []
     for method_name, info in best_per_method.items():
         best_model_name = info["best_model"]
+        # A method resumed from cache has no in-memory model — skip its robustness
+        # (secondary metric) rather than crash. Do a full pass for complete robustness.
+        if best_model_name not in all_method_models.get(method_name, {}):
+            print(f"  [SKIP robustness] '{method_name}': model not in memory (resumed from cache).")
+            continue
         best_model = all_method_models[method_name][best_model_name]
         robust_preds = best_model.transform(robust_test_df).cache()
         robust_preds.count()
