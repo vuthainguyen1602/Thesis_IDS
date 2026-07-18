@@ -225,10 +225,10 @@ In our companion ML study, we evaluate four feature configurations---baseline (a
     \toprule
     Configuration & F1 & Features & Size (MB) & Edge rationale \\
     \midrule
-    Baseline + \ph{m1} & \ph{f1\_1} & \ph{nf1} & \ph{s1} & Reference accuracy; smallest model \\
-    SHAP Top-30 + \ph{m3} & \ph{f1\_3} & \ph{nf3} & \ph{s3} & Explainable; fewer features (deployed) \\
-    RF Top-30 + \ph{m2} & \ph{f1\_2} & \ph{nf2} & \ph{s2} & Same feature count; embedded ranking \\
-    PCA $k$=40 + \ph{m4} & \ph{f1\_4} & \ph{nf4} & \ph{s4} & Unsupervised reduction \\
+    Baseline + XGBoost & 0.9971 & 77 & 2.32 & Reference accuracy; smallest model \\
+    SHAP Top-30 + XGBoost & 0.9970 & 30 & 0.003 & Explainable; fewer features (deployed) \\
+    RF Top-30 + XGBoost & 0.9922 & 30 & 2.52 & Same feature count; embedded ranking \\
+    PCA $k$=40 + XGBoost & 0.9939 & 40 & 3.82 & Unsupervised reduction \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -265,7 +265,7 @@ We deploy SHAP Top-30 (with the classifier chosen in Exp~7) on Jetson~\#2 becaus
 
 \subsection{Hardware and Software}
 
-2$\times$ NVIDIA Jetson Orin Nano Super Developer Kit (6-core Arm Cortex-A78AE, NVIDIA Ampere GPU with 1024 CUDA + 32 Tensor cores, 8\,GB LPDDR5, 256\,GB NVMe SSD, $\sim$67 TOPS), host PC running Docker Compose, Wi-Fi LAN. PySpark \ph{spark}, Apache Kafka \ph{kafka}, InfluxDB and Grafana for metrics.
+2$\times$ NVIDIA Jetson Orin Nano Super Developer Kit (6-core Arm Cortex-A78AE, NVIDIA Ampere GPU with 1024 CUDA + 32 Tensor cores, 8\,GB LPDDR5, 256\,GB NVMe SSD, $\sim$67 TOPS), host PC running Docker Compose, Wi-Fi LAN. PySpark 3.4.1, Apache Kafka 3.5 (Confluent Platform 7.5.0), InfluxDB and Grafana for metrics.
 
 \subsection{Workloads}
 
@@ -315,9 +315,9 @@ We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with 
     \toprule
     Engine & Throughput (flows/s) & p95 latency (ms) & RAM (\%) & Energy/inf.\ (mJ) \\
     \midrule
-    PySpark (deployed) & \ph{tp\_sp} & \ph{p95\_sp} & \ph{ram\_sp} & \ph{e\_sp} \\
-    scikit-learn       & \ph{tp\_sk} & \ph{p95\_sk} & \ph{ram\_sk} & \ph{e\_sk} \\
-    ONNX Runtime       & \ph{tp\_ox} & \ph{p95\_ox} & \ph{ram\_ox} & \ph{e\_ox} \\
+    PySpark (deployed) & 26.8 & 397 & 27.5 & -- \\
+    scikit-learn       & 205.5 & 49.8 & 12.7 & 2.87 \\
+    ONNX Runtime       & \multicolumn{4}{c}{not measured (onnxruntime not installed on ARM64)} \\
     \bottomrule
   \end{tabular}
 \end{table}
