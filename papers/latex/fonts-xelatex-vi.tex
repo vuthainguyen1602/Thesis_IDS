@@ -1,7 +1,6 @@
-% Shared XeLaTeX font setup for Vietnamese manuscripts (macOS / Windows)
-\setmainfont{Times New Roman}[
-  Ligatures=TeX,
-  BoldFont=Times New Roman Bold,
-  ItalicFont=Times New Roman Italic,
-  BoldItalicFont=Times New Roman Bold Italic,
-]
+% Shared XeLaTeX font setup for Vietnamese manuscripts.
+% TeX Gyre Termes is a Times-compatible font that ships with TeX Live / MacTeX,
+% covers Vietnamese, and needs no MS-Office fonts -> builds on any machine.
+% If you have "Times New Roman" installed and your venue requires it exactly,
+% swap the line below for: \setmainfont{Times New Roman}[Ligatures=TeX]
+\setmainfont{TeX Gyre Termes}[Ligatures=TeX]
