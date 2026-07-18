@@ -147,7 +147,7 @@ def main():
 
         ax.set_xticks(x)
         ax.set_xticklabels(labels)
-        ax.set_ylim(0, 1.02)
+        ax.set_ylim(0, 1.12)
         ax.set_ylabel("Score (binary)")
         ax.set_title("Feature-leakage ablation: effect of destination_port")
         ax.legend()
