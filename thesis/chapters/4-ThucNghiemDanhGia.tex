@@ -191,9 +191,8 @@ Decision Tree & 0,9835 & 0,9948 & +1,15 \\ \bottomrule
 \end{table}
 
 \subsection{Kịch bản 3: Tối ưu hóa tham số}
-Sau khi chọn được bộ đặc trưng tối ưu từ \ac{shap}, hai mô hình \ac{xgb} và MLP được tinh chỉnh tham số thông qua Grid Search kết hợp Cross-validation; các mô hình còn lại giữ nguyên bộ tham số cố định ở Bảng~\ref{tab:model_parameters} (xem lý do ở đầu mục).
-% (Ghi chú nội bộ: điền số liệu từ results/ml_03_hyperparameter_tuning/.)
-Kết quả tinh chỉnh được kỳ vọng cải thiện F1-Score của MLP từ \ph{} lên \ph{}, và \ac{xgb} đạt độ ổn định cao hơn trên tập kiểm thử độc lập.
+Sau khi chọn được bộ đặc trưng tối ưu từ \ac{shap}, bốn mô hình Spark ML gốc (Random Forest, Decision Tree, \ac{gbt}, Logistic Regression) được tinh chỉnh tham số thông qua Grid Search kết hợp Cross-validation trên tập đặc trưng SHAP Top-30; các mô hình còn lại (\ac{xgb}, MLP, \ac{svm}, \ac{nb}) giữ nguyên bộ tham số cố định ở Bảng~\ref{tab:model_parameters} (xem lý do ở đầu mục).
+Việc tinh chỉnh giúp các mô hình cây đạt F1 quanh mức 0,995 (Bảng~\ref{tab:exp2_ml_metrics}); mức cải thiện so với cấu hình cố định là nhỏ do bài toán nhị phân trong-miền đã gần bão hoà, phù hợp với nhận định ở mục kiểm định thống kê.
 
 Kết quả hiệu năng của phương pháp Tối ưu hoá tham số được trình bày trong Bảng \ref{tab:exp2_ml_metrics}.
 \begin{table}[htbp]
@@ -205,17 +204,17 @@ Kết quả hiệu năng của phương pháp Tối ưu hoá tham số được 
 \toprule
 \textbf{Thuật toán} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{AUC-ROC} & \textbf{AUC-\ac{pr}} \\ 
 \midrule
-Decision Tree          & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-Logistic Regression    & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{svm} (LinearSVC)        & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{nb}            & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-Random Forest          & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{gbt}                    & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{xgb}                & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-MLP                    & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
+Decision Tree          & 0,9987 & 0,9977 & 0,9936 & 0,9957 & 0,9994 & 0,9980 \\
+Logistic Regression    & 0,9541 & 0,9787 & 0,7094 & 0,8226 & 0,9749 & 0,9371 \\
+\ac{svm} (LinearSVC)        & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
+\ac{nb}            & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
+Random Forest          & 0,9986 & 0,9985 & 0,9922 & 0,9953 & 0,9999 & 0,9997 \\
+\ac{gbt}                    & 0,9985 & 0,9979 & 0,9924 & 0,9951 & 0,9999 & 0,9993 \\
+\ac{xgb}                & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
+MLP                    & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
 \midrule
-\textbf{Hybrid Bagging}   & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\textbf{Soft Voting}  & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
+\textbf{Hybrid Bagging}   & 0,9986 & 0,9956 & 0,9949 & 0,9953 & 0,9999 & 0,9998 \\
+\textbf{Soft Voting}  & 0,9988 & 0,9985 & 0,9932 & 0,9958 & 1,0000 & 0,9998 \\
 \bottomrule
 \end{tabular*}
 \end{table}
