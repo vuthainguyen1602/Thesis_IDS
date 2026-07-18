@@ -233,7 +233,7 @@ def main():
         ax1.plot(sweep_df["gate_skip_ratio"], sweep_df["recall"], "o-", color="#1f77b4", label="Recall")
         ax1.set_xlabel("Gate skip ratio (benign offloaded from Spark)")
         ax1.set_ylabel("Attack recall", color="#1f77b4")
-        ax1.set_ylim(0, 1.02)
+        ax1.set_ylim(0, 1.12)
         ax2 = ax1.twinx()
         ax2.plot(sweep_df["gate_skip_ratio"], sweep_df["fpr"], "s--", color="#d62728", label="FPR")
         ax2.set_ylabel("False positive rate", color="#d62728")

@@ -120,7 +120,11 @@ def main():
     predictions.count()
 
     # Recover class names in index order from the fitted StringIndexer.
-    labels = model.stages[0].labels
+    # CICIDS2017 web-attack labels contain a non-UTF8 byte (cp1252 0x96) that
+    # renders as a replacement glyph; sanitise for display (indices unchanged).
+    def _clean_label(s):
+        return "".join(ch if ord(ch) < 128 else "-" for ch in str(s)).replace("  ", " ").strip()
+    labels = [_clean_label(l) for l in model.stages[0].labels]
     print(f"  Classes ({len(labels)}): {labels}")
 
     ev = lambda metric: MulticlassClassificationEvaluator(
@@ -159,6 +163,10 @@ def main():
     for _, r in pred_pdf.iterrows():
         cm[int(r["label_idx"]), int(r["prediction"])] += 1
     cm_norm = cm / np.clip(cm.sum(axis=1, keepdims=True), 1, None)
+
+    # Persist raw counts so the heatmap can be regenerated without re-running.
+    pd.DataFrame(cm.astype(int), index=labels, columns=labels).to_csv(
+        os.path.join(out_dir, "confusion_matrix_counts.csv"))
 
     plt.figure(figsize=(max(8, n), max(6, n)))
     plt.imshow(cm_norm, cmap="Blues", vmin=0, vmax=1)

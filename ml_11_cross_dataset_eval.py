@@ -183,7 +183,7 @@ def main():
         b1 = ax.bar(x - w / 2, indom, w, label="In-domain (A→A)", color="#2ca02c")
         b2 = ax.bar(x + w / 2, cross, w, label="Cross-dataset (A→B)", color="#d62728")
         ax.set_xticks(x); ax.set_xticklabels([f"Train: {t}" for t in trains])
-        ax.set_ylim(0, 1.02); ax.set_ylabel("Binary F1")
+        ax.set_ylim(0, 1.12); ax.set_ylabel("Binary F1")
         ax.set_title("Cross-dataset generalization (distribution shift)")
         ax.legend()
         ax.bar_label(b1, fmt="%.3f", fontsize=8); ax.bar_label(b2, fmt="%.3f", fontsize=8)

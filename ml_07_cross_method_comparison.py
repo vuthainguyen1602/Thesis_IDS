@@ -596,7 +596,7 @@ if __name__ == "__main__":
     ax.set_xticks(x)
     ax.set_xticklabels(all_models, rotation=45, ha="right", fontsize=9)
     ax.legend(fontsize=10, loc="lower left")
-    ax.set_ylim(0, 1.05)
+    ax.set_ylim(0, 1.12)
     ax.grid(axis="y", alpha=0.3)
     plt.tight_layout()
 
