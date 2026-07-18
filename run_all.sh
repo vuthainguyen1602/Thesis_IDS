@@ -100,7 +100,10 @@ phase_edge() {
   run_step sync_models "$CLUSTER_DIR/sync_workspace.sh"
   run_step bench_engines     ssh_driver "python jetson/scripts/benchmark_engines.py"
   run_step bench_all_models  ssh_driver "python jetson/scripts/benchmark_all.py"
-  run_step bench_distributed ssh_driver "python jetson/scripts/benchmark_distributed.py"
+  # 'local' = single-node PySpark micro-benchmark (no Kafka). The full 3-mode
+  # distributed comparison + per-node energy needs the live edge stack
+  # (Docker/Kafka + gate/classifier) — run manually with the streaming step.
+  run_step bench_distributed ssh_driver "python jetson/scripts/benchmark_distributed.py local"
   if [ "$RUN_STREAMING" = "1" ]; then
     run_step bench_streaming ssh_driver "python jetson/scripts/benchmark_all.py --streaming"
   else
