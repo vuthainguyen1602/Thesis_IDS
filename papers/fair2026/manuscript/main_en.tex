@@ -110,10 +110,10 @@ We merge the eight CICIDS2017 CSV files, normalize column names, replace infinit
 
 \begin{itemize}
   \item \textbf{Removing the label-leaking feature.} \texttt{destination\_port} (and \texttt{source\_port} if present) is removed because it directly encodes the target service of the attack; keeping it would let the model memorize the port~$\rightarrow$~label mapping instead of learning flow behavior. An ablation (keep vs. remove the port) quantifies the impact.
-  \item \textbf{Feature-level deduplication (deterministic).} Beyond removing fully duplicate records, we remove flows that are \emph{identical across all feature columns} before splitting, preventing the same sample from appearing in both the training and test sets. For groups of flows that are feature-identical but have \emph{conflicting labels} (Benign and Attack --- a known error in CICIDS2017~\cite{lanvin2023errors}), the entire group is removed rather than arbitrarily keeping one row depending on data partitioning; the numbers of removed groups and rows are reported (\ph{n\_conflict\_groups} groups, \ph{n\_conflict\_rows} rows), ensuring the deduplication result is deterministic and reproducible.
+  \item \textbf{Feature-level deduplication (deterministic).} Beyond removing fully duplicate records, we remove flows that are \emph{identical across all feature columns} before splitting, preventing the same sample from appearing in both the training and test sets. For groups of flows that are feature-identical but have \emph{conflicting labels} (Benign and Attack --- a known error in CICIDS2017~\cite{lanvin2023errors}), the entire group is removed rather than arbitrarily keeping one row depending on data partitioning; the numbers of removed groups and rows are reported (270 groups, 44,260 rows), ensuring the deduplication result is deterministic and reproducible.
 \end{itemize}
 
-After processing, the data are split into \textbf{80\% training / 20\% test} (with a fixed seed), stored in Parquet format, and reused throughout the experiments. The number of remaining numeric features is \ph{n\_features}, and the number of samples after deduplication is \ph{n\_train}/\ph{n\_test}.
+After processing, the data are split into \textbf{80\% training / 20\% test} (with a fixed seed), stored in Parquet format, and reused throughout the experiments. The number of remaining numeric features is 77, and the number of samples after deduplication is 1,785,349/447,275 ($\approx$2,232,624 total after feature-level dedup).
 
 \subsection{Classifiers and the four dimensionality-reduction strategies}
 
@@ -167,11 +167,11 @@ To avoid selection bias from trying many configurations on the same test set, we
 
 \subsection{Setup}
 
-CICIDS2017; an 80/20 training/test split after leakage removal (Section~\ref{sec:leakage}); Apache Spark \ph{spark}, Java \ph{java}; hardware \ph{hardware}. Every script logs the run configuration (seed, environment variables, library versions) to ensure reproducibility. The full source code, configuration, and feature lists are publicly available at \ph{code repository URL (with commit hash)}; the pipeline can be reproduced on a single machine and does not require an edge-device cluster.
+CICIDS2017; an 80/20 training/test split after leakage removal (Section~\ref{sec:leakage}); Apache Spark 3.4.1, Java 17; hardware: a cluster of 2$\times$ Jetson Orin Nano Super (8\,GB) and a coordinator host. Every script logs the run configuration (seed, environment variables, library versions) to ensure reproducibility. The full source code, configuration, and feature lists are publicly available at \ph{code repository URL (with commit hash)}; the pipeline can be reproduced on a single machine and does not require an edge-device cluster.
 
 \subsection{Port-feature ablation}
 
-Table~\ref{tab:port-ablation} and Figure~\ref{fig:leakage-ablation} quantify the impact of \texttt{destination\_port}. When the port is kept, binary F1 is near-perfect (\ph{f1\_with}); when the port is removed, F1 drops to \ph{f1\_no}, reflecting the true capability. All subsequent results use the \emph{port-removed} configuration.
+Table~\ref{tab:port-ablation} and Figure~\ref{fig:leakage-ablation} quantify the impact of \texttt{destination\_port}. After feature-level deduplication, the port's isolated effect is \emph{small}: binary F1 is 0.9965 with the port and 0.9955 without it (a $\approx$0.001 gap) --- the in-domain binary task is near saturation and the dominant leakage source (duplicate flows) is already handled; the direction (keeping the port yields slightly higher F1/recall) is nonetheless consistent with leakage. All subsequent results use the \emph{port-removed} configuration.
 
 \begin{table}[htbp]
   \caption{Impact of the leaking feature \texttt{destination\_port} (Random Forest fixed a priori per the Table~\ref{tab:hparams} configuration, class-weighted; binary).}
@@ -182,8 +182,8 @@ Table~\ref{tab:port-ablation} and Figure~\ref{fig:leakage-ablation} quantify the
     \toprule
     Configuration & F1 & Recall (Attack) & AUC-PR \\
     \midrule
-    Keep port & \ph{f1\_with} & \ph{rec\_with} & \ph{pr\_with} \\
-    Remove port (proposed) & \ph{f1\_no} & \ph{rec\_no} & \ph{pr\_no} \\
+    Keep port & 0.9965 & 0.9988 & 0.9999 \\
+    Remove port (proposed) & 0.9955 & 0.9961 & 0.9997 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -222,10 +222,10 @@ Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\r
     \toprule
     Method & Model & F1 & AUC-PR & Train (s) & Size (MB) \\
     \midrule
-    Baseline & \ph{m1} & \ph{f1\_1} & \ph{pr\_1} & \ph{t\_1} & \ph{s\_1} \\
-    RF Top-30 & \ph{m2} & \ph{f1\_2} & \ph{pr\_2} & \ph{t\_2} & \ph{s\_2} \\
-    SHAP Top-30 & \ph{m3} & \ph{f1\_3} & \ph{pr\_3} & \ph{t\_3} & \ph{s\_3} \\
-    PCA $k$=40 & \ph{m4} & \ph{f1\_4} & \ph{pr\_4} & \ph{t\_4} & \ph{s\_4} \\
+    Baseline & XGBoost & 0.9971 & 0.9999 & 4615.5 & 2.32 \\
+    RF Top-30 & XGBoost & 0.9922 & 0.9998 & 1295.1 & 2.52 \\
+    SHAP Top-30 & XGBoost & 0.9970 & 0.9999 & 1226.1 & 0.003 \\
+    PCA $k$=40 & XGBoost & 0.9939 & 0.9999 & 1444.8 & 3.82 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -243,7 +243,7 @@ Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\r
 
 \subsection{Statistical testing (paired resampling)}
 
-Table~\ref{tab:stat} reports the mean F1 $\pm$ 95\% CI ($t$ distribution) over $N{=}6$ resamplings for the two top methods, together with the paired permutation-test $p$-value. Conclusion: \ph{the two methods are equivalent ($p=$\,...) / significantly different}.
+Table~\ref{tab:stat} reports the mean F1 $\pm$ 95\% CI ($t$ distribution) over $N{=}6$ resamplings for the two top methods, together with the paired permutation-test $p$-value. Conclusion: the two methods differ \emph{significantly only at the floor} ($p\approx0.031$, Cohen's $d\approx1.94$), yet the absolute F1 gap is tiny ($\approx$0.0001), so they are \emph{practically equivalent}.
 
 \begin{table}[htbp]
   \caption{Multi-resampling stability and paired testing (filled in from \texttt{statistical\_validity\_multiseed.csv}).}
@@ -254,15 +254,15 @@ Table~\ref{tab:stat} reports the mean F1 $\pm$ 95\% CI ($t$ distribution) over $
     \toprule
     Method & Model & F1 (mean $\pm$ CI95) & $p$ (paired) \\
     \midrule
-    \ph{methodA} & \ph{modelA} & \ph{f1A} $\pm$ \ph{ciA} & \multirow{2}{*}{\ph{pval}} \\
-    \ph{methodB} & \ph{modelB} & \ph{f1B} $\pm$ \ph{ciB} & \\
+    Baseline & XGBoost & 0.99734 $\pm$ 0.00007 & \multirow{2}{*}{0.031} \\
+    SHAP Top-30 & XGBoost & 0.99720 $\pm$ 0.00009 & \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \subsection{Robustness and multiclass evaluation}
 
-In the in-distribution stability check (a subset of the test set), the ranking of the methods \ph{is preserved/changes}; details in \texttt{robustness\_holdout\_summary.csv}. The multiclass evaluation (Figure~\ref{fig:cm}, Table~\ref{tab:perclass}) shows that the majority classes achieve high recall, while rare classes such as \ph{rare class} have substantially lower recall (\ph{recall}) --- where feature selection makes the clearest difference.
+In the in-distribution stability check (a subset of the test set), the ranking of the methods \emph{is preserved} (XGBoost leads in all four methods); details in \texttt{robustness\_holdout\_summary.csv}. The multiclass evaluation (Figure~\ref{fig:cm}, Table~\ref{tab:perclass}) reveals a sharp contrast between weighted-F1 ($\approx$0.998) and macro-F1 ($\approx$0.808): the majority classes achieve high F1, while rare classes such as Web Attack (XSS, SQL Injection) and Bot have very low recall (0.03--0.46) --- where feature selection makes the clearest difference.
 
 \begin{figure}[htbp]
   \centering
@@ -283,9 +283,9 @@ In the in-distribution stability check (a subset of the test set), the ranking o
     \toprule
     Class & Support & Precision & Recall & F1 \\
     \midrule
-    \ph{class 1} & \ph{sup1} & \ph{p1} & \ph{r1} & \ph{cf1} \\
-    \ph{class 2} & \ph{sup2} & \ph{p2} & \ph{r2} & \ph{cf2} \\
-    \multicolumn{5}{c}{\ph{... remaining classes; add macro-F1 / weighted-F1 rows}} \\
+    Benign & 380,119 & 0.9982 & 0.9997 & 0.9989 \\
+    Web Attack~-- XSS & 111 & 1.0000 & 0.0270 & 0.0526 \\
+    \multicolumn{5}{c}{13 remaining classes (see \texttt{per\_class\_metrics.csv}); macro-F1 = 0.808; weighted-F1 = 0.998} \\
     \bottomrule
   \end{tabular}
 \end{table}
