@@ -295,7 +295,7 @@ MLP                    & 314,7  & 8,0  & 0,0004 \\ \midrule
 \begin{itemize}
     \item \textbf{Thời gian huấn luyện}: Các mô hình Gradient Boosting (\ac{gbt}, \ac{xgb}) có thời gian huấn luyện dài nhất nhưng đạt kết quả phân loại cao.
     \item \textbf{Thời gian dự báo}: \ac{xgb} có thời gian dự báo nhanh (khoảng 9 giây cho toàn tập kiểm tra), Random Forest chậm hơn (khoảng 19 giây); cả hai phù hợp cho giám sát theo lô gần thời gian thực.
-    \item \textbf{Kích thước mô hình}: các mô hình cây chiếm dung lượng lớn hơn hẳn mô hình tuyến tính (\ac{lr}, \ac{svm}, \ac{nb} chỉ vài KB); \ac{rf} khoảng 3,7 MB và ensemble Hybrid Bagging lớn nhất ($\sim$7,2 MB) do gộp nhiều bộ học cơ sở.
+    \item \textbf{Kích thước mô hình}: các mô hình cây chiếm dung lượng lớn hơn hẳn mô hình tuyến tính (\ac{lr}, \ac{svm}, \ac{nb} chỉ vài KB); \ac{rf} khoảng 3,7 MB và ensemble Hybrid Bagging lớn nhất ($\sim$7,2 MB) do gộp nhiều bộ học cơ sở. \textit{Lưu ý: kích thước được đo bằng cách tuần tự hoá (serialize) \texttt{PipelineModel} của Spark ra đĩa; giá trị này có thể biến thiên theo cách phân mảnh/partition khi lưu nên chỉ mang tính tham khảo tương đối, không dùng làm tiêu chí quyết định lựa chọn mô hình.}
 \end{itemize}
 
 \subsection{Kiểm định ý nghĩa thống kê}
@@ -355,24 +355,32 @@ CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & \ph{} \\ \bottomrule
 
 \subsection{Đánh giá đa lớp theo loại tấn công}
 \label{sec:multiclass}
-Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; để bộc lộ điểm yếu thực sự, luận văn bổ sung đánh giá \emph{đa lớp theo từng loại tấn công} (precision/recall/F1 từng lớp, macro-F1 và ma trận nhầm lẫn). Để bảo đảm đủ mẫu cho các lớp hiếm, 14 loại tấn công gốc được gộp theo họ tấn công (ví dụ các biến thể DoS/DDoS gộp thành một nhóm, ba biến thể Web Attack gộp thành một nhóm), cùng với lớp Benign; sơ đồ ánh xạ nhãn gốc $\rightarrow$ nhóm lớp được ghi trong mã nguồn tiền xử lý. Các lớp đa số (DoS/DDoS, PortScan) đạt recall cao, trong khi các lớp hiếm (Heartbleed, Infiltration, Web Attack) có recall thấp hơn rõ rệt --- đây là nơi các phương pháp lựa chọn đặc trưng khác biệt nhất. Kết quả chi tiết theo từng lớp được trình bày trong Bảng~\ref{tab:per_class}, và ma trận nhầm lẫn đa lớp tương ứng được minh họa ở Hình~\ref{fig:confusion_matrix}.
+Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; để bộc lộ điểm yếu thực sự, luận văn bổ sung đánh giá \emph{đa lớp theo từng loại tấn công gốc} (precision/recall/F1 từng lớp, macro-F1, weighted-F1 và ma trận nhầm lẫn), gồm lớp Benign và 14 loại tấn công của CICIDS2017. Kết quả cho thấy tương phản rất rõ giữa hai chỉ số tổng hợp: \emph{weighted-F1 $\approx 0{,}998$} (bị chi phối bởi các lớp đa số) nhưng \emph{macro-F1 chỉ $\approx 0{,}808$} --- đúng bằng chứng cho thấy độ chính xác nhị phân gần hoàn hảo đã \emph{che giấu} năng lực phát hiện kém ở các lớp hiếm. Cụ thể, các lớp đa số (Benign, DoS Hulk, DDoS, PortScan) đạt F1 rất cao ($\geq 0{,}97$), trong khi các lớp cực hiếm suy giảm nghiêm trọng: Web Attack~-- XSS recall chỉ $0{,}027$, Web Attack~-- SQL Injection F1~$=0$ (chỉ 6 mẫu), Bot recall $0{,}46$. Đây là nơi khác biệt giữa các phương pháp lựa chọn đặc trưng thể hiện rõ nhất và cũng là hướng cần cải thiện (xử lý mất cân bằng, tăng cường dữ liệu lớp hiếm). Kết quả chi tiết theo từng lớp được trình bày trong Bảng~\ref{tab:per_class}, và ma trận nhầm lẫn đa lớp tương ứng được minh họa ở Hình~\ref{fig:confusion_matrix}.
 
 \begin{table}[htbp]
 \centering
 \caption{Hiệu năng theo từng lớp tấn công (từ \texttt{per\_class\_metrics.csv})}
 \label{tab:per_class}
+\small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
 \textbf{Lớp} & \textbf{Support} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\ \midrule
-Benign & \ph{} & \ph{} & \ph{} & \ph{} \\
-DoS/DDoS & \ph{} & \ph{} & \ph{} & \ph{} \\
-PortScan & \ph{} & \ph{} & \ph{} & \ph{} \\
-Brute-force & \ph{} & \ph{} & \ph{} & \ph{} \\
-Web Attack & \ph{} & \ph{} & \ph{} & \ph{} \\
-Botnet & \ph{} & \ph{} & \ph{} & \ph{} \\
-Infiltration & \ph{} & \ph{} & \ph{} & \ph{} \\
-Heartbleed & \ph{} & \ph{} & \ph{} & \ph{} \\ \midrule
-\multicolumn{2}{l}{\textbf{macro-F1 / weighted-F1}} & \multicolumn{3}{c}{\ph{} / \ph{}} \\ \bottomrule
+Benign                       & 380.119 & 0,9982 & 0,9997 & 0,9989 \\
+DoS Hulk                     & 34.446  & 0,9991 & 0,9908 & 0,9949 \\
+DDoS                         & 25.694  & 0,9996 & 0,9991 & 0,9994 \\
+DoS GoldenEye                & 2.020   & 1,0000 & 0,9762 & 0,9880 \\
+FTP-Patator                  & 1.147   & 0,9965 & 0,9965 & 0,9965 \\
+DoS slowloris                & 1.068   & 0,9953 & 0,9925 & 0,9939 \\
+DoS Slowhttptest             & 1.023   & 0,9286 & 0,9912 & 0,9589 \\
+SSH-Patator                  & 642     & 1,0000 & 0,9346 & 0,9662 \\
+PortScan                     & 383     & 1,0000 & 0,9530 & 0,9759 \\
+Web Attack~-- Brute Force    & 311     & 0,7382 & 0,8071 & 0,7711 \\
+Bot                          & 290     & 1,0000 & 0,4586 & 0,6288 \\
+Web Attack~-- XSS            & 111     & 1,0000 & 0,0270 & 0,0526 \\
+Infiltration                 & 12      & 1,0000 & 0,6667 & 0,8000 \\
+Web Attack~-- SQL Injection  & 6       & 0,0000 & 0,0000 & 0,0000 \\
+Heartbleed                   & 3       & 1,0000 & 1,0000 & 1,0000 \\ \midrule
+\multicolumn{2}{l}{\textbf{macro-F1 / weighted-F1}} & \multicolumn{3}{c}{0,808 / 0,998} \\ \bottomrule
 \end{tabular*}
 \end{table}
 
