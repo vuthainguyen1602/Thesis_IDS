@@ -251,7 +251,7 @@ Các đặc trưng như \texttt{\path{init_win_bytes_forward}}, \texttt{\path{in
 \subsection{Phân tích rò rỉ dữ liệu (data leakage)}
 \label{sec:leakage_analysis}
 
-Một quan sát quan trọng là khi \emph{giữ} đặc trưng \texttt{destination\_port}, nó luôn nằm trong nhóm đặc trưng quan trọng nhất theo SHAP và kéo F1 nhị phân tiến sát mức tuyệt đối. Điều này không phải là bằng chứng cho thấy mô hình tốt mà là biểu hiện của \emph{rò rỉ nhãn}: trong CICIDS2017, mỗi loại tấn công được sinh nhằm vào những cổng dịch vụ cố định, nên \texttt{destination\_port} gần như tương quan hàm với nhãn. Các lỗi gán nhãn và đặc tính sinh dữ liệu này của CICIDS2017 đã được ghi nhận trong tài liệu và cho thấy ảnh hưởng đáng kể đến kết quả đánh giá~\cite{lanvin2023errors}. Để định lượng, luận văn thực hiện phân tích loại bỏ (ablation) giữ/loại cổng (Bảng~\ref{tab:leakage_ablation}). Lưu ý rằng pipeline loại bỏ cả \texttt{destination\_port} lẫn \texttt{source\_port}; phân tích ablation tập trung vào \texttt{destination\_port} vì đây là nguồn rò rỉ nhãn chi phối.
+Đặc trưng \texttt{destination\_port} là một nguồn rò rỉ nhãn đã được ghi nhận trên CICIDS2017: mỗi loại tấn công được sinh nhằm vào những cổng dịch vụ cố định nên cổng đích tương quan mạnh với nhãn, và khi được giữ lại nó thường nằm trong nhóm đặc trưng quan trọng nhất theo SHAP~\cite{lanvin2023errors}. Để định lượng ảnh hưởng, luận văn thực hiện phân tích loại bỏ (ablation) giữ/loại cổng với cùng một cấu hình Random Forest cố định (Bảng~\ref{tab:leakage_ablation}). Điều đáng lưu ý là với bài toán \emph{nhị phân trong-miền}, sau khi đã loại trùng lặp luồng ở mức đặc trưng, ảnh hưởng riêng của \texttt{destination\_port} lên F1 chỉ còn \emph{nhỏ} (chênh khoảng $0{,}001$ điểm F1) --- bởi tác vụ nhị phân trên CICIDS2017 vốn gần mức bão hoà và nguồn rò rỉ \emph{chi phối} (các luồng trùng lặp) đã được xử lý trước bằng bước loại bỏ trùng lặp. Điều này \emph{không} có nghĩa rò rỉ vô hại: giá trị của quy trình loại-trừ-rò-rỉ thể hiện rõ hơn ở đánh giá \emph{đa lớp} với các lớp tấn công hiếm (Mục~\ref{sec:multiclass}) và ở \emph{tổng quát hoá liên bộ dữ liệu} (Mục~\ref{sec:cross-dataset}), nơi các ``lối tắt'' rò rỉ không còn giúp mô hình. Pipeline loại bỏ cả \texttt{destination\_port} lẫn \texttt{source\_port}; phân tích ablation tập trung vào \texttt{destination\_port} vì đây là cổng chi phối.
 
 \begin{table}[htbp]
 \centering
@@ -260,14 +260,14 @@ Một quan sát quan trọng là khi \emph{giữ} đặc trưng \texttt{destinat
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
 \textbf{Cấu hình} & \textbf{F1} & \textbf{Recall (Attack)} & \textbf{AUC-\ac{pr}} \\ \midrule
-Giữ \texttt{destination\_port} (rò rỉ) & \ph{} & \ph{} & \ph{} \\
-Loại \texttt{destination\_port} (đề xuất) & \ph{} & \ph{} & \ph{} \\ \bottomrule
+Giữ \texttt{destination\_port} (rò rỉ) & 0,9965 & 0,9988 & 0,9999 \\
+Loại \texttt{destination\_port} (đề xuất) & 0,9955 & 0,9961 & 0,9997 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
 % (Ghi chú nội bộ: chạy hai lượt — lượt rò rỉ IDS_KEEP_PORT_FEATURES=1 IDS_DEDUP_ON_FEATURES=0
 % và lượt đề xuất mặc định — rồi điền Delta F1 vào bảng.)
-Cả hai lượt dùng cùng một cấu hình Random Forest cố định từ trước (200 cây, độ sâu 15, trọng số lớp --- khớp Bảng~\ref{tab:model_parameters}) để cô lập đúng ảnh hưởng của đặc trưng rò rỉ. Mức chênh lệch F1 giữa hai hàng chính là phần hiệu năng \emph{bị thổi phồng} do rò rỉ. Mọi kết quả khác trong luận văn dùng cấu hình đã loại cổng.
+Cả hai lượt dùng cùng một cấu hình Random Forest cố định từ trước (200 cây, độ sâu 15, trọng số lớp --- khớp Bảng~\ref{tab:model_parameters}) để cô lập đúng ảnh hưởng của đặc trưng rò rỉ. Mức chênh lệch F1 giữa hai hàng phản ánh phần hiệu năng bị thổi phồng do đặc trưng rò rỉ; ở đây mức chênh nhỏ vì đã loại trùng lặp trước và tác vụ nhị phân gần bão hoà, nhưng chiều hướng (giữ cổng cho F1/recall cao hơn) vẫn nhất quán với hiện tượng rò rỉ. Mọi kết quả khác trong luận văn dùng cấu hình đã loại cổng.
 
 \subsection{Phân tích hiệu năng hệ thống}
 Bên cạnh độ chính xác, hiệu năng hệ thống về thời gian và tài nguyên là yếu tố then chốt cho việc triển khai thực tế.
@@ -280,27 +280,27 @@ Kết quả trong Bảng \ref{tab:exp0_system_performance} cho thấy:
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
 \textbf{Thuật toán} & \textbf{Thời gian huấn luyện (s)} & \textbf{Thời gian dự đoán (s)} & \textbf{Kích thước (MB)} \\ \midrule
-Decision Tree          & \ph{} & \ph{} & \ph{} \\
-Logistic Regression    & \ph{} & \ph{} & \ph{} \\
-\ac{svm} (LinearSVC)        & \ph{} & \ph{} & \ph{} \\
-\ac{nb}            & \ph{} & \ph{} & \ph{} \\
-Random Forest          & \ph{} & \ph{} & \ph{} \\
-\ac{gbt}                    & \ph{} & \ph{} & \ph{} \\
-\ac{xgb}                & \ph{} & \ph{} & \ph{} \\
-MLP                    & \ph{} & \ph{} & \ph{} \\ \midrule
-\textbf{Hybrid Bagging}   & \ph{} & \ph{} & \ph{} \\
-\textbf{Soft Voting}  & \textbf{--} & \ph{} & \textbf{--} \\ \bottomrule
+Decision Tree          & 33,4   & 6,1  & 0,0004 \\
+Logistic Regression    & 49,2   & 5,4  & 0,009 \\
+\ac{svm} (LinearSVC)        & 224,3  & 5,4  & 0,002 \\
+\ac{nb}            & 8,2    & 5,2  & 0,012 \\
+Random Forest          & 610,3  & 18,6 & 3,69 \\
+\ac{gbt}                    & 1346,8 & 8,9  & 0,92 \\
+\ac{xgb}                & 4615,5 & 9,0  & 2,32 \\
+MLP                    & 314,7  & 8,0  & 0,0004 \\ \midrule
+\textbf{Hybrid Bagging}   & 11934,5 & 36,4 & 7,24 \\
+\textbf{Soft Voting}  & \textbf{--} & 25,6 & \textbf{--} \\ \bottomrule
 \end{tabular*}
 \end{table}
 \begin{itemize}
     \item \textbf{Thời gian huấn luyện}: Các mô hình Gradient Boosting (\ac{gbt}, \ac{xgb}) có thời gian huấn luyện dài nhất nhưng đạt kết quả phân loại cao.
-    \item \textbf{Thời gian dự báo}: Random Forest và \ac{xgb} có thời gian dự báo rất nhanh (\ph{} cho tập Test), phù hợp cho việc giám sát thời gian thực.
-    \item \textbf{Kích thước mô hình}: Việc sử dụng ít đặc trưng (Top-30) giúp giảm đáng kể kích thước file mô hình đối với \ac{rf} (từ \ph{} xuống còn \ph{}).
+    \item \textbf{Thời gian dự báo}: \ac{xgb} có thời gian dự báo nhanh (khoảng 9 giây cho toàn tập kiểm tra), Random Forest chậm hơn (khoảng 19 giây); cả hai phù hợp cho giám sát theo lô gần thời gian thực.
+    \item \textbf{Kích thước mô hình}: các mô hình cây chiếm dung lượng lớn hơn hẳn mô hình tuyến tính (\ac{lr}, \ac{svm}, \ac{nb} chỉ vài KB); \ac{rf} khoảng 3,7 MB và ensemble Hybrid Bagging lớn nhất ($\sim$7,2 MB) do gộp nhiều bộ học cơ sở.
 \end{itemize}
 
 \subsection{Kiểm định ý nghĩa thống kê}
 \label{sec:stat_validity}
-Do các con số F1 giữa những phương pháp/thuật toán hàng đầu rất sát nhau, luận văn không kết luận ``mô hình tốt nhất'' chỉ dựa trên một lần đo. Mô hình đại diện của mỗi phương pháp, cũng như \emph{cặp phương pháp dẫn đầu} được đưa vào kiểm định, đều được chọn theo F1 trên tập kiểm định (validation, 20\% tách từ tập huấn luyện, \texttt{seed}=42) --- tập kiểm tra không tham gia khâu chọn lọc. Hai phương pháp này sau đó được huấn luyện lại trên $N$ lần \emph{lấy mẫu lại} tập huấn luyện/kiểm tra (mặc định $N{=}6$, ghép cặp trên cùng một phép chia ở mỗi vòng), tính F1 trung bình kèm \emph{hai} loại khoảng tin cậy 95\%: khoảng tin cậy $t$ thông thường và khoảng tin cậy hiệu chỉnh \emph{Nadeau--Bengio} --- phương sai nhân hệ số $(1/N + n_{\text{test}}/n_{\text{train}})$ để bù tương quan giữa các lần lấy mẫu lại chồng lấn; khoảng Nadeau--Bengio được dùng làm căn cứ kết luận chính. Ý nghĩa thống kê được kiểm bằng \emph{permutation test ghép cặp hai phía}, \emph{liệt kê đầy đủ} toàn bộ $2^N = 64$ hoán vị đổi dấu (kiểm định chính xác, không xấp xỉ Monte Carlo), do đó $p$ nhỏ nhất khả dĩ là $2/64 \approx 0{,}031$; độ lớn hiệu ứng được báo cáo bằng Cohen's $d$ ghép cặp (Bảng~\ref{tab:stat_validity}). Kết luận: \ph{tương đương ($p>0{,}05$) / khác biệt có ý nghĩa}. Cần thừa nhận rằng với $N{=}6$, kiểm định có \emph{power thấp}; vì vậy một giá trị $p$ không có ý nghĩa tự nó chỉ là bằng chứng yếu cho ``tương đương'', và kết luận được căn cứ đồng thời vào khoảng tin cậy Nadeau--Bengio và Cohen's $d$; tăng $N$ (kèm cross-validation lồng) là hướng củng cố tiếp theo.
+Do các con số F1 giữa những phương pháp/thuật toán hàng đầu rất sát nhau, luận văn không kết luận ``mô hình tốt nhất'' chỉ dựa trên một lần đo. Mô hình đại diện của mỗi phương pháp, cũng như \emph{cặp phương pháp dẫn đầu} được đưa vào kiểm định, đều được chọn theo F1 trên tập kiểm định (validation, 20\% tách từ tập huấn luyện, \texttt{seed}=42) --- tập kiểm tra không tham gia khâu chọn lọc. Hai phương pháp này sau đó được huấn luyện lại trên $N$ lần \emph{lấy mẫu lại} tập huấn luyện/kiểm tra (mặc định $N{=}6$, ghép cặp trên cùng một phép chia ở mỗi vòng), tính F1 trung bình kèm \emph{hai} loại khoảng tin cậy 95\%: khoảng tin cậy $t$ thông thường và khoảng tin cậy hiệu chỉnh \emph{Nadeau--Bengio} --- phương sai nhân hệ số $(1/N + n_{\text{test}}/n_{\text{train}})$ để bù tương quan giữa các lần lấy mẫu lại chồng lấn; khoảng Nadeau--Bengio được dùng làm căn cứ kết luận chính. Ý nghĩa thống kê được kiểm bằng \emph{permutation test ghép cặp hai phía}, \emph{liệt kê đầy đủ} toàn bộ $2^N = 64$ hoán vị đổi dấu (kiểm định chính xác, không xấp xỉ Monte Carlo), do đó $p$ nhỏ nhất khả dĩ là $2/64 \approx 0{,}031$; độ lớn hiệu ứng được báo cáo bằng Cohen's $d$ ghép cặp (Bảng~\ref{tab:stat_validity}). Kết luận: chênh lệch F1 giữa Baseline và \ac{shap} Top-30 \emph{có ý nghĩa thống kê ở mức sàn} ($p \approx 0{,}031$, $d \approx 1{,}94$), nhưng khác biệt tuyệt đối rất nhỏ ($\approx 0{,}0001$ điểm F1) nên hai phương pháp \emph{tương đương về mặt thực dụng} --- khi đó tiêu chí phụ (khả năng giải thích, kích thước, chi phí biên) mới là căn cứ lựa chọn. Cần thừa nhận rằng với $N{=}6$, kiểm định có \emph{power thấp}; vì vậy một giá trị $p$ không có ý nghĩa tự nó chỉ là bằng chứng yếu cho ``tương đương'', và kết luận được căn cứ đồng thời vào khoảng tin cậy Nadeau--Bengio và Cohen's $d$; tăng $N$ (kèm cross-validation lồng) là hướng củng cố tiếp theo.
 
 \begin{table}[htbp]
 \centering
@@ -310,8 +310,8 @@ Do các con số F1 giữa những phương pháp/thuật toán hàng đầu r�
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcccc@{}}
 \toprule
 \textbf{Phương pháp} & \textbf{Mô hình} & \textbf{\shortstack{F1 (mean $\pm$\\CI95 $t$)}} & \textbf{\shortstack{CI95\\Nadeau--Bengio}} & \textbf{\shortstack{$p$\\(ghép cặp)}} & \textbf{Cohen's $d$} \\ \midrule
-\ph{PP A} & \ph{} & \ph{} $\pm$ \ph{} & [\ph{}; \ph{}] & \multirow{2}{*}{\ph{}} & \multirow{2}{*}{\ph{}} \\
-\ph{PP B} & \ph{} & \ph{} $\pm$ \ph{} & [\ph{}; \ph{}] & & \\ \bottomrule
+Baseline (All Features) & \ac{xgb} & 0,99734 $\pm$ 0,00007 & [0,99722; 0,99746] & \multirow{2}{*}{0,031} & \multirow{2}{*}{1,94} \\
+\ac{shap} Top-30 & \ac{xgb} & 0,99720 $\pm$ 0,00009 & [0,99705; 0,99735] & & \\ \bottomrule
 \end{tabular*}
 \end{table}
 
@@ -326,10 +326,10 @@ Mô hình đại diện của mỗi phương pháp được đánh giá lại tr
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
 \toprule
 \textbf{Phương pháp} & \textbf{Mô hình} & \textbf{F1 (holdout)} & \textbf{AUC-\ac{pr}} \\ \midrule
-Baseline & \ph{} & \ph{} & \ph{} \\
-\ac{rf} Top-30 & \ph{} & \ph{} & \ph{} \\
-\ac{shap} Top-30 & \ph{} & \ph{} & \ph{} \\
-\ac{pca} & \ph{} & \ph{} & \ph{} \\ \bottomrule
+Baseline & \ac{xgb} & 0,9971 & 0,9999 \\
+\ac{rf} Top-30 & \ac{xgb} & 0,9921 & 0,9998 \\
+\ac{shap} Top-30 & \ac{xgb} & 0,9969 & 0,9999 \\
+\ac{pca} & \ac{xgb} & 0,9939 & 0,9998 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
