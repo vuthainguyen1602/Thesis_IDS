@@ -110,10 +110,10 @@ Chúng tôi gộp tám file CSV CICIDS2017, chuẩn hoá tên cột, thay giá t
 
 \begin{itemize}
   \item \textbf{Loại bỏ đặc trưng gây rò rỉ nhãn.} \texttt{destination\_port} (và \texttt{source\_port} nếu có) bị loại vì mã hoá trực tiếp dịch vụ mục tiêu của tấn công; giữ lại sẽ cho mô hình ghi nhớ ánh xạ cổng~$\rightarrow$~nhãn thay vì học hành vi luồng. Một phân tích loại bỏ (ablation: giữ so với loại cổng) định lượng ảnh hưởng.
-  \item \textbf{Loại bỏ trùng lặp ở mức đặc trưng (tất định).} Ngoài việc khử các bản ghi trùng lặp hoàn toàn, chúng tôi loại các luồng \emph{trùng nhau trên toàn bộ cột đặc trưng} trước khi chia, ngăn cùng một mẫu xuất hiện ở cả tập huấn luyện và tập kiểm tra. Với các nhóm luồng trùng đặc trưng nhưng \emph{mâu thuẫn nhãn} (Benign và Attack --- một lỗi đã biết của CICIDS2017~\cite{lanvin2023errors}), toàn bộ nhóm bị loại thay vì giữ lại một hàng tuỳ ý theo phân mảnh dữ liệu; số nhóm và số hàng bị loại được báo cáo (\ph{n\_conflict\_groups} nhóm, \ph{n\_conflict\_rows} hàng), bảo đảm kết quả loại bỏ trùng lặp tất định và tái lập được.
+  \item \textbf{Loại bỏ trùng lặp ở mức đặc trưng (tất định).} Ngoài việc khử các bản ghi trùng lặp hoàn toàn, chúng tôi loại các luồng \emph{trùng nhau trên toàn bộ cột đặc trưng} trước khi chia, ngăn cùng một mẫu xuất hiện ở cả tập huấn luyện và tập kiểm tra. Với các nhóm luồng trùng đặc trưng nhưng \emph{mâu thuẫn nhãn} (Benign và Attack --- một lỗi đã biết của CICIDS2017~\cite{lanvin2023errors}), toàn bộ nhóm bị loại thay vì giữ lại một hàng tuỳ ý theo phân mảnh dữ liệu; số nhóm và số hàng bị loại được báo cáo (270 nhóm, 44.260 hàng), bảo đảm kết quả loại bỏ trùng lặp tất định và tái lập được.
 \end{itemize}
 
-Sau khi xử lý, dữ liệu được chia thành \textbf{80\% huấn luyện / 20\% kiểm tra} (với seed cố định), lưu dưới định dạng Parquet và tái sử dụng xuyên suốt các thí nghiệm. Số đặc trưng dạng số còn lại là \ph{n\_features}, và số mẫu sau khi loại bỏ trùng lặp là \ph{n\_train}/\ph{n\_test}.
+Sau khi xử lý, dữ liệu được chia thành \textbf{80\% huấn luyện / 20\% kiểm tra} (với seed cố định), lưu dưới định dạng Parquet và tái sử dụng xuyên suốt các thí nghiệm. Số đặc trưng dạng số còn lại là 77, và số mẫu sau khi loại bỏ trùng lặp là 1.785.349/447.275 (tổng $\approx$2.232.624 sau khi loại trùng lặp mức đặc trưng).
 
 \subsection{Bộ phân loại và bốn chiến lược giảm chiều}
 
@@ -167,11 +167,11 @@ Siêu tham số (Bảng~\ref{tab:hparams}) được \emph{cố định từ trư
 
 \subsection{Thiết lập}
 
-CICIDS2017; chia tập huấn luyện/kiểm tra 80/20 sau khi loại trừ rò rỉ dữ liệu (Mục~\ref{sec:leakage}); Apache Spark \ph{spark}, Java \ph{java}; phần cứng \ph{hardware}. Mọi script ghi lại cấu hình chạy (seed, biến môi trường, phiên bản thư viện) để đảm bảo tái lập. Toàn bộ mã nguồn, cấu hình và danh sách đặc trưng được công khai tại \ph{URL kho mã (kèm commit hash)}; quy trình có thể tái lập trên một máy đơn, không yêu cầu cụm thiết bị biên.
+CICIDS2017; chia tập huấn luyện/kiểm tra 80/20 sau khi loại trừ rò rỉ dữ liệu (Mục~\ref{sec:leakage}); Apache Spark 3.4.1, Java 17; phần cứng: cụm 2$\times$ Jetson Orin Nano Super (8\,GB) và một máy chủ điều phối. Mọi script ghi lại cấu hình chạy (seed, biến môi trường, phiên bản thư viện) để đảm bảo tái lập. Toàn bộ mã nguồn, cấu hình và danh sách đặc trưng được công khai tại \ph{URL kho mã (kèm commit hash)}; quy trình có thể tái lập trên một máy đơn, không yêu cầu cụm thiết bị biên.
 
 \subsection{Phân tích loại bỏ đặc trưng cổng (ablation)}
 
-Bảng~\ref{tab:port-ablation} và Hình~\ref{fig:leakage-ablation} định lượng ảnh hưởng của \texttt{destination\_port}. Khi giữ cổng, F1 nhị phân xấp xỉ tuyệt đối (\ph{f1\_with}); khi loại cổng, F1 giảm còn \ph{f1\_no}, phản ánh năng lực thực. Mọi kết quả phía sau dùng cấu hình \emph{đã loại cổng}.
+Bảng~\ref{tab:port-ablation} và Hình~\ref{fig:leakage-ablation} định lượng ảnh hưởng của \texttt{destination\_port}. Sau khi đã loại bỏ trùng lặp luồng, ảnh hưởng riêng của cổng là \emph{nhỏ}: F1 khi giữ cổng là 0,9965 và khi loại cổng là 0,9955 (chênh $\approx$0,001) --- vì tác vụ nhị phân trong-miền gần bão hoà và nguồn rò rỉ chi phối (trùng lặp luồng) đã được xử lý trước; tuy vậy chiều hướng (giữ cổng cho F1/recall cao hơn) vẫn nhất quán với hiện tượng rò rỉ. Mọi kết quả phía sau dùng cấu hình \emph{đã loại cổng}.
 
 \begin{table}[htbp]
   \caption{Ảnh hưởng của đặc trưng rò rỉ \texttt{destination\_port} (Random Forest cố định a priori theo cấu hình Bảng~\ref{tab:hparams}, có trọng số lớp; nhị phân).}
@@ -182,8 +182,8 @@ Bảng~\ref{tab:port-ablation} và Hình~\ref{fig:leakage-ablation} định lư�
     \toprule
     Cấu hình & F1 & Recall (Attack) & AUC-PR \\
     \midrule
-    Giữ cổng & \ph{f1\_with} & \ph{rec\_with} & \ph{pr\_with} \\
-    Loại cổng (đề xuất) & \ph{f1\_no} & \ph{rec\_no} & \ph{pr\_no} \\
+    Giữ cổng & 0,9965 & 0,9988 & 0,9999 \\
+    Loại cổng (đề xuất) & 0,9955 & 0,9961 & 0,9997 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -222,10 +222,10 @@ Bảng~\ref{tab:best-results} tóm tắt mô hình tốt nhất mỗi phương p
     \toprule
     Phương pháp & Mô hình & F1 & AUC-PR & Train (s) & Size (MB) \\
     \midrule
-    Baseline & \ph{m1} & \ph{f1\_1} & \ph{pr\_1} & \ph{t\_1} & \ph{s\_1} \\
-    RF Top-30 & \ph{m2} & \ph{f1\_2} & \ph{pr\_2} & \ph{t\_2} & \ph{s\_2} \\
-    SHAP Top-30 & \ph{m3} & \ph{f1\_3} & \ph{pr\_3} & \ph{t\_3} & \ph{s\_3} \\
-    PCA $k$=40 & \ph{m4} & \ph{f1\_4} & \ph{pr\_4} & \ph{t\_4} & \ph{s\_4} \\
+    Baseline & XGBoost & 0,9971 & 0,9999 & 4615,5 & 2,32 \\
+    RF Top-30 & XGBoost & 0,9922 & 0,9998 & 1295,1 & 2,52 \\
+    SHAP Top-30 & XGBoost & 0,9970 & 0,9999 & 1226,1 & 0,003 \\
+    PCA $k$=40 & XGBoost & 0,9939 & 0,9999 & 1444,8 & 3,82 \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -243,7 +243,7 @@ Bảng~\ref{tab:best-results} tóm tắt mô hình tốt nhất mỗi phương p
 
 \subsection{Kiểm định thống kê (lấy mẫu lại ghép cặp)}
 
-Bảng~\ref{tab:stat} báo cáo F1 trung bình $\pm$ CI 95\% (phân phối $t$) trên $N{=}6$ lần lấy mẫu lại cho hai phương pháp hàng đầu, kèm $p$-value permutation test ghép cặp. Kết luận: \ph{hai phương pháp tương đương ($p=$\,...) / khác biệt có ý nghĩa}.
+Bảng~\ref{tab:stat} báo cáo F1 trung bình $\pm$ CI 95\% (phân phối $t$) trên $N{=}6$ lần lấy mẫu lại cho hai phương pháp hàng đầu, kèm $p$-value permutation test ghép cặp. Kết luận: hai phương pháp khác biệt \emph{có ý nghĩa thống kê ở mức sàn} ($p\approx0{,}031$, Cohen's $d\approx1{,}94$) nhưng chênh lệch F1 tuyệt đối rất nhỏ ($\approx$0,0001) nên \emph{tương đương về mặt thực dụng}.
 
 \begin{table}[htbp]
   \caption{Ổn định đa lần lấy mẫu và kiểm định ghép cặp (điền từ \texttt{statistical\_validity\_multiseed.csv}).}
@@ -254,15 +254,15 @@ Bảng~\ref{tab:stat} báo cáo F1 trung bình $\pm$ CI 95\% (phân phối $t$) 
     \toprule
     Phương pháp & Mô hình & F1 (mean $\pm$ CI95) & $p$ (ghép cặp) \\
     \midrule
-    \ph{methodA} & \ph{modelA} & \ph{f1A} $\pm$ \ph{ciA} & \multirow{2}{*}{\ph{pval}} \\
-    \ph{methodB} & \ph{modelB} & \ph{f1B} $\pm$ \ph{ciB} & \\
+    Baseline & XGBoost & 0,99734 $\pm$ 0,00007 & \multirow{2}{*}{0,031} \\
+    SHAP Top-30 & XGBoost & 0,99720 $\pm$ 0,00009 & \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \subsection{Độ bền vững và đánh giá đa lớp}
 
-Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập kiểm tra), thứ hạng các phương pháp \ph{giữ nguyên/thay đổi}; chi tiết tại \texttt{robustness\_holdout\_summary.csv}. Đánh giá đa lớp (Hình~\ref{fig:cm}, Bảng~\ref{tab:perclass}) cho thấy các lớp đa số đạt recall cao, trong khi các lớp hiếm như \ph{lớp hiếm} có recall thấp hơn đáng kể (\ph{recall}) --- nơi lựa chọn đặc trưng tạo khác biệt rõ nhất.
+Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập kiểm tra), thứ hạng các phương pháp \emph{giữ nguyên} (XGBoost dẫn đầu ở cả bốn phương pháp); chi tiết tại \texttt{robustness\_holdout\_summary.csv}. Đánh giá đa lớp (Hình~\ref{fig:cm}, Bảng~\ref{tab:perclass}) cho thấy tương phản rõ giữa weighted-F1 ($\approx$0,998) và macro-F1 ($\approx$0,808): các lớp đa số đạt F1 cao, trong khi các lớp hiếm như Web Attack (XSS, SQL Injection) và Bot có recall rất thấp (0,03--0,46) --- nơi lựa chọn đặc trưng tạo khác biệt rõ nhất.
 
 \begin{figure}[htbp]
   \centering
@@ -283,9 +283,9 @@ Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập ki
     \toprule
     Lớp & Support & Precision & Recall & F1 \\
     \midrule
-    \ph{lớp 1} & \ph{sup1} & \ph{p1} & \ph{r1} & \ph{cf1} \\
-    \ph{lớp 2} & \ph{sup2} & \ph{p2} & \ph{r2} & \ph{cf2} \\
-    \multicolumn{5}{c}{\ph{... các lớp còn lại; thêm dòng macro-F1 / weighted-F1}} \\
+    Benign & 380.119 & 0,9982 & 0,9997 & 0,9989 \\
+    Web Attack~-- XSS & 111 & 1,0000 & 0,0270 & 0,0526 \\
+    \multicolumn{5}{c}{13 lớp còn lại (xem \texttt{per\_class\_metrics.csv}); macro-F1 = 0,808; weighted-F1 = 0,998} \\
     \bottomrule
   \end{tabular}
 \end{table}
