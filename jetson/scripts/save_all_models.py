@@ -49,6 +49,19 @@ def main():
     spark = create_spark_session("IDS_SaveAllModels")
     _df, train_df, test_df, feature_cols = load_and_prepare_data(spark)
 
+    # These models are exported ONLY to benchmark edge inference (latency /
+    # throughput / size). Model structure (e.g. RF numTrees/maxDepth) — and thus
+    # inference cost — is unchanged by the training-set size, so we may train on a
+    # stratified subsample to keep a single-JVM save within memory. Accuracy for
+    # the thesis comes from the distributed ml_07 run, not from these artifacts.
+    _frac = float(os.environ.get("IDS_EXPORT_SAMPLE_FRAC", "0.2"))
+    if 0.0 < _frac < 1.0:
+        label_col = "label_binary"
+        fractions = {r[label_col]: _frac for r in train_df.select(label_col).distinct().collect()}
+        train_df = train_df.sampleBy(label_col, fractions=fractions, seed=42)
+        print(f"  [export] Stratified subsample for save: frac={_frac} "
+              f"-> {train_df.count():,} train rows (structure/inference cost unchanged)")
+
     selected_features = [f for f in SHAP_TOP_FEATURES if f in feature_cols]
     print(f"  Using {len(selected_features)} SHAP features\n")
 

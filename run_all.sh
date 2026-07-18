@@ -92,10 +92,12 @@ phase_offline() {
 # Phase 2: edge benchmarks on Jetson (non-streaming needs no Kafka/Docker)
 phase_edge() {
   hr; log "PHASE 2 — EDGE (Jetson inference)"; hr
-  # Train+save models on the CLUSTER (distributed) — RF on the full set OOMs a
-  # single Mac JVM. Models land in model/ on the Jetson driver, ready for the
-  # benchmarks below (no Mac->Jetson sync needed; that would clobber them).
-  run_step save_models remote jetson/scripts/save_all_models.py
+  # Train+save models LOCAL on the Mac (single JVM) so the PipelineModel parts
+  # land on one disk — a distributed save scatters parts across executors and
+  # can't be reloaded. RF OOM is avoided via IDS_EXPORT_SAMPLE_FRAC (structure/
+  # inference cost unchanged). Then sync the saved models to the Jetsons.
+  run_step save_models local_mac jetson/scripts/save_all_models.py
+  run_step sync_models "$CLUSTER_DIR/sync_workspace.sh"
   run_step bench_engines     ssh_driver "python jetson/scripts/benchmark_engines.py"
   run_step bench_all_models  ssh_driver "python jetson/scripts/benchmark_all.py"
   run_step bench_distributed ssh_driver "python jetson/scripts/benchmark_distributed.py"
