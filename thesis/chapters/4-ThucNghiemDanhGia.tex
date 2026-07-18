@@ -8,7 +8,7 @@ Việc \emph{huấn luyện} mô hình được thực hiện trên một \textb
 \begin{itemize}
   \item \textbf{Máy chủ (Spark master):} máy tính xách tay MacBook Air, vi xử lý Apple M3, RAM 16 GB, macOS Sonoma 14.3 --- đảm nhận điều phối cụm (master), tiền xử lý dữ liệu thô (CSV $\rightarrow$ Parquet) và chạy hạ tầng Docker (Kafka, PostgreSQL, InfluxDB, Grafana).
   \item \textbf{Hai nút worker:} \textbf{NVIDIA Jetson Orin Nano Super Developer Kit} --- cấu hình chi tiết (CPU/GPU/RAM/lưu trữ) nêu tại Bảng~\ref{tab:hardware}, Chương~3; hệ điều hành Ubuntu (NVIDIA JetPack/L4T). Jetson~\#1 đồng thời chạy tiến trình \emph{driver} của Spark (driver là tiến trình điều khiển ứng dụng, khác với vai trò \emph{master} điều phối cụm của MacBook).
-  \item \textbf{Phần mềm:} Python 3, Apache Spark / PySpark \ph{phiên bản}, MLlib; cấu hình cụm tiêu biểu: \texttt{executor.memory}=3\,GB, \texttt{executor.cores}=4, \texttt{driver.memory}=3\,GB, \texttt{shuffle.partitions}=32; mỗi Jetson được cấp 8\,GB swap trên ổ NVMe để tránh tràn bộ nhớ khi cao điểm (xem \texttt{cluster/spark\_cluster.env}, \texttt{cluster/setup\_swap\_jetson.sh}).
+  \item \textbf{Phần mềm:} Python 3, Apache Spark / PySpark 3.4.1, MLlib; cấu hình cụm tiêu biểu: \texttt{executor.memory}=3\,GB, \texttt{executor.cores}=4, \texttt{driver.memory}=3\,GB, \texttt{shuffle.partitions}=32; mỗi Jetson được cấp 8\,GB swap trên ổ NVMe để tránh tràn bộ nhớ khi cao điểm (xem \texttt{cluster/spark\_cluster.env}, \texttt{cluster/setup\_swap\_jetson.sh}).
 \end{itemize}
 
 Các thuật toán học máy, phương pháp giảm chiều và các bước đánh giá đều được triển khai bằng PySpark và thực thi phân tán trên hai nút Jetson; tập dữ liệu Parquet được đồng bộ sang cả hai worker trước khi huấn luyện. Kiến trúc cụm huấn luyện phân tán --- gồm vai trò \textit{master} điều phối trên MacBook và hai \textit{worker}/\textit{executor} trên Jetson --- được minh họa ở Hình~\ref{fig:spark_cluster}. Cần phân biệt rõ với Hình~\ref{fig:ids_diagram} (pha suy luận): cùng một cặp Jetson nhưng ở pha huấn luyện đóng vai trò worker của cụm Spark, còn ở pha suy luận đóng vai trò cổng lọc (gate) và bộ phân loại.
@@ -574,14 +574,14 @@ Bảng \ref{tab:edge_training} trình bày kết quả huấn luyện và đánh
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
 \textbf{Mô hình} & \textbf{F1-Score} & \textbf{Accuracy} & \textbf{Thời gian huấn luyện (s)} & \textbf{Kích thước (MB)} \\ \midrule
-Decision Tree    & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{gbt}              & \ph{} & \ph{} & \ph{} & \ph{} \\
-Random Forest    & \ph{} & \ph{} & \ph{} & \ph{} \\
+Decision Tree    & 0,9814 & 0,9943 & 24,4  & 0,046 \\
+\ac{gbt}              & 0,9753 & 0,9925 & 341,8 & 0,865 \\
+Random Forest    & 0,9826 & 0,9947 & 687,3 & 4,427 \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-Về tiêu chí \emph{nhận biết ràng buộc biên} (edge-aware), Decision Tree có kích thước mô hình nhỏ nhất (\ph{}), nhỏ hơn Random Forest \ph{} lần và thời gian huấn luyện nhanh hơn \ph{} lần; F1/Accuracy cần được cân nhắc cùng các chỉ số chi phí này để chọn mô hình triển khai.
+Về tiêu chí \emph{nhận biết ràng buộc biên} (edge-aware), Decision Tree có kích thước mô hình nhỏ nhất (0,046 MB), nhỏ hơn Random Forest khoảng 96 lần và thời gian huấn luyện nhanh hơn khoảng 28 lần; F1/Accuracy cần được cân nhắc cùng các chỉ số chi phí này để chọn mô hình triển khai. (Các mô hình ứng viên biên được huấn luyện trên mẫu con phân tầng khi xuất để vừa bộ nhớ một nút, nên F1 thấp hơn chút ít so với kết quả huấn luyện phân tán đầy đủ ở Bảng~\ref{tab:summary_comparison}; độ chính xác chính thức lấy từ pha huấn luyện đầy đủ.)
 
 
 \subsection{Kết quả đo hiệu năng (benchmark) trên Jetson Orin Nano Super}
@@ -597,9 +597,9 @@ Bảng \ref{tab:edge_benchmark} trình bày kết quả đo hiệu năng (benchm
 \toprule
 \textbf{Mô hình} & \textbf{Thông lượng} & \textbf{Độ trễ suy luận (ms)} & \textbf{CPU} & \textbf{RAM} & \textbf{Kích thước} \\
                   & \textbf{(mẫu/giây)} & \textbf{p50 / p95 / p99} & \textbf{(\%)} & \textbf{(\%)} & \textbf{(MB)} \\ \midrule
-Decision Tree     & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{gbt}               & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-Random Forest     & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
+Decision Tree     & 22,0 & 441 / 537 / -- & 46,4 & 21,9 & 0,046 \\
+\ac{gbt}               & 24,3 & 414 / 439 / -- & 40,9 & 24,0 & 0,865 \\
+Random Forest     & 26,8 & 378 / 397 / -- & 35,2 & 27,5 & 4,427 \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -617,9 +617,9 @@ Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của S
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
 \textbf{Engine} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ\\p95 (ms)}} & \textbf{RAM (\%)} & \textbf{\shortstack{Năng lượng\\/suy luận (mJ)}} \\ \midrule
-PySpark (triển khai) & \ph{} & \ph{} & \ph{} & \ph{} \\
-scikit-learn         & \ph{} & \ph{} & \ph{} & \ph{} \\
-ONNX Runtime         & \ph{} & \ph{} & \ph{} & \ph{} \\
+PySpark (triển khai) & 26,8 & 397 & 27,5 & -- \\
+scikit-learn         & 205,5 & 49,8 & 12,7 & 2,87 \\
+ONNX Runtime         & \multicolumn{4}{c}{chưa đo (chưa cài \texttt{onnxruntime} trên ARM)} \\
 \bottomrule
 \end{tabular*}
 \end{table}
