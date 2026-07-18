@@ -69,7 +69,7 @@ export IDS_EXP7_START_STEP="${IDS_EXP7_START_STEP:-1}"
 export IDS_EXP7_AGGREGATE_ONLY="${IDS_EXP7_AGGREGATE_ONLY:-0}"
 export IDS_EXP2_FULL="${IDS_EXP2_FULL:-0}"
 export IDS_EXP2_GBT="${IDS_EXP2_GBT:-0}"
-python "$SCRIPT_BASE" "$@"
+python "$SCRIPT" "$@"
 EOF
 
 echo ""
