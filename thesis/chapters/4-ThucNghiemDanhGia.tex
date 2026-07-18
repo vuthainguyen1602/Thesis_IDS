@@ -118,7 +118,7 @@ Bảng \ref{tab:model_parameters} tóm tắt thiết lập tham số của các 
 
 \clearpage
 \subsection{Kịch bản 1: Đánh giá hiệu năng cơ sở (Baseline)}
-Trong kịch bản này, toàn bộ tập đặc trưng số (khoảng 78 đặc trưng trước khi loại cổng; số chính xác sau khi loại \texttt{destination\_port}/\texttt{source\_port} là \ph{}) được đưa vào mô hình mà chưa qua bất kỳ bước lựa chọn đặc trưng hay giảm chiều nào. Mục tiêu là thiết lập một mức hiệu năng tham chiếu cho các thử nghiệm tiếp theo.
+Trong kịch bản này, toàn bộ tập đặc trưng số (khoảng 78 đặc trưng trước khi loại cổng; số chính xác sau khi loại \texttt{destination\_port}/\texttt{source\_port} là 77) được đưa vào mô hình mà chưa qua bất kỳ bước lựa chọn đặc trưng hay giảm chiều nào. Mục tiêu là thiết lập một mức hiệu năng tham chiếu cho các thử nghiệm tiếp theo.
 
 Kết quả hiệu năng của các thuật toán \ac{ml} đơn lẻ và phương pháp Ensemble được trình bày trong Bảng \ref{tab:exp0_ml_metrics}.
 \begin{table}[htbp]
@@ -130,17 +130,17 @@ Kết quả hiệu năng của các thuật toán \ac{ml} đơn lẻ và phươn
 \toprule
 \textbf{Thuật toán} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{AUC-ROC} & \textbf{AUC-\ac{pr}} \\ 
 \midrule
-Decision Tree          & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-Logistic Regression    & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{svm} (LinearSVC)        & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{nb}            & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-Random Forest          & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{gbt}                    & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{xgb}                & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-MLP                    & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
+Decision Tree          & 0,9986 & 0,9925 & 0,9983 & 0,9954 & 0,9994 & 0,9988 \\
+Logistic Regression    & 0,9288 & 0,6937 & 0,9422 & 0,7991 & 0,9859 & 0,9509 \\
+\ac{svm} (LinearSVC)        & 0,9199 & 0,6650 & 0,9395 & 0,7788 & 0,9843 & 0,9485 \\
+\ac{nb}            & 0,3163 & 0,1793 & 0,9933 & 0,3038 & 0,8829 & 0,6364 \\
+Random Forest          & 0,9985 & 0,9939 & 0,9960 & 0,9949 & 0,9999 & 0,9997 \\
+\ac{gbt}                    & 0,9980 & 0,9900 & 0,9965 & 0,9932 & 0,9998 & 0,9991 \\
+\ac{xgb}                & 0,9991 & 0,9950 & 0,9993 & 0,9971 & 1,0000 & 0,9999 \\
+MLP                    & 0,9900 & 0,9844 & 0,9487 & 0,9662 & 0,9984 & 0,9936 \\
 \midrule
-\textbf{Hybrid Bagging}   & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-\textbf{Soft Voting}  & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
+\textbf{Hybrid Bagging}   & 0,9990 & 0,9950 & 0,9984 & 0,9967 & 1,0000 & 0,9999 \\
+\textbf{Soft Voting}  & 0,9991 & 0,9952 & 0,9985 & 0,9969 & 1,0000 & 0,9999 \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -167,10 +167,10 @@ Bảng \ref{tab:summary_comparison} tóm tắt sự khác biệt giữa các ph�
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
 \toprule
 \textbf{Phương pháp} & \textbf{Đặc trưng} & \textbf{Mô hình tốt nhất} & \textbf{F1-Score} & \textbf{Thời gian huấn luyện (s)} & \textbf{Dung lượng (MB)} \\ \midrule
-Baseline (Toàn bộ) & \ph{} ($\approx$78 trước khi loại cổng) & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{rf} Importance & 30 & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{shap} Importance & 30 & \ph{} & \ph{} & \ph{} & \ph{} \\
-\ac{pca} (k=40) & 40 & \ph{} & \ph{} & \ph{} & \ph{} \\ \bottomrule
+Baseline (Toàn bộ) & 77 ($\approx$78 trước khi loại cổng) & \ac{xgb} & 0,9971 & 4615,5 & 2,32 \\
+\ac{rf} Importance & 30 & \ac{xgb} & 0,9922 & 1295,1 & 2,52 \\
+\ac{shap} Importance & 30 & \ac{xgb} & 0,9970 & 1226,1 & 0,003 \\
+\ac{pca} (k=40) & 40 & \ac{xgb} & 0,9939 & 1444,8 & 3,82 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
@@ -183,10 +183,10 @@ Ngoài ra, sự so sánh trực tiếp giữa hai phương pháp lựa chọn đ
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
 \textbf{Thuật toán} & \textbf{F1 (\ac{rf} Top-30)} & \textbf{F1 (\ac{shap} Top-30)} & \textbf{Chênh lệch (\%)} \\ \midrule
-Random Forest & \ph{} & \ph{} & \ph{} \\
-\ac{xgb} & \ph{} & \ph{} & \ph{} \\
-\ac{gbt} & \ph{} & \ph{} & \ph{} \\
-Decision Tree & \ph{} & \ph{} & \ph{} \\ \bottomrule
+Random Forest & 0,9879 & 0,9955 & +0,77 \\
+\ac{xgb} & 0,9922 & 0,9970 & +0,48 \\
+\ac{gbt} & 0,9844 & 0,9918 & +0,75 \\
+Decision Tree & 0,9835 & 0,9948 & +1,15 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
@@ -244,7 +244,7 @@ Bổ sung cho xếp hạng tổng thể, Hình~\ref{fig:shap_beeswarm} trình b�
 
 % (Ghi chú nội bộ: hình và danh sách phải được tạo lại trên tập đặc trưng đã loại rò rỉ;
 % điền từ ml_06_feature_selection_shap/shap_feature_importance.csv.)
-Bên cạnh đó, giá trị trung bình tuyệt đối của SHAP (mean $|\text{SHAP}|$) được dùng để xếp hạng mức quan trọng tổng thể. Trên tập đặc trưng đã loại trừ rò rỉ, các đặc trưng có mean$|\text{SHAP}|$ lớn nhất là: \ph{đặc trưng 1}, \ph{đặc trưng 2}, \ph{đặc trưng 3}, \ph{đặc trưng 4}.
+Bên cạnh đó, giá trị trung bình tuyệt đối của SHAP (mean $|\text{SHAP}|$) được dùng để xếp hạng mức quan trọng tổng thể. Trên tập đặc trưng đã loại trừ rò rỉ, các đặc trưng có mean$|\text{SHAP}|$ lớn nhất là: \texttt{bwd\_packet\_length\_std}, \texttt{init\_win\_bytes\_backward}, \texttt{init\_win\_bytes\_forward} và \texttt{bwd\_packet\_length\_mean}.
 
 Các đặc trưng như \texttt{\path{init_win_bytes_forward}}, \texttt{\path{init_win_bytes_backward}} (kích thước cửa sổ TCP giai đoạn khởi tạo) và \texttt{\path{bwd_packet_length_std}}, \texttt{\path{packet_length_std}} (sự biến thiên độ dài gói tin) phản ánh đặc tính phân phối lưu lượng — là các tín hiệu mạng có ý nghĩa, không phụ thuộc vào định danh dịch vụ. Việc loại \texttt{destination\_port} buộc mô hình dựa vào các đặc trưng hành vi này thay vì ghi nhớ ánh xạ cổng~$\rightarrow$~nhãn.
 
@@ -503,10 +503,10 @@ Kiến trúc này đảm bảo tính mô-đun, tách biệt các thành phần x
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
 \textbf{Quantile (validation)} & \textbf{Ngưỡng} & \textbf{Recall (Attack)} & \textbf{FPR} & \textbf{Tỷ lệ bỏ qua tại cổng (\%)} \\ \midrule
-0{,}90 & \ph{} & \ph{} & \ph{} & \ph{} \\
-0{,}95 & \ph{} & \ph{} & \ph{} & \ph{} \\
-0{,}99 & \ph{} & \ph{} & \ph{} & \ph{} \\
-0{,}995 & \ph{} & \ph{} & \ph{} & \ph{} \\ \bottomrule
+0{,}90 & 0,0023 & 0,7589 & 0,1003 & 80,08 \\
+0{,}95 & 0,0052 & 0,7552 & 0,0506 & 84,36 \\
+0{,}99 & 0,0192 & 0,7420 & 0,0101 & 88,00 \\
+0{,}995 & 0,0317 & 0,7229 & 0,0053 & 88,70 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
