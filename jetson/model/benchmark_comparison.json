@@ -1,0 +1,38 @@
+[
+  {
+    "model": "Decision Tree",
+    "throughput_rps": 22.0,
+    "latency_mean_ms": 453.1,
+    "latency_per_sample_ms": 45.3,
+    "latency_p50_ms": 441.2,
+    "latency_p95_ms": 537.0,
+    "cpu_avg": 46.4,
+    "ram_avg": 21.9,
+    "temp_avg": 54.3,
+    "model_load_time_s": 11.9
+  },
+  {
+    "model": "GBT",
+    "throughput_rps": 24.3,
+    "latency_mean_ms": 410.3,
+    "latency_per_sample_ms": 41.0,
+    "latency_p50_ms": 413.7,
+    "latency_p95_ms": 439.0,
+    "cpu_avg": 40.9,
+    "ram_avg": 24.0,
+    "temp_avg": 54.7,
+    "model_load_time_s": 5.6
+  },
+  {
+    "model": "Random Forest",
+    "throughput_rps": 26.8,
+    "latency_mean_ms": 372.5,
+    "latency_per_sample_ms": 37.3,
+    "latency_p50_ms": 378.4,
+    "latency_p95_ms": 397.4,
+    "cpu_avg": 35.2,
+    "ram_avg": 27.5,
+    "temp_avg": 54.9,
+    "model_load_time_s": 12.9
+  }
+]

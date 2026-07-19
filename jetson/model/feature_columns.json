@@ -27,6 +27,5 @@
   "packet_length_mean",
   "packet_length_std",
   "packet_length_variance",
-  "average_packet_size",
-  "destination_port"
+  "average_packet_size"
 ]

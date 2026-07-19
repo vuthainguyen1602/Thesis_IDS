@@ -26,7 +26,7 @@
 % No-op fallback: \babelshorthandoff is a babel command, undefined under polyglossia.
 \providecommand{\babelshorthandoff}[1]{}
 
-\graphicspath{{../../../results/ml_07_cross_method_comparison/}{../../../results/ml_08_anomaly_gate/}{../../../papers/soict2026/results/benchmarks/}}
+\graphicspath{{../../../results/ml_07_cross_method_comparison/}{../../../results/ml_08_anomaly_gate/}{../../../papers/soict2026/results/benchmarks/}{../figures/}}
 
 \begin{document}
 
@@ -121,7 +121,14 @@ Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC
 
 \subsection{Monitoring and Alerting}
 
-Each node tags metrics with \texttt{EDGE\_NODE\_ID} in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications.
+Each node tags metrics with \texttt{EDGE\_NODE\_ID} in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Figure~\ref{fig:grafana} shows the live Grafana dashboard while CICIDS2017 flows are replayed through the split deployment: prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM/temperature are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{grafana_dashboard.png}
+  \caption{Real-time Grafana monitoring of the running edge IDS: per-node throughput, detected attacks, inference latency, and CPU/RAM/temperature for both Jetson Orin Nano Super nodes, plus recent PostgreSQL-backed attack alerts.}
+  \label{fig:grafana}
+\end{figure}
 
 \section{Implementation}
 
@@ -300,6 +307,15 @@ We run \texttt{run\_benchmarks.sh} on the Jetson hardware in three phases (\text
 \end{table}
 
 \textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run; the average rail power is integrated over the window and the idle baseline subtracted to obtain the active energy, divided by the number of classified flows to report energy-per-inference (mJ). For pipeline-split mode this sums the active energy of both nodes (gate on Jetson~\#1, classifier on Jetson~\#2). If the anomaly gate offloads a \ph{gsA}\% fraction of benign traffic before the heavier Spark classifier runs, the pipeline-split mode is expected to lower energy-per-inference relative to the single-node baseline; however, the added node and extra Kafka hop introduce overhead that may offset this saving, so Table~\ref{tab:benchmark} quantifies whether the net effect holds.
+
+Figure~\ref{fig:classifier-terminal} shows the PySpark classifier node (\texttt{jetson-nano-2}) processing replayed CICIDS2017 traffic in operation: it sustains a steady final-verdict throughput ($\approx$6 flows/s in this window), per-batch inference latency of a few milliseconds, and correct per-batch attack counts, while the per-node monitor reports live CPU/RAM/temperature.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{pipeline_terminal_jetson2.png}
+  \caption{Classifier node (\texttt{jetson-nano-2}) in operation: per-batch attack detection, few-millisecond inference latency, and live per-node resource telemetry during CICIDS2017 replay.}
+  \label{fig:classifier-terminal}
+\end{figure}
 
 \subsection{Inference-engine baseline (cost of the unified stack)}
 \label{sec:engine-baseline}

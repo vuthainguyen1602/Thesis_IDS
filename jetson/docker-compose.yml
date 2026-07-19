@@ -105,6 +105,7 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - ./dashboard:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
     depends_on:
       - influxdb
       - postgres

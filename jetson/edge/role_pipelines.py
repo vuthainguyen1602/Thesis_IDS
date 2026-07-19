@@ -36,22 +36,21 @@ from edge.kafka_forwarder import SuspiciousFlowForwarder
 
 
 def create_spark_session():
-    if not SPARK_MASTER.startswith("spark://"):
-        raise RuntimeError(
-            "SPARK_MASTER must be spark://<MAC_IP>:7077 in jetson/.env "
-            "(copy from cluster/spark_cluster.env.example)."
-        )
+    # Edge Mode A (pipeline split): each node runs inference on its own local
+    # Spark — no training cluster required. Set SPARK_MASTER=spark://<MAC_IP>:7077
+    # only for the distributed Spark-cluster benchmark (Mode C).
+    _master = SPARK_MASTER if SPARK_MASTER.startswith("spark://") else "local[*]"
     builder = (
         SparkSession.builder
         .appName(SPARK_APP_NAME)
-        .master(SPARK_MASTER)
+        .master(_master)
         .config("spark.executor.memory", SPARK_EXECUTOR_MEMORY)
         .config("spark.driver.memory", SPARK_DRIVER_MEMORY)
         .config("spark.sql.shuffle.partitions", SPARK_SHUFFLE_PARTITIONS)
         .config("spark.ui.enabled", "false")
         .config("spark.sql.adaptive.enabled", "true")
     )
-    if SPARK_MASTER.startswith("spark://") and SPARK_DRIVER_HOST:
+    if _master.startswith("spark://") and SPARK_DRIVER_HOST:
         builder = (
             builder
             .config("spark.driver.host", SPARK_DRIVER_HOST)
@@ -59,7 +58,7 @@ def create_spark_session():
         )
     spark = builder.getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
-    print(f"[OK] Spark Session created (version: {spark.version}, master: {SPARK_MASTER})")
+    print(f"[OK] Spark Session created (version: {spark.version}, master: {_master})")
     return spark
 
 

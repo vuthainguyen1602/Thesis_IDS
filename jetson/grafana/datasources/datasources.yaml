@@ -1,0 +1,32 @@
+# Grafana datasource provisioning for the IDS edge dashboard.
+# UIDs must match the dashboard JSON ("influxdb" and "postgres").
+# Hostnames are the docker-compose service names (same network).
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB
+    type: influxdb
+    uid: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    isDefault: true
+    jsonData:
+      version: Flux
+      organization: thesis
+      defaultBucket: ids_metrics
+      tlsSkipVerify: true
+    secureJsonData:
+      token: ids-edge-token
+
+  - name: PostgreSQL
+    type: postgres
+    uid: postgres
+    access: proxy
+    url: postgres:5432
+    database: ids_edge
+    user: ids
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1500
+    secureJsonData:
+      password: ids_password
