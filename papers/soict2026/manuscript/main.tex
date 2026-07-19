@@ -24,6 +24,11 @@
 \usetikzlibrary{positioning, arrows.meta, shapes.geometric, fit, backgrounds, calc}
 
 \newcommand{\ph}[1]{{\color{gray}\textit{[#1]}}}
+% Tighter float packing (reclaim near-empty float pages)
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.6}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.85}
 % No-op fallback: \babelshorthandoff is a babel command, undefined under polyglossia.
 \providecommand{\babelshorthandoff}[1]{}
 
@@ -130,7 +135,7 @@ Each node tags metrics with \texttt{EDGE\_NODE\_ID} in InfluxDB and PostgreSQL. 
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{grafana_dashboard.png}
+  \includegraphics[width=0.82\textwidth]{grafana_dashboard.png}
   \caption{Real-time Grafana monitoring of the running edge IDS: per-node throughput, detected attacks, inference latency, and CPU/RAM/temperature for both Jetson Orin Nano Super nodes, plus recent PostgreSQL-backed attack alerts.}
   \label{fig:grafana}
 \end{figure}
@@ -320,7 +325,7 @@ Figure~\ref{fig:classifier-terminal} shows the PySpark classifier node (\texttt{
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{pipeline_terminal_jetson2.png}
+  \includegraphics[width=0.72\textwidth]{pipeline_terminal_jetson2.png}
   \caption{Classifier node (\texttt{jetson-nano-2}) in operation: per-batch attack detection, few-millisecond inference latency, and live per-node resource telemetry during CICIDS2017 replay.}
   \label{fig:classifier-terminal}
 \end{figure}
@@ -349,7 +354,7 @@ We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with 
 \begin{figure}[htbp]
   \centering
   \IfFileExists{../../../papers/soict2026/results/benchmarks/edge_modes.png}{%
-    \includegraphics[width=0.8\textwidth]{edge_modes.png}%
+    \includegraphics[width=0.7\textwidth]{edge_modes.png}%
   }{%
     \fbox{\parbox{0.76\textwidth}{\centering\vspace{1.2cm}\ph{Edge-mode bars --- run plot\_edge\_modes.py}\vspace{1.2cm}}}%
   }
@@ -362,7 +367,7 @@ The anomaly gate is a \emph{tunable} filter rather than a single point: sweeping
 \begin{figure}[htbp]
   \centering
   \IfFileExists{../../../results/ml_08_anomaly_gate/gate_operating_points.png}{%
-    \includegraphics[width=0.78\textwidth]{gate_operating_points.png}%
+    \includegraphics[width=0.68\textwidth]{gate_operating_points.png}%
   }{%
     \fbox{\parbox{0.74\textwidth}{\centering\vspace{1.2cm}\ph{Gate operating curve --- run ml\_08\_anomaly\_gate\_autoencoder.py}\vspace{1.2cm}}}%
   }
