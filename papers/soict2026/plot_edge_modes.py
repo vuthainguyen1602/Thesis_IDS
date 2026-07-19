@@ -60,9 +60,10 @@ def main():
         sys.exit("[WARN] No filled benchmark rows yet (throughput all empty). "
                  "Fill summary.csv after running the benchmarks.")
 
-    # one row per mode (first filled occurrence), in canonical order
+    # aggregate repeated runs: mean per mode, in canonical order
     order = [m for m in MODE_LABELS if m in set(df["mode"])]
-    df = df.drop_duplicates("mode").set_index("mode").loc[order]
+    df = (df.groupby("mode")[["throughput_rps", "latency_p95_ms"]]
+            .mean().loc[order])
     labels = [MODE_LABELS[m] for m in order]
 
     import matplotlib

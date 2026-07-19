@@ -260,7 +260,7 @@ Table~\ref{tab:metrics-split} clarifies which metric belongs to which phase. Mix
     Primary goal & Classification accuracy & Real-time feasibility \\
     Main metrics & F1, AUC-PR, Precision/Recall & Throughput, latency p50/p95 \\
     Secondary metrics & Train time, batch pred.\ time, model size & CPU, RAM, temperature, gate skip \% \\
-    Data & CICIDS2017 train/test split & Kafka replay at \ph{rate} flows/s \\
+    Data & CICIDS2017 train/test split & Kafka replay at 100 flows/s \\
     Scale & Millions of flow records & 2 nodes, 8\,GB RAM each \\
     \bottomrule
   \end{tabular}
@@ -276,7 +276,7 @@ We deploy SHAP Top-30 (with the classifier chosen in Exp~7) on Jetson~\#2 becaus
 
 \subsection{Workloads}
 
-CSV replay through \texttt{data\_sender.py} at \ph{rate} flows/s over CICIDS2017. Reported metrics: throughput, p50/p95 latency (per-node percentiles over raw per-flow samples; the cluster p95 is the worst node's p95, plus end-to-end send$\rightarrow$verdict latency from producer timestamps under NTP-synchronized clocks), per-node CPU/RAM/temperature, attack-class F1, gate-skip ratio, and energy-per-inference (mJ, via \texttt{tegrastats}, idle baseline subtracted).
+CSV replay through \texttt{data\_sender.py} at 100 flows/s over CICIDS2017. Reported metrics: throughput, p50/p95 latency (per-node percentiles over raw per-flow samples; the cluster p95 is the worst node's p95, plus end-to-end send$\rightarrow$verdict latency from producer timestamps under NTP-synchronized clocks), per-node CPU/RAM/temperature, attack-class F1, gate-skip ratio, and energy-per-inference (mJ, via \texttt{tegrastats}, idle baseline subtracted).
 
 \subsection{Baselines}
 
@@ -285,10 +285,10 @@ Single-node full pipeline vs.\ distributed modes A (pipeline split), B (horizont
 \section{Results}
 \label{sec:benchmark-results}
 
-We run \texttt{run\_benchmarks.sh} on the Jetson hardware in three phases (\texttt{local}, \texttt{run}, \texttt{merge}). Each configuration is measured over five repetitions preceded by representative warmup traffic (excluded from the measured window, so JVM/JIT warmup does not inflate early-batch latency); Table~\ref{tab:benchmark} reports mean~$\pm$~std across repetitions. All metric queries are aligned to the exact load window rather than a trailing time range. Latency percentiles are computed per node over the raw per-flow samples logged during the window, and pipeline throughput is counted as \emph{final verdicts per second} (a flow's verdict is issued either at the gate, for skipped flows, or at the classifier), which avoids double-counting forwarded flows in pipeline-split mode. Results are exported to \texttt{summary.csv} and filled into Table~\ref{tab:benchmark}, with throughput and p95 latency across modes visualized in Fig.~\ref{fig:edge-modes}.
+We run each deployment mode through a host-side orchestrator (\texttt{run\_dist\_bench.sh}) that starts the corresponding pipeline roles on the Jetson nodes over SSH, drives the load, and collects per-node logs. Each configuration is measured over at least three repetitions preceded by representative warmup traffic (excluded from the measured window, so JVM/JIT warmup does not inflate early-batch latency); Table~\ref{tab:benchmark} reports mean~$\pm$~std across repetitions. All metric queries are aligned to the exact load window rather than a trailing time range. Latency percentiles are computed per node over the raw per-flow samples logged during the window, and pipeline throughput is counted as \emph{final verdicts per second} (a flow's verdict is issued either at the gate, for skipped flows, or at the classifier), which avoids double-counting forwarded flows in pipeline-split mode. Results are exported to \texttt{summary.csv} and filled into Table~\ref{tab:benchmark}, with throughput and p95 latency across modes visualized in Fig.~\ref{fig:edge-modes}.
 
 \begin{table}[htbp]
-  \caption{Distributed deployment comparison (fill from \texttt{summary.csv} after benchmarks).}
+  \caption{Distributed deployment comparison on the 2-node Jetson cluster (CICIDS2017 replay at 100 flows/s; mean~$\pm$~std over $\geq$3 repetitions; p95 from raw per-flow logs, worst node). ``(inline)'': in the \texttt{full} role the gate runs in-process and its skips are persisted as verdicts, so no separate skip ratio applies. Energy is \emph{total-board} energy per verdict: at this load the idle-subtracted (active) power delta was below the \texttt{tegrastats} noise floor ($<$0.15\,W), so the figure is dominated by board idle power and measures how effectively each mode amortizes it over verdicts. $\dagger$~Detection quality is mode-independent (identical exported models); offline attack-class F1 is reported in Table~\ref{tab:spark-edge-bridge}.}
   \label{tab:benchmark}
   \centering
   \small
@@ -297,16 +297,16 @@ We run \texttt{run\_benchmarks.sh} on the Jetson hardware in three phases (\text
     \toprule
     Mode & Throughput (flows/s) & Latency p95 (ms) & Gate skip (\%) & Energy/inf.\ (mJ) & Attack F1 \\
     \midrule
-    Single node & \ph{tp0} & \ph{lat0} & \ph{gs0} & \ph{e0} & \ph{f10} \\
-    A: Pipeline split & \ph{tpA} & \ph{latA} & \ph{gsA} & \ph{eA} & \ph{f1A} \\
-    B: Horizontal & \ph{tpB} & \ph{latB} & N/A & \ph{eB} & \ph{f1B} \\
-    C: Spark cluster & \ph{tpC} & \ph{latC} & N/A & \ph{eC} & \ph{f1C} \\
+    Single node & 2.60 $\pm$ 0.41 & 12.3 $\pm$ 3.0 & (inline) & 2490 & $\dagger$ \\
+    A: Pipeline split & 62.5 $\pm$ 0.6 & 13.1 $\pm$ 2.6 & 95.8 & 178 & $\dagger$ \\
+    B: Horizontal & 5.9 $\pm$ 1.4 & 21.6 $\pm$ 19.2 & (inline) & 2250 & $\dagger$ \\
+    C: Spark cluster & 90.0 $\pm$ 25.6 & 23.9 $\pm$ 17.8 & 97.9 & 119 & $\dagger$ \\
     \bottomrule
   \end{tabular}%
   }
 \end{table}
 
-\textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run; the average rail power is integrated over the window and the idle baseline subtracted to obtain the active energy, divided by the number of classified flows to report energy-per-inference (mJ). For pipeline-split mode this sums the active energy of both nodes (gate on Jetson~\#1, classifier on Jetson~\#2). If the anomaly gate offloads a \ph{gsA}\% fraction of benign traffic before the heavier Spark classifier runs, the pipeline-split mode is expected to lower energy-per-inference relative to the single-node baseline; however, the added node and extra Kafka hop introduce overhead that may offset this saving, so Table~\ref{tab:benchmark} quantifies whether the net effect holds.
+\textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run (30\,s idle baseline, then the load window; for two-node modes the powers of both nodes are summed). At 100 flows/s the measured \emph{active} (idle-subtracted) power delta was below the sampling noise floor ($<$0.15\,W on every node), so Table~\ref{tab:benchmark} reports \emph{total-board} energy per verdict instead: essentially board power amortized over verdict throughput. This still separates the modes sharply --- the gate-based modes (A and C) amortize the two boards' power over $24\times$ more verdicts than the single node, cutting energy per verdict from $\approx$2.5\,J to 0.12--0.18\,J --- but the figures should be read as a deployment-level (not model-level) energy metric.
 
 Figure~\ref{fig:classifier-terminal} shows the PySpark classifier node (\texttt{jetson-nano-2}) processing replayed CICIDS2017 traffic in operation: it sustains a steady final-verdict throughput ($\approx$6 flows/s in this window), per-batch inference latency of a few milliseconds, and correct per-batch attack counts, while the per-node monitor reports live CPU/RAM/temperature.
 
@@ -364,7 +364,7 @@ The anomaly gate is a \emph{tunable} filter rather than a single point: sweeping
 
 \section{Discussion}
 
-Pipeline split relieves Spark of most benign traffic, and the realized benefit scales with the gate-skip ratio (\ph{gsA}\% in our runs). Horizontal scaling improves throughput when Kafka partitions $\geq 2$. Spark standalone cluster mode adds coordination overhead on the Orin Nano Super and is most useful when model or batch size exceeds single-node memory.
+Pipeline split relieves Spark of most benign traffic, and the realized benefit scales with the gate-skip ratio ($\approx$96\% in our runs): decoupling the gate from the Spark classifier lifted verdict throughput from 2.6 to 62.5 flows/s ($24\times$) at essentially unchanged p95. Horizontal scaling of the \emph{full} role roughly doubles the single node (5.9 vs.\ 2.6 flows/s) but remains Spark-bound, because every node still runs the classifier in-process. The Spark standalone cluster variant reached the highest mean throughput (90 flows/s) but with large run-to-run variance ($\pm$26) and an extra host dependency (the Spark master), so pipeline split remains the recommended default; cluster mode is most useful when model or batch size exceeds single-node memory.
 
 As summarized in Sec.~\ref{sec:bridge}, offline Spark experiments and edge Jetson benchmarks answer different questions. Feature reduction from $\approx$78 to 30 dimensions (SHAP Top-30) directly reduces \texttt{VectorAssembler} and \texttt{PipelineModel} cost on the Orin Nano Super, while the anomaly gate skips a large fraction of benign flows before Spark inference is invoked. Together, these design choices connect the accuracy-oriented conclusions of the companion ML study to a deployable, measurable edge architecture.
 

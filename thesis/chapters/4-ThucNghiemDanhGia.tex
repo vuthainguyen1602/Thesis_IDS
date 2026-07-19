@@ -639,14 +639,24 @@ Ngoài việc so sánh các mô hình trên một nút, luận văn đánh giá 
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
 \toprule
 \textbf{Chế độ} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ\\p95 (ms)}} & \textbf{\shortstack{Bỏ qua\\tại cổng (\%)}} & \textbf{\shortstack{Năng lượng\\/suy luận (mJ)}} & \textbf{\shortstack{F1\\(Attack)}} \\ \midrule
-Một nút (single)        & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-A: Pipeline split       & \ph{} & \ph{} & \ph{} & \ph{} & \ph{} \\
-B: Horizontal scaling   & \ph{} & \ph{} & N/A   & \ph{} & \ph{} \\
-C: Spark cluster        & \ph{} & \ph{} & N/A   & \ph{} & \ph{} \\ \bottomrule
+Một nút (single)        & 2{,}60 $\pm$ 0{,}41 & 12{,}3 $\pm$ 3{,}0 & (nội tuyến) & 2490 & $\dagger$ \\
+A: Pipeline split       & 62{,}5 $\pm$ 0{,}6  & 13{,}1 $\pm$ 2{,}6 & 95{,}8      & 178  & $\dagger$ \\
+B: Horizontal scaling   & 5{,}9 $\pm$ 1{,}4   & 21{,}6 $\pm$ 19{,}2 & (nội tuyến) & 2250 & $\dagger$ \\
+C: Spark cluster        & 90{,}0 $\pm$ 25{,}6 & 23{,}9 $\pm$ 17{,}8 & 97{,}9      & 119  & $\dagger$ \\ \bottomrule
 \end{tabular*}
+
+\vspace{2pt}
+{\footnotesize Phát lại CICIDS2017 ở 100 luồng/giây; trung bình $\pm$ độ lệch chuẩn trên $\geq$3 lần lặp; p95 tính từ log thô từng luồng (nút xấu nhất). ``(nội tuyến)'': ở vai trò \texttt{full}, cổng chạy trong cùng tiến trình và các luồng bị bỏ qua vẫn được ghi phán quyết nên không có tỷ lệ bỏ qua riêng. $\dagger$: chất lượng phát hiện không phụ thuộc chế độ (cùng mô hình xuất khẩu); F1 lớp tấn công ngoại tuyến xem Bảng~\ref{tab:leakage_ablation}.}
 \end{table}
 
-Phân tích kỳ vọng: chế độ \emph{pipeline split} giảm tải Spark theo tỷ lệ bỏ qua tại cổng (gate-skip; cổng lọc phần lớn lưu lượng bình thường trước khi gọi bộ phân loại); \emph{mở rộng theo chiều ngang} (horizontal scaling) tăng thông lượng khi số phân vùng (partition) Kafka $\geq 2$; \emph{Spark cluster} thêm chi phí điều phối trên phần cứng Nano nên chỉ hữu ích khi mô hình/batch vượt bộ nhớ một nút. \emph{Năng lượng mỗi suy luận} được đo riêng cho từng nút Jetson bằng \texttt{tegrastats}: công suất rail tổng được lấy mẫu suốt cửa sổ tải và tích phân theo thời gian, \emph{có trừ} đường nền công suất nghỉ (idle baseline) đo trước mỗi lần chạy, rồi chia cho số luồng đã phân loại; với chế độ pipeline split, năng lượng báo cáo là \emph{tổng năng lượng hoạt động của cả hai nút} (cổng trên Jetson~\#1 + bộ phân loại trên Jetson~\#2). Hai lưu ý trung thực: (i) đường nền idle đo một lần trước mỗi run nên chưa bắt được trôi công suất do nhiệt trong run; (ii) phần tiết kiệm nhờ gate-skip chưa trừ chi phí của chính autoencoder --- vốn chạy trên 100\% luồng.
+\begin{figure}[htbp]
+    \centering
+    \IfFileExists{img/edge_modes.png}{\includegraphics[width=0.85\textwidth]{img/edge_modes.png}}{\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.2cm}\ph{Biểu đồ so sánh chế độ triển khai --- chạy plot\_edge\_modes.py}\vspace{1.2cm}}}}
+    \caption{Thông lượng và độ trễ p95 của bốn chế độ triển khai trên cụm 2 Jetson}
+    \label{fig:edge_modes}
+\end{figure}
+
+Kết quả thực đo cho thấy: chế độ \emph{pipeline split} tách cổng khỏi bộ phân loại Spark giúp thông lượng phán quyết tăng từ 2{,}6 lên 62{,}5 luồng/giây (gấp $\approx$24 lần) với p95 gần như không đổi, nhờ cổng lọc 95{,}8\% lưu lượng bình thường và không còn bị Spark chặn vòng xử lý. \emph{Mở rộng theo chiều ngang} chỉ tăng xấp xỉ gấp đôi một nút (5{,}9 so với 2{,}6) vì mỗi nút vẫn chạy trọn bộ phân loại Spark trong tiến trình. \emph{Spark cluster} (cổng + bộ phân loại nối cụm Spark standalone) đạt thông lượng trung bình cao nhất (90{,}0) nhưng dao động lớn giữa các lần chạy ($\pm$26) và phụ thuộc thêm nút chủ (master) trên máy điều phối, nên pipeline split vẫn là khuyến nghị mặc định. \emph{Năng lượng mỗi suy luận} đo bằng \texttt{tegrastats} (nền idle 30\,giây trước mỗi cửa sổ tải; chế độ hai nút cộng công suất cả hai bo mạch): ở mức tải 100 luồng/giây, phần công suất \emph{hoạt động} (đã trừ idle) nằm dưới ngưỡng nhiễu lấy mẫu ($<$0{,}15\,W mọi nút), do đó bảng báo cáo năng lượng \emph{toàn bo mạch} trên mỗi phán quyết --- thước đo mức khấu hao công suất bo mạch theo thông lượng ở cấp triển khai (không phải chi phí riêng của mô hình): các chế độ dùng cổng (A, C) khấu hao công suất hai bo mạch trên số phán quyết gấp 24 lần, giảm năng lượng mỗi phán quyết từ $\approx$2{,}5\,J xuống 0{,}12--0{,}18\,J.
 
 \pagebreak
 
