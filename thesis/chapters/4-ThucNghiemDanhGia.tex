@@ -674,9 +674,9 @@ Hình~\ref{fig:benchmark_comparison} minh họa trực quan sự khác biệt gi
 Kết quả benchmark cho thấy sự đánh đổi rõ ràng giữa các chỉ số:
 
 \begin{itemize}
-    \item \textbf{Random Forest} đạt thông lượng cao nhất (\ph{} mẫu/giây) nhờ Spark tối ưu hóa song song trên nhiều cây, nhưng sử dụng RAM nhiều nhất (\ph{}\%) và kích thước mô hình lớn nhất (\ph{}).
+    \item \textbf{Random Forest} đạt thông lượng cao nhất (26{,}8 mẫu/giây) nhờ Spark tối ưu hóa song song trên nhiều cây, nhưng sử dụng RAM nhiều nhất (27{,}5\%) và kích thước mô hình lớn nhất ($\approx$4{,}4\,MB).
     \item \textbf{\ac{gbt}} có hiệu năng trung bình ở tất cả các chỉ số, đóng vai trò cầu nối giữa Decision Tree và Random Forest.
-    \item \textbf{Decision Tree} có F1-Score \ph{}, sử dụng RAM thấp nhất (\ph{}\%), và mô hình có kích thước rất nhỏ (\ph{}). Mặc dù thông lượng thấp nhất (\ph{} mẫu/giây), giá trị này vẫn đáp ứng yêu cầu giám sát thời gian thực cho mạng quy mô vừa và nhỏ.
+    \item \textbf{Decision Tree} có F1-Score 0{,}9948 (SHAP Top-30, ngoại tuyến), sử dụng RAM thấp nhất (21{,}9\%), và mô hình có kích thước rất nhỏ ($\approx$0{,}05\,MB). Mặc dù thông lượng thấp nhất (22{,}0 mẫu/giây), giá trị này vẫn đáp ứng yêu cầu giám sát thời gian thực cho mạng quy mô vừa và nhỏ.
 \end{itemize}
 
 Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữa các tiêu chí lựa chọn mô hình. Decision Tree chiếm ưu thế ở hai tiêu chí quan trọng nhất cho thiết bị biên: RAM thấp và kích thước mô hình nhỏ.
@@ -690,15 +690,15 @@ Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữ
 
 \textbf{Decision Tree được chọn} làm mô hình triển khai chính trên thiết bị biên dựa trên ba tiêu chí:
 \begin{enumerate}
-    \item \textbf{Chất lượng phát hiện}: F1-Score \ph{} -- với tập đặc trưng SHAP Top-30 đã được lựa chọn (đã loại trừ rò rỉ), cần kiểm chứng liệu một cây quyết định đơn lẻ có đủ khả năng nắm bắt các mẫu phân loại hay không.
-    \item \textbf{Hiệu quả tài nguyên}: Chỉ sử dụng \ph{}\% RAM, giảm áp lực lên garbage collector của JVM và đảm bảo tính ổn định lâu dài trên thiết bị giới hạn tài nguyên.
-    \item \textbf{Tính khả chuyển}: Kích thước mô hình \ph{} cho phép triển khai trên các thiết bị IoT có bộ nhớ hạn chế hơn.
+    \item \textbf{Chất lượng phát hiện}: F1-Score 0{,}9948 -- với tập đặc trưng SHAP Top-30 đã được lựa chọn (đã loại trừ rò rỉ), một cây quyết định đơn lẻ vẫn nắm bắt được các mẫu phân loại, chỉ kém Random Forest 0{,}0007 điểm F1.
+    \item \textbf{Hiệu quả tài nguyên}: Chỉ sử dụng 21{,}9\% RAM, giảm áp lực lên garbage collector của JVM và đảm bảo tính ổn định lâu dài trên thiết bị giới hạn tài nguyên.
+    \item \textbf{Tính khả chuyển}: Kích thước mô hình $\approx$0{,}05\,MB cho phép triển khai trên các thiết bị IoT có bộ nhớ hạn chế hơn.
 \end{enumerate}
 
 \section{Thảo luận và So sánh tổng hợp}
-Kết quả thực nghiệm cho thấy việc kết hợp lựa chọn đặc trưng dựa trên SHAP và phương pháp ensemble (Hybrid Bagging) là một hướng tiếp cận phù hợp cho hệ thống IDS trên bộ dữ liệu CICIDS2017. Dưới cấu hình đánh giá loại trừ rò rỉ dữ liệu, giải pháp đạt F1-Score \ph{} đồng thời tối ưu được thời gian xử lý và dung lượng lưu trữ, phù hợp với ràng buộc của thiết bị biên.
+Kết quả thực nghiệm cho thấy việc kết hợp lựa chọn đặc trưng dựa trên SHAP và phương pháp ensemble (Hybrid Bagging) là một hướng tiếp cận phù hợp cho hệ thống IDS trên bộ dữ liệu CICIDS2017. Dưới cấu hình đánh giá loại trừ rò rỉ dữ liệu, giải pháp đạt F1-Score 0{,}9966 (Hybrid Bagging, SHAP Top-30) đồng thời tối ưu được thời gian xử lý và dung lượng lưu trữ, phù hợp với ràng buộc của thiết bị biên.
 
-Đặc biệt, khi triển khai trên thiết bị biên Jetson Orin Nano Super, Decision Tree với SHAP Top-30 đặc trưng được kỳ vọng đạt F1-Score \ph{} (đã loại trừ rò rỉ), thông lượng \ph{} mẫu/giây, và sử dụng \ph{}\% RAM. Sau khi điền các số liệu trên, kết quả sẽ cho phép đánh giá tính khả thi của việc triển khai hệ thống IDS dựa trên học máy trên các thiết bị biên có tài nguyên giới hạn, mở ra hướng ứng dụng thực tế cho giám sát an ninh mạng phân tán.
+Đặc biệt, khi triển khai trên thiết bị biên Jetson Orin Nano Super, Decision Tree với SHAP Top-30 đặc trưng đạt F1-Score 0{,}9948 ngoại tuyến (đã loại trừ rò rỉ; bản xuất khẩu trên thiết bị huấn luyện trên mẫu phân tầng 20\% đạt 0{,}981), thông lượng 22{,}0 mẫu/giây, và sử dụng 21{,}9\% RAM. Các số liệu này cho phép đánh giá tính khả thi của việc triển khai hệ thống IDS dựa trên học máy trên các thiết bị biên có tài nguyên giới hạn, mở ra hướng ứng dụng thực tế cho giám sát an ninh mạng phân tán.
 
 
 
