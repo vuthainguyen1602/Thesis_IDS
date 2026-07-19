@@ -24,8 +24,8 @@ U=bvdung
 JROOT=/home/$U/Thesis_IDS/jetson
 SSH="ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o ServerAliveInterval=30 -o ServerAliveCountMax=10"
 
-# ---- tunables ----
-RATE=${RATE:-100}; DUR=${DUR:-60}; WARM=${WARM:-30}; REP=${REP:-5}
+# ---- tunables (fast draft defaults; raise REP/DUR for the final numbers) ----
+RATE=${RATE:-100}; DUR=${DUR:-45}; WARM=${WARM:-20}; REP=${REP:-3}
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$DIR/../.." && pwd)"
