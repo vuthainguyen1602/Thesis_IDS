@@ -393,6 +393,8 @@ Heartbleed                   & 3       & 1,0000 & 1,0000 & 1,0000 \\ \midrule
     \label{fig:confusion_matrix}
 \end{figure}
 
+\textbf{Phân tích hướng nhầm lẫn của các lớp hiếm.} Đọc ma trận nhầm lẫn theo \emph{đích đến} của các dự đoán sai cho thấy các lớp hiếm suy giảm theo hai kiểu khác nhau. Kiểu thứ nhất là \emph{nhầm loại nhưng vẫn bị phát hiện}: 81/111 mẫu Web Attack~--~XSS bị gán thành Web Attack~--~Brute Force --- tức ở bài toán nhị phân triển khai trên biên, các luồng này \emph{vẫn bị gắn cờ tấn công} (76\% XSS vẫn bị chặn), chỉ sai ở khâu định danh loại. Kiểu thứ hai nguy hiểm hơn: \emph{lọt hẳn thành Benign} --- toàn bộ 6/6 mẫu SQL Injection, 158/290 mẫu Bot (54\%) và 84/311 mẫu Web Brute Force bị dự đoán là lưu lượng bình thường. Ba cơ chế giải thích hiện tượng này: (i)~\emph{mất cân bằng cực đoan} (6--311 mẫu so với 380.119 mẫu Benign) khiến các lớp hiếm gần như không có vùng quyết định riêng; (ii)~việc \emph{loại \texttt{destination\_port}} ảnh hưởng nặng nhất đến nhóm tấn công web: khi mất ``lối tắt'' cổng 80, các luồng HTTP tấn công (request/response ngắn) có đặc trưng hành vi rất gần lưu lượng duyệt web thường và gần lẫn nhau --- giá trị recall 0{,}027 của XSS là con số \emph{trung thực} thay cho con số đẹp nhờ rò rỉ; (iii)~\emph{Bot lẫn Benign do bản chất}: các luồng beaconing C\&C nhỏ, đều đặn, giống lưu lượng nền khi không còn định danh cổng/dịch vụ. Nhận diện này định hướng trực tiếp cho hướng phát triển: xử lý mất cân bằng có chủ đích (tăng cường/oversampling lớp hiếm), bổ sung đặc trưng chuỗi thời gian cho hành vi beaconing, và kiểm chứng liên bộ dữ liệu (Mục~\ref{sec:cross-dataset}).
+
 \pagebreak
 
 \clearpage
