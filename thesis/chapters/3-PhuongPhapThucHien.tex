@@ -4,6 +4,7 @@ Trong chương này, luận văn sẽ trình bày phương pháp đề xuất đ
 
 \begin{figure}[htbp]
     \centering
+    \resizebox{0.98\textwidth}{!}{%
     \begin{tikzpicture}[
         font=\small, >=Stealth,
         every node/.style={align=center},
@@ -35,7 +36,7 @@ Trong chương này, luận văn sẽ trình bày phương pháp đề xuất đ
             at (5.1,-4.25) {Lặp lại theo từng phương pháp (RFI / SHAP / PCA)};
         % Điểm ảo cân đối bên trái để cột hộp căn giữa trang (bù nhãn vòng lặp bên phải)
         \path (-7.7,-4.25) rectangle (-7.6,-4.24);
-    \end{tikzpicture}
+    \end{tikzpicture}}
     \caption{Quy trình tổng thể huấn luyện, đánh giá và triển khai mô hình đề xuất}
     \label{fig:training_model}
 \end{figure}
@@ -73,7 +74,8 @@ Bên cạnh CICIDS2017 (bộ dữ liệu chính cho toàn bộ các thí nghiệ
 \caption{Mô tả bộ dữ liệu CSE-CIC-IDS2018 (dùng cho thí nghiệm liên bộ dữ liệu)}
 \label{tab:cicids2018}
 \renewcommand{\arraystretch}{1.1}
-\begin{tabular}{l@{\hspace{10pt}}>{\raggedright\arraybackslash}p{10cm}}
+\small
+\begin{tabular}{l@{\hspace{10pt}}>{\raggedright\arraybackslash}p{9cm}}
 \toprule
 \textbf{Thuộc tính}              & \textbf{Giá trị} \\
 \midrule

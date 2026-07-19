@@ -17,6 +17,7 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
 
 \begin{figure}[!ht]
     \centering
+    \resizebox{\textwidth}{!}{%
     \begin{tikzpicture}[
         font=\small, >=Stealth,
         every node/.style={align=center},
@@ -48,7 +49,7 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
         \draw[up] (w2.east) -- ++( 0.7,0) |- (m.east);
         \draw[dn] (w1.south) -- (s1.north);
         \draw[dn] (w2.south) -- (s2.north);
-    \end{tikzpicture}
+    \end{tikzpicture}}
     \caption{Cụm huấn luyện phân tán Apache Spark Standalone: MacBook giữ vai trò \textit{master} điều phối (không chạy executor), hai Jetson Orin Nano Super là \textit{worker}/\textit{executor} thực thi tính toán; dữ liệu Parquet được phân vùng và đồng bộ sang cả hai nút, kết quả được gom về qua shuffle/collect.}
     \label{fig:spark_cluster}
 \end{figure}
@@ -70,7 +71,8 @@ Bảng \ref{tab:model_parameters} tóm tắt thiết lập tham số của các 
 \label{tab:model_parameters}
 \small
 \renewcommand{\arraystretch}{0.9}
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llp{2.5cm}p{6cm}@{}}
+\small
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llp{2.2cm}p{5.6cm}@{}}
 \toprule
 \textbf{Mô hình} & \textbf{Tham số} & \textbf{Giá trị} & \textbf{Ý nghĩa/Mô tả} \\
 \midrule
@@ -280,9 +282,10 @@ Kết quả trong Bảng \ref{tab:exp0_system_performance} cho thấy:
 \centering
 \caption{So sánh thời gian xử lý và kích thước mô hình kịch bản Baseline}
 \label{tab:exp0_system_performance}
+\small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
-\textbf{Thuật toán} & \textbf{Thời gian huấn luyện (s)} & \textbf{Thời gian dự đoán (s)} & \textbf{Kích thước (MB)} \\ \midrule
+\textbf{Thuật toán} & \textbf{\shortstack{Huấn luyện\\(s)}} & \textbf{\shortstack{Dự đoán\\(s)}} & \textbf{\shortstack{Kích thước\\(MB)}} \\ \midrule
 Decision Tree          & 33,4   & 6,1  & 0,0004 \\
 Logistic Regression    & 49,2   & 5,4  & 0,009 \\
 \ac{svm} (LinearSVC)        & 224,3  & 5,4  & 0,002 \\
