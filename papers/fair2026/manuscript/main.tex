@@ -25,6 +25,12 @@
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
+\usepackage{float}
+\floatstyle{ruled}
+\newfloat{algorithm}{tbp}{loalg}
+\floatname{algorithm}{Thuật toán}
 % babel defines \babelshorthandoff; under polyglossia it is undefined, so
 % provide a no-op fallback to avoid an "Undefined control sequence" at
 % \begin{document} (Vietnamese shorthands are not active under polyglossia).
@@ -110,6 +116,33 @@ Các khảo sát IDS~\cite{ring2019survey,khraisat2019survey,ferrag2020deep} cho
 
 Quy trình ngoại tuyến (offline) gồm các bước nối tiếp: làm sạch dữ liệu, loại bỏ trùng lặp, \texttt{VectorAssembler}, \texttt{StandardScaler}, biến đổi giảm chiều (tuỳ chọn), rồi đến bộ phân loại. Nhãn nhị phân: Benign (0) và Attack (1). Toàn bộ \texttt{fit} của StandardScaler/PCA và việc xếp hạng đặc trưng \emph{chỉ} dùng tập huấn luyện; tập kiểm tra giữ vai trò tập giữ lại (holdout) cuối cùng.
 
+
+\begin{figure}[t]
+\centering
+\resizebox{0.98\columnwidth}{!}{%
+\begin{tikzpicture}[
+  font=\footnotesize, node distance=3.2mm, >=Stealth,
+  box/.style={draw, rounded corners=1pt, align=center, inner sep=3pt, minimum width=6.6cm},
+  hl/.style={box, fill=gray!12},
+  arr/.style={-{Stealth[length=2mm]}, semithick}]
+  \node[box] (raw)  {CICIDS2017 (8 tệp CSV, $\approx$2,8 triệu luồng)};
+  \node[hl, below=of raw] (prep) {\textbf{Tiền xử lý loại trừ rò rỉ} (Thuật toán~\ref{alg:prep})\\ loại \texttt{destination\_port}/\texttt{source\_port} $\cdot$ khử trùng lặp mức đặc trưng};
+  \node[box, below=of prep] (split) {Chia 80/20 huấn luyện/kiểm tra (seed cố định) $\cdot$ Parquet};
+  \node[box, below=of split] (strat) {\textbf{4 chiến lược}: Baseline $\,\vert\,$ RF Top-$K$ $\,\vert\,$ SHAP Top-$K$ $\,\vert\,$ PCA\\ (xếp hạng chỉ khớp trên tập huấn luyện)};
+  \node[box, below=of strat] (clf) {8 bộ phân loại Spark ML $+$ 2 ensemble};
+  \node[hl, below=of clf] (val) {Chọn mô hình trên tập kiểm định $\cdot$ kiểm định hoán vị ghép cặp,\\ CI Nadeau--Bengio, cỡ hiệu ứng $\cdot$ đánh giá đa lớp};
+  \node[box, below=of val] (edge) {Mô hình SHAP Top-30 $\rightarrow$ xuất khẩu sang Jetson Orin Nano Super\\ (công trình song hành về hệ thống)};
+  \draw[arr] (raw) -- (prep);
+  \draw[arr] (prep) -- (split);
+  \draw[arr] (split) -- (strat);
+  \draw[arr] (strat) -- (clf);
+  \draw[arr] (clf) -- (val);
+  \draw[arr] (val) -- (edge);
+\end{tikzpicture}}
+\caption{Quy trình đánh giá loại trừ rò rỉ: từ luồng CICIDS2017 thô đến mô hình đã kiểm định thống kê, sẵn sàng cho thiết bị biên.}
+\label{fig:pipeline}
+\end{figure}
+
 \subsection{Chuẩn bị dữ liệu loại trừ rò rỉ}
 \label{sec:leakage}
 
@@ -120,7 +153,27 @@ Chúng tôi gộp tám file CSV CICIDS2017, chuẩn hoá tên cột, thay giá t
   \item \textbf{Loại bỏ trùng lặp ở mức đặc trưng (tất định).} Ngoài việc khử các bản ghi trùng lặp hoàn toàn, chúng tôi loại các luồng \emph{trùng nhau trên toàn bộ cột đặc trưng} trước khi chia, ngăn cùng một mẫu xuất hiện ở cả tập huấn luyện và tập kiểm tra. Với các nhóm luồng trùng đặc trưng nhưng \emph{mâu thuẫn nhãn} (Benign và Attack --- một lỗi đã biết của CICIDS2017~\cite{lanvin2023errors}), toàn bộ nhóm bị loại thay vì giữ lại một hàng tuỳ ý theo phân mảnh dữ liệu; số nhóm và số hàng bị loại được báo cáo (270 nhóm, 44.260 hàng), bảo đảm kết quả loại bỏ trùng lặp tất định và tái lập được.
 \end{itemize}
 
-Sau khi xử lý, dữ liệu được chia thành \textbf{80\% huấn luyện / 20\% kiểm tra} (với seed cố định), lưu dưới định dạng Parquet và tái sử dụng xuyên suốt các thí nghiệm. Số đặc trưng dạng số còn lại là 77, và số mẫu sau khi loại bỏ trùng lặp là 1.785.349/447.275 (tổng $\approx$2.232.624 sau khi loại trùng lặp mức đặc trưng).
+
+\begin{algorithm}[t]
+\caption{Tiền xử lý loại trừ rò rỉ cho CICIDS2017}
+\label{alg:prep}
+\footnotesize
+\begin{list}{}{\setlength{\leftmargin}{0.8em}\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}\setlength{\topsep}{2pt}}
+\item \textbf{Đầu vào:} các tệp CSV $\{F_1,\dots,F_N\}$; tỉ lệ chia $\alpha{=}0.8$
+\item \textbf{Đầu ra:} $D_{\text{train}}$, $D_{\text{test}}$ (Parquet)
+\item 1:\ $D \gets \bigcup_i F_i$ \hfill $\triangleright$ chuẩn hoá tên cột; $\pm\infty \rightarrow$ NaN
+\item 2:\ $D \gets \textsc{DropDuplicates}(D)$;\ \ $D \gets \textsc{DropNaN}(D)$
+\item 3:\ $y_i \gets 0$ nếu $\textsc{Upper}(\mathrm{label}_i) = \mathrm{BENIGN}$, ngược lại $1$
+\item 4:\ $\mathcal{F} \gets$ các cột số $\setminus$ \{\texttt{destination\_port}, \texttt{source\_port}, \texttt{protocol}, cột định danh\}
+\item 5:\ \textbf{với mọi} nhóm $g$ gồm các hàng trùng nhau trên toàn bộ $\mathcal{F}$:
+\item 6:\ \quad \textbf{nếu} nhãn trong $g$ mâu thuẫn (Benign lẫn Attack):
+\item 7:\ \quad\quad loại toàn bộ nhóm $g$ \hfill $\triangleright$ nhãn gốc mâu thuẫn; có ghi log
+\item 8:\ \quad \textbf{ngược lại:} giữ đúng một đại diện tất định của $g$
+\item 9:\ chia $D \rightarrow D_{\text{train}}/D_{\text{test}}$ ($\alpha$, seed cố định); ghi Parquet
+\end{list}
+\end{algorithm}
+
+Thuật toán~\ref{alg:prep} tóm tắt quy trình, và Hình~\ref{fig:pipeline} đặt nó trong toàn cảnh quy trình đánh giá. Sau khi xử lý, dữ liệu được chia thành \textbf{80\% huấn luyện / 20\% kiểm tra} (với seed cố định), lưu dưới định dạng Parquet và tái sử dụng xuyên suốt các thí nghiệm. Số đặc trưng dạng số còn lại là 77, và số mẫu sau khi loại bỏ trùng lặp là 1.785.349/447.275 (tổng $\approx$2.232.624 sau khi loại trùng lặp mức đặc trưng).
 
 \subsection{Bộ phân loại và bốn chiến lược giảm chiều}
 

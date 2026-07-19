@@ -25,6 +25,12 @@
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
+\usepackage{float}
+\floatstyle{ruled}
+\newfloat{algorithm}{tbp}{loalg}
+\floatname{algorithm}{Algorithm}
 % babel defines \babelshorthandoff; under polyglossia it is undefined, so
 % provide a no-op fallback to avoid an "Undefined control sequence" at
 % \begin{document} (Vietnamese shorthands are not active under polyglossia).
@@ -110,6 +116,33 @@ IDS surveys~\cite{ring2019survey,khraisat2019survey,ferrag2020deep} show that bo
 
 The offline pipeline consists of sequential steps: data cleaning, deduplication, \texttt{VectorAssembler}, \texttt{StandardScaler}, an (optional) dimensionality-reduction transform, and then the classifier. Binary labels: Benign (0) and Attack (1). The entire \texttt{fit} of StandardScaler/PCA and the feature ranking use \emph{only} the training set; the test set serves as the final holdout.
 
+
+\begin{figure}[t]
+\centering
+\resizebox{0.98\columnwidth}{!}{%
+\begin{tikzpicture}[
+  font=\footnotesize, node distance=3.2mm, >=Stealth,
+  box/.style={draw, rounded corners=1pt, align=center, inner sep=3pt, minimum width=6.6cm},
+  hl/.style={box, fill=gray!12},
+  arr/.style={-{Stealth[length=2mm]}, semithick}]
+  \node[box] (raw)  {CICIDS2017 (8 CSV files, $\approx$2.8M flows)};
+  \node[hl, below=of raw] (prep) {\textbf{Leakage-aware preparation} (Alg.~\ref{alg:prep})\\ drop \texttt{destination\_port}/\texttt{source\_port} $\cdot$ feature-level dedup};
+  \node[box, below=of prep] (split) {80/20 train/test split (fixed seed) $\cdot$ Parquet};
+  \node[box, below=of split] (strat) {\textbf{4 strategies}: Baseline $\,\vert\,$ RF Top-$K$ $\,\vert\,$ SHAP Top-$K$ $\,\vert\,$ PCA\\ (rankings fit on the training set only)};
+  \node[box, below=of strat] (clf) {8 Spark ML classifiers $+$ 2 ensembles};
+  \node[hl, below=of clf] (val) {Validation-based selection $\cdot$ paired permutation test,\\ Nadeau--Bengio CI, effect size $\cdot$ multiclass evaluation};
+  \node[box, below=of val] (edge) {SHAP Top-30 model $\rightarrow$ export to Jetson Orin Nano Super\\ (companion systems paper)};
+  \draw[arr] (raw) -- (prep);
+  \draw[arr] (prep) -- (split);
+  \draw[arr] (split) -- (strat);
+  \draw[arr] (strat) -- (clf);
+  \draw[arr] (clf) -- (val);
+  \draw[arr] (val) -- (edge);
+\end{tikzpicture}}
+\caption{Leakage-aware evaluation pipeline: from raw CICIDS2017 flows to the statistically validated, edge-ready model.}
+\label{fig:pipeline}
+\end{figure}
+
 \subsection{Leakage-aware data preparation}
 \label{sec:leakage}
 
@@ -120,7 +153,27 @@ We merge the eight CICIDS2017 CSV files, normalize column names, replace infinit
   \item \textbf{Feature-level deduplication (deterministic).} Beyond removing fully duplicate records, we remove flows that are \emph{identical across all feature columns} before splitting, preventing the same sample from appearing in both the training and test sets. For groups of flows that are feature-identical but have \emph{conflicting labels} (Benign and Attack --- a known error in CICIDS2017~\cite{lanvin2023errors}), the entire group is removed rather than arbitrarily keeping one row depending on data partitioning; the numbers of removed groups and rows are reported (270 groups, 44,260 rows), ensuring the deduplication result is deterministic and reproducible.
 \end{itemize}
 
-After processing, the data are split into \textbf{80\% training / 20\% test} (with a fixed seed), stored in Parquet format, and reused throughout the experiments. The number of remaining numeric features is 77, and the number of samples after deduplication is 1,785,349/447,275 ($\approx$2,232,624 total after feature-level dedup).
+
+\begin{algorithm}[t]
+\caption{Leakage-aware preparation of CICIDS2017}
+\label{alg:prep}
+\footnotesize
+\begin{list}{}{\setlength{\leftmargin}{0.8em}\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}\setlength{\topsep}{2pt}}
+\item \textbf{Input:} CSV files $\{F_1,\dots,F_N\}$; split ratio $\alpha{=}0.8$
+\item \textbf{Output:} $D_{\text{train}}$, $D_{\text{test}}$ (Parquet)
+\item 1:\ $D \gets \bigcup_i F_i$ \hfill $\triangleright$ normalize names; $\pm\infty \rightarrow$ NaN
+\item 2:\ $D \gets \textsc{DropDuplicates}(D)$;\ \ $D \gets \textsc{DropNaN}(D)$
+\item 3:\ $y_i \gets 0$ if $\textsc{Upper}(\mathrm{label}_i) = \mathrm{BENIGN}$ else $1$
+\item 4:\ $\mathcal{F} \gets$ numeric columns $\setminus$ \{\texttt{destination\_port}, \texttt{source\_port}, \texttt{protocol}, identifiers\}
+\item 5:\ \textbf{for all} groups $g$ of rows identical on all of $\mathcal{F}$ \textbf{do}
+\item 6:\ \quad \textbf{if} labels within $g$ conflict (Benign and Attack) \textbf{then}
+\item 7:\ \quad\quad drop $g$ entirely \hfill $\triangleright$ contradictory ground truth; logged
+\item 8:\ \quad \textbf{else} keep one deterministic representative of $g$
+\item 9:\ split $D \rightarrow D_{\text{train}}/D_{\text{test}}$ ($\alpha$, fixed seed); write Parquet
+\end{list}
+\end{algorithm}
+
+Algorithm~\ref{alg:prep} summarizes the procedure, and Figure~\ref{fig:pipeline} places it in the full evaluation pipeline. After processing, the data are split into \textbf{80\% training / 20\% test} (with a fixed seed), stored in Parquet format, and reused throughout the experiments. The number of remaining numeric features is 77, and the number of samples after deduplication is 1,785,349/447,275 ($\approx$2,232,624 total after feature-level dedup).
 
 \subsection{Classifiers and the four dimensionality-reduction strategies}
 
