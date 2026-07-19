@@ -19,6 +19,7 @@
 \usepackage{booktabs}
 \usepackage{amsmath}
 \usepackage{xcolor}
+\usepackage{url}
 \usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta, shapes.geometric, fit, backgrounds, calc}
 
@@ -68,7 +69,7 @@ Network intrusion detection systems (IDS) increasingly must operate closer to da
 (1) A two-stage distributed IDS combining a lightweight anomaly gate with a Spark-based classifier;
 (2) Three deployment modes for a two-node Jetson cluster (pipeline split, horizontal scaling, Spark standalone cluster);
 (3) An end-to-end performance evaluation reporting throughput, latency percentiles, and per-node resource usage, which are metrics that offline studies typically omit;
-(4) Open, reproducible scripts integrated with a \emph{leakage-aware} Spark ML training pipeline, so the deployed model is the one validated under a rigorous offline protocol.
+(4) Open, reproducible scripts integrated with a \emph{leakage-aware} Spark ML training pipeline, so the deployed model is the one validated under a rigorous offline protocol; all code and configurations are publicly available\footnote{\url{https://github.com/vuthainguyen1602/Thesis_IDS} (branch \texttt{develop}).}.
 
 \section{Related Work}
 
@@ -228,7 +229,7 @@ This paper does \emph{not} compare Spark against Jetson Orin Nano Super as compe
 In our companion ML study, we evaluate four feature configurations---baseline (all features), RF Importance Top-30, SHAP Top-30, and PCA ($k$=40)---under a fixed 80/20 train--test split, using eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). PCA uses $k$=40 rather than 30 because it \emph{extracts} components (linear combinations spreading variance across many axes) rather than \emph{selecting} original features, so it needs more components to retain comparable variance; across the common $\{20,30,40\}$ sweep, $k$=40 retains the most variance and is the fairest representative operating point for PCA. LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. Crucially, the offline protocol is \emph{leakage-aware}~\cite{arp2022dosdonts}: it removes information that would be unavailable at deployment time but that otherwise inflates test scores. Motivated by documented labelling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores obtained when these leaks are left in place. Offline metrics constrain \emph{which} exported model is worth deploying; they are not directly comparable to edge throughput or latency.
 
 \begin{table}[htbp]
-  \caption{Bridge table: offline Spark selection criteria (leakage-free Exp~7 on CICIDS2017). Fill from \texttt{cross\_method\_summary.csv}.}
+  \caption{Bridge table: offline Spark selection criteria (leakage-free Exp~7 on CICIDS2017; values from \texttt{cross\_method\_summary.csv}).}
   \label{tab:spark-edge-bridge}
   \centering
   \small
@@ -237,7 +238,7 @@ In our companion ML study, we evaluate four feature configurations---baseline (a
     Configuration & F1 & Features & Size (MB) & Edge rationale \\
     \midrule
     Baseline + XGBoost & 0.9971 & 77 & 2.32 & Reference accuracy \\
-    SHAP Top-30 + XGBoost & 0.9970 & 30 & 0.003$^{\dagger}$ & Explainable; fewer features (deployed) \\
+    SHAP Top-30 + XGBoost & 0.9970 & 30 & 0.003$^{\dagger}$ & Explainable; fewer features (deployed feature set) \\
     RF Top-30 + XGBoost & 0.9922 & 30 & 2.52 & Same feature count; embedded ranking \\
     PCA $k$=40 + XGBoost & 0.9939 & 40 & 3.82 & Unsupervised reduction \\
     \bottomrule
@@ -249,7 +250,7 @@ In our companion ML study, we evaluate four feature configurations---baseline (a
 
 \subsection{Edge Phase (Jetson Orin Nano Super)}
 
-The exported \texttt{PipelineModel} (VectorAssembler $\rightarrow$ StandardScaler $\rightarrow$ classifier) is loaded on Jetson~\#2 with only the selected SHAP features, reducing assembly and inference cost relative to the $\approx$78-feature baseline. A lightweight sklearn autoencoder gate (Exp~8) on Jetson~\#1 filters benign flows before they reach Spark inference, further lowering load on the classifier node. End-to-end edge evaluation measures throughput (flows/s), latency p50/p95 (ms), per-node CPU/RAM/temperature, attack-class F1, and gate-skip ratio, none of which the offline Spark experiments capture.
+The exported \texttt{PipelineModel} (VectorAssembler $\rightarrow$ StandardScaler $\rightarrow$ classifier) is loaded on Jetson~\#2 with only the selected SHAP features, reducing assembly and inference cost relative to the 77-feature baseline. A lightweight sklearn autoencoder gate (Exp~8) on Jetson~\#1 filters benign flows before they reach Spark inference, further lowering load on the classifier node. End-to-end edge evaluation measures throughput (flows/s), latency p50/p95 (ms), per-node CPU/RAM/temperature, attack-class F1, and gate-skip ratio, none of which the offline Spark experiments capture.
 
 \subsection{Division of Evaluation Metrics}
 
@@ -273,7 +274,7 @@ Table~\ref{tab:metrics-split} clarifies which metric belongs to which phase. Mix
   \end{tabular}
 \end{table}
 
-We deploy SHAP Top-30 (with the classifier chosen in Exp~7) on Jetson~\#2 because it is intended to retain near-baseline F1 with substantially fewer features and an acceptable model footprint; the offline numbers in Table~\ref{tab:spark-edge-bridge} confirm this. Section~\ref{sec:benchmark-results} then evaluates the choice under streaming load; the companion ML paper reports the full four-method comparison and drift analysis.
+We deploy the SHAP Top-30 feature set on Jetson~\#2 with a Random Forest classifier (offline F1 0.9955, within 0.002 of the best XGBoost score in Table~\ref{tab:spark-edge-bridge}): it retains near-baseline F1 with substantially fewer features, and Random Forest is a native Spark ML estimator, so the exported \texttt{PipelineModel} loads on the ARM board without the additional native libraries that Spark's XGBoost integration requires. Section~\ref{sec:benchmark-results} then evaluates this choice under streaming load; the companion ML paper reports the full four-method comparison and drift analysis.
 
 \section{Experimental Setup}
 
@@ -373,7 +374,7 @@ The anomaly gate is a \emph{tunable} filter rather than a single point: sweeping
 
 Pipeline split relieves Spark of most benign traffic, and the realized benefit scales with the gate-skip ratio ($\approx$96\% in our runs): decoupling the gate from the Spark classifier lifted verdict throughput from 2.6 to 62.5 flows/s ($24\times$) at essentially unchanged p95. Horizontal scaling of the \emph{full} role roughly doubles the single node (5.9 vs.\ 2.6 flows/s) but remains Spark-bound, because every node still runs the classifier in-process. The Spark standalone cluster variant reached the highest mean throughput (90 flows/s) but with large run-to-run variance ($\pm$26) and an extra host dependency (the Spark master), so pipeline split remains the recommended default; cluster mode is most useful when model or batch size exceeds single-node memory.
 
-As summarized in Sec.~\ref{sec:bridge}, offline Spark experiments and edge Jetson benchmarks answer different questions. Feature reduction from $\approx$78 to 30 dimensions (SHAP Top-30) directly reduces \texttt{VectorAssembler} and \texttt{PipelineModel} cost on the Orin Nano Super, while the anomaly gate skips a large fraction of benign flows before Spark inference is invoked. Together, these design choices connect the accuracy-oriented conclusions of the companion ML study to a deployable, measurable edge architecture.
+As summarized in Sec.~\ref{sec:bridge}, offline Spark experiments and edge Jetson benchmarks answer different questions. Feature reduction from 77 to 30 dimensions (SHAP Top-30) directly reduces \texttt{VectorAssembler} and \texttt{PipelineModel} cost on the Orin Nano Super, while the anomaly gate skips a large fraction of benign flows before Spark inference is invoked. Together, these design choices connect the accuracy-oriented conclusions of the companion ML study to a deployable, measurable edge architecture.
 
 \subsection{Limitations}
 
@@ -388,7 +389,7 @@ We presented a reproducible distributed edge IDS for Jetson Orin Nano Super clus
 This research is funded by the University of Information Technology, Vietnam National University -- Ho Chi Minh City. The work was carried out at the University of Transport and Communications (Ho Chi Minh City Campus) and the University of Information Technology, VNU-HCM, as part of a graduation thesis research project.
 
 \subsubsection{\discintname}
-The authors declare that there is no competing interests.
+The authors declare that they have no competing interests.
 \end{credits}
 
 \bibliographystyle{../../latex/splncs04}
