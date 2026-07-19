@@ -10,6 +10,7 @@
 % feature-level duplicate flows, both now removed.
 %
 \documentclass[conference]{IEEEtran}
+\usepackage{url}
 \IEEEoverridecommandlockouts
 
 \usepackage{fontspec}
@@ -167,7 +168,7 @@ Siêu tham số (Bảng~\ref{tab:hparams}) được \emph{cố định từ trư
 
 \subsection{Thiết lập}
 
-CICIDS2017; chia tập huấn luyện/kiểm tra 80/20 sau khi loại trừ rò rỉ dữ liệu (Mục~\ref{sec:leakage}); Apache Spark 3.4.1, Java 17; phần cứng: cụm 2$\times$ Jetson Orin Nano Super (8\,GB) và một máy chủ điều phối. Mọi script ghi lại cấu hình chạy (seed, biến môi trường, phiên bản thư viện) để đảm bảo tái lập. Toàn bộ mã nguồn, cấu hình và danh sách đặc trưng được công khai tại \ph{URL kho mã (kèm commit hash)}; quy trình có thể tái lập trên một máy đơn, không yêu cầu cụm thiết bị biên.
+CICIDS2017; chia tập huấn luyện/kiểm tra 80/20 sau khi loại trừ rò rỉ dữ liệu (Mục~\ref{sec:leakage}); Apache Spark 3.4.1, Java 17; phần cứng: cụm 2$\times$ Jetson Orin Nano Super (8\,GB) và một máy chủ điều phối. Mọi script ghi lại cấu hình chạy (seed, biến môi trường, phiên bản thư viện) để đảm bảo tái lập. Toàn bộ mã nguồn, cấu hình và danh sách đặc trưng được công khai tại \url{https://github.com/vuthainguyen1602/Thesis_IDS} (nhánh \texttt{develop}); quy trình có thể tái lập trên một máy đơn, không yêu cầu cụm thiết bị biên.
 
 \subsection{Phân tích loại bỏ đặc trưng cổng (ablation)}
 
