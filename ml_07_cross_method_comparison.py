@@ -704,6 +704,9 @@ if __name__ == "__main__":
     )
     ax.set_title("F1-Score Heatmap: Method × Model", fontsize=14, fontweight="bold")
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=9)
+    # Horizontal row labels: the default vertical orientation makes the four
+    # long method names overlap into an unreadable stack on the left edge.
+    ax.set_yticklabels(ax.get_yticklabels(), rotation=0, fontsize=9)
     plt.tight_layout()
 
     heatmap_path = os.path.join(OUTPUT_DIR, "f1_heatmap.png")
