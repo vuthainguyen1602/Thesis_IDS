@@ -236,12 +236,15 @@ In our companion ML study, we evaluate four feature configurations---baseline (a
     \toprule
     Configuration & F1 & Features & Size (MB) & Edge rationale \\
     \midrule
-    Baseline + XGBoost & 0.9971 & 77 & 2.32 & Reference accuracy; smallest model \\
-    SHAP Top-30 + XGBoost & 0.9970 & 30 & 0.003 & Explainable; fewer features (deployed) \\
+    Baseline + XGBoost & 0.9971 & 77 & 2.32 & Reference accuracy \\
+    SHAP Top-30 + XGBoost & 0.9970 & 30 & 0.003$^{\dagger}$ & Explainable; fewer features (deployed) \\
     RF Top-30 + XGBoost & 0.9922 & 30 & 2.52 & Same feature count; embedded ranking \\
     PCA $k$=40 + XGBoost & 0.9939 & 40 & 3.82 & Unsupervised reduction \\
     \bottomrule
   \end{tabular}
+
+  \vspace{2pt}
+  {\footnotesize $^{\dagger}$Serialized on the training cluster, where a distributed \texttt{save()} scatters the tree-data partitions across executors; KB-scale entries captured only driver-local metadata and under-report the true size (a 30-feature XGBoost is in reality $\approx$2.5\,MB, on par with RF Top-30, since ensemble size depends on trees/nodes rather than input features). The single-node export used for deployment measures sizes reliably (Table~\ref{tab:engines} context).}
 \end{table}
 
 \subsection{Edge Phase (Jetson Orin Nano Super)}

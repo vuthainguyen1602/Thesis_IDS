@@ -284,10 +284,14 @@ Bảng~\ref{tab:best-results} tóm tắt mô hình tốt nhất mỗi phương p
     \midrule
     Baseline & XGBoost & 0,9971 & 0,9999 & 4615,5 & 2,32 \\
     RF Top-30 & XGBoost & 0,9922 & 0,9998 & 1295,1 & 2,52 \\
-    SHAP Top-30 & XGBoost & 0,9970 & 0,9999 & 1226,1 & 0,003 \\
+    SHAP Top-30 & XGBoost & 0,9970 & 0,9999 & 1226,1 & 0,003$^{\dagger}$ \\
     PCA $k$=40 & XGBoost & 0,9939 & 0,9999 & 1444,8 & 3,82 \\
     \bottomrule
   \end{tabular}
+
+  \vspace{2pt}
+  {\footnotesize $^{\dagger}$Kích thước thu được bằng cách tuần tự hoá mô hình \emph{trên cụm huấn luyện}; thao tác \texttt{save()} phân tán ghi các phân vùng dữ liệu của rừng cây trên executor đang giữ chúng, nên các giá trị cỡ KB (ở đây 0,003\,MB) chỉ bắt được phần metadata cục bộ trên driver và \emph{thấp hơn thực tế}. Vì kích thước ensemble cây phụ thuộc số cây và số nút chứ không phụ thuộc số đặc trưng đầu vào, mô hình XGBoost SHAP Top-30 thực tế tương đương bản RF Top-30 ($\approx$2,5\,MB); bản xuất khẩu đơn nút của pipeline triển khai đo kích thước mô hình một cách tin cậy.}
+
 \end{table*}
 
 \begin{figure}[htbp]
