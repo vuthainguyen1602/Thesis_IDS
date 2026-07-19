@@ -522,9 +522,9 @@ Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguy
 
 Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc trưng và triển khai dưới dạng PySpark PipelineModel.
 
-% LƯU Ý: các ảnh chụp màn hình cũ (hệ Raspberry Pi) đã được chuyển vào img/legacy/
-% vì KHÔNG khớp phần cứng Jetson của luận văn. Chụp lại từ cụm Jetson Orin Nano Super
-% (hostname/series phải hiển thị jetson, model SHAP Top-30 mới) rồi đặt vào img/.
+% LƯU Ý: terminal + Grafana đã chụp lại từ cụm Jetson (2026-07-19). Riêng 2 ảnh
+% cảnh báo email/Slack dùng lại ảnh giai đoạn thử nghiệm sớm (img/legacy/) — caption
+% đã ghi chú tường minh; mô-đun cảnh báo không đổi giữa hai giai đoạn.
 \begin{figure}[htbp]
     \centering
     \IfFileExists{img/pipeline_terminal_jetson1.png}{\includegraphics[width=0.85\textwidth]{img/pipeline_terminal_jetson1.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Ảnh terminal node cổng (jetson-nano-1)}\vspace{1.2cm}}}}\\[2pt]
@@ -546,7 +546,7 @@ Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc 
 \begin{figure}[htbp]
     \centering
     \IfFileExists{img/mailtrap_alert.png}{\includegraphics[width=0.9\textwidth]{img/mailtrap_alert.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Email cảnh báo Mailtrap --- chụp lại từ hệ chạy trên Jetson}\vspace{1.2cm}}}}
-    \caption{Email cảnh báo tấn công được gửi qua Mailtrap trong môi trường kiểm thử}
+    \caption{Email cảnh báo tấn công được gửi qua Mailtrap trong môi trường kiểm thử (ảnh chụp từ giai đoạn thử nghiệm sớm của hệ thống; mô-đun cảnh báo và định dạng thông điệp giữ nguyên khi triển khai trên cụm Jetson)}
     \label{fig:mailtrap_alert}
 \end{figure}
 
@@ -560,7 +560,7 @@ Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc 
 \begin{figure}[htbp]
     \centering
     \IfFileExists{img/slack_alert.png}{\includegraphics[width=0.9\textwidth]{img/slack_alert.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Thông báo Slack --- chụp lại từ hệ chạy trên Jetson}\vspace{1.2cm}}}}
-    \caption{Thông báo cảnh báo tấn công được gửi qua Slack Incoming Webhook}
+    \caption{Thông báo cảnh báo tấn công được gửi qua Slack Incoming Webhook (ảnh chụp từ giai đoạn thử nghiệm sớm; định dạng thông điệp giữ nguyên khi triển khai trên cụm Jetson)}
     \label{fig:slack_alert}
 \end{figure}
 
