@@ -262,7 +262,7 @@ Table~\ref{tab:stat} reports the mean F1 $\pm$ 95\% CI ($t$ distribution) over $
 
 \subsection{Robustness and multiclass evaluation}
 
-In the in-distribution stability check (a subset of the test set), the ranking of the methods \emph{is preserved} (XGBoost leads in all four methods); details in \texttt{robustness\_holdout\_summary.csv}. The multiclass evaluation (Figure~\ref{fig:cm}, Table~\ref{tab:perclass}) reveals a sharp contrast between weighted-F1 ($\approx$0.998) and macro-F1 ($\approx$0.808): the majority classes achieve high F1, while rare classes such as Web Attack (XSS, SQL Injection) and Bot have very low recall (0.03--0.46) --- where feature selection makes the clearest difference.
+In the in-distribution stability check (a subset of the test set), the ranking of the methods \emph{is preserved} (XGBoost leads in all four methods); details in \texttt{robustness\_holdout\_summary.csv}. The multiclass evaluation (Figure~\ref{fig:cm}, Table~\ref{tab:perclass}) reveals a sharp contrast between weighted-F1 ($\approx$0.998) and macro-F1 ($\approx$0.806): the majority classes achieve high F1, while rare classes such as Web Attack (XSS, SQL Injection) and Bot have very low recall (0.03--0.46) --- where feature selection makes the clearest difference.
 
 \begin{figure}[htbp]
   \centering
@@ -283,10 +283,10 @@ In the in-distribution stability check (a subset of the test set), the ranking o
     \toprule
     Class & Support & Precision & Recall & F1 \\
     \midrule
-    Benign & 380,119 & 0.9982 & 0.9997 & 0.9989 \\
+    Benign & 380,119 & 0.9981 & 0.9997 & 0.9989 \\
     Web Attack~-- XSS & 111 & 1.0000 & 0.0270 & 0.0526 \\
     \multicolumn{5}{c}{\footnotesize 13 remaining classes --- see \texttt{per\_class\_metrics.csv}} \\
-    \multicolumn{5}{c}{\footnotesize macro-F1 $=0.808$ \quad weighted-F1 $=0.998$} \\
+    \multicolumn{5}{c}{\footnotesize macro-F1 $=0.806$ \quad weighted-F1 $=0.998$} \\
     \bottomrule
   \end{tabular}
 \end{table}

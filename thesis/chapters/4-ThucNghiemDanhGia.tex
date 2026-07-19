@@ -354,7 +354,7 @@ CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & \ph{} \\ \bottomrule
 
 \subsection{Đánh giá đa lớp theo loại tấn công}
 \label{sec:multiclass}
-Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; để bộc lộ điểm yếu thực sự, luận văn bổ sung đánh giá \emph{đa lớp theo từng loại tấn công gốc} (precision/recall/F1 từng lớp, macro-F1, weighted-F1 và ma trận nhầm lẫn), gồm lớp Benign và 14 loại tấn công của CICIDS2017. Kết quả cho thấy tương phản rất rõ giữa hai chỉ số tổng hợp: \emph{weighted-F1 $\approx 0{,}998$} (bị chi phối bởi các lớp đa số) nhưng \emph{macro-F1 chỉ $\approx 0{,}808$} --- đúng bằng chứng cho thấy độ chính xác nhị phân gần hoàn hảo đã \emph{che giấu} năng lực phát hiện kém ở các lớp hiếm. Cụ thể, các lớp đa số (Benign, DoS Hulk, DDoS, PortScan) đạt F1 rất cao ($\geq 0{,}97$), trong khi các lớp cực hiếm suy giảm nghiêm trọng: Web Attack~-- XSS recall chỉ $0{,}027$, Web Attack~-- SQL Injection F1~$=0$ (chỉ 6 mẫu), Bot recall $0{,}46$. Đây là nơi khác biệt giữa các phương pháp lựa chọn đặc trưng thể hiện rõ nhất và cũng là hướng cần cải thiện (xử lý mất cân bằng, tăng cường dữ liệu lớp hiếm). Kết quả chi tiết theo từng lớp được trình bày trong Bảng~\ref{tab:per_class}, và ma trận nhầm lẫn đa lớp tương ứng được minh họa ở Hình~\ref{fig:confusion_matrix}.
+Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; để bộc lộ điểm yếu thực sự, luận văn bổ sung đánh giá \emph{đa lớp theo từng loại tấn công gốc} (precision/recall/F1 từng lớp, macro-F1, weighted-F1 và ma trận nhầm lẫn), gồm lớp Benign và 14 loại tấn công của CICIDS2017. Kết quả cho thấy tương phản rất rõ giữa hai chỉ số tổng hợp: \emph{weighted-F1 $\approx 0{,}998$} (bị chi phối bởi các lớp đa số) nhưng \emph{macro-F1 chỉ $\approx 0{,}806$} --- đúng bằng chứng cho thấy độ chính xác nhị phân gần hoàn hảo đã \emph{che giấu} năng lực phát hiện kém ở các lớp hiếm. Cụ thể, các lớp đa số (Benign, DoS Hulk, DDoS, PortScan) đạt F1 rất cao ($\geq 0{,}97$), trong khi các lớp cực hiếm suy giảm nghiêm trọng: Web Attack~-- XSS recall chỉ $0{,}027$, Web Attack~-- SQL Injection F1~$=0$ (chỉ 6 mẫu), Bot recall $0{,}46$. Đây là nơi khác biệt giữa các phương pháp lựa chọn đặc trưng thể hiện rõ nhất và cũng là hướng cần cải thiện (xử lý mất cân bằng, tăng cường dữ liệu lớp hiếm). Kết quả chi tiết theo từng lớp được trình bày trong Bảng~\ref{tab:per_class}, và ma trận nhầm lẫn đa lớp tương ứng được minh họa ở Hình~\ref{fig:confusion_matrix}.
 
 \begin{table}[htbp]
 \centering
@@ -364,22 +364,22 @@ Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; đ�
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
 \textbf{Lớp} & \textbf{Support} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\ \midrule
-Benign                       & 380.119 & 0,9982 & 0,9997 & 0,9989 \\
-DoS Hulk                     & 34.446  & 0,9991 & 0,9908 & 0,9949 \\
-DDoS                         & 25.694  & 0,9996 & 0,9991 & 0,9994 \\
-DoS GoldenEye                & 2.020   & 1,0000 & 0,9762 & 0,9880 \\
+Benign                       & 380.119 & 0,9981 & 0,9997 & 0,9989 \\
+DoS Hulk                     & 34.446  & 0,9990 & 0,9904 & 0,9947 \\
+DDoS                         & 25.694  & 0,9996 & 0,9992 & 0,9994 \\
+DoS GoldenEye                & 2.020   & 1,0000 & 0,9757 & 0,9877 \\
 FTP-Patator                  & 1.147   & 0,9965 & 0,9965 & 0,9965 \\
 DoS slowloris                & 1.068   & 0,9953 & 0,9925 & 0,9939 \\
 DoS Slowhttptest             & 1.023   & 0,9286 & 0,9912 & 0,9589 \\
 SSH-Patator                  & 642     & 1,0000 & 0,9346 & 0,9662 \\
 PortScan                     & 383     & 1,0000 & 0,9530 & 0,9759 \\
-Web Attack~-- Brute Force    & 311     & 0,7382 & 0,8071 & 0,7711 \\
-Bot                          & 290     & 1,0000 & 0,4586 & 0,6288 \\
+Web Attack~-- Brute Force    & 311     & 0,7346 & 0,7299 & 0,7323 \\
+Bot                          & 290     & 1,0000 & 0,4552 & 0,6256 \\
 Web Attack~-- XSS            & 111     & 1,0000 & 0,0270 & 0,0526 \\
 Infiltration                 & 12      & 1,0000 & 0,6667 & 0,8000 \\
 Web Attack~-- SQL Injection  & 6       & 0,0000 & 0,0000 & 0,0000 \\
 Heartbleed                   & 3       & 1,0000 & 1,0000 & 1,0000 \\ \midrule
-\multicolumn{2}{l}{\textbf{macro-F1 / weighted-F1}} & \multicolumn{3}{c}{0,808 / 0,998} \\ \bottomrule
+\multicolumn{2}{l}{\textbf{macro-F1 / weighted-F1}} & \multicolumn{3}{c}{0,806 / 0,998} \\ \bottomrule
 \end{tabular*}
 \end{table}
 

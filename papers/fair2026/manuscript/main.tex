@@ -262,7 +262,7 @@ Bảng~\ref{tab:stat} báo cáo F1 trung bình $\pm$ CI 95\% (phân phối $t$) 
 
 \subsection{Độ bền vững và đánh giá đa lớp}
 
-Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập kiểm tra), thứ hạng các phương pháp \emph{giữ nguyên} (XGBoost dẫn đầu ở cả bốn phương pháp); chi tiết tại \texttt{robustness\_holdout\_summary.csv}. Đánh giá đa lớp (Hình~\ref{fig:cm}, Bảng~\ref{tab:perclass}) cho thấy tương phản rõ giữa weighted-F1 ($\approx$0,998) và macro-F1 ($\approx$0,808): các lớp đa số đạt F1 cao, trong khi các lớp hiếm như Web Attack (XSS, SQL Injection) và Bot có recall rất thấp (0,03--0,46) --- nơi lựa chọn đặc trưng tạo khác biệt rõ nhất.
+Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập kiểm tra), thứ hạng các phương pháp \emph{giữ nguyên} (XGBoost dẫn đầu ở cả bốn phương pháp); chi tiết tại \texttt{robustness\_holdout\_summary.csv}. Đánh giá đa lớp (Hình~\ref{fig:cm}, Bảng~\ref{tab:perclass}) cho thấy tương phản rõ giữa weighted-F1 ($\approx$0,998) và macro-F1 ($\approx$0,806): các lớp đa số đạt F1 cao, trong khi các lớp hiếm như Web Attack (XSS, SQL Injection) và Bot có recall rất thấp (0,03--0,46) --- nơi lựa chọn đặc trưng tạo khác biệt rõ nhất.
 
 \begin{figure}[htbp]
   \centering
@@ -283,10 +283,10 @@ Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập ki
     \toprule
     Lớp & Support & Precision & Recall & F1 \\
     \midrule
-    Benign & 380.119 & 0,9982 & 0,9997 & 0,9989 \\
+    Benign & 380.119 & 0,9981 & 0,9997 & 0,9989 \\
     Web Attack~-- XSS & 111 & 1,0000 & 0,0270 & 0,0526 \\
     \multicolumn{5}{c}{\footnotesize 13 lớp còn lại --- xem \texttt{per\_class\_metrics.csv}} \\
-    \multicolumn{5}{c}{\footnotesize macro-F1 $=0{,}808$ \quad weighted-F1 $=0{,}998$} \\
+    \multicolumn{5}{c}{\footnotesize macro-F1 $=0{,}806$ \quad weighted-F1 $=0{,}998$} \\
     \bottomrule
   \end{tabular}
 \end{table}
