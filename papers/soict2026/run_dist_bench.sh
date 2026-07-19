@@ -67,10 +67,14 @@ start_pipe() {
   local spark="SPARK_MASTER="                         # empty -> local[*]
   [ -n "$sm" ] && spark="SPARK_MASTER=$sm SPARK_DRIVER_HOST=$dh"
   echo "[start] $id role=$role alert=$alert spark=${sm:-local[*]} on $host"
+  # Background the ssh CLIENT locally so a lingering channel can never block us;
+  # the remote pipeline is nohup+detached so it survives the ssh client exiting.
   $SSH -n $U@$host "cd $JROOT && source venv/bin/activate && \
     $REMOTE_ENV $spark RAW_LATENCY_LOG=\$HOME/ids_raw_latency_\$(hostname).csv \
     EDGE_NODE_ID=$id EDGE_NODE_ROLE=$role ALERT_ENABLED=$alert \
-    nohup python edge/kafka_consumer.py > \$HOME/edge_${id}.log 2>&1 </dev/null & echo '  -> launched (pid '\$!')'"
+    nohup python edge/kafka_consumer.py > \$HOME/edge_${id}.log 2>&1 </dev/null &" &
+  sleep 5
+  echo "  -> launch dispatched on $host (log: ~/edge_${id}.log)"
 }
 
 # energy_window ts spec...   spec = host:node_id:role
@@ -82,7 +86,8 @@ energy_window() {
     $SSH -n $U@$host "cd $JROOT && source venv/bin/activate && \
       EDGE_NODE_ID=$id EDGE_NODE_ROLE=$role nohup python scripts/benchmark_distributed.py node-power \
       --duration $pd --idle-seconds 30 --output \$HOME/power_${id}_${T}.json \
-      > \$HOME/power_${id}.log 2>&1 </dev/null & echo '  -> power monitor up'"
+      > \$HOME/power_${id}.log 2>&1 </dev/null &" &
+    sleep 3; echo "  -> power monitor dispatched on $host"
   done
   echo "[energy] idle baseline in progress — NOT sending load for 35s ..."; sleep 35
   echo "[energy] sending ${DUR}s load for the energy window ..."
