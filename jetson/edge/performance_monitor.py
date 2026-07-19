@@ -108,11 +108,20 @@ class PerformanceMonitor:
         try:
             temps = psutil.sensors_temperatures()
             for key in ("cpu_thermal", "soc_thermal", "gpu-thermal", "thermal-fan-est", "tj-thermal"):
-                if key in temps:
+                if key in temps and temps[key] and temps[key][0].current is not None:
                     cpu_temp = temps[key][0].current
                     break
-        except (AttributeError, KeyError, IndexError):
+        except Exception:
+            # psutil can raise TypeError/OSError on some Jetson kernels when a
+            # thermal zone reports a null value; temperature is non-critical.
             pass
+        if cpu_temp is None:
+            # Fall back to the Tegra thermal zone read directly.
+            try:
+                with open("/sys/class/thermal/thermal_zone0/temp") as _f:
+                    cpu_temp = round(float(_f.read().strip()) / 1000.0, 1)
+            except Exception:
+                cpu_temp = None
 
         return {
             "cpu_percent": cpu_percent,
