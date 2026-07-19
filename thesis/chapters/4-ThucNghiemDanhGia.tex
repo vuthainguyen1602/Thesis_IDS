@@ -483,7 +483,7 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
     Jetson~\#1 đảm nhận vai trò \texttt{anomaly\_gate}: một autoencoder nhẹ (huấn luyện chỉ trên lưu lượng bình thường) tính sai số tái tạo (reconstruction error) cho từng luồng. Các luồng có sai số dưới ngưỡng được coi là bình thường và \emph{được lọc bỏ}; chỉ các luồng \emph{nghi vấn} mới được chuyển tiếp sang topic \texttt{ids-suspicious-flow}. Cơ chế này giảm đáng kể khối lượng phải đưa vào suy luận Spark.
 
     \item \textbf{Bộ phân loại (Jetson~\#2)}:
-    Jetson~\#2 đảm nhận vai trò \texttt{classifier}: tải mô hình PySpark \texttt{PipelineModel} (với tập đặc trưng SHAP Top-30 đã chọn) và phân loại các luồng nghi vấn thành \textit{Benign} hoặc \textit{Attack}.
+    Jetson~\#2 đảm nhận vai trò \texttt{classifier}: tải mô hình PySpark \texttt{PipelineModel} (với tập đặc trưng SHAP Top-30 đã chọn) và phân loại các luồng nghi vấn thành \textit{Benign} hoặc \textit{Attack}. Vector đầu vào khi triển khai gồm 29 đặc trưng: trong Top-30 theo xếp hạng SHAP có \texttt{destination\_port}, nhưng đặc trưng này bị loại khỏi mô hình xuất bản vì là kênh rò rỉ nhãn trên CICIDS2017 (Mục~\ref{sec:leakage_analysis}), nhất quán với giao thức chống rò rỉ ở pha huấn luyện.
 
     \item \textbf{Ghi nhận hiệu năng}:
     Mỗi nút ghi nhận thời gian dự đoán/mẫu, mức sử dụng CPU/RAM/nhiệt độ và thông lượng (gắn nhãn theo \texttt{EDGE\_NODE\_ID}); các chỉ số được lưu vào InfluxDB.
