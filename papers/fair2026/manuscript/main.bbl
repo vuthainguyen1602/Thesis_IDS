@@ -109,4 +109,11 @@ T.~Hasan, A.~Hossain, M.~Q. Ansari, and T.~H. Syed, ``Enhanced intrusion
   feature learning,'' 2025.
 \newblock arXiv:2501.15266.
 
+\bibitem{csecicids2018}
+{Canadian Institute for Cybersecurity and Communications Security
+  Establishment}, ``{CSE-CIC-IDS2018} dataset: A collaborative project between
+  the {Communications Security Establishment (CSE)} and the {Canadian Institute
+  for Cybersecurity (CIC)}.''
+  \url{https://www.unb.ca/cic/datasets/ids-2018.html}, 2018.
+
 \end{thebibliography}
