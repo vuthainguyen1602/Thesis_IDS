@@ -107,9 +107,12 @@ if __name__ == "__main__":
     merged_df = merged_df.dropna()
     print(f"Total rows after exact dedup + dropna: {merged_df.count():,}")
 
+    # Case-insensitive: CICIDS2017 writes "BENIGN", CSE-CIC-IDS2018 writes
+    # "Benign" — a case-sensitive match would silently label ALL 2018 benign
+    # flows as attacks.
     df = merged_df.withColumn(
         "label_binary",
-        when(col("label") == "BENIGN", 0).otherwise(1),
+        when(F.upper(F.trim(col("label"))) == "BENIGN", 0).otherwise(1),
     )
 
     print("\nLabel distribution:")
@@ -127,6 +130,20 @@ if __name__ == "__main__":
         and dtypes[c] in ["double", "float", "int", "bigint"]
     ]
     print(f"Number of numeric features: {len(feature_cols)}")
+
+    # ── Optional stratified subsample (for very large datasets, e.g. CSE-CIC-
+    # IDS2018 ~16M flows). IDS_SAMPLE_FRAC in (0,1) keeps a class-proportional
+    # random subset. This MUST run BEFORE the feature-level dedup below: the
+    # dedup's wide groupBy shuffles the full feature vectors, and on 16M rows
+    # the shuffle spill can exhaust local disk.
+    sample_frac = float(os.environ.get("IDS_SAMPLE_FRAC", "1.0"))
+    if 0.0 < sample_frac < 1.0:
+        before = df.count()
+        label_vals = [r["label"] for r in df.select("label").distinct().collect()]
+        fractions = {lbl: sample_frac for lbl in label_vals}
+        df = df.sampleBy("label", fractions=fractions, seed=42)
+        print(f"Stratified subsample (IDS_SAMPLE_FRAC={sample_frac}): "
+              f"{before:,} -> {df.count():,} rows (class proportions preserved).")
 
     # ── Near-duplicate removal on FEATURE columns ────────────────────────────
     # CICIDS2017 contains many flows that are identical on all feature columns
@@ -175,19 +192,6 @@ if __name__ == "__main__":
               f"({n_conflict_rows:,} rows with contradictory labels)")
         print(f"  - near-duplicate rows removed:    "
               f"{before - after - n_conflict_rows:,}")
-
-    # ── Optional stratified subsample (for very large datasets, e.g. CSE-CIC-
-    # IDS2018 ~16M flows on 8GB Jetsons). IDS_SAMPLE_FRAC in (0,1) keeps a
-    # class-proportional random subset so the distribution — including rare
-    # attack types — is preserved while the data fits the edge hardware.
-    sample_frac = float(os.environ.get("IDS_SAMPLE_FRAC", "1.0"))
-    if 0.0 < sample_frac < 1.0:
-        before = df.count()
-        label_vals = [r["label"] for r in df.select("label").distinct().collect()]
-        fractions = {lbl: sample_frac for lbl in label_vals}
-        df = df.sampleBy("label", fractions=fractions, seed=42)
-        print(f"Stratified subsample (IDS_SAMPLE_FRAC={sample_frac}): "
-              f"{before:,} -> {df.count():,} rows (class proportions preserved).")
 
     df = df.cache()
     df.count()
