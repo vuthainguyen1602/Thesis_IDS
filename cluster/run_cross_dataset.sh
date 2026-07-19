@@ -6,10 +6,10 @@
 #   ./cluster/run_cross_dataset.sh
 #
 # Steps (markers in .xd_state/ let you re-run safely):
-#   1. prepare  — ml_00 on the 2018 CSVs, LOCAL Spark on the Mac
-#                 (IDS_SAMPLE_FRAC=0.2 stratified sample -> ~3.2M flows,
-#                 same scale the Mac already handled for 2017)
-#   2. sync     — rsync data/ (2017) + data_2018/ parquet to BOTH Jetsons
+#   1a. sync raw 2018 CSVs Mac -> Jetson#1 (NVMe; Mac disk is tight)
+#   1b. prepare — ml_00 on Jetson#1 (local Spark, IDS_SAMPLE_FRAC=0.2,
+#                 shuffle spills go to the Jetson NVMe, not the Mac disk)
+#   2. sync     — copy data_2018 parquet Jetson#1 -> Jetson#2
 #                 (cluster executors read file:// paths locally on each node)
 #   3. train    — ml_11 on the Spark cluster (driver Jetson#1, 2 workers)
 #   4. pull     — copy results/ml_11_cross_dataset_eval back to the Mac
@@ -31,31 +31,43 @@ REMOTE_ROOT="${CLUSTER_DRIVER_IDS_ROOT:?}"
 step() { [ -f "$STATE/$1.done" ] && { echo "[skip] $1 (done)"; return 1; } || { echo ""; echo "===== STEP: $1 ====="; return 0; }; }
 mark() { touch "$STATE/$1.done"; }
 
-# ── 1. prepare 2018 locally on the Mac ─────────────────────────────────────
-if step prepare_2018; then
+# ── 1a. raw 2018 CSVs -> Jetson#1 (NVMe has plenty of room; the full-data
+#        exact-dedup shuffle would exhaust the Mac's remaining disk) ────────
+if step sync_raw_2018; then
   [ -d "$RAW_2018" ] || { echo "[ERR] Raw 2018 CSVs not found at $RAW_2018"; exit 1; }
-  cd "$ROOT"
-  export JAVA_HOME="$(/usr/libexec/java_home -v 17)"
-  export PATH="$JAVA_HOME/bin:$PATH"
-  # local Spark only — make sure no cluster vars leak in
-  unset IDS_SPARK_CLUSTER SPARK_MASTER SPARK_DRIVER_HOST || true
-  export SPARK_DRIVER_MEMORY=8g
-  IDS_DATASET=cicids2018 \
-  IDS_RAW_DATA_DIR="$RAW_2018" \
-  IDS_CSV_GLOB='*.csv' \
-  IDS_SAMPLE_FRAC=0.2 \
-  IDS_DATA_DIR="$ROOT/data_2018" \
-    python ml_00_prepare_cicids2017.py
+  echo "[sync] raw 2018 CSVs -> $JETSON1_IP:~/ids-2018-raw (~6.5GB, first time only)"
+  rsync -az --info=progress2 -e "ssh $SSH_OPTS" "$RAW_2018/" \
+    "$JETSON_SSH_USER@$JETSON1_IP:/home/$JETSON_SSH_USER/ids-2018-raw/"
+  mark sync_raw_2018
+fi
+
+# ── 1b. prepare 2018 ON Jetson#1 (local Spark, shuffle spills to NVMe) ─────
+if step prepare_2018; then
+  ssh $SSH_OPTS "$CLUSTER_DRIVER" bash -s <<EOF
+set -euo pipefail
+cd "$REMOTE_ROOT"
+df -h . | tail -1
+if [ -d jetson/venv/bin ]; then source jetson/venv/bin/activate; elif [ -d venv/bin ]; then source venv/bin/activate; fi
+export JAVA_HOME="\${JAVA_HOME:-\$(dirname "\$(dirname "\$(readlink -f "\$(which java)")")")}"
+export PATH="\$JAVA_HOME/bin:\$PATH"
+unset IDS_SPARK_CLUSTER SPARK_MASTER SPARK_DRIVER_HOST || true
+export SPARK_DRIVER_MEMORY=6g
+IDS_DATASET=cicids2018 \
+IDS_RAW_DATA_DIR="/home/$JETSON_SSH_USER/ids-2018-raw" \
+IDS_CSV_GLOB='*.csv' \
+IDS_SAMPLE_FRAC=0.2 \
+IDS_DATA_DIR="$REMOTE_ROOT/data_2018" \
+  python ml_00_prepare_cicids2017.py
+EOF
   mark prepare_2018
 fi
 
-# ── 2. sync parquet to BOTH Jetsons ────────────────────────────────────────
+# ── 2. copy the prepared parquet Jetson#1 -> Jetson#2 (executors read the
+#       same file:// paths on every node) ───────────────────────────────────
 if step sync_data; then
-  for H in "$JETSON1_IP" "$JETSON2_IP"; do
-    echo "[sync] data_2018 + data -> $H"
-    rsync -az -e "ssh $SSH_OPTS" "$ROOT/data_2018" "$JETSON_SSH_USER@$H:$REMOTE_ROOT/"
-    rsync -az -e "ssh $SSH_OPTS" "$ROOT/data"      "$JETSON_SSH_USER@$H:$REMOTE_ROOT/"
-  done
+  echo "[sync] data_2018 J1 -> J2"
+  ssh $SSH_OPTS "$CLUSTER_DRIVER" \
+    "rsync -az -e 'ssh -o StrictHostKeyChecking=accept-new' $REMOTE_ROOT/data_2018 $JETSON_SSH_USER@$JETSON2_IP:$REMOTE_ROOT/"
   mark sync_data
 fi
 
