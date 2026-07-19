@@ -66,3 +66,6 @@ IDS_briefing_*.md
 # run_all.sh runtime
 .run_all_state/
 output/run_all_logs/
+*.bcf
+*.run.xml
+run_all_logs/
