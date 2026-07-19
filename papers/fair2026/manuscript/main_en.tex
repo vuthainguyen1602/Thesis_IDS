@@ -387,7 +387,7 @@ The contrast is stark and, we argue, the most honest number in this paper: in-do
 \section{Discussion}
 \label{sec:discuss}
 
-\textbf{Method comparison.} When the F1 gap between RF Top-30 and SHAP Top-30 is smaller than the variation across resamplings and $p>0.05$, we conclude that the two methods are \emph{statistically equivalent}; in that case secondary criteria (explainability, size, stability) decide the deployment choice. SHAP Top-30 provides consistent local explanations, an advantage for SOC operations.
+\textbf{Method comparison.} For the tested pair (Baseline vs.\ SHAP Top-30, Table~\ref{tab:stat}), the permutation test is significant only at the floor of its resolution ($p\approx0.031$) while the absolute F1 gap ($\approx$0.0001) is far below the run-to-run variation; we therefore treat the two configurations as \emph{practically equivalent}, and secondary criteria (explainability, size, stability, feature count) decide the deployment choice. RF Top-30, by contrast, trails SHAP Top-30 by $\approx$0.005 F1 at the same feature count. SHAP Top-30 provides consistent local explanations, an advantage for SOC operations.
 
 \textbf{Bridge to the edge device.} Cutting $\approx$60\% of the features directly reduces the vector-assembly cost and the model memory footprint on the Jetson Orin Nano Super. The selection criterion therefore needs to be \emph{edge-aware}, that is, to consider not only F1 but also the number of features, the model size, and the training/prediction time (Figure~\ref{fig:timing}). Latency and throughput measurements on the Jetson are presented in a companion systems paper (under submission).
 

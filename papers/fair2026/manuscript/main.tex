@@ -388,7 +388,7 @@ Tương phản này rất rõ rệt và, theo chúng tôi, là con số trung th
 \section{Thảo luận}
 \label{sec:discuss}
 
-\textbf{So sánh phương pháp.} Khi chênh lệch F1 giữa RF Top-30 và SHAP Top-30 nhỏ hơn mức dao động giữa các lần lấy mẫu lại và $p>0{,}05$, ta kết luận hai phương pháp \emph{tương đương về mặt thống kê}; khi đó tiêu chí phụ (giải thích, kích thước, ổn định) quyết định lựa chọn triển khai. SHAP Top-30 cung cấp giải thích cục bộ nhất quán, lợi thế cho vận hành SOC.
+\textbf{So sánh phương pháp.} Với cặp được kiểm định (Baseline và SHAP Top-30, Bảng~\ref{tab:stat}), phép kiểm hoán vị chỉ có ý nghĩa ở đúng ngưỡng sàn của nó ($p\approx0{,}031$) trong khi chênh lệch F1 tuyệt đối ($\approx$0{,}0001) thấp hơn nhiều so với mức dao động giữa các lần chạy; do đó hai cấu hình được coi là \emph{tương đương về thực tiễn}, và tiêu chí phụ (giải thích, kích thước, ổn định, số đặc trưng) quyết định lựa chọn triển khai. Ngược lại, RF Top-30 kém SHAP Top-30 $\approx$0{,}005 F1 dù cùng số đặc trưng. SHAP Top-30 cung cấp giải thích cục bộ nhất quán, lợi thế cho vận hành SOC.
 
 \textbf{Cầu nối với thiết bị biên.} Giảm $\approx$60\% số đặc trưng trực tiếp giảm chi phí lắp ráp vector và bộ nhớ mô hình trên Jetson Orin Nano Super. Vì vậy, tiêu chí lựa chọn cần \emph{nhận biết ràng buộc biên}, tức là cân nhắc không chỉ F1 mà cả số đặc trưng, kích thước mô hình và thời gian huấn luyện/dự đoán (Hình~\ref{fig:timing}). Kết quả đo độ trễ và thông lượng (latency/throughput) trên Jetson được trình bày trong một công trình song hành về hệ thống (đang gửi phản biện).
 
