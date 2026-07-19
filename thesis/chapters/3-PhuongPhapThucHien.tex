@@ -66,6 +66,32 @@ Nguồn dữ liệu                    & \cite{sharafaldin2018toward} \\
 \end{tabular}
 \end{table}
 
+Bên cạnh CICIDS2017 (bộ dữ liệu chính cho toàn bộ các thí nghiệm), luận văn sử dụng thêm \textbf{CSE-CIC-IDS2018} cho thí nghiệm \emph{tổng quát hoá liên bộ dữ liệu} (Mục~\ref{sec:cross-dataset}): huấn luyện trên một bộ, kiểm tra trên bộ kia và ngược lại. Đây là bộ kế nhiệm của CICIDS2017, do CIC phối hợp với Cơ quan An ninh Truyền thông Canada (CSE) thu thập trên hạ tầng AWS quy mô lớn hơn nhiều; đặc trưng luồng được trích bằng CICFlowMeter phiên bản mới hơn nên tên cột được ánh xạ về từ vựng chuẩn của CICIDS2017 qua bảng bí danh tường minh trong mã nguồn. Thông tin chi tiết ở Bảng~\ref{tab:cicids2018}.
+
+\begin{table}[htbp]
+\centering
+\caption{Mô tả bộ dữ liệu CSE-CIC-IDS2018 (dùng cho thí nghiệm liên bộ dữ liệu)}
+\label{tab:cicids2018}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{l@{\hspace{10pt}}>{\raggedright\arraybackslash}p{10cm}}
+\toprule
+\textbf{Thuộc tính}              & \textbf{Giá trị} \\
+\midrule
+Tổ chức phát hành                & CIC phối hợp CSE (Communications Security Establishment) \\
+Thời gian phát hành              & 2018 \\
+Hạ tầng thu thập                 & Testbed trên AWS ($\sim$450 máy nạn nhân, 50 máy tấn công) \\
+Số lượng bản ghi (CSV)           & $\sim$16{,}2 triệu luồng (10 tệp CSV theo ngày) \\
+Thời gian thu thập               & 14/02/2018 -- 02/03/2018 \\
+Loại tấn công mô phỏng           & DDoS (HOIC, LOIC-HTTP/UDP), DoS (Hulk, GoldenEye, Slowloris, SlowHTTPTest), Bot, Brute-force (SSH, FTP, Web, XSS), SQL Injection, Infiltration \\
+Số loại nhãn                     & 15 (1 nhãn bình thường + 14 loại tấn công) \\
+Phân bố nhị phân (sau làm sạch)  & $\sim$13{,}35 triệu Benign / $\sim$2{,}35 triệu Attack \\
+Phần dùng trong luận văn          & Mẫu phân tầng theo nhãn 20\% (\texttt{seed}=42), còn $\sim$2{,}39 triệu luồng sau khử trùng lặp mức đặc trưng \\
+Định dạng dữ liệu                & CSV (CICFlowMeter v3; tên cột ánh xạ về chuẩn CICIDS2017) \\
+Nguồn dữ liệu                    & \cite{CSECICIDS2018} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \break
 
 \textbf{Tiền xử lý dữ liệu}
