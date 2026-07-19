@@ -77,7 +77,7 @@ Apache Spark bao gồm nhiều thành phần cốt lõi, mỗi thành phần đ�
 \begin{itemize}
   \item \textbf{Spark Core}: Thành phần trung tâm của Spark, chịu trách nhiệm quản lý bộ nhớ, lập lịch, xử lý lỗi, phân phối tác vụ và giao tiếp với các hệ thống lưu trữ. Nó cung cấp các API cấp cao cho Java, Scala, Python và R, giúp đơn giản hóa việc xử lý phân tán.
 
-  \item \textbf{MLlib}: Thư viện máy học tích hợp sẵn trong Spark, hỗ trợ huấn luyện và triển khai các mô hình học máy trên quy mô lớn. MLlib cung cấp các thuật toán như phân loại, hồi quy, phân cụm, khai thác mẫu và lọc cộng tác.
+  \item \textbf{MLlib}: Thư viện học máy tích hợp sẵn trong Spark, hỗ trợ huấn luyện và triển khai các mô hình học máy trên quy mô lớn. MLlib cung cấp các thuật toán như phân loại, hồi quy, phân cụm, khai thác mẫu và lọc cộng tác.
 
   \item \textbf{Spark Streaming}: Công cụ xử lý dữ liệu thời gian thực bằng cách chia dòng dữ liệu thành các lô nhỏ để xử lý tương tự như dữ liệu theo lô. Công cụ này cho phép sử dụng lại mã nguồn và hỗ trợ nhiều nguồn dữ liệu như Kafka, Flume, Twitter, HDFS.
 
@@ -118,7 +118,7 @@ Tuy nhiên, việc ứng dụng học máy trong hệ thống \ac{iot} vẫn cò
 \item \textbf{Cây quyết định (\ac{dt})} là một trong những thuật toán học máy có giám sát phổ biến, được áp dụng rộng rãi trong các bài toán phân loại. Cấu trúc cơ bản của một cây quyết định bao gồm ba thành phần chính: \textbf{nút gốc}, \textbf{nút quyết định} và \textbf{nút lá}.
 Cây quyết định có ưu điểm là dễ hiểu, dễ diễn giải, có thể trực quan hóa và không yêu cầu giả định về phân phối dữ liệu. Tuy nhiên, \ac{dt} cũng dễ bị quá khớp (\textit{overfitting}) nếu không chọn được các tham số hợp lý hoặc xử lý trên dữ liệu nhiễu \cite{mitchell1997machine}.
 
-\item \textbf{Rừng ngẫu nhiên (\ac{rf})} là một thuật toán học máy được sử dụng phổ biến trong cả hai bài toán phân loại và hồi quy. Đây là một kỹ thuật học tập kết hợp (\textit{ensemble learning}) dựa trên việc xây dựng và tổng hợp nhiều cây quyết định độc lập nhằm nâng cao độ chính xác và độ ổn định của mô hình. Thuật toán hoạt động bằng cách tạo ra nhiều cây quyết định trên các tập con khác nhau được chọn ngẫu nhiên từ tập dữ liệu huấn luyện. Mỗi cây được xây dựng dựa trên một mẫu bootstrap (lấy mẫu có hoàn lại), đồng thời tại mỗi nút chia, một tập con ngẫu nhiên của các thuộc tính được chọn để tìm điểm chia tốt nhất, thay vì sử dụng toàn bộ thuộc tính như trong cây quyết định truyền thống \cite{breiman2001random}.
+\item \textbf{Rừng ngẫu nhiên (\ac{rf})} là một thuật toán học máy được sử dụng phổ biến trong cả hai bài toán phân loại và hồi quy. Đây là một kỹ thuật học kết hợp (\textit{ensemble learning}) dựa trên việc xây dựng và tổng hợp nhiều cây quyết định độc lập nhằm nâng cao độ chính xác và độ ổn định của mô hình. Thuật toán hoạt động bằng cách tạo ra nhiều cây quyết định trên các tập con khác nhau được chọn ngẫu nhiên từ tập dữ liệu huấn luyện. Mỗi cây được xây dựng dựa trên một mẫu bootstrap (lấy mẫu có hoàn lại), đồng thời tại mỗi nút chia, một tập con ngẫu nhiên của các đặc trưng được chọn để tìm điểm chia tốt nhất, thay vì sử dụng toàn bộ đặc trưng như trong cây quyết định truyền thống \cite{breiman2001random}.
 
 Kết quả cuối cùng được xác định bằng cách:  
 \begin{itemize}

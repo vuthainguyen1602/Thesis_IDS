@@ -238,7 +238,7 @@ Tính giải thích (explainability) là một thành phần thiết yếu trong
     \label{fig:shap_summary}
 \end{figure}
 
-Hình~\ref{fig:shap_summary} xếp hạng 30 đặc trưng quan trọng nhất theo giá trị trung bình tuyệt đối của SHAP (mean $|\text{SHAP}|$): thanh càng dài, đặc trưng càng ảnh hưởng lớn đến quyết định phân loại xét trên toàn bộ mẫu. Để tránh rò rỉ, giá trị SHAP được tính trên một \emph{mẫu phân tầng theo lớp lấy từ tập huấn luyện} (không phải tập kiểm thử); mẫu này được biến đổi qua đúng bộ chuẩn hoá (StandardScaler) đã fit trên tập huấn luyện trước khi tính SHAP, bảo đảm không gian đầu vào của phép giải thích trùng khớp với không gian đầu vào mà mô hình đã học.
+Hình~\ref{fig:shap_summary} xếp hạng 30 đặc trưng quan trọng nhất theo giá trị trung bình tuyệt đối của SHAP (mean $|\text{SHAP}|$): thanh càng dài, đặc trưng càng ảnh hưởng lớn đến quyết định phân loại xét trên toàn bộ mẫu. Để tránh rò rỉ, giá trị SHAP được tính trên một \emph{mẫu phân tầng theo lớp lấy từ tập huấn luyện} (không phải tập kiểm tra); mẫu này được biến đổi qua đúng bộ chuẩn hoá (StandardScaler) đã fit trên tập huấn luyện trước khi tính SHAP, bảo đảm không gian đầu vào của phép giải thích trùng khớp với không gian đầu vào mà mô hình đã học.
 
 \begin{figure}[ht]
     \centering
@@ -361,7 +361,7 @@ CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & 0{,}0535 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
-\textbf{Diễn giải.} Kết quả cho thấy một tương phản gay gắt và \emph{trung thực}: F1 cùng bộ rất cao ở cả hai chiều (0{,}9952 và 0{,}9245) nhưng F1 khác bộ sụp đổ xuống 0{,}04--0{,}05, chủ yếu do recall gần bằng không (0{,}022 và 0{,}030) trong khi precision chiều 2017$\rightarrow$2018 vẫn đạt 0{,}596 --- tức mô hình gần như không nhận ra tấn công của bộ dữ liệu kia, chứ không phải báo động loạn. Nguyên nhân là \emph{dịch chuyển phân phối đặc trưng} giữa hai testbed: khác phiên bản CICFlowMeter (thang đo và cách tính một số đặc trưng thay đổi), khác hạ tầng mạng và cấu hình dịch vụ, khác tổ hợp loại tấn công (HOIC/LOIC-HTTP của 2018 không có trong 2017). Mức sụp đổ này nhất quán với các nghiên cứu cross-dataset trên IDS dựa trên đặc trưng luồng~\cite{dhooge2020interdataset,cantone2024crossdataset}, và chính là luận cứ mạnh nhất của luận văn: \emph{con số trong-miền gần hoàn hảo --- kể cả khi đã loại rò rỉ --- không bảo đảm khả năng triển khai sang môi trường khác}; đánh giá liên bộ dữ liệu phải là một phần bắt buộc của quy trình kiểm định IDS, và các hướng thích ứng miền (chuẩn hoá theo miền, huấn luyện liên bộ, cập nhật theo drift) là điều kiện tiên quyết cho triển khai thực tế.
+\textbf{Diễn giải.} Kết quả cho thấy một tương phản rõ rệt và \emph{trung thực}: F1 cùng bộ rất cao ở cả hai chiều (0{,}9952 và 0{,}9245) nhưng F1 khác bộ sụp đổ xuống 0{,}04--0{,}05, chủ yếu do recall gần bằng không (0{,}022 và 0{,}030) trong khi precision chiều 2017$\rightarrow$2018 vẫn đạt 0{,}596 --- tức mô hình gần như không nhận ra tấn công của bộ dữ liệu kia, chứ không tạo ra cảnh báo sai tràn lan. Nguyên nhân là \emph{dịch chuyển phân phối đặc trưng} giữa hai testbed: khác phiên bản CICFlowMeter (thang đo và cách tính một số đặc trưng thay đổi), khác hạ tầng mạng và cấu hình dịch vụ, khác tổ hợp loại tấn công (HOIC/LOIC-HTTP của 2018 không có trong 2017). Mức sụp đổ này nhất quán với các nghiên cứu cross-dataset trên IDS dựa trên đặc trưng luồng~\cite{dhooge2020interdataset,cantone2024crossdataset}, và chính là luận cứ mạnh nhất của luận văn: \emph{con số trong-miền gần hoàn hảo --- kể cả khi đã loại rò rỉ --- không bảo đảm khả năng triển khai sang môi trường khác}; đánh giá liên bộ dữ liệu phải là một phần bắt buộc của quy trình kiểm định IDS, và các hướng thích ứng miền (chuẩn hoá theo miền, huấn luyện liên bộ, cập nhật theo drift) là điều kiện tiên quyết cho triển khai thực tế.
 
 \subsection{Đánh giá đa lớp theo loại tấn công}
 \label{sec:multiclass}
@@ -618,9 +618,9 @@ Random Forest     & 26,8 & 378 / 397 / -- & 35,2 & 27,5 & 4,427 \\
 \end{tabular*}
 \end{table}
 
-\subsection{So sánh engine suy luận: cái giá của stack đồng nhất}
+\subsection{So sánh engine suy luận: chi phí của việc đồng nhất stack}
 \label{sec:engine-baseline-thesis}
-Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của Spark để \emph{đồng nhất với pha huấn luyện phân tán} --- cùng một stack vừa huấn luyện trên cụm vừa suy luận trên thiết bị. Để \emph{định lượng cái giá} của sự đồng nhất này, luận văn đo lại \emph{cùng một} mô hình Random Forest (cùng siêu tham số) trên \emph{cùng} tập đặc trưng SHAP Top-30 nhưng qua các engine nhẹ hơn ở chế độ một nút: scikit-learn (CPU, không JVM) và ONNX Runtime (Bảng~\ref{tab:engines_thesis}, sinh từ \texttt{benchmark\_engines.py}). Vì cùng thuật toán và đặc trưng nên độ chính xác tương đương; phép so sánh tập trung vào \emph{chi phí suy luận}. Dự kiến stack JVM/Spark có độ trễ và bộ nhớ cao hơn sklearn/ONNX trên bo mạch ARM 8\,GB; việc nêu rõ điều này một cách trung thực là cơ sở cho hướng phát triển \emph{xuất mô hình sang ONNX/TensorRT để suy luận} trong khi vẫn giữ Spark cho huấn luyện.
+Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của Spark để \emph{đồng nhất với pha huấn luyện phân tán} --- cùng một stack vừa huấn luyện trên cụm vừa suy luận trên thiết bị. Để \emph{định lượng chi phí đánh đổi} của sự đồng nhất này, luận văn đo lại \emph{cùng một} mô hình Random Forest (cùng siêu tham số) trên \emph{cùng} tập đặc trưng SHAP Top-30 nhưng qua các engine nhẹ hơn ở chế độ một nút: scikit-learn (CPU, không JVM) và ONNX Runtime (Bảng~\ref{tab:engines_thesis}, sinh từ \texttt{benchmark\_engines.py}). Vì cùng thuật toán và đặc trưng nên độ chính xác tương đương; phép so sánh tập trung vào \emph{chi phí suy luận}. Kết quả đo (Bảng~\ref{tab:engines_thesis}) cho thấy stack JVM/Spark chịu chi phí suy luận cao hơn đáng kể so với scikit-learn trên bo mạch ARM 8\,GB: thông lượng thấp hơn khoảng 7,7 lần, độ trễ p95 cao hơn khoảng 8 lần và tỷ lệ RAM gần gấp đôi; việc nêu rõ điều này là cơ sở cho hướng phát triển \emph{xuất mô hình sang ONNX/TensorRT để suy luận} trong khi vẫn giữ Spark cho huấn luyện.
 
 \begin{table}[htbp]
 \centering
@@ -640,8 +640,7 @@ ONNX Runtime         & \multicolumn{4}{c}{chưa đo (chưa cài \texttt{onnxrunt
 
 \subsection{Kết quả ba chế độ triển khai phân tán}
 
-% (Ghi chú nội bộ: điền từ papers/soict2026/results/benchmarks/summary.csv sau khi chạy run_benchmarks.sh.)
-Ngoài việc so sánh các mô hình trên một nút, luận văn đánh giá ba chế độ triển khai phân tán trên cụm hai Jetson Orin Nano Super (Bảng~\ref{tab:edge_modes}). Chỉ số chính gồm thông lượng, độ trễ p95 (ms), tỷ lệ bỏ qua tại cổng (gate-skip: \% lưu lượng bình thường được cổng lọc khỏi suy luận Spark) và F1 trên lớp tấn công. \emph{Thông lượng} được định nghĩa là số \emph{phán quyết cuối cùng} ghi vào PostgreSQL trên giây (một luồng nhận phán quyết hoặc tại cổng --- nếu bị bỏ qua là benign --- hoặc tại bộ phân loại), không cộng dồn sản lượng của hai tầng để tránh đếm trùng luồng được chuyển tiếp ở chế độ pipeline split.
+Ngoài việc so sánh các mô hình trên một nút, luận văn đánh giá ba chế độ triển khai phân tán trên cụm hai Jetson Orin Nano Super (Bảng~\ref{tab:edge_modes}). Chỉ số chính gồm thông lượng, độ trễ p95 (ms), tỷ lệ bỏ qua tại cổng (gate-skip: \% lưu lượng bình thường được cổng lọc khỏi suy luận Spark) và F1 trên lớp tấn công. \emph{Thông lượng} được định nghĩa là số \emph{phán quyết cuối cùng} ghi vào PostgreSQL trên giây (một luồng nhận phán quyết hoặc tại cổng --- nếu bị bỏ qua là benign --- hoặc tại bộ phân loại), không cộng dồn đầu ra của hai tầng để tránh đếm trùng luồng được chuyển tiếp ở chế độ pipeline split.
 
 \begin{table}[htbp]
 \centering
