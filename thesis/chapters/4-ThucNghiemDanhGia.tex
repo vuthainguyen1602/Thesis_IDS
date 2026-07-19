@@ -174,7 +174,7 @@ Baseline (Toàn bộ) & 77 ($\approx$78 trước khi loại cổng) & \ac{xgb} &
 \end{tabular*}
 
 \vspace{2pt}
-{\footnotesize $^{\dagger}$Kích thước đo bằng cách tuần tự hoá mô hình \emph{trên cụm huấn luyện phân tán}: thao tác \texttt{save()} ghi các phân vùng dữ liệu rừng cây trên executor đang giữ chúng, nên giá trị cỡ KB chỉ bắt được metadata cục bộ trên driver và \emph{thấp hơn thực tế}. Vì dung lượng ensemble cây phụ thuộc số cây và số nút (không phụ thuộc số đặc trưng đầu vào), mô hình \ac{xgb} SHAP Top-30 thực tế tương đương bản RF Top-30 ($\approx$2,5\,MB); phép đo tin cậy là bản xuất khẩu đơn nút của pipeline triển khai (Mục kết quả biên).}
+{\footnotesize $^{\dagger}$Kích thước đo bằng cách tuần tự hoá mô hình \emph{trên cụm huấn luyện phân tán}: thao tác \texttt{save()} ghi các phân vùng dữ liệu rừng cây trên executor đang giữ chúng, nên giá trị cỡ KB chỉ bắt được metadata cục bộ trên driver và \emph{thấp hơn thực tế}. Vì dung lượng ensemble cây phụ thuộc số cây và số nút (không phụ thuộc số đặc trưng đầu vào), mô hình \ac{xgb} SHAP Top-30 thực tế tương đương bản RF Top-30 ($\approx$2,5\,MB). Cũng vì vậy, tập đặc trưng rút gọn có thể cho mô hình \emph{lớn hơn} baseline một chút (2,52 so với 2,32\,MB): ít ứng viên tách hơn khiến cây cần nhiều nút hơn để đạt cùng độ tinh khiết. Phép đo tin cậy là bản xuất khẩu đơn nút của pipeline triển khai (Mục kết quả biên).}
 \end{table}
 
 Ngoài ra, sự so sánh trực tiếp giữa hai phương pháp lựa chọn đặc trưng dựa trên độ quan trọng của \ac{rf} và \ac{shap} được chi tiết hóa trong Bảng \ref{tab:rf_vs_shap}.

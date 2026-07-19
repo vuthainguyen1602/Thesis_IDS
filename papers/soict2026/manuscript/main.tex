@@ -244,7 +244,7 @@ In our companion ML study, we evaluate four feature configurations---baseline (a
   \end{tabular}
 
   \vspace{2pt}
-  {\footnotesize $^{\dagger}$Serialized on the training cluster, where a distributed \texttt{save()} scatters the tree-data partitions across executors; KB-scale entries captured only driver-local metadata and under-report the true size (a 30-feature XGBoost is in reality $\approx$2.5\,MB, on par with RF Top-30, since ensemble size depends on trees/nodes rather than input features). The single-node export used for deployment measures sizes reliably (Table~\ref{tab:engines} context).}
+  {\footnotesize $^{\dagger}$Serialized on the training cluster, where a distributed \texttt{save()} scatters the tree-data partitions across executors; KB-scale entries captured only driver-local metadata and under-report the true size (a 30-feature XGBoost is in reality $\approx$2.5\,MB, on par with RF Top-30, since ensemble size depends on trees/nodes rather than input features; with fewer split candidates trees may even need slightly more nodes than the baseline, cf.\ 2.52 vs.\ 2.32\,MB). The single-node export used for deployment measures sizes reliably (Table~\ref{tab:engines} context).}
 \end{table}
 
 \subsection{Edge Phase (Jetson Orin Nano Super)}
