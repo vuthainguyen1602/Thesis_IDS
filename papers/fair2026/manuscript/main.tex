@@ -238,7 +238,7 @@ Bảng~\ref{tab:best-results} tóm tắt mô hình tốt nhất mỗi phương p
   }{%
     \fbox{\parbox{0.9\columnwidth}{\centering\vspace{1.2cm}\ph{Thời gian huấn luyện/dự đoán --- chạy ml\_07\_cross\_method\_comparison.py}\vspace{1.2cm}}}%
   }
-  \caption{Thời gian huấn luyện và suy luận của mô hình đại diện mỗi phương pháp, đo trên cụm Spark dùng cho huấn luyện (Mục~\ref{sec:exp}); các số đo độ trễ/thông lượng suy luận trên thiết bị biên thuộc phạm vi công trình liên quan (SOICT 2026), không thuộc bài này.}
+  \caption{Thời gian huấn luyện và suy luận của mô hình đại diện mỗi phương pháp, đo trên cụm Spark dùng cho huấn luyện (Mục~\ref{sec:exp}); các số đo độ trễ/thông lượng suy luận trên thiết bị biên thuộc phạm vi một công trình song hành về hệ thống (đang gửi phản biện), không thuộc bài này.}
   \label{fig:timing}
 \end{figure}
 
@@ -319,7 +319,7 @@ Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập ki
 
 \textbf{So sánh phương pháp.} Khi chênh lệch F1 giữa RF Top-30 và SHAP Top-30 nhỏ hơn mức dao động giữa các lần lấy mẫu lại và $p>0{,}05$, ta kết luận hai phương pháp \emph{tương đương về mặt thống kê}; khi đó tiêu chí phụ (giải thích, kích thước, ổn định) quyết định lựa chọn triển khai. SHAP Top-30 cung cấp giải thích cục bộ nhất quán, lợi thế cho vận hành SOC.
 
-\textbf{Cầu nối với thiết bị biên.} Giảm $\approx$60\% số đặc trưng trực tiếp giảm chi phí lắp ráp vector và bộ nhớ mô hình trên Jetson Orin Nano Super. Vì vậy, tiêu chí lựa chọn cần \emph{nhận biết ràng buộc biên}, tức là cân nhắc không chỉ F1 mà cả số đặc trưng, kích thước mô hình và thời gian huấn luyện/dự đoán (Hình~\ref{fig:timing}). Kết quả đo độ trễ và thông lượng (latency/throughput) trên Jetson được trình bày trong công trình liên quan (SOICT 2026).
+\textbf{Cầu nối với thiết bị biên.} Giảm $\approx$60\% số đặc trưng trực tiếp giảm chi phí lắp ráp vector và bộ nhớ mô hình trên Jetson Orin Nano Super. Vì vậy, tiêu chí lựa chọn cần \emph{nhận biết ràng buộc biên}, tức là cân nhắc không chỉ F1 mà cả số đặc trưng, kích thước mô hình và thời gian huấn luyện/dự đoán (Hình~\ref{fig:timing}). Kết quả đo độ trễ và thông lượng (latency/throughput) trên Jetson được trình bày trong một công trình song hành về hệ thống (đang gửi phản biện).
 
 \textbf{Hạn chế của đánh giá nhị phân.} Việc loại cổng và loại bỏ trùng lặp đưa F1 nhị phân về mức thực tế, nhưng phân loại nhị phân vẫn là bài toán tương đối dễ. Chỉ khi đánh giá đa lớp, các điểm yếu ở lớp tấn công hiếm mới bộc lộ, và đây cũng là thước đo phân biệt phương pháp đáng tin cậy hơn.
 

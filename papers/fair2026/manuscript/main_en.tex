@@ -238,7 +238,7 @@ Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\r
   }{%
     \fbox{\parbox{0.9\columnwidth}{\centering\vspace{1.2cm}\ph{Training/prediction time --- run ml\_07\_cross\_method\_comparison.py}\vspace{1.2cm}}}%
   }
-  \caption{Training and inference time of the representative model of each method, measured on the Spark cluster used for training (Section~\ref{sec:exp}); inference latency/throughput measurements on the edge device belong to the related work (SOICT 2026), not this paper.}
+  \caption{Training and inference time of the representative model of each method, measured on the Spark cluster used for training (Section~\ref{sec:exp}); inference latency/throughput measurements on the edge device belong to a companion systems paper (under submission), not this paper.}
   \label{fig:timing}
 \end{figure}
 
@@ -319,7 +319,7 @@ To go beyond \emph{in-domain} evaluation, we train on one dataset and test on a 
 
 \textbf{Method comparison.} When the F1 gap between RF Top-30 and SHAP Top-30 is smaller than the variation across resamplings and $p>0.05$, we conclude that the two methods are \emph{statistically equivalent}; in that case secondary criteria (explainability, size, stability) decide the deployment choice. SHAP Top-30 provides consistent local explanations, an advantage for SOC operations.
 
-\textbf{Bridge to the edge device.} Cutting $\approx$60\% of the features directly reduces the vector-assembly cost and the model memory footprint on the Jetson Orin Nano Super. The selection criterion therefore needs to be \emph{edge-aware}, that is, to consider not only F1 but also the number of features, the model size, and the training/prediction time (Figure~\ref{fig:timing}). Latency and throughput measurements on the Jetson are presented in the related work (SOICT 2026).
+\textbf{Bridge to the edge device.} Cutting $\approx$60\% of the features directly reduces the vector-assembly cost and the model memory footprint on the Jetson Orin Nano Super. The selection criterion therefore needs to be \emph{edge-aware}, that is, to consider not only F1 but also the number of features, the model size, and the training/prediction time (Figure~\ref{fig:timing}). Latency and throughput measurements on the Jetson are presented in a companion systems paper (under submission).
 
 \textbf{Limitations of the binary evaluation.} Removing the port and deduplicating brings binary F1 down to a realistic level, but binary classification remains a relatively easy task. Only under multiclass evaluation do the weaknesses on rare attack classes emerge, and this is also a more reliable metric for distinguishing methods.
 
