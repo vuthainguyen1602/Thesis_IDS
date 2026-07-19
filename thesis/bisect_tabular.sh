@@ -57,7 +57,7 @@ run_probe() {  # $1 = number of loads to include
     echo "\\end{tabular}"
     echo "\\end{document}"
   } > "$doc"
-  ( latex -interaction=nonstopmode -halt-on-error -output-directory "$WORK" "$doc" >/dev/null 2>&1 ) && [ -s "$WORK/probe.dvi" ]
+  rm -f "$WORK/probe.dvi"; ( latex -interaction=nonstopmode -halt-on-error -output-directory "$WORK" "$doc" >/dev/null 2>&1 ) && [ -s "$WORK/probe.dvi" ]
 }
 
 TOTAL=${#LOADS[@]}
@@ -80,7 +80,7 @@ run_probe() {
     echo "\\end{tabular}"
     echo "\\end{document}"
   } > "$doc"
-  ( latex -interaction=nonstopmode -halt-on-error -output-directory "$WORK" "$doc" >/dev/null 2>&1 ) && [ -s "$WORK/probe.dvi" ]
+  rm -f "$WORK/probe.dvi"; ( latex -interaction=nonstopmode -halt-on-error -output-directory "$WORK" "$doc" >/dev/null 2>&1 ) && [ -s "$WORK/probe.dvi" ]
 }
 
 if ! run_probe 0; then
