@@ -135,7 +135,9 @@
 
 \RequirePackage{acro,tabularray}
 \acsetup{
-    list/template=tabularray
+    % tabularray list template hits "Missing number ... \__dim_eval_end:" with
+    % the TL2024 acro/tabularray pairing; longtable renders the same table.
+    list/template=longtable
 }
 \input{abbrev}
 
