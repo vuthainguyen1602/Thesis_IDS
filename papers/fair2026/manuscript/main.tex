@@ -348,8 +348,14 @@ Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập ki
     Lớp & Support & Precision & Recall & F1 \\
     \midrule
     Benign & 380.119 & 0,9981 & 0,9997 & 0,9989 \\
+    DoS Hulk & 34.446 & 0,9990 & 0,9904 & 0,9947 \\
+    PortScan & 383 & 1,0000 & 0,9530 & 0,9759 \\
+    Web Attack~-- Brute Force & 311 & 0,7346 & 0,7299 & 0,7323 \\
+    Bot & 290 & 1,0000 & 0,4552 & 0,6256 \\
     Web Attack~-- XSS & 111 & 1,0000 & 0,0270 & 0,0526 \\
-    \multicolumn{5}{c}{\footnotesize 13 lớp còn lại --- xem \texttt{per\_class\_metrics.csv}} \\
+    Infiltration & 12 & 1,0000 & 0,6667 & 0,8000 \\
+    Web Attack~-- SQL Injection & 6 & 0,0000 & 0,0000 & 0,0000 \\
+    \multicolumn{5}{c}{\footnotesize 7 lớp còn lại --- xem \texttt{per\_class\_metrics.csv}} \\
     \multicolumn{5}{c}{\footnotesize macro-F1 $=0{,}806$ \quad weighted-F1 $=0{,}998$} \\
     \bottomrule
   \end{tabular}
