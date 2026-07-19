@@ -74,7 +74,11 @@ def _fit(train_df, feature_cols):
                        withMean=True, withStd=True),
         RandomForestClassifier(featuresCol="features", labelCol="label_binary",
                                weightCol="class_weight",
-                               numTrees=RF_NUM_TREES, maxDepth=RF_MAX_DEPTH, seed=42),
+                               numTrees=RF_NUM_TREES, maxDepth=RF_MAX_DEPTH, seed=42,
+                               # Cap the per-iteration node-stats aggregation buffer:
+                               # the default 256MB OOMs 4GB Jetson executors in
+                               # findBestSplits on the ~1.9M-row IDS2018 fit.
+                               maxMemoryInMB=int(os.environ.get("IDS_XD_MAX_MEMORY_MB", "128"))),
     ])
     return pipeline.fit(train_df)
 
