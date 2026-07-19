@@ -71,6 +71,7 @@ run_probe() {
     echo "\\documentclass[12pt]{report}"
     echo "\\usepackage[utf8]{inputenc}"
     echo "\\usepackage[T1,T5]{fontenc}"
+    echo "\\renewcommand{\\rmdefault}{ptm}"
     echo "\\usepackage{array}"
     for ((i=0; i<n; i++)); do echo "${LOADS[$i]}"; done
     echo "\\begin{document}"
