@@ -41,7 +41,6 @@
 \usetikzlibrary{calc}
 \RequirePackage{template/slashbox}
 \RequirePackage{pdfpages}
-\RequirePackage{ftnxtra}
 \RequirePackage{xcolor}
 
 \RequirePackage{listings}
@@ -82,7 +81,6 @@
 \usetikzlibrary{calc}
 \RequirePackage{lipsum}
 \RequirePackage{textcase}
-\RequirePackage{ftnxtra}
 \RequirePackage{tikz}
 
 
