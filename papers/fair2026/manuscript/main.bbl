@@ -6,6 +6,10 @@ I.~Sharafaldin, A.~H. Lashkari, and A.~A. Ghorbani, ``Toward generating a new
   Proceedings of the 4th International Conference on Information Systems
   Security and Privacy (ICISSP)}, pp.~108--116, 2018.
 
+\bibitem{nadeau2003inference}
+C.~Nadeau and Y.~Bengio, ``Inference for the generalization error,'' {\em
+  Machine Learning}, vol.~52, no.~3, pp.~239--281, 2003.
+
 \bibitem{ring2019survey}
 M.~Ring, S.~Wunderlich, D.~Gr{\"u}dl, D.~Landes, and A.~Hotho, ``A survey of
   network-based intrusion detection data sets,'' {\em Computers \& Security},
@@ -115,5 +119,11 @@ T.~Hasan, A.~Hossain, M.~Q. Ansari, and T.~H. Syed, ``Enhanced intrusion
   the {Communications Security Establishment (CSE)} and the {Canadian Institute
   for Cybersecurity (CIC)}.''
   \url{https://www.unb.ca/cic/datasets/ids-2018.html}, 2018.
+
+\bibitem{dhooge2020interdataset}
+L.~D'hooge, T.~Wauters, B.~Volckaert, and F.~De~Turck, ``Inter-dataset
+  generalization strength of supervised machine learning methods for intrusion
+  detection,'' {\em Journal of Information Security and Applications}, vol.~54,
+  p.~102564, 2020.
 
 \end{thebibliography}

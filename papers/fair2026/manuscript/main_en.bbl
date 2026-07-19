@@ -109,11 +109,21 @@ T.~Hasan, A.~Hossain, M.~Q. Ansari, and T.~H. Syed, ``Enhanced intrusion
   feature learning,'' 2025.
 \newblock arXiv:2501.15266.
 
+\bibitem{nadeau2003inference}
+C.~Nadeau and Y.~Bengio, ``Inference for the generalization error,'' {\em
+  Machine Learning}, vol.~52, no.~3, pp.~239--281, 2003.
+
 \bibitem{csecicids2018}
 {Canadian Institute for Cybersecurity and Communications Security
   Establishment}, ``{CSE-CIC-IDS2018} dataset: A collaborative project between
   the {Communications Security Establishment (CSE)} and the {Canadian Institute
   for Cybersecurity (CIC)}.''
   \url{https://www.unb.ca/cic/datasets/ids-2018.html}, 2018.
+
+\bibitem{dhooge2020interdataset}
+L.~D'hooge, T.~Wauters, B.~Volckaert, and F.~De~Turck, ``Inter-dataset
+  generalization strength of supervised machine learning methods for intrusion
+  detection,'' {\em Journal of Information Security and Applications}, vol.~54,
+  p.~102564, 2020.
 
 \end{thebibliography}
