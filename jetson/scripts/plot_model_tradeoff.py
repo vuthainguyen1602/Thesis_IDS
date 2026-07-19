@@ -73,6 +73,7 @@ def main():
 
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels([a[0] for a in AXES], fontsize=11)
+    ax.tick_params(axis="x", pad=18)   # push axis labels clear of the circle
     ax.set_yticks([0.25, 0.5, 0.75, 1.0])
     ax.set_yticklabels([])
     ax.set_ylim(0, 1.05)
