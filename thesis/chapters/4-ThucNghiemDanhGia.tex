@@ -164,17 +164,18 @@ Bảng \ref{tab:summary_comparison} tóm tắt sự khác biệt giữa các ph�
 \centering
 \caption{So sánh hiệu năng tốt nhất của các phương pháp lựa chọn đặc trưng và giảm chiều}
 \label{tab:summary_comparison}
+\small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
 \toprule
-\textbf{Phương pháp} & \textbf{Đặc trưng} & \textbf{Mô hình tốt nhất} & \textbf{F1-Score} & \textbf{Thời gian huấn luyện (s)} & \textbf{Dung lượng (MB)} \\ \midrule
-Baseline (Toàn bộ) & 77 ($\approx$78 trước khi loại cổng) & \ac{xgb} & 0,9971 & 4615,5 & 2,32 \\
+\textbf{Phương pháp} & \textbf{\shortstack{Số đặc\\trưng}} & \textbf{\shortstack{Mô hình\\tốt nhất}} & \textbf{F1-Score} & \textbf{\shortstack{Huấn luyện\\(s)}} & \textbf{\shortstack{Dung lượng\\(MB)}} \\ \midrule
+Baseline (Toàn bộ) & 77 & \ac{xgb} & 0,9971 & 4615,5 & 2,32 \\
 \ac{rf} Importance & 30 & \ac{xgb} & 0,9922 & 1295,1 & 2,52 \\
 \ac{shap} Importance & 30 & \ac{xgb} & 0,9970 & 1226,1 & 0,003$^{\dagger}$ \\
 \ac{pca} (k=40) & 40 & \ac{xgb} & 0,9939 & 1444,8 & 3,82 \\ \bottomrule
 \end{tabular*}
 
 \vspace{2pt}
-{\footnotesize $^{\dagger}$Kích thước đo bằng cách tuần tự hoá mô hình \emph{trên cụm huấn luyện phân tán}: thao tác \texttt{save()} ghi các phân vùng dữ liệu rừng cây trên executor đang giữ chúng, nên giá trị cỡ KB chỉ bắt được metadata cục bộ trên driver và \emph{thấp hơn thực tế}. Vì dung lượng ensemble cây phụ thuộc số cây và số nút (không phụ thuộc số đặc trưng đầu vào), mô hình \ac{xgb} SHAP Top-30 thực tế tương đương bản RF Top-30 ($\approx$2,5\,MB). Cũng vì vậy, tập đặc trưng rút gọn có thể cho mô hình \emph{lớn hơn} baseline một chút (2,52 so với 2,32\,MB): ít ứng viên tách hơn khiến cây cần nhiều nút hơn để đạt cùng độ tinh khiết. Phép đo tin cậy là bản xuất khẩu đơn nút của pipeline triển khai (Mục kết quả biên).}
+{\footnotesize Baseline dùng toàn bộ 77 đặc trưng số ($\approx$78 trước khi loại cổng). $^{\dagger}$Kích thước đo bằng cách tuần tự hoá mô hình \emph{trên cụm huấn luyện phân tán}: thao tác \texttt{save()} ghi các phân vùng dữ liệu rừng cây trên executor đang giữ chúng, nên giá trị cỡ KB chỉ bắt được metadata cục bộ trên driver và \emph{thấp hơn thực tế}. Vì dung lượng ensemble cây phụ thuộc số cây và số nút (không phụ thuộc số đặc trưng đầu vào), mô hình \ac{xgb} SHAP Top-30 thực tế tương đương bản RF Top-30 ($\approx$2,5\,MB). Cũng vì vậy, tập đặc trưng rút gọn có thể cho mô hình \emph{lớn hơn} baseline một chút (2,52 so với 2,32\,MB): ít ứng viên tách hơn khiến cây cần nhiều nút hơn để đạt cùng độ tinh khiết. Phép đo tin cậy là bản xuất khẩu đơn nút của pipeline triển khai (Mục kết quả biên).}
 \end{table}
 
 Ngoài ra, sự so sánh trực tiếp giữa hai phương pháp lựa chọn đặc trưng dựa trên độ quan trọng của \ac{rf} và \ac{shap} được chi tiết hóa trong Bảng \ref{tab:rf_vs_shap}.
@@ -308,11 +309,11 @@ Do các con số F1 giữa những phương pháp/thuật toán hàng đầu r�
 \centering
 \caption{Ổn định đa lần lấy mẫu và kiểm định ghép cặp (từ \texttt{statistical\_validity\_multiseed.csv})}
 \label{tab:stat_validity}
-\small
+\footnotesize
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcccc@{}}
 \toprule
 \textbf{Phương pháp} & \textbf{Mô hình} & \textbf{\shortstack{F1 (mean $\pm$\\CI95 $t$)}} & \textbf{\shortstack{CI95\\Nadeau--Bengio}} & \textbf{\shortstack{$p$\\(ghép cặp)}} & \textbf{Cohen's $d$} \\ \midrule
-Baseline (All Features) & \ac{xgb} & 0,99734 $\pm$ 0,00007 & [0,99722; 0,99746] & \multirow{2}{*}{0,031} & \multirow{2}{*}{1,94} \\
+Baseline (toàn bộ) & \ac{xgb} & 0,99734 $\pm$ 0,00007 & [0,99722; 0,99746] & \multirow{2}{*}{0,031} & \multirow{2}{*}{1,94} \\
 \ac{shap} Top-30 & \ac{xgb} & 0,99720 $\pm$ 0,00009 & [0,99705; 0,99735] & & \\ \bottomrule
 \end{tabular*}
 \end{table}
