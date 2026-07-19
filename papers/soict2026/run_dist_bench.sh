@@ -67,10 +67,10 @@ start_pipe() {
   local spark="SPARK_MASTER="                         # empty -> local[*]
   [ -n "$sm" ] && spark="SPARK_MASTER=$sm SPARK_DRIVER_HOST=$dh"
   echo "[start] $id role=$role alert=$alert spark=${sm:-local[*]} on $host"
-  $SSH $U@$host "cd $JROOT && source venv/bin/activate && \
+  $SSH -n $U@$host "cd $JROOT && source venv/bin/activate && \
     $REMOTE_ENV $spark RAW_LATENCY_LOG=\$HOME/ids_raw_latency_\$(hostname).csv \
     EDGE_NODE_ID=$id EDGE_NODE_ROLE=$role ALERT_ENABLED=$alert \
-    nohup python edge/kafka_consumer.py > \$HOME/edge_${id}.log 2>&1 & echo '  -> launched (pid '\$!')'"
+    nohup python edge/kafka_consumer.py > \$HOME/edge_${id}.log 2>&1 </dev/null & echo '  -> launched (pid '\$!')'"
 }
 
 # energy_window ts spec...   spec = host:node_id:role
@@ -79,10 +79,10 @@ energy_window() {
   local pd=$((WARM + DUR + 40))
   echo "[energy] node-power on: $* (idle 30s + sample ${pd}s)"
   for spec in "$@"; do IFS=: read -r host id role <<<"$spec"
-    $SSH $U@$host "cd $JROOT && source venv/bin/activate && \
+    $SSH -n $U@$host "cd $JROOT && source venv/bin/activate && \
       EDGE_NODE_ID=$id EDGE_NODE_ROLE=$role nohup python scripts/benchmark_distributed.py node-power \
       --duration $pd --idle-seconds 30 --output \$HOME/power_${id}_${T}.json \
-      > \$HOME/power_${id}.log 2>&1 & echo '  -> power monitor up'"
+      > \$HOME/power_${id}.log 2>&1 </dev/null & echo '  -> power monitor up'"
   done
   echo "[energy] idle baseline in progress — NOT sending load for 35s ..."; sleep 35
   echo "[energy] sending ${DUR}s load for the energy window ..."
