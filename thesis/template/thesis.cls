@@ -78,7 +78,7 @@
 \RequirePackage{etoolbox}
 
 \RequirePackage{times,latexsym,bbm,rotating}
-\RequirePackage{enumitem,hhline,stmaryrd,bussproofs,arydshln}
+\RequirePackage{enumitem,hhline,stmaryrd,bussproofs}
 \usetikzlibrary{calc}
 \RequirePackage{lipsum}
 \RequirePackage{textcase}
@@ -89,7 +89,7 @@
 
 \providecommand\phantomsection{}
 
-\RequirePackage{array,booktabs,arydshln,xcolor}
+\RequirePackage{array,booktabs,xcolor}
 \newcommand\VRule[1][\arrayrulewidth]{\vrule width #1}
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
