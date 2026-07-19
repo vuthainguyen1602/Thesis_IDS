@@ -8,6 +8,12 @@ Alrawashdeh, K., Purdy, C.: Toward an online anomaly intrusion detection system
   based on deep learning. In: Proc. 15th IEEE Int. Conf. on Machine Learning
   and Applications (ICMLA). pp. 195--200 (2016). \doi{10.1109/ICMLA.2016.0040}
 
+\bibitem{arp2022dosdonts}
+Arp, D., Quiring, E., Pendlebury, F., Warnecke, A., Pierazzi, F., Wressnegger,
+  C., Cavallaro, L., Rieck, K.: Dos and don'ts of machine learning in computer
+  security. In: 31st USENIX Security Symposium (USENIX Security 22). pp.
+  3971--3988 (2022)
+
 \bibitem{asghar2026hedid}
 Asghar, M.Z., et~al.: {HED-ID}: an edge-deployable and explainable intrusion
   detection system optimized via metaheuristic learning. Scientific Reports
