@@ -1,0 +1,6 @@
+mode,n_runs,throughput_rps_mean,throughput_rps_std,latency_p95_ms_mean,latency_p95_ms_std
+horizontal,3,5.92,1.43,14.36,8.59
+single,3,2.6,0.41,11.87,2.62
+spark_cluster,3,90.04,25.62,15.69,6.41
+split,7,62.49,0.58,13.55,4.28
+unknown,12,,,,

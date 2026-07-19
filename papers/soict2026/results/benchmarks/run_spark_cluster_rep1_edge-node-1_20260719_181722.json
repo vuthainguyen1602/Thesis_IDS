@@ -1,0 +1,92 @@
+{
+  "benchmark_type": "run",
+  "deploy_mode": "spark_cluster",
+  "warmup": {
+    "benchmark_type": "send",
+    "duration_s": 6,
+    "requested_rate_rps": 100,
+    "elapsed_s": 6.02,
+    "interrupted_after_timeout": true,
+    "csv_path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/sender/replay_cicids2017.csv",
+    "topic": "ids-network-flow",
+    "broker": "localhost:9092",
+    "timestamp": "2026-07-19T11:16:04.805189+00:00"
+  },
+  "send": {
+    "benchmark_type": "send",
+    "duration_s": 45,
+    "requested_rate_rps": 100,
+    "elapsed_s": 45.02,
+    "interrupted_after_timeout": true,
+    "csv_path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/sender/replay_cicids2017.csv",
+    "topic": "ids-network-flow",
+    "broker": "localhost:9092",
+    "timestamp": "2026-07-19T11:16:51.827136+00:00"
+  },
+  "load_start_epoch": 1784459766.810499,
+  "load_end_epoch": 1784459811.827625,
+  "collect": {
+    "benchmark_type": "collect",
+    "deploy_mode": "spark_cluster",
+    "window_minutes": 5,
+    "load_start_epoch": 1784459766.810499,
+    "load_end_epoch": 1784459811.827625,
+    "timestamp": "2026-07-19T11:17:21.910879+00:00",
+    "gate_skip": {
+      "benign_skipped": 4393,
+      "total_gate_events": 4470,
+      "gate_skip_pct": 98.28
+    },
+    "final_throughput": {
+      "final_verdicts": 4473,
+      "window_s": 45.0,
+      "throughput_final_rps": 99.36
+    },
+    "raw_latency_per_node": {},
+    "nodes": [
+      {
+        "node_id": "jetson-nano-1",
+        "throughput_rps": 171.672,
+        "avg_latency_ms": 0.103,
+        "latency_p50_ms": 0.104,
+        "latency_p95_ms": 0.127,
+        "latency_p99_ms": 0.154,
+        "e2e_latency_avg_ms": null,
+        "e2e_latency_p95_ms": null,
+        "cpu_percent": 26.9,
+        "memory_percent": 38.73,
+        "cpu_temp_celsius": 55.62
+      },
+      {
+        "node_id": "jetson-nano-2",
+        "throughput_rps": 3.68,
+        "avg_latency_ms": 6.496,
+        "latency_p50_ms": 12.825,
+        "latency_p95_ms": 12.825,
+        "latency_p99_ms": 12.825,
+        "e2e_latency_avg_ms": null,
+        "e2e_latency_p95_ms": null,
+        "cpu_percent": 33.52,
+        "memory_percent": 53.42,
+        "cpu_temp_celsius": 55.05
+      }
+    ],
+    "aggregate": {
+      "throughput_final_rps": 99.36,
+      "throughput_rps_per_node_sum_DIAGNOSTIC_ONLY": 175.35,
+      "latency_avg_ms": 3.3,
+      "latency_p95_ms": 12.82,
+      "e2e_latency_avg_ms": null,
+      "e2e_latency_p95_ms": null,
+      "latency_source": "influx_window_p95_APPROXIMATION_DO_NOT_PUBLISH",
+      "latency_note": "run-level p95 = worst node's percentile over its RAW per-flow samples within [load_start, load_end]; e2e = send->verdict, assumes NTP-synced clocks"
+    },
+    "device": "unknown-device",
+    "local_cpu_percent": 28.6,
+    "local_memory_percent": 79.9
+  },
+  "timestamp": "2026-07-19T11:17:22.416489+00:00",
+  "node_id": "edge-node-1",
+  "role": "full",
+  "repeat_index": 1
+}

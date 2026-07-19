@@ -1,0 +1,17 @@
+mode,node_id,throughput_rps,latency_p95_ms,latency_avg_ms,e2e_latency_p95_ms,latency_source,gate_skip_pct,attack_f1,cpu_percent,memory_percent,device,timestamp
+horizontal,cluster,4.27,9.22,,,raw_per_flow_run_level,0.0,,,,Jetson Orin Nano Super,2026-07-19T08:45:51.091964+00:00
+horizontal,cluster,6.75,43.69,,,raw_per_flow_run_level,0.0,,,,Jetson Orin Nano Super,2026-07-19T08:47:34.705361+00:00
+horizontal,cluster,6.75,11.79,,,raw_per_flow_run_level,0.0,,,,Jetson Orin Nano Super,2026-07-19T08:49:18.320755+00:00
+single,cluster,2.13,15.73,,,raw_per_flow_run_level,0.0,,,,Jetson Orin Nano Super,2026-07-19T08:37:57.402271+00:00
+single,cluster,2.84,11.0,,,raw_per_flow_run_level,0.0,,,,Jetson Orin Nano Super,2026-07-19T08:39:41.004559+00:00
+single,cluster,2.84,10.25,,,raw_per_flow_run_level,0.0,,,,Jetson Orin Nano Super,2026-07-19T08:41:24.611935+00:00
+spark_cluster,cluster,109.7,44.31,,,raw_per_flow_run_level,98.42,,,,Jetson Orin Nano Super,2026-07-19T11:15:38.786831+00:00
+spark_cluster,cluster,99.36,15.06,,,raw_per_flow_run_level,98.28,,,,Jetson Orin Nano Super,2026-07-19T11:17:22.416489+00:00
+spark_cluster,cluster,61.07,12.27,,,raw_per_flow_run_level,97.13,,,,Jetson Orin Nano Super,2026-07-19T11:19:06.011117+00:00
+split,cluster,62.34,,,,raw_per_flow_run_level,96.04,,,,Jetson Orin Nano Super,2026-07-19T08:14:22.659497+00:00
+split,cluster,61.83,15.84,,,raw_per_flow_run_level,96.04,,,,Jetson Orin Nano Super,2026-07-19T08:27:29.060969+00:00
+split,cluster,62.76,14.56,,,raw_per_flow_run_level,95.6,,,,Jetson Orin Nano Super,2026-07-19T08:30:03.739606+00:00
+split,cluster,62.66,,,,raw_per_flow_run_level,95.5,,,,Jetson Orin Nano Super,2026-07-19T08:16:06.267597+00:00
+split,cluster,62.62,11.47,,,raw_per_flow_run_level,95.49,,,,Jetson Orin Nano Super,2026-07-19T08:31:47.339020+00:00
+split,cluster,61.78,,,,raw_per_flow_run_level,96.04,,,,Jetson Orin Nano Super,2026-07-19T08:17:49.871682+00:00
+split,cluster,63.47,10.41,,,raw_per_flow_run_level,96.08,,,,Jetson Orin Nano Super,2026-07-19T08:33:30.934197+00:00

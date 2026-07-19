@@ -1,0 +1,17 @@
+{
+  "benchmark_type": "node_power",
+  "node_id": "jetson-nano-1",
+  "role": "anomaly_gate",
+  "device": "NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super",
+  "idle_seconds": 30.0,
+  "timestamp": "2026-07-19T08:35:16.818598+00:00",
+  "power_available": true,
+  "avg_power_w": 4.61,
+  "peak_power_w": 5.13,
+  "energy_j": 346.14,
+  "power_samples": 364,
+  "duration_s": 75.07,
+  "idle_power_w": 4.58,
+  "active_power_w": 0.03,
+  "energy_active_j": 2.3
+}
