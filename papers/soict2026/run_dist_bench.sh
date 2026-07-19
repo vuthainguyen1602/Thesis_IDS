@@ -70,7 +70,7 @@ start_pipe() {
   # Background the ssh CLIENT locally so a lingering channel can never block us;
   # the remote pipeline is nohup+detached so it survives the ssh client exiting.
   $SSH -n $U@$host "cd $JROOT && source venv/bin/activate && \
-    $REMOTE_ENV $spark RAW_LATENCY_LOG=\$HOME/ids_raw_latency_\$(hostname).csv \
+    $REMOTE_ENV $spark RAW_LATENCY_LOG=\$HOME/ids_raw_latency_${id}.csv \
     EDGE_NODE_ID=$id EDGE_NODE_ROLE=$role ALERT_ENABLED=$alert \
     nohup python edge/kafka_consumer.py > \$HOME/edge_${id}.log 2>&1 </dev/null &" &
   sleep 5
@@ -80,7 +80,7 @@ start_pipe() {
 # energy_window ts spec...   spec = host:node_id:role
 energy_window() {
   local T=$1; shift
-  local pd=$((WARM + DUR + 40))
+  local pd=$((DUR + 30))          # sampling window must cover the DUR-second load
   echo "[energy] node-power on: $* (idle 30s + sample ${pd}s)"
   for spec in "$@"; do IFS=: read -r host id role <<<"$spec"
     $SSH -n $U@$host "cd $JROOT && source venv/bin/activate && \
@@ -93,7 +93,8 @@ energy_window() {
   echo "[energy] sending ${DUR}s load for the energy window ..."
   ( cd "$MACJ" && python scripts/benchmark_distributed.py send \
       --duration "$DUR" --rate "$RATE" --output "$OUT/send_energy_${T}.json" ) || true
-  echo "[energy] waiting for power monitors to finish ..."; sleep $((pd - DUR - 30 + 10))
+  # node-power lifetime = 30s idle + pd sample; we are ~35+DUR s in, wait the rest.
+  echo "[energy] waiting for power monitors to finish (~$((pd - DUR + 10))s) ..."; sleep $((pd - DUR + 10))
 }
 
 sync_logs() {  # T  active-hosts...
