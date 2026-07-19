@@ -339,7 +339,7 @@ Baseline & \ac{xgb} & 0,9971 & 0,9999 \\
 \label{sec:cross-dataset}
 Đánh giá trên tập giữ lại ở trên là phép thử \emph{cùng bộ} (in-domain, cùng phân phối). Để kiểm chứng khả năng \emph{khái quát hoá} thực sự, mô hình được huấn luyện trên một bộ dữ liệu và kiểm tra trên bộ \emph{khác} (đánh giá \emph{khác bộ}, cross-dataset; và ngược lại) trên tập đặc trưng đã loại trừ rò rỉ \emph{chung} của hai bộ. Do hai bộ dữ liệu đặt tên cột khác nhau (CSE-CIC-IDS2018 dùng tên viết tắt kiểu CICFlowMeter v3), tên cột của CSE-CIC-IDS2018 được ánh xạ về tên chuẩn của CICIDS2017 qua một bảng bí danh (alias) tường minh trong mã nguồn; danh sách đặc trưng chung sau ánh xạ được lưu tại \texttt{common\_features.txt} để bảo đảm tái lập. Mô hình dùng cho thí nghiệm là Random Forest có trọng số lớp (\texttt{weightCol}), nhất quán với cơ chế xử lý mất cân bằng ở Chương~3. Khoảng cách giữa F1 cùng bộ và F1 khác bộ (Bảng~\ref{tab:cross_dataset}) định lượng mức suy giảm khi gặp dịch chuyển phân phối --- một thước đo robustness chặt chẽ hơn holdout cùng phân phối.
 
-Do CSE-CIC-IDS2018~\cite{CSECICIDS2018} có quy mô rất lớn ($\sim$16 triệu luồng, $\sim$6\,GB), vượt khả năng xử lý thoải mái của thiết bị biên Jetson (8\,GB), thí nghiệm này dùng \emph{mẫu phân tầng theo nhãn} của CSE-CIC-IDS2018 (tỉ lệ \ph{xd\_frac}, $\sim$\ph{xd\_n2018} luồng, \texttt{seed}=42, công tắc \texttt{IDS\_SAMPLE\_FRAC}) nhằm bảo toàn tỉ lệ các lớp trong khi vừa với phần cứng; CICIDS2017 dùng $\sim$\ph{xd\_n2017} luồng. Các con số mẫu được báo cáo tường minh để bảo đảm tính tái lập; việc mở rộng lên toàn bộ CSE-CIC-IDS2018 là hướng phát triển tiếp theo.
+Do CSE-CIC-IDS2018~\cite{CSECICIDS2018} có quy mô rất lớn ($\sim$16 triệu luồng, $\sim$6\,GB), vượt khả năng xử lý thoải mái của thiết bị biên Jetson (8\,GB), thí nghiệm này dùng \emph{mẫu phân tầng theo nhãn} của CSE-CIC-IDS2018 (tỉ lệ 0{,}2, $\sim$3{,}14 triệu luồng lấy mẫu, còn $\sim$2{,}39 triệu sau khử trùng lặp mức đặc trưng, \texttt{seed}=42, công tắc \texttt{IDS\_SAMPLE\_FRAC}) nhằm bảo toàn tỉ lệ các lớp trong khi vừa với phần cứng; CICIDS2017 dùng $\sim$2{,}23 triệu luồng. Các con số mẫu được báo cáo tường minh để bảo đảm tính tái lập; việc mở rộng lên toàn bộ CSE-CIC-IDS2018 là hướng phát triển tiếp theo.
 
 \begin{table}[htbp]
 \centering
@@ -348,12 +348,14 @@ Do CSE-CIC-IDS2018~\cite{CSECICIDS2018} có quy mô rất lớn ($\sim$16 triệ
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
 \toprule
 \textbf{Huấn luyện} & \textbf{Kiểm tra} & \textbf{Loại} & \textbf{F1} \\ \midrule
-CICIDS2017 & CICIDS2017 & cùng bộ & \ph{} \\
-CICIDS2017 & CSE-CIC-IDS2018 & khác bộ & \ph{} \\
-CSE-CIC-IDS2018 & CSE-CIC-IDS2018 & cùng bộ & \ph{} \\
-CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & \ph{} \\ \bottomrule
+CICIDS2017 & CICIDS2017 & cùng bộ & 0{,}9952 \\
+CICIDS2017 & CSE-CIC-IDS2018 & khác bộ & 0{,}0423 \\
+CSE-CIC-IDS2018 & CSE-CIC-IDS2018 & cùng bộ & 0{,}9245 \\
+CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & 0{,}0535 \\ \bottomrule
 \end{tabular*}
 \end{table}
+
+\textbf{Diễn giải.} Kết quả cho thấy một tương phản gay gắt và \emph{trung thực}: F1 cùng bộ rất cao ở cả hai chiều (0{,}9952 và 0{,}9245) nhưng F1 khác bộ sụp đổ xuống 0{,}04--0{,}05, chủ yếu do recall gần bằng không (0{,}022 và 0{,}030) trong khi precision chiều 2017$\rightarrow$2018 vẫn đạt 0{,}596 --- tức mô hình gần như không nhận ra tấn công của bộ dữ liệu kia, chứ không phải báo động loạn. Nguyên nhân là \emph{dịch chuyển phân phối đặc trưng} giữa hai testbed: khác phiên bản CICFlowMeter (thang đo và cách tính một số đặc trưng thay đổi), khác hạ tầng mạng và cấu hình dịch vụ, khác tổ hợp loại tấn công (HOIC/LOIC-HTTP của 2018 không có trong 2017). Mức sụp đổ này nhất quán với các nghiên cứu cross-dataset trên IDS dựa trên đặc trưng luồng, và chính là luận cứ mạnh nhất của luận văn: \emph{con số trong-miền gần hoàn hảo --- kể cả khi đã loại rò rỉ --- không bảo đảm khả năng triển khai sang môi trường khác}; đánh giá liên bộ dữ liệu phải là một phần bắt buộc của quy trình kiểm định IDS, và các hướng thích ứng miền (chuẩn hoá theo miền, huấn luyện liên bộ, cập nhật theo drift) là điều kiện tiên quyết cho triển khai thực tế.
 
 \subsection{Đánh giá đa lớp theo loại tấn công}
 \label{sec:multiclass}

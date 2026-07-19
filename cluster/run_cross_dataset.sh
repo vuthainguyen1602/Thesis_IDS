@@ -12,7 +12,7 @@
 #   2. sync     — copy data_2018 parquet Jetson#1 -> Jetson#2
 #                 (cluster executors read file:// paths locally on each node)
 #   3. train    — ml_11 on the Spark cluster (driver Jetson#1, 2 workers)
-#   4. pull     — copy results/ml_11_cross_dataset_eval back to the Mac
+#   4. pull     — copy results/ml_11_cross_dataset back to the Mac
 #
 # Requires: Spark master on Mac + workers on both Jetsons already running
 # for step 3 (./cluster/start_master_mac.sh + ./cluster/start_worker.sh).
@@ -113,10 +113,10 @@ fi
 if step pull_results; then
   mkdir -p "$ROOT/results"
   rsync -az -e "ssh $SSH_OPTS" \
-    "$CLUSTER_DRIVER:$REMOTE_ROOT/results/ml_11_cross_dataset_eval" "$ROOT/results/"
+    "$CLUSTER_DRIVER:$REMOTE_ROOT/results/ml_11_cross_dataset" "$ROOT/results/"
   mark pull_results
   echo ""
   echo "[DONE] Results:"
-  ls -la "$ROOT/results/ml_11_cross_dataset_eval/"
+  ls -la "$ROOT/results/ml_11_cross_dataset/"
   echo "Now fill tab:cross-dataset from cross_dataset_results.csv"
 fi

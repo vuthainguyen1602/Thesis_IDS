@@ -357,7 +357,7 @@ In the in-distribution stability check (a subset of the test set), the ranking o
 \subsection{Cross-dataset generalization}
 \label{sec:cross-dataset}
 
-To go beyond \emph{in-domain} evaluation, we train on one dataset and test on a \emph{different} one (\emph{cross-dataset} evaluation; and vice versa) on the \emph{shared} leakage-free feature set of the two datasets. The gap between in-domain F1 (A$\to$A) and cross-dataset F1 (A$\to$B) in Table~\ref{tab:cross-dataset} quantifies the \emph{generalization} ability of the leakage-free model. This is a genuine distribution-shift test, unlike the in-distribution holdout above. Because CSE-CIC-IDS2018 is very large ($\sim$16 million flows), we use a \emph{label-stratified} sample (fraction \ph{xd\_frac}, $\sim$\ph{xd\_n2018} flows, \texttt{seed}=42) that preserves the class proportions; CICIDS2017 uses $\sim$\ph{xd\_n2017} flows. The sample sizes are reported explicitly to ensure reproducibility.
+To go beyond \emph{in-domain} evaluation, we train on one dataset and test on a \emph{different} one (\emph{cross-dataset} evaluation; and vice versa) on the \emph{shared} leakage-free feature set of the two datasets. The gap between in-domain F1 (A$\to$A) and cross-dataset F1 (A$\to$B) in Table~\ref{tab:cross-dataset} quantifies the \emph{generalization} ability of the leakage-free model. This is a genuine distribution-shift test, unlike the in-distribution holdout above. Because CSE-CIC-IDS2018 is very large ($\sim$16 million flows), we use a \emph{label-stratified} sample (fraction 0.2, $\sim$3.14M sampled flows, $\sim$2.39M after feature-level deduplication, \texttt{seed}=42) that preserves the class proportions; CICIDS2017 uses $\sim$2.23M flows. The sample sizes are reported explicitly to ensure reproducibility.
 
 \begin{table}[htbp]
   \caption{Cross-dataset generalization (CICIDS2017 $\leftrightarrow$ CSE-CIC-IDS2018, stratified sample \texttt{seed}=42; values from \texttt{cross\_dataset\_results.csv}).}
@@ -368,13 +368,15 @@ To go beyond \emph{in-domain} evaluation, we train on one dataset and test on a 
     \toprule
     Train & Test & Type & F1 \\
     \midrule
-    CICIDS2017 & CICIDS2017 & in-domain & \ph{xd\_aa} \\
-    CICIDS2017 & CSE-CIC-2018 & cross-dataset & \ph{xd\_ab} \\
-    CSE-CIC-2018 & CSE-CIC-2018 & in-domain & \ph{xd\_bb} \\
-    CSE-CIC-2018 & CICIDS2017 & cross-dataset & \ph{xd\_ba} \\
+    CICIDS2017 & CICIDS2017 & in-domain & 0.9952 \\
+    CICIDS2017 & CSE-CIC-2018 & cross-dataset & 0.0423 \\
+    CSE-CIC-2018 & CSE-CIC-2018 & in-domain & 0.9245 \\
+    CSE-CIC-2018 & CICIDS2017 & cross-dataset & 0.0535 \\
     \bottomrule
   \end{tabular}
 \end{table}
+
+The contrast is stark and, we argue, the most honest number in this paper: in-domain F1 is high in both directions (0.9952 and 0.9245), yet cross-dataset F1 collapses to 0.04--0.05, driven by near-zero recall (0.022 and 0.030) while precision in the 2017$\rightarrow$2018 direction remains 0.60 --- the model fails to \emph{recognize} the other testbed's attacks rather than alarming indiscriminately. The shift has concrete causes: a different CICFlowMeter version (changed feature scales and definitions), a different network/service configuration, and non-overlapping attack tooling (e.g., HOIC/LOIC-HTTP exist only in 2018). This collapse is consistent with prior cross-dataset IDS studies and reinforces the central claim of this paper: near-perfect in-domain scores --- even leakage-free ones --- do not certify deployability under distribution shift, so cross-dataset evaluation must be a mandatory part of IDS validation, and domain adaptation (per-domain normalization, joint training, drift-aware updating) is a prerequisite for practical transfer.
 
 \section{Discussion}
 \label{sec:discuss}
