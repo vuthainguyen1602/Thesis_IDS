@@ -126,4 +126,14 @@ L.~D'hooge, T.~Wauters, B.~Volckaert, and F.~De~Turck, ``Inter-dataset
   detection,'' {\em Journal of Information Security and Applications}, vol.~54,
   p.~102564, 2020.
 
+\bibitem{cantone2024crossdataset}
+M.~Cantone, C.~Marrocco, and A.~Bria, ``Machine learning in network intrusion
+  detection: A cross-dataset generalization study,'' {\em IEEE Access},
+  vol.~12, 2024.
+
+\bibitem{goldschmidt2025datasets}
+P.~Goldschmidt and D.~Chud{\'a}, ``Network intrusion datasets: A survey,
+  limitations, and recommendations,'' {\em Computers \& Security}, vol.~156,
+  p.~104510, 2025.
+
 \end{thebibliography}

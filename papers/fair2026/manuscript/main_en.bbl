@@ -109,6 +109,12 @@ T.~Hasan, A.~Hossain, M.~Q. Ansari, and T.~H. Syed, ``Enhanced intrusion
   feature learning,'' 2025.
 \newblock arXiv:2501.15266.
 
+\bibitem{arp2022dosdonts}
+D.~Arp, E.~Quiring, F.~Pendlebury, A.~Warnecke, F.~Pierazzi, C.~Wressnegger,
+  L.~Cavallaro, and K.~Rieck, ``Dos and don'ts of machine learning in computer
+  security,'' in {\em 31st USENIX Security Symposium (USENIX Security 22)},
+  pp.~3971--3988, 2022.
+
 \bibitem{nadeau2003inference}
 C.~Nadeau and Y.~Bengio, ``Inference for the generalization error,'' {\em
   Machine Learning}, vol.~52, no.~3, pp.~239--281, 2003.
@@ -125,5 +131,15 @@ L.~D'hooge, T.~Wauters, B.~Volckaert, and F.~De~Turck, ``Inter-dataset
   generalization strength of supervised machine learning methods for intrusion
   detection,'' {\em Journal of Information Security and Applications}, vol.~54,
   p.~102564, 2020.
+
+\bibitem{cantone2024crossdataset}
+M.~Cantone, C.~Marrocco, and A.~Bria, ``Machine learning in network intrusion
+  detection: A cross-dataset generalization study,'' {\em IEEE Access},
+  vol.~12, 2024.
+
+\bibitem{goldschmidt2025datasets}
+P.~Goldschmidt and D.~Chud{\'a}, ``Network intrusion datasets: A survey,
+  limitations, and recommendations,'' {\em Computers \& Security}, vol.~156,
+  p.~104510, 2025.
 
 \end{thebibliography}
