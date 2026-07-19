@@ -36,7 +36,7 @@ mark() { touch "$STATE/$1.done"; }
 if step sync_raw_2018; then
   [ -d "$RAW_2018" ] || { echo "[ERR] Raw 2018 CSVs not found at $RAW_2018"; exit 1; }
   echo "[sync] raw 2018 CSVs -> $JETSON1_IP:~/ids-2018-raw (~6.5GB, first time only)"
-  rsync -az --info=progress2 -e "ssh $SSH_OPTS" "$RAW_2018/" \
+  rsync -az --progress -e "ssh $SSH_OPTS" "$RAW_2018/" \
     "$JETSON_SSH_USER@$JETSON1_IP:/home/$JETSON_SSH_USER/ids-2018-raw/"
   mark sync_raw_2018
 fi
