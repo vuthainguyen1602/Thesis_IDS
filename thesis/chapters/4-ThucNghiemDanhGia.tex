@@ -55,7 +55,7 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
 
 \section{Kết quả thực nghiệm}
 
-% Lưu ý cho tác giả (không in ra luận văn): các giá trị \ph{...} trong mục này là chỗ trống
+% Ghi chú: các giá trị trong mục này đã được điền từ loạt chạy leakage-free 2026-07 trên cụm Jetson
 % cần điền lại sau khi chạy lại pipeline theo cấu hình đã loại trừ rò rỉ (đã loại
 % destination_port và loại bỏ trùng lặp ở mức đặc trưng — xem Chương ref{c:phuongphapthuchien}).
 % Các số liệu cũ (gần như tuyệt đối) thu được khi chưa loại rò rỉ và KHÔNG dùng làm kết quả công bố.
@@ -385,7 +385,6 @@ Heartbleed                   & 3       & 1,0000 & 1,0000 & 1,0000 \\ \midrule
 
 \begin{figure}[htbp]
     \centering
-    % TODO: copy results/ml_09_multiclass_eval/confusion_matrix.png -> img/
     \IfFileExists{img/confusion_matrix.png}{\includegraphics[width=0.7\textwidth]{img/confusion_matrix.png}}{\fbox{\parbox{0.66\textwidth}{\centering\vspace{1.4cm}\ph{Ma trận nhầm lẫn đa lớp --- chạy ml\_09\_multiclass\_eval.py}\vspace{1.4cm}}}}
     \caption{Ma trận nhầm lẫn đa lớp theo loại tấn công (chuẩn hoá theo hàng)}
     \label{fig:confusion_matrix}

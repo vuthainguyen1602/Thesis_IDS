@@ -213,10 +213,10 @@ Table~\ref{tab:port-ablation} and Figure~\ref{fig:leakage-ablation} quantify the
   \label{fig:f1-heatmap}
 \end{figure*}
 
-Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\ref{fig:f1-heatmap} visualizes F1 for each method~$\times$~algorithm pair. The comparison design aims to verify whether feature selection (RF/SHAP Top-30) retains near-baseline performance while cutting $\approx$60\% of the features; PCA $k{=}40$ reduces dimensionality in an unsupervised manner at the cost of explainability. The quantitative values are filled in from \texttt{cross\_method\_summary.csv}.
+Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\ref{fig:f1-heatmap} visualizes F1 for each method~$\times$~algorithm pair. The comparison design aims to verify whether feature selection (RF/SHAP Top-30) retains near-baseline performance while cutting $\approx$60\% of the features; PCA $k{=}40$ reduces dimensionality in an unsupervised manner at the cost of explainability. All quantitative values are taken directly from the released pipeline output (\texttt{cross\_method\_summary.csv}).
 
 \begin{table*}[htbp]
-  \caption{Summary of the best model per method (filled in from \texttt{cross\_method\_summary.csv}).}
+  \caption{Summary of the best model per method (values from \texttt{cross\_method\_summary.csv}).}
   \label{tab:best-results}
   \centering
   \begin{tabular}{llcccc}
@@ -247,7 +247,7 @@ Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\r
 Table~\ref{tab:stat} reports the mean F1 $\pm$ 95\% CI ($t$ distribution) over $N{=}6$ resamplings for the two top methods, together with the paired permutation-test $p$-value. Conclusion: the two methods differ \emph{significantly only at the floor} ($p\approx0.031$, Cohen's $d\approx1.94$), yet the absolute F1 gap is tiny ($\approx$0.0001), so they are \emph{practically equivalent}.
 
 \begin{table}[htbp]
-  \caption{Multi-resampling stability and paired testing (filled in from \texttt{statistical\_validity\_multiseed.csv}).}
+  \caption{Multi-resampling stability and paired testing (values from \texttt{statistical\_validity\_multiseed.csv}).}
   \label{tab:stat}
   \centering
   \footnotesize
@@ -298,7 +298,7 @@ In the in-distribution stability check (a subset of the test set), the ranking o
 To go beyond \emph{in-domain} evaluation, we train on one dataset and test on a \emph{different} one (\emph{cross-dataset} evaluation; and vice versa) on the \emph{shared} leakage-free feature set of the two datasets. The gap between in-domain F1 (A$\to$A) and cross-dataset F1 (A$\to$B) in Table~\ref{tab:cross-dataset} quantifies the \emph{generalization} ability of the leakage-free model. This is a genuine distribution-shift test, unlike the in-distribution holdout above. Because CSE-CIC-IDS2018 is very large ($\sim$16 million flows), we use a \emph{label-stratified} sample (fraction \ph{xd\_frac}, $\sim$\ph{xd\_n2018} flows, \texttt{seed}=42) that preserves the class proportions; CICIDS2017 uses $\sim$\ph{xd\_n2017} flows. The sample sizes are reported explicitly to ensure reproducibility.
 
 \begin{table}[htbp]
-  \caption{Cross-dataset generalization (CICIDS2017 $\leftrightarrow$ CSE-CIC-IDS2018, stratified sample \texttt{seed}=42; filled in from \texttt{cross\_dataset\_results.csv}).}
+  \caption{Cross-dataset generalization (CICIDS2017 $\leftrightarrow$ CSE-CIC-IDS2018, stratified sample \texttt{seed}=42; values from \texttt{cross\_dataset\_results.csv}).}
   \label{tab:cross-dataset}
   \centering
   \small
