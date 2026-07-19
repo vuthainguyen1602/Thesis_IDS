@@ -1,24 +1,22 @@
 % English comparison table — \input from SOICT main.tex
 \begin{table}[htbp]
-  \caption{Comparison with related edge and streaming IDS deployments.}
+  \caption{Capability comparison with prior edge IDS deployments (``---'': not reported or not applicable).}
   \label{tab:related-work}
   \centering
   \small
   \resizebox{\textwidth}{!}{%
-  \begin{tabular}{|p{2.2cm}|p{2.5cm}|p{1.5cm}|p{2.0cm}|p{2.5cm}|}
-    \hline
-    \textbf{Work} & \textbf{Focus} & \textbf{Platform} & \textbf{Streaming} & \textbf{Our difference} \\
-    \hline
-    Shi et al.~\cite{shi2016edge} & Edge vision & Generic & --- & Kafka + PySpark IDS on Jetson \\
-    Sforzin et al.~\cite{sforzin2016rpids} & Snort IDS on board & RPi / edge & Batch & End-to-end Kafka replay + 3 deploy modes \\
-    Hamdan et al.~\cite{hamdan2020edge} & Edge IoT survey & Generic & Partial & Measured 2-node Jetson cluster \\
-    Nguyen et al.~\cite{nguyen2019diot} & Federated IDS & IoT gateways & --- & Split anomaly gate + classifier \\
-    Kreps et al.~\cite{kreps2011kafka} & Log streaming & Server & Kafka & Suspicious-flow topic forwarding \\
-    Alrawashdeh \& Purdy~\cite{alrawashdeh2016toward} & Deep-learning IDS & Workstation & Near-line & Lightweight AE gate on Jetson \\
-    L{\'o}pez-Mart{\'i}n et al.~\cite{lopez2017autoencoder} & AE detection & GPU server & Offline & AE on gate, Spark only on suspicious \\
-    NVIDIA Jetson~\cite{nvidia2019jetson} & Embedded GPU & Jetson Orin & --- & Role-based pipelines + Influx metrics \\
-    \textbf{This work} & \textbf{Distributed edge IDS} & \textbf{2$\times$ Jetson} & \textbf{Kafka} & \textbf{Modes A/B/C + open scripts} \\
-    \hline
+  \begin{tabular}{l l c c c c c}
+    \toprule
+    \textbf{Work} & \textbf{Platform} & \textbf{\shortstack{Multi-node\\roles}} & \textbf{\shortstack{Streaming\\ingest}} & \textbf{\shortstack{Energy \&\\p95 latency}} & \textbf{\shortstack{Leakage-aware\\model}} & \textbf{\shortstack{Open\\code}} \\
+    \midrule
+    Sforzin et al.~\cite{sforzin2016rpids} & Raspberry Pi & No & No & --- & --- & --- \\
+    L{\'o}pez-Mart{\'i}n et al.~\cite{lopez2017autoencoder} & GPU server & No & No & --- & --- & --- \\
+    Nguyen et al.~\cite{nguyen2019diot} & IoT gateways & Federated & No & --- & --- & --- \\
+    Hasan et al.~\cite{hasan2025iiot} & 1$\times$ Jetson Nano & No & No & --- & --- & --- \\
+    Baalaji et al.~\cite{baalaji2025ensemble} & IoT-edge board & No & No & --- & --- & --- \\
+    Asghar et al.~\cite{asghar2026hedid} & Edge device & No & No & --- & --- & --- \\
+    \textbf{This work} & \textbf{2$\times$ Jetson Orin Nano S.} & \textbf{Yes} & \textbf{Yes (Kafka)} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} \\
+    \bottomrule
   \end{tabular}%
   }
 \end{table}
