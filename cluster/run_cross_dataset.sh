@@ -65,9 +65,14 @@ fi
 # ── 2. copy the prepared parquet Jetson#1 -> Jetson#2 (executors read the
 #       same file:// paths on every node) ───────────────────────────────────
 if step sync_data; then
-  echo "[sync] data_2018 J1 -> J2"
-  ssh $SSH_OPTS "$CLUSTER_DRIVER" \
-    "rsync -az -e 'ssh -o StrictHostKeyChecking=accept-new' $REMOTE_ROOT/data_2018 $JETSON_SSH_USER@$JETSON2_IP:$REMOTE_ROOT/"
+  # J1 has no SSH key for J2 — relay through the Mac (parquet is only a few
+  # hundred MB, and we get a local copy of data_2018 as a bonus).
+  echo "[sync] data_2018 J1 -> Mac"
+  rsync -az --progress -e "ssh $SSH_OPTS" \
+    "$CLUSTER_DRIVER:$REMOTE_ROOT/data_2018" "$ROOT/"
+  echo "[sync] data_2018 Mac -> J2"
+  rsync -az --progress -e "ssh $SSH_OPTS" \
+    "$ROOT/data_2018" "$JETSON_SSH_USER@$JETSON2_IP:$REMOTE_ROOT/"
   mark sync_data
 fi
 
