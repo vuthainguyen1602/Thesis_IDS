@@ -75,8 +75,8 @@ def main():
     fig, ax1 = plt.subplots(figsize=(8, 5))
 
     b1 = ax1.bar(x - 0.2, df["throughput_rps"].values, 0.4,
-                 color="#1f77b4", label="Throughput (req/s)")
-    ax1.set_ylabel("Throughput (req/s)", color="#1f77b4")
+                 color="#1f77b4", label="Throughput (flows/s)")
+    ax1.set_ylabel("Throughput (flows/s)", color="#1f77b4")
     ax1.set_xticks(x)
     ax1.set_xticklabels(labels, rotation=15, ha="right")
 
