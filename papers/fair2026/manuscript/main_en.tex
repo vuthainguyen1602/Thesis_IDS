@@ -126,12 +126,12 @@ The offline pipeline consists of sequential steps: data cleaning, deduplication,
   hl/.style={box, fill=gray!12},
   arr/.style={-{Stealth[length=2mm]}, semithick}]
   \node[box] (raw)  {CICIDS2017 (8 CSV files, $\approx$2.8M flows)};
-  \node[hl, below=of raw] (prep) {\textbf{Leakage-aware preparation} (Alg.~\ref{alg:prep})\\ drop \texttt{destination\_port}/\texttt{source\_port} $\cdot$ feature-level dedup};
+  \node[hl, below=of raw] (prep) {\textbf{Leakage-aware preparation} (Alg.~\ref{alg:prep})\\ remove \texttt{destination\_port}/\texttt{source\_port} $\cdot$ feature-level deduplication};
   \node[box, below=of prep] (split) {80/20 train/test split (fixed seed) $\cdot$ Parquet};
   \node[box, below=of split] (strat) {\textbf{4 strategies}: Baseline $\,\vert\,$ RF Top-$K$ $\,\vert\,$ SHAP Top-$K$ $\,\vert\,$ PCA\\ (rankings fit on the training set only)};
   \node[box, below=of strat] (clf) {8 Spark ML classifiers $+$ 2 ensembles};
   \node[hl, below=of clf] (val) {Validation-based selection $\cdot$ paired permutation test,\\ Nadeau--Bengio CI, effect size $\cdot$ multiclass evaluation};
-  \node[box, below=of val] (edge) {SHAP Top-30 model $\rightarrow$ export to Jetson Orin Nano Super\\ (companion systems paper)};
+  \node[box, below=of val] (edge) {SHAP Top-30 model exported to the Jetson Orin Nano Super\\ (companion systems paper)};
   \draw[arr] (raw) -- (prep);
   \draw[arr] (prep) -- (split);
   \draw[arr] (split) -- (strat);

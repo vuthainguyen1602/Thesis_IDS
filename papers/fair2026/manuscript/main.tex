@@ -131,7 +131,7 @@ Quy trình ngoại tuyến (offline) gồm các bước nối tiếp: làm sạc
   \node[box, below=of split] (strat) {\textbf{4 chiến lược}: Baseline $\,\vert\,$ RF Top-$K$ $\,\vert\,$ SHAP Top-$K$ $\,\vert\,$ PCA\\ (xếp hạng chỉ khớp trên tập huấn luyện)};
   \node[box, below=of strat] (clf) {8 bộ phân loại Spark ML $+$ 2 ensemble};
   \node[hl, below=of clf] (val) {Chọn mô hình trên tập kiểm định $\cdot$ kiểm định hoán vị ghép cặp,\\ CI Nadeau--Bengio, cỡ hiệu ứng $\cdot$ đánh giá đa lớp};
-  \node[box, below=of val] (edge) {Mô hình SHAP Top-30 $\rightarrow$ xuất khẩu sang Jetson Orin Nano Super\\ (công trình song hành về hệ thống)};
+  \node[box, below=of val] (edge) {Mô hình SHAP Top-30 được xuất sang Jetson Orin Nano Super\\ (công trình song hành về hệ thống)};
   \draw[arr] (raw) -- (prep);
   \draw[arr] (prep) -- (split);
   \draw[arr] (split) -- (strat);
