@@ -70,7 +70,7 @@ Deploying machine learning (ML) based intrusion detection on resource-constraine
 
 \section{Introduction}
 
-Network intrusion detection systems (IDS) increasingly must operate closer to data sources to reduce bandwidth and response time~\cite{shi2016edge}. Edge devices such as the NVIDIA Jetson Orin Nano Super offer limited CPU, memory, and thermal headroom, making monolithic ML inference challenging. A practical edge IDS must therefore decide \emph{which} model to deploy---one that is small, accurate, and explainable---and \emph{how} to distribute inference across nodes under streaming load.
+Network intrusion detection systems (IDS) increasingly must operate closer to data sources to reduce bandwidth and response time~\cite{shi2016edge}. Edge devices such as the NVIDIA Jetson Orin Nano Super offer limited CPU, memory, and thermal headroom, making monolithic ML inference challenging. A practical edge IDS must therefore decide \emph{which} model to deploy (small, accurate, and explainable) and \emph{how} to distribute inference across nodes under streaming load.
 
 \textbf{Contributions.}
 (1) A two-stage distributed IDS combining a lightweight anomaly gate with a Spark-based classifier;
@@ -104,7 +104,7 @@ Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC
       arr/.style ={-{Stealth[length=2.5mm]}, thick, draw=gray!60!black},
       dsh/.style={-{Stealth[length=2.5mm]}, thick, draw=cyan!50!black, dashed},
   ]
-    \node[pc]  (pc)  at (0, 0.0)   {\textbf{Coordination server (PC --- Docker)}\\[2pt]
+    \node[pc]  (pc)  at (0, 0.0)   {\textbf{Coordination server (PC, Docker)}\\[2pt]
         Apache Kafka \;$|$\; PostgreSQL \;$|$\; InfluxDB \;$|$\; Grafana \;$|$\; CSV flow replayer};
     \node[jet] (j1)  at (-4.6,-3.6) {\textbf{Jetson Orin Nano Super \#1}\\[2pt] Anomaly gate\\[2pt]
         Autoencoder filters out\\ benign traffic};
@@ -158,9 +158,9 @@ Training and model export run on a Spark standalone cluster (host PC as master, 
       dn/.style    ={-{Stealth[length=2.6mm]}, thick, draw=gray!55!black},
       up/.style    ={-{Stealth[length=2.6mm]}, thick, draw=orange!75!black, dashed},
   ]
-    \node[master] (m) at (0,0) {\textbf{Coordinator --- MacBook Air (Apple M3, 16\,GB)}\\[2pt]
+    \node[master] (m) at (0,0) {\textbf{Coordinator: MacBook Air (Apple M3, 16\,GB)}\\[2pt]
         Spark \textbf{Master} (cluster coordination) \;$|$\; CSV\,$\rightarrow$\,Parquet preprocessing \;$|$\; Docker: Kafka / PostgreSQL / InfluxDB / Grafana\\[1pt]
-        \textit{No executor --- does not run training compute}};
+        \textit{No executor, does not run training compute}};
     \node[work] (w1) at (-3.6,-4.0) {\textbf{Jetson Orin Nano Super \#1}\\[1pt]
         Spark \textbf{Worker} + \textbf{Driver}\\[2pt]
         Executor: cores=4, mem=3\,GB\\
@@ -211,7 +211,7 @@ This paper does \emph{not} compare Spark against Jetson Orin Nano Super as compe
     \begin{scope}[on background layer]
       \node[band, fill=gray!4, fit=(p1)(p5)] (offb) {};
     \end{scope}
-    \node[hdr, anchor=south west] at (offb.north west) {Offline phase --- Spark cluster (host PC master $+$ 2 Jetson workers)};
+    \node[hdr, anchor=south west] at (offb.north west) {Offline phase: Spark cluster (host PC master $+$ 2 Jetson workers)};
 
     % --- Edge row (2x Jetson) ---
     \node[jst, below=2.7cm of p1] (e1) {Kafka\\flows};
@@ -222,7 +222,7 @@ This paper does \emph{not} compare Spark against Jetson Orin Nano Super as compe
     \begin{scope}[on background layer]
       \node[band, fill=green!4, fit=(e1)(e4)] (edgb) {};
     \end{scope}
-    \node[hdr, anchor=south west, text=green!30!black] at (edgb.north west) {Edge phase --- 2$\times$ Jetson Orin Nano Super};
+    \node[hdr, anchor=south west, text=green!30!black] at (edgb.north west) {Edge phase: 2$\times$ Jetson Orin Nano Super};
 
     % --- model export link ---
     \draw[exp] (p5.south) -- ++(0,-0.95) -| node[pos=0.25, above=2pt, font=\footnotesize, text=blue!45!black, fill=white, inner sep=2pt]{export model} (e3.north);
@@ -233,7 +233,7 @@ This paper does \emph{not} compare Spark against Jetson Orin Nano Super as compe
 
 \subsection{Offline Phase (Spark ML), Leakage-Aware}
 
-In our companion ML study, we evaluate four feature configurations---baseline (all features), RF Importance Top-30, SHAP Top-30, and PCA ($k$=40)---under a fixed 80/20 train--test split, using eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). PCA uses $k$=40 rather than 30 because it \emph{extracts} components (linear combinations spreading variance across many axes) rather than \emph{selecting} original features, so it needs more components to retain comparable variance; across the common $\{20,30,40\}$ sweep, $k$=40 retains the most variance and is the fairest representative operating point for PCA. LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. Crucially, the offline protocol is \emph{leakage-aware}~\cite{arp2022dosdonts}: it removes information that would be unavailable at deployment time but that otherwise inflates test scores. Motivated by documented labeling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores obtained when these leaks are left in place. Offline metrics constrain \emph{which} exported model is worth deploying; they are not directly comparable to edge throughput or latency.
+In our companion ML study, we evaluate four feature configurations (baseline with all features, RF Importance Top-30, SHAP Top-30, and PCA with $k$=40) under a fixed 80/20 train--test split, using eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). PCA uses $k$=40 rather than 30 because it \emph{extracts} components (linear combinations spreading variance across many axes) rather than \emph{selecting} original features, so it needs more components to retain comparable variance; across the common $\{20,30,40\}$ sweep, $k$=40 retains the most variance and is the fairest representative operating point for PCA. LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. Crucially, the offline protocol is \emph{leakage-aware}~\cite{arp2022dosdonts}: it removes information that would be unavailable at deployment time but that otherwise inflates test scores. Motivated by documented labeling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores obtained when these leaks are left in place. Offline metrics constrain \emph{which} exported model is worth deploying; they are not directly comparable to edge throughput or latency.
 
 \begin{table}[htbp]
   \caption{Bridge table: offline Spark selection criteria (leakage-free offline evaluation on CICIDS2017; values from the companion study's released outputs).}
@@ -321,7 +321,7 @@ We run each deployment mode through a host-side orchestration script that starts
   }
 \end{table}
 
-\textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run (30\,s idle baseline, then the load window; for two-node modes the powers of both nodes are summed). At 100 flows/s the measured \emph{active} (idle-subtracted) power delta was below the sampling noise floor ($<$0.15\,W on every node), so Table~\ref{tab:benchmark} reports \emph{total-board} energy per verdict instead: essentially board power amortized over verdict throughput. This still separates the modes sharply --- the gate-based modes (A and C) amortize the two boards' power over 24--35$\times$ more verdicts than the single node, cutting energy per verdict from $\approx$2.5\,J to 0.12--0.18\,J --- but the figures should be read as a deployment-level (not model-level) energy metric.
+\textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run (30\,s idle baseline, then the load window; for two-node modes the powers of both nodes are summed). At 100 flows/s the measured \emph{active} (idle-subtracted) power delta was below the sampling noise floor ($<$0.15\,W on every node), so Table~\ref{tab:benchmark} reports \emph{total-board} energy per verdict instead: essentially board power amortized over verdict throughput. This still separates the modes sharply: the gate-based modes (A and C) amortize the two boards' power over 24--35$\times$ more verdicts than the single node, cutting energy per verdict from $\approx$2.5\,J to 0.12--0.18\,J. Nevertheless, the figures should be read as a deployment-level (not model-level) energy metric.
 
 Figure~\ref{fig:classifier-terminal} shows the PySpark classifier node processing replayed CICIDS2017 traffic in operation: it sustains a steady final-verdict throughput ($\approx$6 flows/s in this window), per-batch inference latency of a few milliseconds, and correct per-batch attack counts, while the per-node monitor reports live CPU/RAM/temperature.
 
@@ -335,7 +335,7 @@ Figure~\ref{fig:classifier-terminal} shows the PySpark classifier node processin
 \subsection{Inference-engine baseline (cost of the unified stack)}
 \label{sec:engine-baseline}
 
-We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with the distributed training phase} --- the same stack trains on the cluster and serves on the device. To quantify the price of that unification, we benchmark the \emph{same} RandomForest (matched hyper-parameters) on the \emph{same} deployed SHAP-selected feature set (Sec.~\ref{sec:bridge}) through lighter single-node engines: scikit-learn (CPU, no JVM) and ONNX Runtime (Table~\ref{tab:engines}). Accuracy is comparable by construction; the comparison targets inference cost. As Table~\ref{tab:engines} shows, the JVM/Spark stack indeed incurs substantially higher inference cost than scikit-learn on the 8\,GB ARM board ($7.7\times$ lower throughput, $\approx$8$\times$ higher p95, double the RAM share); reporting this honestly motivates exporting the \texttt{PipelineModel} to ONNX/TensorRT for inference while retaining Spark for training, which we leave as future work.
+We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with the distributed training phase}: the same stack trains on the cluster and serves on the device. To quantify the price of that unification, we benchmark the \emph{same} RandomForest (matched hyper-parameters) on the \emph{same} deployed SHAP-selected feature set (Sec.~\ref{sec:bridge}) through lighter single-node engines: scikit-learn (CPU, no JVM) and ONNX Runtime (Table~\ref{tab:engines}). Accuracy is comparable by construction; the comparison targets inference cost. As Table~\ref{tab:engines} shows, the JVM/Spark stack indeed incurs substantially higher inference cost than scikit-learn on the 8\,GB ARM board ($7.7\times$ lower throughput, $\approx$8$\times$ higher p95, double the RAM share); reporting this honestly motivates exporting the \texttt{PipelineModel} to ONNX/TensorRT for inference while retaining Spark for training, which we leave as future work.
 
 \begin{table}[htbp]
   \caption{Single-node inference cost on the same model/features (single-node measurements on the classifier node).}
