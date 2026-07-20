@@ -6,7 +6,7 @@ Trong chương này, luận văn trình bày kết quả đạt được khi áp
 Việc \emph{huấn luyện} mô hình được thực hiện trên một \textbf{cụm Apache Spark Standalone phân tán} gồm một máy chủ và \textbf{hai thiết bị biên NVIDIA Jetson Orin Nano Super Developer Kit}. Điểm đáng chú ý là cùng một cặp Jetson vừa đóng vai trò \emph{worker} của cụm Spark trong pha huấn luyện, vừa là thiết bị \emph{triển khai} trong pha suy luận realtime (Hình~\ref{fig:ids_diagram}), giúp kiểm chứng tính khả thi của toàn bộ pipeline trên đúng phần cứng mục tiêu.
 
 \begin{itemize}
-  \item \textbf{Máy chủ (Spark master):} máy tính xách tay MacBook Air, vi xử lý Apple M3, RAM 16 GB, macOS Sonoma 14.3 --- đảm nhận điều phối cụm (master), tiền xử lý dữ liệu thô (CSV $\rightarrow$ Parquet) và chạy hạ tầng Docker (Kafka, PostgreSQL, InfluxDB, Grafana).
+  \item \textbf{Máy chủ (Spark master):} máy tính xách tay MacBook Air, vi xử lý Apple M3, RAM 16 GB, macOS Sonoma 14.3 --- đảm nhận điều phối cụm (master), tiền xử lý dữ liệu thô (từ CSV sang Parquet) và chạy hạ tầng Docker (Kafka, PostgreSQL, InfluxDB, Grafana).
   \item \textbf{Hai nút worker:} \textbf{NVIDIA Jetson Orin Nano Super Developer Kit} --- cấu hình chi tiết (CPU/GPU/RAM/lưu trữ) nêu tại Bảng~\ref{tab:hardware}, Chương~3; hệ điều hành Ubuntu (NVIDIA JetPack/L4T). Jetson~\#1 đồng thời chạy tiến trình \emph{driver} của Spark (driver là tiến trình điều khiển ứng dụng, khác với vai trò \emph{master} điều phối cụm của MacBook).
   \item \textbf{Phần mềm:} Python 3, Apache Spark / PySpark 3.4.1, MLlib; cấu hình cụm tiêu biểu: \texttt{executor.memory}=3\,GB, \texttt{executor.cores}=4, \texttt{driver.memory}=3\,GB, \texttt{shuffle.partitions}=32; mỗi Jetson được cấp 8\,GB swap trên ổ NVMe để tránh tràn bộ nhớ khi cao điểm (xem \texttt{cluster/spark\_cluster.env}, \texttt{cluster/setup\_swap\_jetson.sh}).
 \end{itemize}
@@ -179,7 +179,7 @@ Baseline (Toàn bộ) & 77 & \ac{xgb} & 0,9971 & 4615,5 & 2,32 \\
 \end{tabular*}
 
 \vspace{2pt}
-{\footnotesize Baseline dùng toàn bộ 77 đặc trưng số ($\approx$78 trước khi loại cổng). $^{\dagger}$Kích thước đo bằng cách tuần tự hoá mô hình \emph{trên cụm huấn luyện phân tán}: thao tác \texttt{save()} ghi các phân vùng dữ liệu rừng cây trên executor đang giữ chúng, nên giá trị cỡ KB chỉ bắt được metadata cục bộ trên driver và \emph{thấp hơn thực tế}. Vì dung lượng ensemble cây phụ thuộc số cây và số nút (không phụ thuộc số đặc trưng đầu vào), mô hình \ac{xgb} SHAP Top-30 thực tế tương đương bản RF Top-30 ($\approx$2,5\,MB). Cũng vì vậy, tập đặc trưng rút gọn có thể cho mô hình \emph{lớn hơn} baseline một chút (2,52 so với 2,32\,MB): ít ứng viên tách hơn khiến cây cần nhiều nút hơn để đạt cùng độ tinh khiết. Phép đo tin cậy là bản xuất khẩu đơn nút của pipeline triển khai (Mục kết quả biên).}
+{\footnotesize Baseline dùng toàn bộ 77 đặc trưng số ($\approx$78 trước khi loại cổng). $^{\dagger}$Kích thước đo bằng cách tuần tự hoá mô hình \emph{trên cụm huấn luyện phân tán}: bước lưu mô hình phân tán ghi các phân vùng dữ liệu rừng cây trên executor đang giữ chúng, nên giá trị cỡ KB chỉ bắt được metadata cục bộ trên driver và \emph{thấp hơn thực tế}. Vì dung lượng ensemble cây phụ thuộc số cây và số nút (không phụ thuộc số đặc trưng đầu vào), mô hình \ac{xgb} SHAP Top-30 thực tế tương đương bản RF Top-30 ($\approx$2,5\,MB). Cũng vì vậy, tập đặc trưng rút gọn có thể cho mô hình \emph{lớn hơn} baseline một chút (2,52 so với 2,32\,MB): ít ứng viên tách hơn khiến cây cần nhiều nút hơn để đạt cùng độ tinh khiết. Phép đo tin cậy là bản xuất khẩu đơn nút của pipeline triển khai (Mục kết quả biên).}
 \end{table}
 
 Ngoài ra, sự so sánh trực tiếp giữa hai phương pháp lựa chọn đặc trưng dựa trên độ quan trọng của \ac{rf} và \ac{shap} được chi tiết hóa trong Bảng \ref{tab:rf_vs_shap}.
@@ -349,7 +349,7 @@ Do CSE-CIC-IDS2018~\cite{CSECICIDS2018} có quy mô rất lớn ($\sim$16 triệ
 
 \begin{table}[htbp]
 \centering
-\caption{Tổng quát hoá liên bộ dữ liệu CICIDS2017 $\leftrightarrow$ CSE-CIC-IDS2018 (CSE-CIC-IDS2018: mẫu phân tầng \texttt{seed}=42; từ \texttt{cross\_dataset\_results.csv})}
+\caption{Tổng quát hoá liên bộ dữ liệu giữa CICIDS2017 và CSE-CIC-IDS2018 (CSE-CIC-IDS2018: mẫu phân tầng \texttt{seed}=42; từ \texttt{cross\_dataset\_results.csv})}
 \label{tab:cross_dataset}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
 \toprule
@@ -361,7 +361,7 @@ CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & 0{,}0535 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
-\textbf{Diễn giải.} Kết quả cho thấy một tương phản rõ rệt và \emph{trung thực}: F1 cùng bộ rất cao ở cả hai chiều (0{,}9952 và 0{,}9245) nhưng F1 khác bộ sụp đổ xuống 0{,}04--0{,}05, chủ yếu do recall gần bằng không (0{,}022 và 0{,}030) trong khi precision chiều 2017$\rightarrow$2018 vẫn đạt 0{,}596 --- tức mô hình gần như không nhận ra tấn công của bộ dữ liệu kia, chứ không tạo ra cảnh báo sai tràn lan. Nguyên nhân là \emph{dịch chuyển phân phối đặc trưng} giữa hai testbed: khác phiên bản CICFlowMeter (thang đo và cách tính một số đặc trưng thay đổi), khác hạ tầng mạng và cấu hình dịch vụ, khác tổ hợp loại tấn công (HOIC/LOIC-HTTP của 2018 không có trong 2017). Mức sụp đổ này nhất quán với các nghiên cứu cross-dataset trên IDS dựa trên đặc trưng luồng~\cite{dhooge2020interdataset,cantone2024crossdataset,sarhan2022explainable}, và chính là luận cứ mạnh nhất của luận văn: \emph{con số trong-miền gần hoàn hảo --- kể cả khi đã loại rò rỉ --- không bảo đảm khả năng triển khai sang môi trường khác}; đánh giá liên bộ dữ liệu phải là một phần bắt buộc của quy trình kiểm định IDS, và các hướng thích ứng miền (chuẩn hoá theo miền, huấn luyện liên bộ, cập nhật theo drift) là điều kiện tiên quyết cho triển khai thực tế.
+\textbf{Diễn giải.} Kết quả cho thấy một tương phản rõ rệt và \emph{trung thực}: F1 cùng bộ rất cao ở cả hai chiều (0{,}9952 và 0{,}9245) nhưng F1 khác bộ sụp đổ xuống 0{,}04--0{,}05, chủ yếu do recall gần bằng không (0{,}022 và 0{,}030) trong khi precision chiều 2017 sang 2018 vẫn đạt 0{,}596 --- tức mô hình gần như không nhận ra tấn công của bộ dữ liệu kia, chứ không tạo ra cảnh báo sai tràn lan. Nguyên nhân là \emph{dịch chuyển phân phối đặc trưng} giữa hai testbed: khác phiên bản CICFlowMeter (thang đo và cách tính một số đặc trưng thay đổi), khác hạ tầng mạng và cấu hình dịch vụ, khác tổ hợp loại tấn công (HOIC/LOIC-HTTP của 2018 không có trong 2017). Mức sụp đổ này nhất quán với các nghiên cứu cross-dataset trên IDS dựa trên đặc trưng luồng~\cite{dhooge2020interdataset,cantone2024crossdataset,sarhan2022explainable}, và chính là luận cứ mạnh nhất của luận văn: \emph{con số trong-miền gần hoàn hảo --- kể cả khi đã loại rò rỉ --- không bảo đảm khả năng triển khai sang môi trường khác}; đánh giá liên bộ dữ liệu phải là một phần bắt buộc của quy trình kiểm định IDS, và các hướng thích ứng miền (chuẩn hoá theo miền, huấn luyện liên bộ, cập nhật theo drift) là điều kiện tiên quyết cho triển khai thực tế.
 
 \subsection{Đánh giá đa lớp theo loại tấn công}
 \label{sec:multiclass}

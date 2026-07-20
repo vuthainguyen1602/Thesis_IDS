@@ -1,28 +1,24 @@
-% English comparison table — \input from FAIR main_en.tex
-% Full-width (table*): the 5 fixed-width columns exceed a single IEEE column,
-% which previously overflowed into the neighbouring column and covered text.
-% NOTE: the "Novelty of this work" column must only claim things the paper
-% actually reports (no concept-drift / multi-seed claims); theory/survey-only
-% entries (Guyon, Gama) were removed as they are not comparable experimental
-% baselines.
+% English capability-matrix comparison table — \input from FAIR main_en.tex
+% Full-width (table*). Objective per-work capability columns instead of a
+% repeated "Novelty of this work" self-comparison column.
 \begin{table*}[!t]
-  \caption{Comparison with related IDS studies on CICIDS2017 and Spark/edge.}
+  \caption{Capability comparison with related IDS studies on CICIDS2017 and Spark/edge (``---'': not addressed or not reported).}
   \label{tab:related-work}
   \centering
   \small
-  \begin{tabular}{|p{2.6cm}|p{2.9cm}|p{2.2cm}|p{2.3cm}|p{4.2cm}|}
-    \hline
-    \textbf{Work} & \textbf{Focus} & \textbf{Data} & \textbf{Dim. reduction / XAI} & \textbf{Novelty of this work} \\
-    \hline
-    Khraisat et al.~\cite{khraisat2019survey} & IDS survey & Multiple & General & Uniform empirical comparison of 4 strategies under the same pipeline \\
-    Vinayakumar et al.~\cite{vinayakumar2019deep} & Deep learning for IDS & CICIDS2017 & None & 8 Spark ML algorithms + 2 ensembles; explicit data-leakage control \\
-    Ferrag et al.~\cite{ferrag2020deep} & Deep learning, multi-dataset comparison & Multiple & None & Compares RF/SHAP/PCA under a leakage-aware pipeline + paired statistical testing \\
-    Alrawashdeh \& Purdy~\cite{alrawashdeh2016toward} & Online deep learning & NSL-KDD & None & Leakage-controlled evaluation; SHAP model explanation \\
-    Sarhan et al.~\cite{sarhan2022explainable} & XAI for IDS & NetFlow (NF-*) & SHAP & SHAP on Spark ML; direct comparison with RF Importance and PCA on CICIDS2017 \\
-    Baalaji et al.~\cite{baalaji2025ensemble} & Deep-learning ensemble on IoT-edge & IoT-edge & None & Compares several dimensionality-reduction strategies rather than a single model; statistical testing \\
-    Asghar et al.~\cite{asghar2026hedid} & Explainable edge IDS & Multiple & Metaheuristic & Leakage-aware pipeline + cross-dataset evaluation 2017$\leftrightarrow$2018 \\
-    Hasan et al.~\cite{hasan2025iiot} & AE feature learning for IIoT-edge & IIoT & Autoencoder & Supervised feature selection (RF/SHAP) vs. extraction; model selection on validation \\
-    \textbf{This paper} & \textbf{Feature selection + Spark ML} & \textbf{CICIDS2017, CSE-CIC-IDS2018} & \textbf{RF/SHAP/PCA} & \textbf{Unified pipeline: leakage removal, selection on validation, exact permutation + Nadeau--Bengio, multiclass, cross-dataset} \\
-    \hline
+  \begin{tabular}{l l l c c c c}
+    \toprule
+    \textbf{Work} & \textbf{Data} & \textbf{Dim. reduction / XAI} & \textbf{\shortstack{Leakage-\\aware}} & \textbf{\shortstack{Statistical\\testing}} & \textbf{\shortstack{Cross-\\dataset}} & \textbf{\shortstack{Multi-\\class}} \\
+    \midrule
+    Khraisat et al.~\cite{khraisat2019survey} & Multiple (survey) & General & --- & --- & --- & --- \\
+    Vinayakumar et al.~\cite{vinayakumar2019deep} & CICIDS2017 & None & --- & --- & --- & Yes \\
+    Ferrag et al.~\cite{ferrag2020deep} & Multiple & None & --- & --- & --- & Yes \\
+    Alrawashdeh \& Purdy~\cite{alrawashdeh2016toward} & NSL-KDD & None & --- & --- & --- & --- \\
+    Sarhan et al.~\cite{sarhan2022explainable} & NetFlow (NF-*) & SHAP & --- & --- & Yes & --- \\
+    Baalaji et al.~\cite{baalaji2025ensemble} & IoT-edge & None & --- & --- & --- & --- \\
+    Asghar et al.~\cite{asghar2026hedid} & Multiple & Metaheuristic & --- & --- & --- & --- \\
+    Hasan et al.~\cite{hasan2025iiot} & IIoT & Autoencoder & --- & --- & --- & --- \\
+    \textbf{This paper} & \textbf{CICIDS2017, CSE-CIC-IDS2018} & \textbf{RF/SHAP/PCA} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} \\
+    \bottomrule
   \end{tabular}
 \end{table*}
