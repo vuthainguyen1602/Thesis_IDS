@@ -106,9 +106,9 @@ Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC
   ]
     \node[pc]  (pc)  at (0, 0.0)   {\textbf{Coordination server (PC --- Docker)}\\[2pt]
         Apache Kafka \;$|$\; PostgreSQL \;$|$\; InfluxDB \;$|$\; Grafana \;$|$\; CSV flow replayer};
-    \node[jet] (j1)  at (-4.6,-3.6) {\textbf{Jetson Orin Nano Super \#1}\\[2pt] \texttt{anomaly\_gate}\\[2pt]
+    \node[jet] (j1)  at (-4.6,-3.6) {\textbf{Jetson Orin Nano Super \#1}\\[2pt] Anomaly gate\\[2pt]
         Autoencoder filters out\\ benign traffic};
-    \node[jet] (j2)  at ( 4.6,-3.6) {\textbf{Jetson Orin Nano Super \#2}\\[2pt] \texttt{classifier}\\[2pt]
+    \node[jet] (j2)  at ( 4.6,-3.6) {\textbf{Jetson Orin Nano Super \#2}\\[2pt] Classifier\\[2pt]
         PySpark \texttt{PipelineModel}\\ Benign / Attack classification};
     \node[mtr] (out) at (0,-6.9)   {Performance metrics $\rightarrow$ InfluxDB $\rightarrow$ Grafana \quad$|$\quad
         Alerts: Email (Mailtrap) / Slack};
@@ -126,7 +126,7 @@ Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC
 \subsection{Pipeline Roles}
 
 \begin{itemize}
-  \item \textbf{Anomaly gate:} a lightweight autoencoder + scaler; the MSE threshold is calibrated offline (Exp~8) as a quantile of a held-out \emph{benign validation split} (10\% of benign training flows, never the test set), so the operating point is committed before evaluation.
+  \item \textbf{Anomaly gate:} a lightweight autoencoder + scaler; the MSE threshold is calibrated offline as a quantile of a held-out \emph{benign validation split} (10\% of benign training flows, never the test set), so the operating point is committed before evaluation.
   \item \textbf{Classifier:} PySpark \texttt{PipelineModel} with the leakage-free SHAP-selected feature set.
   \item \textbf{Combined role:} gate and classifier in one process, used for horizontal scaling via Kafka consumer groups.
 \end{itemize}
@@ -236,7 +236,7 @@ This paper does \emph{not} compare Spark against Jetson Orin Nano Super as compe
 In our companion ML study, we evaluate four feature configurations---baseline (all features), RF Importance Top-30, SHAP Top-30, and PCA ($k$=40)---under a fixed 80/20 train--test split, using eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). PCA uses $k$=40 rather than 30 because it \emph{extracts} components (linear combinations spreading variance across many axes) rather than \emph{selecting} original features, so it needs more components to retain comparable variance; across the common $\{20,30,40\}$ sweep, $k$=40 retains the most variance and is the fairest representative operating point for PCA. LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. Crucially, the offline protocol is \emph{leakage-aware}~\cite{arp2022dosdonts}: it removes information that would be unavailable at deployment time but that otherwise inflates test scores. Motivated by documented labeling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores obtained when these leaks are left in place. Offline metrics constrain \emph{which} exported model is worth deploying; they are not directly comparable to edge throughput or latency.
 
 \begin{table}[htbp]
-  \caption{Bridge table: offline Spark selection criteria (leakage-free Exp~7 on CICIDS2017; values from the companion study's released outputs).}
+  \caption{Bridge table: offline Spark selection criteria (leakage-free offline evaluation on CICIDS2017; values from the companion study's released outputs).}
   \label{tab:spark-edge-bridge}
   \centering
   \small
@@ -257,7 +257,7 @@ In our companion ML study, we evaluate four feature configurations---baseline (a
 
 \subsection{Edge Phase (Jetson Orin Nano Super)}
 
-The exported \texttt{PipelineModel} (VectorAssembler, StandardScaler, classifier) is loaded on Jetson~\#2 with only the selected SHAP features, reducing assembly and inference cost relative to the 77-feature baseline. The deployed input vector contains 29 features: the SHAP Top-30 ranking includes \texttt{destination\_port}, which is excluded from the exported model as a label-leaking channel on CICIDS2017, consistently with the leakage-aware offline protocol. A lightweight sklearn autoencoder gate (Exp~8) on Jetson~\#1 filters benign flows before they reach Spark inference, further lowering load on the classifier node. End-to-end edge evaluation measures throughput (flows/s), latency p50/p95 (ms), per-node CPU/RAM/temperature, attack-class F1, and gate-skip ratio, none of which the offline Spark experiments capture.
+The exported \texttt{PipelineModel} (VectorAssembler, StandardScaler, classifier) is loaded on Jetson~\#2 with only the selected SHAP features, reducing assembly and inference cost relative to the 77-feature baseline. The deployed input vector contains 29 features: the SHAP Top-30 ranking includes \texttt{destination\_port}, which is excluded from the exported model as a label-leaking channel on CICIDS2017, consistently with the leakage-aware offline protocol. A lightweight autoencoder gate on Jetson~\#1 filters benign flows before they reach Spark inference, further lowering load on the classifier node. End-to-end edge evaluation measures throughput (flows/s), latency p50/p95 (ms), per-node CPU/RAM/temperature, attack-class F1, and gate-skip ratio, none of which the offline Spark experiments capture.
 
 \subsection{Division of Evaluation Metrics}
 
@@ -303,7 +303,7 @@ Single-node full pipeline vs.\ distributed modes A (pipeline split), B (horizont
 We run each deployment mode through a host-side orchestration script that starts the corresponding pipeline roles on the Jetson nodes over SSH, drives the load, and collects per-node logs. Each configuration is measured over at least three repetitions preceded by representative warmup traffic (excluded from the measured window, so JVM/JIT warmup does not inflate early-batch latency); Table~\ref{tab:benchmark} reports mean~$\pm$~std across repetitions. All metric queries are aligned to the exact load window rather than a trailing time range. Latency percentiles are computed per node over the raw per-flow samples logged during the window, and pipeline throughput is counted as \emph{final verdicts per second} (a flow's verdict is issued either at the gate, for skipped flows, or at the classifier), which avoids double-counting forwarded flows in pipeline-split mode. Aggregated results are reported in Table~\ref{tab:benchmark}, with throughput and p95 latency across modes visualized in Fig.~\ref{fig:edge-modes}.
 
 \begin{table}[htbp]
-  \caption{Distributed deployment comparison on the 2-node Jetson cluster (CICIDS2017 replay at 100 flows/s; mean~$\pm$~std over $\geq$3 repetitions; p95 from raw per-flow logs, worst node). ``(inline)'': in the \texttt{full} role the gate runs in-process and its skips are persisted as verdicts, so no separate skip ratio applies. Energy is \emph{total-board} energy per verdict: at this load the idle-subtracted (active) power delta was below the \texttt{tegrastats} noise floor ($<$0.15\,W), so the figure is dominated by board idle power and measures how effectively each mode amortizes it over verdicts. $\dagger$~Detection quality is mode-independent (identical exported models); offline attack-class F1 is reported in Table~\ref{tab:spark-edge-bridge}.}
+  \caption{Distributed deployment comparison on the 2-node Jetson cluster (CICIDS2017 replay at 100 flows/s; mean~$\pm$~std over $\geq$3 repetitions; p95 from raw per-flow logs, worst node). ``(inline)'': in the combined role the gate runs in-process and its skips are persisted as verdicts, so no separate skip ratio applies. Energy is \emph{total-board} energy per verdict: at this load the idle-subtracted (active) power delta was below the \texttt{tegrastats} noise floor ($<$0.15\,W), so the figure is dominated by board idle power and measures how effectively each mode amortizes it over verdicts. $\dagger$~Detection quality is mode-independent (identical exported models); offline attack-class F1 is reported in Table~\ref{tab:spark-edge-bridge}.}
   \label{tab:benchmark}
   \centering
   \small
@@ -323,12 +323,12 @@ We run each deployment mode through a host-side orchestration script that starts
 
 \textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run (30\,s idle baseline, then the load window; for two-node modes the powers of both nodes are summed). At 100 flows/s the measured \emph{active} (idle-subtracted) power delta was below the sampling noise floor ($<$0.15\,W on every node), so Table~\ref{tab:benchmark} reports \emph{total-board} energy per verdict instead: essentially board power amortized over verdict throughput. This still separates the modes sharply --- the gate-based modes (A and C) amortize the two boards' power over 24--35$\times$ more verdicts than the single node, cutting energy per verdict from $\approx$2.5\,J to 0.12--0.18\,J --- but the figures should be read as a deployment-level (not model-level) energy metric.
 
-Figure~\ref{fig:classifier-terminal} shows the PySpark classifier node (\texttt{jetson-nano-2}) processing replayed CICIDS2017 traffic in operation: it sustains a steady final-verdict throughput ($\approx$6 flows/s in this window), per-batch inference latency of a few milliseconds, and correct per-batch attack counts, while the per-node monitor reports live CPU/RAM/temperature.
+Figure~\ref{fig:classifier-terminal} shows the PySpark classifier node processing replayed CICIDS2017 traffic in operation: it sustains a steady final-verdict throughput ($\approx$6 flows/s in this window), per-batch inference latency of a few milliseconds, and correct per-batch attack counts, while the per-node monitor reports live CPU/RAM/temperature.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.72\textwidth]{pipeline_terminal_jetson2.png}
-  \caption{Classifier node (\texttt{jetson-nano-2}) in operation: per-batch attack detection, few-millisecond inference latency, and live per-node resource telemetry during CICIDS2017 replay.}
+  \caption{Classifier node in operation: per-batch attack detection, few-millisecond inference latency, and live per-node resource telemetry during CICIDS2017 replay.}
   \label{fig:classifier-terminal}
 \end{figure}
 
