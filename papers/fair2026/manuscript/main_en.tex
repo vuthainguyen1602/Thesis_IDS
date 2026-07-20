@@ -202,7 +202,7 @@ The hyperparameters (Table~\ref{tab:hparams}) are \emph{fixed a priori} and shar
     XGBoost & n\_estimators=300, max\_depth=8, lr=0.05, subsample=0.8, colsample=0.8 \\
     MLP & layers=[$d$,64,32,2], maxIter=150, stepSize=0.01 \\
     \midrule
-    \multicolumn{2}{l}{Class balancing: \texttt{weightCol} (6 models) / \texttt{scale\_pos\_weight} (XGBoost); MLP unweighted.} \\
+    \multicolumn{2}{l}{Class balancing: per-sample class weights (6 models) / positive-class weight scaling (XGBoost); MLP unweighted.} \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -272,10 +272,10 @@ Table~\ref{tab:port-ablation} and Figure~\ref{fig:leakage-ablation} quantify the
   \label{fig:f1-heatmap}
 \end{figure*}
 
-Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\ref{fig:f1-heatmap} visualizes F1 for each method~$\times$~algorithm pair. The comparison design aims to verify whether feature selection (RF/SHAP Top-30) retains near-baseline performance while cutting $\approx$60\% of the features; PCA $k{=}40$ reduces dimensionality in an unsupervised manner at the cost of explainability. All quantitative values are taken directly from the released pipeline output (\texttt{cross\_method\_summary.csv}).
+Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\ref{fig:f1-heatmap} visualizes F1 for each method~$\times$~algorithm pair. The comparison design aims to verify whether feature selection (RF/SHAP Top-30) retains near-baseline performance while cutting $\approx$60\% of the features; PCA $k{=}40$ reduces dimensionality in an unsupervised manner at the cost of explainability. All quantitative values are taken directly from the released pipeline outputs.
 
 \begin{table*}[htbp]
-  \caption{Summary of the best model per method (values from \texttt{cross\_method\_summary.csv}).}
+  \caption{Summary of the best model per method (values from the released experiment outputs).}
   \label{tab:best-results}
   \centering
   \begin{tabular}{llcccc}
@@ -309,7 +309,7 @@ Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\r
 Table~\ref{tab:stat} reports the mean F1 $\pm$ 95\% CI ($t$ distribution) over $N{=}6$ resamplings for the two top methods, together with the paired permutation-test $p$-value. Conclusion: the two methods differ \emph{significantly only at the floor} ($p\approx0.031$, Cohen's $d\approx1.94$), yet the absolute F1 gap is tiny ($\approx$0.0001), so they are \emph{practically equivalent}.
 
 \begin{table}[htbp]
-  \caption{Multi-resampling stability and paired testing (values from \texttt{statistical\_validity\_multiseed.csv}).}
+  \caption{Multi-resampling stability and paired testing (values from the released experiment outputs).}
   \label{tab:stat}
   \centering
   \footnotesize
@@ -325,7 +325,7 @@ Table~\ref{tab:stat} reports the mean F1 $\pm$ 95\% CI ($t$ distribution) over $
 
 \subsection{Robustness and multiclass evaluation}
 
-In the in-distribution stability check (a subset of the test set), the ranking of the methods \emph{is preserved} (XGBoost leads in all four methods); details in \texttt{robustness\_holdout\_summary.csv}. The multiclass evaluation (Figure~\ref{fig:cm}, Table~\ref{tab:perclass}) reveals a sharp contrast between weighted-F1 ($\approx$0.998) and macro-F1 ($\approx$0.806): the majority classes achieve high F1, while rare classes such as Web Attack (XSS, SQL Injection) and Bot have very low recall (0.03--0.46) --- where feature selection makes the clearest difference. Reading the confusion matrix by \emph{destination} of the errors separates two failure modes. XSS is mostly \emph{mislabeled but still detected}: 81/111 samples are predicted as Web Brute Force, so at the binary (deployment) level 76\% of XSS flows are still flagged as attacks. The dangerous mode is \emph{leaking into Benign}: all 6 SQL Injection samples, 54\% of Bot (158/290), and 27\% of Web Brute Force are predicted benign. Three mechanisms drive this: extreme imbalance (6--311 samples vs.\ 380k benign); the removal of \texttt{destination\_port}, which hits web attacks hardest --- without the port-80 shortcut their short HTTP flows resemble ordinary browsing and each other, so the honest 0.027 recall replaces a leakage-inflated one; and the intrinsic similarity of Bot C\&C beaconing to benign background traffic once service identity is removed. This directly motivates targeted imbalance handling and temporal features for beaconing as future work.
+In the in-distribution stability check (a subset of the test set), the ranking of the methods \emph{is preserved} (XGBoost leads in all four methods); details in the released experiment outputs. The multiclass evaluation (Figure~\ref{fig:cm}, Table~\ref{tab:perclass}) reveals a sharp contrast between weighted-F1 ($\approx$0.998) and macro-F1 ($\approx$0.806): the majority classes achieve high F1, while rare classes such as Web Attack (XSS, SQL Injection) and Bot have very low recall (0.03--0.46) --- where feature selection makes the clearest difference. Reading the confusion matrix by \emph{destination} of the errors separates two failure modes. XSS is mostly \emph{mislabeled but still detected}: 81/111 samples are predicted as Web Brute Force, so at the binary (deployment) level 76\% of XSS flows are still flagged as attacks. The dangerous mode is \emph{leaking into Benign}: all 6 SQL Injection samples, 54\% of Bot (158/290), and 27\% of Web Brute Force are predicted benign. Three mechanisms drive this: extreme imbalance (6--311 samples vs.\ 380k benign); the removal of \texttt{destination\_port}, which hits web attacks hardest --- without the port-80 shortcut their short HTTP flows resemble ordinary browsing and each other, so the honest 0.027 recall replaces a leakage-inflated one; and the intrinsic similarity of Bot C\&C beaconing to benign background traffic once service identity is removed. This directly motivates targeted imbalance handling and temporal features for beaconing as future work.
 
 \begin{figure}[htbp]
   \centering
@@ -339,7 +339,7 @@ In the in-distribution stability check (a subset of the test set), the ranking o
 \end{figure}
 
 \begin{table}[htbp]
-  \caption{Per-class Precision/Recall/F1 (extracted from \texttt{per\_class\_metrics.csv}).}
+  \caption{Per-class Precision/Recall/F1 (from the released experiment outputs).}
   \label{tab:perclass}
   \centering
   \begin{tabular}{lcccc}
@@ -354,7 +354,7 @@ In the in-distribution stability check (a subset of the test set), the ranking o
     Web Attack~-- XSS & 111 & 1.0000 & 0.0270 & 0.0526 \\
     Infiltration & 12 & 1.0000 & 0.6667 & 0.8000 \\
     Web Attack~-- SQL Injection & 6 & 0.0000 & 0.0000 & 0.0000 \\
-    \multicolumn{5}{c}{\footnotesize 7 remaining classes, all F1 $\geq 0.96$ --- see \texttt{per\_class\_metrics.csv}} \\
+    \multicolumn{5}{c}{\footnotesize 7 remaining classes, all F1 $\geq 0.96$ --- see the released per-class results} \\
     \multicolumn{5}{c}{\footnotesize macro-F1 $=0.806$ \quad weighted-F1 $=0.998$} \\
     \bottomrule
   \end{tabular}
@@ -363,10 +363,10 @@ In the in-distribution stability check (a subset of the test set), the ranking o
 \subsection{Cross-dataset generalization}
 \label{sec:cross-dataset}
 
-To go beyond \emph{in-domain} evaluation, we train on one dataset and test on a \emph{different} one (\emph{cross-dataset} evaluation; and vice versa) on the \emph{shared} leakage-free feature set of the two datasets. The gap between in-domain F1 (A$\to$A) and cross-dataset F1 (A$\to$B) in Table~\ref{tab:cross-dataset} quantifies the \emph{generalization} ability of the leakage-free model. This is a genuine distribution-shift test, unlike the in-distribution holdout above. Because CSE-CIC-IDS2018~\cite{csecicids2018} is very large ($\sim$16 million flows), we use a \emph{label-stratified} sample (fraction 0.2, $\sim$3.14M sampled flows, $\sim$2.39M after feature-level deduplication, \texttt{seed}=42) that preserves the class proportions; CICIDS2017 uses $\sim$2.23M flows. The sample sizes are reported explicitly to ensure reproducibility.
+To go beyond \emph{in-domain} evaluation, we train on one dataset and test on a \emph{different} one (\emph{cross-dataset} evaluation; and vice versa) on the \emph{shared} leakage-free feature set of the two datasets. The gap between in-domain F1 (A$\to$A) and cross-dataset F1 (A$\to$B) in Table~\ref{tab:cross-dataset} quantifies the \emph{generalization} ability of the leakage-free model. This is a genuine distribution-shift test, unlike the in-distribution holdout above. Because CSE-CIC-IDS2018~\cite{csecicids2018} is very large ($\sim$16 million flows), we use a \emph{label-stratified} sample (fraction 0.2, $\sim$3.14M sampled flows, $\sim$2.39M after feature-level deduplication, fixed seed) that preserves the class proportions; CICIDS2017 uses $\sim$2.23M flows. The sample sizes are reported explicitly to ensure reproducibility.
 
 \begin{table}[htbp]
-  \caption{Cross-dataset generalization (CICIDS2017 and CSE-CIC-IDS2018, stratified sample \texttt{seed}=42; values from \texttt{cross\_dataset\_results.csv}).}
+  \caption{Cross-dataset generalization (CICIDS2017 and CSE-CIC-IDS2018, label-stratified sample with a fixed seed; values from the released experiment outputs).}
   \label{tab:cross-dataset}
   \centering
   \small

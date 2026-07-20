@@ -202,7 +202,7 @@ Siêu tham số (Bảng~\ref{tab:hparams}) được \emph{cố định từ trư
     XGBoost & n\_estimators=300, max\_depth=8, lr=0.05, subsample=0.8, colsample=0.8 \\
     MLP & layers=[$d$,64,32,2], maxIter=150, stepSize=0.01 \\
     \midrule
-    \multicolumn{2}{l}{Cân bằng lớp: \texttt{weightCol} (6 mô hình) / \texttt{scale\_pos\_weight} (XGBoost); MLP không trọng số.} \\
+    \multicolumn{2}{l}{Cân bằng lớp: trọng số lớp theo mẫu (6 mô hình) / hệ số trọng số lớp dương (XGBoost); MLP không trọng số.} \\
     \bottomrule
   \end{tabular}
 \end{table*}
@@ -272,10 +272,10 @@ Bảng~\ref{tab:port-ablation} và Hình~\ref{fig:leakage-ablation} định lư�
   \label{fig:f1-heatmap}
 \end{figure*}
 
-Bảng~\ref{tab:best-results} tóm tắt mô hình tốt nhất mỗi phương pháp, và Hình~\ref{fig:f1-heatmap} trực quan hoá F1 theo từng cặp phương pháp~$\times$~thuật toán. Thiết kế so sánh nhằm kiểm chứng liệu lựa chọn đặc trưng (RF/SHAP Top-30) có giữ được hiệu năng gần baseline trong khi giảm $\approx$60\% số đặc trưng hay không; PCA $k{=}40$ giảm chiều không giám sát với chi phí giải thích. Toàn bộ giá trị định lượng được lấy trực tiếp từ đầu ra của quy trình đã công khai (\texttt{cross\_method\_summary.csv}).
+Bảng~\ref{tab:best-results} tóm tắt mô hình tốt nhất mỗi phương pháp, và Hình~\ref{fig:f1-heatmap} trực quan hoá F1 theo từng cặp phương pháp~$\times$~thuật toán. Thiết kế so sánh nhằm kiểm chứng liệu lựa chọn đặc trưng (RF/SHAP Top-30) có giữ được hiệu năng gần baseline trong khi giảm $\approx$60\% số đặc trưng hay không; PCA $k{=}40$ giảm chiều không giám sát với chi phí giải thích. Toàn bộ giá trị định lượng được lấy trực tiếp từ bộ kết quả pipeline công bố kèm mã nguồn.
 
 \begin{table*}[htbp]
-  \caption{Tóm tắt mô hình tốt nhất mỗi phương pháp (số liệu từ \texttt{cross\_method\_summary.csv}).}
+  \caption{Tóm tắt mô hình tốt nhất mỗi phương pháp (số liệu từ bộ kết quả thí nghiệm công bố kèm mã nguồn).}
   \label{tab:best-results}
   \centering
   \begin{tabular}{llcccc}
@@ -310,7 +310,7 @@ Bảng~\ref{tab:best-results} tóm tắt mô hình tốt nhất mỗi phương p
 Bảng~\ref{tab:stat} báo cáo F1 trung bình $\pm$ CI 95\% (phân phối $t$) trên $N{=}6$ lần lấy mẫu lại cho hai phương pháp hàng đầu, kèm $p$-value permutation test ghép cặp. Kết luận: hai phương pháp khác biệt \emph{có ý nghĩa thống kê ở mức sàn} ($p\approx0{,}031$, Cohen's $d\approx1{,}94$) nhưng chênh lệch F1 tuyệt đối rất nhỏ ($\approx$0,0001) nên \emph{tương đương về mặt thực dụng}.
 
 \begin{table}[htbp]
-  \caption{Ổn định đa lần lấy mẫu và kiểm định ghép cặp (số liệu từ \texttt{statistical\_validity\_multiseed.csv}).}
+  \caption{Ổn định đa lần lấy mẫu và kiểm định ghép cặp (số liệu từ bộ kết quả thí nghiệm công bố kèm mã nguồn).}
   \label{tab:stat}
   \centering
   \footnotesize
@@ -326,7 +326,7 @@ Bảng~\ref{tab:stat} báo cáo F1 trung bình $\pm$ CI 95\% (phân phối $t$) 
 
 \subsection{Độ bền vững và đánh giá đa lớp}
 
-Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập kiểm tra), thứ hạng các phương pháp \emph{giữ nguyên} (XGBoost dẫn đầu ở cả bốn phương pháp); chi tiết tại \texttt{robustness\_holdout\_summary.csv}. Đánh giá đa lớp (Hình~\ref{fig:cm}, Bảng~\ref{tab:perclass}) cho thấy tương phản rõ giữa weighted-F1 ($\approx$0,998) và macro-F1 ($\approx$0,806): các lớp đa số đạt F1 cao, trong khi các lớp hiếm như Web Attack (XSS, SQL Injection) và Bot có recall rất thấp (0,03--0,46) --- nơi lựa chọn đặc trưng tạo khác biệt rõ nhất. Đọc ma trận nhầm lẫn theo \emph{đích đến} của lỗi cho thấy hai kiểu suy giảm khác nhau. XSS chủ yếu \emph{nhầm loại nhưng vẫn bị phát hiện}: 81/111 mẫu bị gán thành Web Brute Force, nên ở mức nhị phân (triển khai) 76\% luồng XSS vẫn bị gắn cờ tấn công. Kiểu nguy hiểm là \emph{lọt hẳn thành Benign}: toàn bộ 6 mẫu SQL Injection, 54\% Bot (158/290) và 27\% Web Brute Force bị dự đoán là lưu lượng bình thường. Ba cơ chế: mất cân bằng cực đoan (6--311 mẫu so với 380 nghìn benign); việc loại \texttt{destination\_port} ảnh hưởng nặng nhất đến tấn công web --- mất ``lối tắt'' cổng 80, các luồng HTTP ngắn giống duyệt web thường và giống lẫn nhau, nên recall 0,027 là con số trung thực thay cho con số được thổi phồng bởi rò rỉ; và bản chất beaconing C\&C của Bot vốn giống lưu lượng nền khi không còn định danh dịch vụ. Điều này trực tiếp gợi hướng xử lý mất cân bằng có chủ đích và đặc trưng thời gian cho beaconing ở nghiên cứu tiếp theo.
+Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập kiểm tra), thứ hạng các phương pháp \emph{giữ nguyên} (XGBoost dẫn đầu ở cả bốn phương pháp); chi tiết trong bộ kết quả thí nghiệm công bố kèm mã nguồn. Đánh giá đa lớp (Hình~\ref{fig:cm}, Bảng~\ref{tab:perclass}) cho thấy tương phản rõ giữa weighted-F1 ($\approx$0,998) và macro-F1 ($\approx$0,806): các lớp đa số đạt F1 cao, trong khi các lớp hiếm như Web Attack (XSS, SQL Injection) và Bot có recall rất thấp (0,03--0,46) --- nơi lựa chọn đặc trưng tạo khác biệt rõ nhất. Đọc ma trận nhầm lẫn theo \emph{đích đến} của lỗi cho thấy hai kiểu suy giảm khác nhau. XSS chủ yếu \emph{nhầm loại nhưng vẫn bị phát hiện}: 81/111 mẫu bị gán thành Web Brute Force, nên ở mức nhị phân (triển khai) 76\% luồng XSS vẫn bị gắn cờ tấn công. Kiểu nguy hiểm là \emph{lọt hẳn thành Benign}: toàn bộ 6 mẫu SQL Injection, 54\% Bot (158/290) và 27\% Web Brute Force bị dự đoán là lưu lượng bình thường. Ba cơ chế: mất cân bằng cực đoan (6--311 mẫu so với 380 nghìn benign); việc loại \texttt{destination\_port} ảnh hưởng nặng nhất đến tấn công web --- mất ``lối tắt'' cổng 80, các luồng HTTP ngắn giống duyệt web thường và giống lẫn nhau, nên recall 0,027 là con số trung thực thay cho con số được thổi phồng bởi rò rỉ; và bản chất beaconing C\&C của Bot vốn giống lưu lượng nền khi không còn định danh dịch vụ. Điều này trực tiếp gợi hướng xử lý mất cân bằng có chủ đích và đặc trưng thời gian cho beaconing ở nghiên cứu tiếp theo.
 
 \begin{figure}[htbp]
   \centering
@@ -340,7 +340,7 @@ Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập ki
 \end{figure}
 
 \begin{table}[htbp]
-  \caption{Precision/Recall/F1 theo lớp (trích từ \texttt{per\_class\_metrics.csv}).}
+  \caption{Precision/Recall/F1 theo lớp (từ bộ kết quả thí nghiệm công bố kèm mã nguồn).}
   \label{tab:perclass}
   \centering
   \begin{tabular}{lcccc}
@@ -355,7 +355,7 @@ Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập ki
     Web Attack~-- XSS & 111 & 1,0000 & 0,0270 & 0,0526 \\
     Infiltration & 12 & 1,0000 & 0,6667 & 0,8000 \\
     Web Attack~-- SQL Injection & 6 & 0,0000 & 0,0000 & 0,0000 \\
-    \multicolumn{5}{c}{\footnotesize 7 lớp còn lại đều có F1 $\geq 0{,}96$ --- xem \texttt{per\_class\_metrics.csv}} \\
+    \multicolumn{5}{c}{\footnotesize 7 lớp còn lại đều có F1 $\geq 0{,}96$ --- xem bộ kết quả theo lớp công bố kèm mã nguồn} \\
     \multicolumn{5}{c}{\footnotesize macro-F1 $=0{,}806$ \quad weighted-F1 $=0{,}998$} \\
     \bottomrule
   \end{tabular}
@@ -364,10 +364,10 @@ Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập ki
 \subsection{Tổng quát hoá liên bộ dữ liệu}
 \label{sec:cross-dataset}
 
-Để vượt khỏi đánh giá \emph{cùng bộ} (in-domain), chúng tôi huấn luyện trên một bộ dữ liệu và kiểm tra trên bộ \emph{khác} (đánh giá \emph{khác bộ}, cross-dataset; và ngược lại) trên tập đặc trưng đã loại trừ rò rỉ \emph{chung} của hai bộ. Khoảng cách giữa F1 cùng bộ (A$\to$A) và F1 khác bộ (A$\to$B) trong Bảng~\ref{tab:cross-dataset} định lượng khả năng \emph{tổng quát hoá} của mô hình đã loại rò rỉ. Đây là một phép thử dịch chuyển phân phối thực sự, khác với holdout cùng phân phối ở trên. Do CSE-CIC-IDS2018~\cite{csecicids2018} rất lớn ($\sim$16 triệu luồng), chúng tôi sử dụng \emph{mẫu phân tầng theo nhãn} (tỉ lệ 0{,}2, $\sim$3{,}14 triệu luồng lấy mẫu, còn $\sim$2{,}39 triệu sau khử trùng lặp mức đặc trưng, \texttt{seed}=42) bảo toàn tỉ lệ các lớp; CICIDS2017 dùng $\sim$2{,}23 triệu luồng. Các con số mẫu được báo cáo tường minh để bảo đảm tái lập.
+Để vượt khỏi đánh giá \emph{cùng bộ} (in-domain), chúng tôi huấn luyện trên một bộ dữ liệu và kiểm tra trên bộ \emph{khác} (đánh giá \emph{khác bộ}, cross-dataset; và ngược lại) trên tập đặc trưng đã loại trừ rò rỉ \emph{chung} của hai bộ. Khoảng cách giữa F1 cùng bộ (A$\to$A) và F1 khác bộ (A$\to$B) trong Bảng~\ref{tab:cross-dataset} định lượng khả năng \emph{tổng quát hoá} của mô hình đã loại rò rỉ. Đây là một phép thử dịch chuyển phân phối thực sự, khác với holdout cùng phân phối ở trên. Do CSE-CIC-IDS2018~\cite{csecicids2018} rất lớn ($\sim$16 triệu luồng), chúng tôi sử dụng \emph{mẫu phân tầng theo nhãn} (tỉ lệ 0{,}2, $\sim$3{,}14 triệu luồng lấy mẫu, còn $\sim$2{,}39 triệu sau khử trùng lặp mức đặc trưng, seed cố định) bảo toàn tỉ lệ các lớp; CICIDS2017 dùng $\sim$2{,}23 triệu luồng. Các con số mẫu được báo cáo tường minh để bảo đảm tái lập.
 
 \begin{table}[htbp]
-  \caption{Tổng quát hoá liên bộ dữ liệu (CICIDS2017 và CSE-CIC-IDS2018, mẫu phân tầng \texttt{seed}=42; số liệu từ \texttt{cross\_dataset\_results.csv}).}
+  \caption{Tổng quát hoá liên bộ dữ liệu (CICIDS2017 và CSE-CIC-IDS2018, mẫu phân tầng theo nhãn với seed cố định; số liệu từ bộ kết quả thí nghiệm công bố kèm mã nguồn).}
   \label{tab:cross-dataset}
   \centering
   \small

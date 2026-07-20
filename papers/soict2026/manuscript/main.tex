@@ -90,7 +90,7 @@ Edge computing pushes analytics closer to data sources to reduce latency and ban
 
 \subsection{Split Deployment Overview}
 
-Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC runs Kafka, PostgreSQL, InfluxDB, and Grafana. Two Jetson Orin Nano Super nodes consume network-flow messages from topic \texttt{ids-network-flow}. In pipeline-split mode, Jetson~\#1 runs the anomaly gate and forwards only \emph{suspicious} flows to topic \texttt{ids-suspicious-flow}. Jetson~\#2 then applies the PySpark classifier and writes the classification results back to PostgreSQL. Both nodes stream performance metrics to InfluxDB/Grafana and raise alerts via Email/Slack (dashed arrows in Fig.~\ref{fig:architecture}).
+Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC runs Kafka, PostgreSQL, InfluxDB, and Grafana. Two Jetson Orin Nano Super nodes consume messages from the network-flow topic. In pipeline-split mode, Jetson~\#1 runs the anomaly gate and forwards only \emph{suspicious} flows to a dedicated suspicious-flow topic. Jetson~\#2 then applies the PySpark classifier and writes the classification results back to PostgreSQL. Both nodes stream performance metrics to InfluxDB/Grafana and raise alerts via Email/Slack (dashed arrows in Fig.~\ref{fig:architecture}).
 
 \begin{figure}[t]
   \centering
@@ -105,7 +105,7 @@ Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC
       dsh/.style={-{Stealth[length=2.5mm]}, thick, draw=cyan!50!black, dashed},
   ]
     \node[pc]  (pc)  at (0, 0.0)   {\textbf{Coordination server (PC --- Docker)}\\[2pt]
-        Apache Kafka \;$|$\; PostgreSQL \;$|$\; InfluxDB \;$|$\; Grafana \;$|$\; \texttt{data\_sender.py}};
+        Apache Kafka \;$|$\; PostgreSQL \;$|$\; InfluxDB \;$|$\; Grafana \;$|$\; CSV flow replayer};
     \node[jet] (j1)  at (-4.6,-3.6) {\textbf{Jetson Orin Nano Super \#1}\\[2pt] \texttt{anomaly\_gate}\\[2pt]
         Autoencoder filters out\\ benign traffic};
     \node[jet] (j2)  at ( 4.6,-3.6) {\textbf{Jetson Orin Nano Super \#2}\\[2pt] \texttt{classifier}\\[2pt]
@@ -113,8 +113,8 @@ Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC
     \node[mtr] (out) at (0,-6.9)   {Performance metrics $\rightarrow$ InfluxDB $\rightarrow$ Grafana \quad$|$\quad
         Alerts: Email (Mailtrap) / Slack};
 
-    \draw[arr] (pc.south -| j1) -- node[lbl]{topic\\ \texttt{ids-network-flow}} (j1.north);
-    \draw[arr] (j1.east) -- node[lbl]{\texttt{ids-suspicious-flow}\\ (suspicious flows)} (j2.west);
+    \draw[arr] (pc.south -| j1) -- node[lbl]{network-flow\ topic} (j1.north);
+    \draw[arr] (j1.east) -- node[lbl]{suspicious-flow topic\ (suspicious flows)} (j2.west);
     \draw[arr] (j2.north) -- node[lbl]{classification results\\ $\rightarrow$ PostgreSQL} (pc.south -| j2);
     \draw[dsh] (j1.south) -- (out.north -| j1);
     \draw[dsh] (j2.south) -- (out.north -| j2);
@@ -126,14 +126,14 @@ Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC
 \subsection{Pipeline Roles}
 
 \begin{itemize}
-  \item \textbf{anomaly\_gate:} sklearn autoencoder + scaler; the MSE threshold is calibrated offline (Exp~8) as a quantile of a held-out \emph{benign validation split} (10\% of benign training flows, never the test set), so the operating point is committed before evaluation.
-  \item \textbf{classifier:} PySpark \texttt{PipelineModel} with the leakage-free SHAP-selected feature set.
-  \item \textbf{full:} combined pipeline for horizontal scaling via Kafka consumer groups.
+  \item \textbf{Anomaly gate:} a lightweight autoencoder + scaler; the MSE threshold is calibrated offline (Exp~8) as a quantile of a held-out \emph{benign validation split} (10\% of benign training flows, never the test set), so the operating point is committed before evaluation.
+  \item \textbf{Classifier:} PySpark \texttt{PipelineModel} with the leakage-free SHAP-selected feature set.
+  \item \textbf{Combined role:} gate and classifier in one process, used for horizontal scaling via Kafka consumer groups.
 \end{itemize}
 
 \subsection{Monitoring and Alerting}
 
-Each node tags metrics with \texttt{EDGE\_NODE\_ID} in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Figure~\ref{fig:grafana} shows the live Grafana dashboard while CICIDS2017 flows are replayed through the split deployment: prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM/temperature are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL.
+Each node tags its metrics with a unique node identifier in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Figure~\ref{fig:grafana} shows the live Grafana dashboard while CICIDS2017 flows are replayed through the split deployment: prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM/temperature are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL.
 
 \begin{figure}[htbp]
   \centering
@@ -144,7 +144,7 @@ Each node tags metrics with \texttt{EDGE\_NODE\_ID} in InfluxDB and PostgreSQL. 
 
 \section{Implementation}
 
-Training and model export run on a Spark standalone cluster (host PC as master, two Jetson Orin Nano Super devices as workers) using Apache Spark ML~\cite{zaharia2010spark}; the cluster topology is shown in Fig.~\ref{fig:spark-cluster}. The host only coordinates (Spark master) and does \emph{not} run an executor, so all reported training compute reflects the two homogeneous Jetson workers rather than the stronger host CPU. The edge stack is implemented in Python (\texttt{jetson/edge/}) with configurable roles via environment variables. Every offline run logs its configuration (random seed, leakage/dedup switches, library versions) so each exported model is traceable to the exact pipeline that produced it.
+Training and model export run on a Spark standalone cluster (host PC as master, two Jetson Orin Nano Super devices as workers) using Apache Spark ML~\cite{zaharia2010spark}; the cluster topology is shown in Fig.~\ref{fig:spark-cluster}. The host only coordinates (Spark master) and does \emph{not} run an executor, so all reported training compute reflects the two homogeneous Jetson workers rather than the stronger host CPU. The edge stack is implemented in Python with configurable per-node roles. Every offline run logs its configuration (random seed, leakage/dedup switches, library versions) so each exported model is traceable to the exact pipeline that produced it.
 
 \begin{figure}[htbp]
   \centering
@@ -236,7 +236,7 @@ This paper does \emph{not} compare Spark against Jetson Orin Nano Super as compe
 In our companion ML study, we evaluate four feature configurations---baseline (all features), RF Importance Top-30, SHAP Top-30, and PCA ($k$=40)---under a fixed 80/20 train--test split, using eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). PCA uses $k$=40 rather than 30 because it \emph{extracts} components (linear combinations spreading variance across many axes) rather than \emph{selecting} original features, so it needs more components to retain comparable variance; across the common $\{20,30,40\}$ sweep, $k$=40 retains the most variance and is the fairest representative operating point for PCA. LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. Crucially, the offline protocol is \emph{leakage-aware}~\cite{arp2022dosdonts}: it removes information that would be unavailable at deployment time but that otherwise inflates test scores. Motivated by documented labeling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores obtained when these leaks are left in place. Offline metrics constrain \emph{which} exported model is worth deploying; they are not directly comparable to edge throughput or latency.
 
 \begin{table}[htbp]
-  \caption{Bridge table: offline Spark selection criteria (leakage-free Exp~7 on CICIDS2017; values from \texttt{cross\_method\_summary.csv}).}
+  \caption{Bridge table: offline Spark selection criteria (leakage-free Exp~7 on CICIDS2017; values from the companion study's released outputs).}
   \label{tab:spark-edge-bridge}
   \centering
   \small
@@ -291,7 +291,7 @@ We deploy the SHAP Top-30 feature set on Jetson~\#2 with a Random Forest classif
 
 \subsection{Workloads}
 
-CSV replay through \texttt{data\_sender.py} at 100 flows/s over CICIDS2017. Reported metrics: throughput, p50/p95 latency (per-node percentiles over raw per-flow samples; the cluster p95 is the worst node's p95, plus end-to-end send-to-verdict latency from producer timestamps under NTP-synchronized clocks), per-node CPU/RAM/temperature, attack-class F1, gate-skip ratio, and energy-per-inference (mJ, via \texttt{tegrastats}, idle baseline subtracted).
+CSV replay at 100 flows/s over CICIDS2017. Reported metrics: throughput, p50/p95 latency (per-node percentiles over raw per-flow samples; the cluster p95 is the worst node's p95, plus end-to-end send-to-verdict latency from producer timestamps under NTP-synchronized clocks), per-node CPU/RAM/temperature, attack-class F1, gate-skip ratio, and energy-per-inference (mJ, via \texttt{tegrastats}, idle baseline subtracted).
 
 \subsection{Baselines}
 
@@ -300,7 +300,7 @@ Single-node full pipeline vs.\ distributed modes A (pipeline split), B (horizont
 \section{Results}
 \label{sec:benchmark-results}
 
-We run each deployment mode through a host-side orchestrator (\texttt{run\_dist\_bench.sh}) that starts the corresponding pipeline roles on the Jetson nodes over SSH, drives the load, and collects per-node logs. Each configuration is measured over at least three repetitions preceded by representative warmup traffic (excluded from the measured window, so JVM/JIT warmup does not inflate early-batch latency); Table~\ref{tab:benchmark} reports mean~$\pm$~std across repetitions. All metric queries are aligned to the exact load window rather than a trailing time range. Latency percentiles are computed per node over the raw per-flow samples logged during the window, and pipeline throughput is counted as \emph{final verdicts per second} (a flow's verdict is issued either at the gate, for skipped flows, or at the classifier), which avoids double-counting forwarded flows in pipeline-split mode. Aggregated results are reported in Table~\ref{tab:benchmark}, with throughput and p95 latency across modes visualized in Fig.~\ref{fig:edge-modes}.
+We run each deployment mode through a host-side orchestration script that starts the corresponding pipeline roles on the Jetson nodes over SSH, drives the load, and collects per-node logs. Each configuration is measured over at least three repetitions preceded by representative warmup traffic (excluded from the measured window, so JVM/JIT warmup does not inflate early-batch latency); Table~\ref{tab:benchmark} reports mean~$\pm$~std across repetitions. All metric queries are aligned to the exact load window rather than a trailing time range. Latency percentiles are computed per node over the raw per-flow samples logged during the window, and pipeline throughput is counted as \emph{final verdicts per second} (a flow's verdict is issued either at the gate, for skipped flows, or at the classifier), which avoids double-counting forwarded flows in pipeline-split mode. Aggregated results are reported in Table~\ref{tab:benchmark}, with throughput and p95 latency across modes visualized in Fig.~\ref{fig:edge-modes}.
 
 \begin{table}[htbp]
   \caption{Distributed deployment comparison on the 2-node Jetson cluster (CICIDS2017 replay at 100 flows/s; mean~$\pm$~std over $\geq$3 repetitions; p95 from raw per-flow logs, worst node). ``(inline)'': in the \texttt{full} role the gate runs in-process and its skips are persisted as verdicts, so no separate skip ratio applies. Energy is \emph{total-board} energy per verdict: at this load the idle-subtracted (active) power delta was below the \texttt{tegrastats} noise floor ($<$0.15\,W), so the figure is dominated by board idle power and measures how effectively each mode amortizes it over verdicts. $\dagger$~Detection quality is mode-independent (identical exported models); offline attack-class F1 is reported in Table~\ref{tab:spark-edge-bridge}.}
@@ -338,7 +338,7 @@ Figure~\ref{fig:classifier-terminal} shows the PySpark classifier node (\texttt{
 We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with the distributed training phase} --- the same stack trains on the cluster and serves on the device. To quantify the price of that unification, we benchmark the \emph{same} RandomForest (matched hyper-parameters) on the \emph{same} deployed SHAP-selected feature set (Sec.~\ref{sec:bridge}) through lighter single-node engines: scikit-learn (CPU, no JVM) and ONNX Runtime (Table~\ref{tab:engines}). Accuracy is comparable by construction; the comparison targets inference cost. As Table~\ref{tab:engines} shows, the JVM/Spark stack indeed incurs substantially higher inference cost than scikit-learn on the 8\,GB ARM board ($7.7\times$ lower throughput, $\approx$8$\times$ higher p95, double the RAM share); reporting this honestly motivates exporting the \texttt{PipelineModel} to ONNX/TensorRT for inference while retaining Spark for training, which we leave as future work.
 
 \begin{table}[htbp]
-  \caption{Single-node inference cost on the same model/features (from \texttt{benchmark\_engines.py} vs \texttt{benchmark.py}).}
+  \caption{Single-node inference cost on the same model/features (single-node measurements on the classifier node).}
   \label{tab:engines}
   \centering
   \small
@@ -360,7 +360,7 @@ We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with 
   }{%
     \fbox{\parbox{0.76\textwidth}{\centering\vspace{1.2cm}\ph{Edge-mode bars --- run plot\_edge\_modes.py}\vspace{1.2cm}}}%
   }
-  \caption{Throughput and p95 latency across deployment modes (from \texttt{summary.csv}).}
+  \caption{Throughput and p95 latency across deployment modes.}
   \label{fig:edge-modes}
 \end{figure}
 
