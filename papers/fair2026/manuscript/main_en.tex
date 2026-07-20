@@ -9,7 +9,7 @@
 % numbers — they came from a configuration with destination_port leakage and
 % feature-level duplicate flows, both now removed.
 %
-\documentclass[conference]{IEEEtran}
+\documentclass[11pt,conference]{IEEEtran}
 \usepackage{url}
 \IEEEoverridecommandlockouts
 
@@ -39,6 +39,15 @@
 
 % Visible placeholder for a not-yet-filled empirical value.
 \newcommand{\ph}[1]{{\color{gray}\textit{[#1]}}}
+% Tighter float packing (11pt compliance within 8 pages)
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.7}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.9}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 3pt}
+\setlength{\dbltextfloatsep}{8pt plus 2pt minus 3pt}
+\setlength{\dblfloatsep}{6pt plus 2pt minus 2pt}
 
 \graphicspath{{../../../results/ml_07_cross_method_comparison/}{../../../results/ml_05_shap_explainability/}{../../../results/ml_09_multiclass_eval/}{../../../results/ml_10_leakage_ablation/}}
 
@@ -96,8 +105,6 @@ A less-discussed but equally serious issue is the \emph{trustworthiness of the e
 (4) A per-attack-type multiclass evaluation, clarifying where the methods truly differ;
 (5) An \emph{edge-aware} model-selection recommendation: jointly considering F1, the number of features, and model size for the Jetson Orin Nano Super.
 
-Section~\ref{sec:related} presents related work; Section~\ref{sec:method} describes the method and evaluation pipeline; Section~\ref{sec:exp} reports the experiments; Section~\ref{sec:discuss} discusses; Section~\ref{sec:threats} states threats to validity; and Section~\ref{sec:conclude} concludes.
-
 \section{Related Work}
 \label{sec:related}
 
@@ -119,7 +126,7 @@ The offline pipeline consists of sequential steps: data cleaning, deduplication,
 
 \begin{figure}[t]
 \centering
-\resizebox{0.98\columnwidth}{!}{%
+\resizebox{0.88\columnwidth}{!}{%
 \begin{tikzpicture}[
   font=\footnotesize, node distance=3.2mm, >=Stealth,
   box/.style={draw, rounded corners=1pt, align=center, inner sep=3pt, minimum width=6.6cm},
@@ -157,7 +164,7 @@ We merge the eight CICIDS2017 CSV files, normalize column names, replace infinit
 \begin{algorithm}[t]
 \caption{Leakage-aware preparation of CICIDS2017}
 \label{alg:prep}
-\footnotesize
+\scriptsize
 \begin{list}{}{\setlength{\leftmargin}{0.8em}\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}\setlength{\topsep}{2pt}}
 \item \textbf{Input:} CSV files $\{F_1,\dots,F_N\}$; split ratio $\alpha{=}0.8$
 \item \textbf{Output:} $D_{\text{train}}$, $D_{\text{test}}$ (Parquet)
@@ -188,7 +195,7 @@ The hyperparameters (Table~\ref{tab:hparams}) are \emph{fixed a priori} and shar
   \caption{Main hyperparameters of the eight classifiers (fixed a priori).}
   \label{tab:hparams}
   \centering
-  \small
+  \footnotesize
   \begin{tabular}{ll}
     \toprule
     Model & Main hyperparameters \\
@@ -216,7 +223,7 @@ To avoid selection bias from trying many configurations on the same test set, we
 
 \textbf{Metrics.} Accuracy, Precision, Recall, F1, AUC-ROC, AUC-PR; training/prediction time; model size. Because the data are imbalanced, AUC-PR and attack-class recall are prioritized over accuracy.
 
-\textbf{In-distribution stability check.} The representative model of each method is re-evaluated on a subset of the test set (disjoint from the training set). To be clear: this is only an \emph{in-distribution stability} check, not a distribution-shift test; the true generalization assessment lies in the cross-dataset experiment (Section~\ref{sec:exp}).
+\textbf{In-distribution stability check.} The representative model of each method is re-evaluated on a subset of the test set (disjoint from the training set). This is only an \emph{in-distribution stability} check; the true distribution-shift assessment is the cross-dataset experiment (Section~\ref{sec:exp}).
 
 \textbf{Statistical-significance testing.} The two top methods are trained on $N$ independent \emph{resamplings} of the training/test split (default $N{=}6$), and in each round both use the \emph{same} split so as to be paired. As a result, the variance reflects the effect of data sampling rather than only of model initialization. The 95\% confidence interval is computed using the $t$ distribution ($t_{0.975,N-1}$, not the value 1.96); because the resamplings overlap in training data, we report \emph{in parallel} the Nadeau--Bengio~\cite{nadeau2003inference} corrected confidence interval, with the variance multiplied by $(1/N + n_{\text{test}}/n_{\text{train}})$, and take the corrected interval as the basis for conclusions. Significance is tested by a \emph{two-sided paired permutation test} on the per-round F1 difference, \emph{exactly enumerating} all $2^N$ sign permutations (with $N{=}6$, that is 64 permutations) rather than Monte Carlo sampling; because the test is two-sided, the smallest attainable $p$ is $2/2^N$, so $N \geq 6$ is needed to be able to reach below $0.05$ (in contrast to a single-fixed-split / three-seed design, which cannot go below $p \approx 0.125$). Together with $p$, we report the paired Cohen's $d$ effect size: with small $N$, a non-significant $p$-value is by itself weak evidence for ``equivalence''.
 
@@ -251,7 +258,7 @@ Table~\ref{tab:port-ablation} and Figure~\ref{fig:leakage-ablation} quantify the
 \begin{figure}[htbp]
   \centering
   \IfFileExists{../../../results/ml_10_leakage_ablation/leakage_ablation.png}{%
-    \includegraphics[width=\columnwidth]{leakage_ablation.png}%
+    \includegraphics[width=0.74\columnwidth]{leakage_ablation.png}%
   }{%
     \fbox{\parbox{0.9\columnwidth}{\centering\vspace{1.2cm}\ph{Leakage ablation chart --- run ml\_10\_leakage\_ablation.py}\vspace{1.2cm}}}%
   }
@@ -264,7 +271,7 @@ Table~\ref{tab:port-ablation} and Figure~\ref{fig:leakage-ablation} quantify the
 \begin{figure*}[htbp]
   \centering
   \IfFileExists{../../../results/ml_07_cross_method_comparison/f1_heatmap.png}{%
-    \includegraphics[width=0.92\textwidth]{f1_heatmap.png}%
+    \includegraphics[width=0.62\textwidth]{f1_heatmap.png}%
   }{%
     \fbox{\parbox{0.88\textwidth}{\centering\vspace{1.5cm}\ph{F1 heatmap: method x algorithm --- run papers/fair2026/collect\_results.sh}\vspace{1.5cm}}}%
   }
@@ -290,13 +297,13 @@ Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\r
   \end{tabular}
 
   \vspace{2pt}
-  {\footnotesize $^{\dagger}$Sizes are obtained by serializing each fitted model \emph{on the training cluster}; the distributed model-saving step writes the tree-ensemble data partitions on whichever executor holds them, so entries in the KB range (here 0.003\,MB) captured only the driver-local metadata and \emph{under-report} the true size. Since the size of a tree ensemble is governed by the number of trees and nodes rather than by the number of input features, the SHAP Top-30 XGBoost model is in reality comparable to its RF Top-30 counterpart ($\approx$2.5\,MB). For the same reason, a reduced feature set can even yield a slightly \emph{larger} model than the baseline (2.52 vs.\ 2.32\,MB): with fewer split candidates the trees need more nodes to reach comparable purity. The single-node export of the deployed pipeline measures model sizes reliably.}
+  {\scriptsize $^{\dagger}$Sizes are obtained by serializing each fitted model \emph{on the training cluster}; the distributed model-saving step writes the tree-ensemble data partitions on whichever executor holds them, so entries in the KB range (here 0.003\,MB) captured only the driver-local metadata and \emph{under-report} the true size. Since the size of a tree ensemble is governed by the number of trees and nodes rather than by the number of input features, the SHAP Top-30 XGBoost model is in reality comparable to its RF Top-30 counterpart ($\approx$2.5\,MB). For the same reason, a reduced feature set can even yield a slightly \emph{larger} model than the baseline (2.52 vs.\ 2.32\,MB): with fewer split candidates the trees need more nodes to reach comparable purity. The single-node export of the deployed pipeline measures model sizes reliably.}
 \end{table*}
 
 \begin{figure}[htbp]
   \centering
   \IfFileExists{../../../results/ml_07_cross_method_comparison/train_predict_time.png}{%
-    \includegraphics[width=\columnwidth]{train_predict_time.png}%
+    \includegraphics[width=0.74\columnwidth]{train_predict_time.png}%
   }{%
     \fbox{\parbox{0.9\columnwidth}{\centering\vspace{1.2cm}\ph{Training/prediction time --- run ml\_07\_cross\_method\_comparison.py}\vspace{1.2cm}}}%
   }
@@ -330,7 +337,7 @@ In the in-distribution stability check (a subset of the test set), the ranking o
 \begin{figure}[htbp]
   \centering
   \IfFileExists{../../../results/ml_09_multiclass_eval/confusion_matrix.png}{%
-    \includegraphics[width=\columnwidth]{confusion_matrix.png}%
+    \includegraphics[width=0.64\columnwidth]{confusion_matrix.png}%
   }{%
     \fbox{\parbox{0.9\columnwidth}{\centering\vspace{1.2cm}\ph{Multiclass confusion matrix --- run ml\_09\_multiclass\_eval.py}\vspace{1.2cm}}}%
   }
@@ -369,7 +376,7 @@ To go beyond \emph{in-domain} evaluation, we train on one dataset and test on a 
   \caption{Cross-dataset generalization (CICIDS2017 and CSE-CIC-IDS2018, label-stratified sample with a fixed seed; values from the released experiment outputs).}
   \label{tab:cross-dataset}
   \centering
-  \small
+  \footnotesize
   \begin{tabular}{llcc}
     \toprule
     Train & Test & Type & F1 \\
@@ -396,11 +403,11 @@ The contrast is stark and, we argue, the most honest number in this paper: in-do
 \section{Threats to Validity}
 \label{sec:threats}
 
-\textbf{Internal validity.} The RF/SHAP rankings are derived from the original training set and kept fixed across resamplings. This is consistent with the ``a priori configuration'' design, but may introduce slight leakage in the ranking part. Re-ranking per resampling would be more rigorous but costly (especially SHAP); we make this trade-off explicit. The selection of the Top-3 component models for the ensemble is performed on a separate \emph{validation set} held out from the training set, so the test set does not participate in model selection; the trade-off is that the base models are trained on a smaller portion of the data after extracting the validation set. In addition, class balancing is applied uniformly to seven models (Section~\ref{sec:hparams}) but \emph{not} to MLP, because Spark ML does not support sample weights for this model; the MLP result should therefore be read with that caveat.
+\textbf{Internal validity.} The RF/SHAP rankings are derived from the original training set and kept fixed across resamplings. This is consistent with the ``a priori configuration'' design, but may introduce slight leakage in the ranking part. Re-ranking per resampling would be more rigorous but costly, especially for SHAP. The selection of the Top-3 component models for the ensemble is performed on a separate \emph{validation set} held out from the training set, so the test set does not participate in model selection; the trade-off is that the base models are trained on a smaller portion of the data after extracting the validation set. Class balancing applies to all models except MLP (Spark ML offers no sample weights for it), so the MLP result carries that caveat.
 
-\textbf{External validity.} CICIDS2017 (2017) may not reflect current traffic, and benchmark NIDS datasets carry documented quality limitations~\cite{goldschmidt2025datasets}; verification on newer datasets (CSE-CIC-IDS2018, CIC-IoT) is needed. The default random split shuffles time; a time-based split mode is supported for a more realistic evaluation. The cross-dataset generalization conclusion (Section~\ref{sec:cross-dataset}) is based on a \emph{representative stratified sample} of CSE-CIC-IDS2018 (due to edge resource limits), not the whole dataset; the sample size is reported explicitly, and scaling to the full dataset is the next direction. The model assumes an attack distribution approximating CICIDS2017 and has not been evaluated against deliberately evasive (adversarial evasion) traffic. Moreover, feature-level deduplication (Section~\ref{sec:leakage}) itself changes the class distribution between benign and attack, which should be kept in mind when interpreting the results.
+\textbf{External validity.} CICIDS2017 (2017) may not reflect current traffic, and benchmark NIDS datasets carry documented quality limitations~\cite{goldschmidt2025datasets}; verification on newer datasets (CSE-CIC-IDS2018, CIC-IoT) is needed. The default random split shuffles time; a time-based split is also supported. The cross-dataset generalization conclusion (Section~\ref{sec:cross-dataset}) is based on a \emph{representative stratified sample} of CSE-CIC-IDS2018 (due to edge resource limits), not the whole dataset; scaling to the full dataset is the next direction. The model assumes an attack distribution approximating CICIDS2017 and has not been evaluated against deliberately evasive (adversarial evasion) traffic. Moreover, feature-level deduplication (Section~\ref{sec:leakage}) itself changes the class distribution between benign and attack, which should be kept in mind when interpreting the results.
 
-\textbf{Statistical validity.} The small sample size ($N{=}6$) gives the test low \emph{power}: because the permutation test is two-sided, the smallest attainable $p$ is only $2/2^N$, so $N{=}6$ just barely reaches the $0.05$ threshold and can hardly detect small effects. Furthermore, the resamplings \emph{overlap}, thus violating the independence assumption of the $t$ distribution; therefore the Nadeau--Bengio corrected confidence interval is reported in parallel (Section~\ref{sec:eval}) and is the primary basis for conclusions, while the standard $t$ interval is for reference only. A remaining limitation is that the RF/SHAP feature ranking is kept fixed across resamplings (no per-round re-ranking), creating a mild selection leakage favoring the two feature-selection branches; per-round re-ranking (feasible for RF) is the next reinforcement direction, together with increasing $N$ with nested cross-validation.
+\textbf{Statistical validity.} The small sample size ($N{=}6$) gives the test low \emph{power}: because the permutation test is two-sided, the smallest attainable $p$ is only $2/2^N$, so $N{=}6$ just barely reaches the $0.05$ threshold and can hardly detect small effects. Furthermore, the resamplings \emph{overlap}, thus violating the independence assumption of the $t$ distribution; therefore the Nadeau--Bengio corrected confidence interval is reported in parallel (Section~\ref{sec:eval}) and is the primary basis for conclusions, while the standard $t$ interval is for reference only. Increasing $N$ with nested cross-validation is the next reinforcement direction.
 
 \section{Conclusion}
 \label{sec:conclude}
@@ -410,7 +417,8 @@ This paper compares four dimensionality-reduction strategies for IDS on Spark ML
 \section*{Acknowledgment}
 The authors declare no conflict of interest.
 
+{\footnotesize
 \bibliographystyle{ieeetr}
-\bibliography{references,../../latex/related_work}
+\bibliography{references,../../latex/related_work}}
 
 \end{document}
