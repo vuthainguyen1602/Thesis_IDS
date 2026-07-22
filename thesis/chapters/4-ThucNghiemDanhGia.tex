@@ -524,7 +524,7 @@ Kiến trúc này đảm bảo tính mô-đun, tách biệt các thành phần x
 
 \subsection{Lựa chọn mô hình cho thiết bị biên}
 
-Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguyên: RAM 8\,GB chia sẻ giữa CPU và GPU (trong đó PySpark JVM chiếm một phần đáng kể), CPU ARM, cùng ràng buộc về nhiệt độ/băng thông tại biên. Cũng cần nhấn mạnh rằng việc chọn Apache Spark trên Jetson 8\,GB phải chịu chi phí JVM/Spark đáng kể; Spark được dùng ở đây nhằm \emph{nhất quán} với pha huấn luyện phân tán, chứ không nhằm tối ưu độ trễ suy luận trên một nút; so sánh với sklearn/ONNX/TensorRT là hướng nghiên cứu tương lai. Ba mô hình đại diện cho ba thử nghiệm khác nhau được chọn để đánh giá:
+Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguyên: RAM 8\,GB chia sẻ giữa CPU và GPU (trong đó PySpark JVM chiếm một phần đáng kể), CPU ARM, cùng ràng buộc về nhiệt độ/băng thông tại biên. Cũng cần nhấn mạnh rằng việc chọn Apache Spark trên Jetson 8\,GB phải chịu chi phí JVM/Spark đáng kể; Spark được dùng ở đây nhằm \emph{nhất quán} với pha huấn luyện phân tán, chứ không nhằm tối ưu độ trễ suy luận trên một nút; chi phí đánh đổi này được định lượng qua so sánh với scikit-learn và ONNX Runtime ở mục~\ref{sec:engine-baseline-thesis}, còn tăng tốc bằng TensorRT là hướng nghiên cứu tương lai. Ba mô hình đại diện cho ba thử nghiệm khác nhau được chọn để đánh giá:
 
 \begin{enumerate}
     \item \textbf{Decision Tree} -- Mô hình cây đơn lẻ, đại diện cho cách tiếp cận đơn giản nhất.
@@ -620,20 +620,20 @@ Random Forest     & 26,8 & 378 / 397 / -- & 35,2 & 27,5 & 4,427 \\
 
 \subsection{So sánh engine suy luận: chi phí của việc đồng nhất stack}
 \label{sec:engine-baseline-thesis}
-Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của Spark để \emph{đồng nhất với pha huấn luyện phân tán}: cùng một stack vừa huấn luyện trên cụm vừa suy luận trên thiết bị. Để \emph{định lượng chi phí đánh đổi} của sự đồng nhất này, luận văn đo lại \emph{cùng một} mô hình Random Forest (cùng siêu tham số) trên \emph{cùng} tập đặc trưng SHAP đã chọn để triển khai nhưng qua các engine nhẹ hơn ở chế độ một nút: scikit-learn (CPU, không JVM) và ONNX Runtime (Bảng~\ref{tab:engines_thesis}, sinh từ \texttt{benchmark\_engines.py}). Vì cùng thuật toán và đặc trưng nên độ chính xác tương đương; phép so sánh tập trung vào \emph{chi phí suy luận}. Kết quả đo (Bảng~\ref{tab:engines_thesis}) cho thấy stack JVM/Spark chịu chi phí suy luận cao hơn đáng kể so với scikit-learn trên bo mạch ARM 8\,GB: thông lượng thấp hơn khoảng 7,7 lần, độ trễ p95 cao hơn khoảng 8 lần và tỷ lệ RAM gần gấp đôi; việc nêu rõ điều này là cơ sở cho hướng phát triển \emph{xuất mô hình sang ONNX/TensorRT để suy luận} trong khi vẫn giữ Spark cho huấn luyện.
+Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của Spark để \emph{đồng nhất với pha huấn luyện phân tán}: cùng một stack vừa huấn luyện trên cụm vừa suy luận trên thiết bị. Để \emph{định lượng chi phí đánh đổi} của sự đồng nhất này, luận văn đo lại \emph{cùng một} mô hình Random Forest (cùng siêu tham số) trên \emph{cùng} tập đặc trưng SHAP đã chọn để triển khai nhưng qua các engine nhẹ hơn ở chế độ một nút: scikit-learn (CPU, không JVM) và ONNX Runtime (CPU execution provider; Bảng~\ref{tab:engines_thesis}, sinh từ \texttt{benchmark\_engines.py}). Vì cùng thuật toán và đặc trưng nên độ chính xác tương đương; phép so sánh tập trung vào \emph{chi phí suy luận}. (Cả ba dòng của Bảng~\ref{tab:engines_thesis} được đo lại trong \emph{cùng một phiên} trên cùng trạng thái bo mạch để so sánh công bằng, nên dòng PySpark chênh lệch nhỏ so với Bảng~\ref{tab:edge_benchmark} đo ở phiên trước: 22,6 so với 26,8 luồng/giây, do khác phiên đo và xung CPU.) Kết quả đo (Bảng~\ref{tab:engines_thesis}) cho thấy stack JVM/Spark chịu chi phí suy luận cao hơn đáng kể so với scikit-learn trên bo mạch ARM 8\,GB: thông lượng thấp hơn khoảng 9 lần, độ trễ p95 cao hơn khoảng 11 lần, tỷ lệ RAM gần gấp đôi và năng lượng mỗi suy luận cao hơn khoảng 25 lần. Biên dịch cùng mô hình rừng ngẫu nhiên sang ONNX Runtime còn nới rộng khoảng cách này đáng kể: $\approx$7\,900 luồng/giây với p95 1,1\,ms, tức gấp $\approx$348 lần thông lượng của Spark đã triển khai, ở mức năng lượng chỉ $\approx$2\% so với scikit-learn; việc nêu rõ điều này là cơ sở cho hướng phát triển \emph{xuất mô hình sang ONNX/TensorRT để suy luận} trong khi vẫn giữ Spark cho huấn luyện (việc tích hợp phiên ONNX vào pipeline streaming và khai thác GPU qua TensorRT thuộc hướng phát triển).
 
 \begin{table}[htbp]
 \centering
-\caption{Chi phí suy luận một nút trên cùng mô hình/đặc trưng (Spark vs sklearn vs ONNX)}
+\caption{Chi phí suy luận một nút trên cùng mô hình/đặc trưng (Spark vs sklearn vs ONNX), đo trên nút phân loại trong cùng điều kiện bo mạch (batch 10; năng lượng là phần \emph{hoạt động}, đã trừ idle)}
 \label{tab:engines_thesis}
 \renewcommand{\arraystretch}{1.1}
 \small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
 \textbf{Engine} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ\\p95 (ms)}} & \textbf{RAM (\%)} & \textbf{\shortstack{Năng lượng\\/suy luận (mJ)}} \\ \midrule
-PySpark (triển khai) & 26,8 & 397 & 27,5 & -- \\
-scikit-learn         & 205,5 & 49,8 & 12,7 & 2,87 \\
-ONNX Runtime         & \multicolumn{4}{c}{chưa đo (chưa cài \texttt{onnxruntime} trên ARM)} \\
+PySpark (triển khai) & 22,6 & 532 & 24,3 & 71,6 \\
+scikit-learn         & 204,4 & 49,8 & 13,3 & 2,91 \\
+ONNX Runtime         & 7870,8 & 1,1 & 15,7 & 0,06 \\
 \bottomrule
 \end{tabular*}
 \end{table}

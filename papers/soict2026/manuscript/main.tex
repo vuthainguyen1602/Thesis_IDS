@@ -335,10 +335,10 @@ Figure~\ref{fig:classifier-terminal} shows the PySpark classifier node processin
 \subsection{Inference-engine baseline (cost of the unified stack)}
 \label{sec:engine-baseline}
 
-We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with the distributed training phase}: the same stack trains on the cluster and serves on the device. To quantify the price of that unification, we benchmark the \emph{same} RandomForest (matched hyper-parameters) on the \emph{same} deployed SHAP-selected feature set (Sec.~\ref{sec:bridge}) through lighter single-node engines: scikit-learn (CPU, no JVM) and ONNX Runtime (Table~\ref{tab:engines}). Accuracy is comparable by construction; the comparison targets inference cost. As Table~\ref{tab:engines} shows, the JVM/Spark stack indeed incurs substantially higher inference cost than scikit-learn on the 8\,GB ARM board ($7.7\times$ lower throughput, $\approx$8$\times$ higher p95, double the RAM share); reporting this honestly motivates exporting the \texttt{PipelineModel} to ONNX/TensorRT for inference while retaining Spark for training, which we leave as future work.
+We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with the distributed training phase}: the same stack trains on the cluster and serves on the device. To quantify the price of that unification, we benchmark the \emph{same} RandomForest (matched hyper-parameters) on the \emph{same} deployed SHAP-selected feature set (Sec.~\ref{sec:bridge}) through lighter single-node engines: scikit-learn (CPU, no JVM) and ONNX Runtime (CPU execution provider), in Table~\ref{tab:engines}. Accuracy is comparable by construction; the comparison targets inference cost. The JVM/Spark stack indeed incurs substantially higher inference cost than scikit-learn on the 8\,GB ARM board ($9\times$ lower throughput, $\approx$11$\times$ higher p95, roughly double the RAM share, and $\approx$25$\times$ the active energy per inference), and compiling the same forest to ONNX Runtime widens the gap dramatically: $\approx$7{,}900 flows/s at a p95 of 1.1\,ms, i.e.\ $348\times$ the deployed Spark throughput at $\approx$2\% of the per-inference energy of scikit-learn. Reporting this honestly motivates exporting the \texttt{PipelineModel} to ONNX/TensorRT for inference while retaining Spark for training; wiring the ONNX session into the streaming pipeline (and exploiting the GPU via TensorRT) is left as future work.
 
 \begin{table}[htbp]
-  \caption{Single-node inference cost on the same model/features (single-node measurements on the classifier node).}
+  \caption{Single-node inference cost on the same model/features, measured on the classifier node under identical board conditions (batch size 10; energy is \emph{active}, i.e.\ idle-subtracted, per inference at engine saturation).}
   \label{tab:engines}
   \centering
   \small
@@ -346,9 +346,9 @@ We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with 
     \toprule
     Engine & Throughput (flows/s) & p95 latency (ms) & RAM (\%) & Energy/inf.\ (mJ) \\
     \midrule
-    PySpark (deployed) & 26.8 & 397 & 27.5 & -- \\
-    scikit-learn       & 205.5 & 49.8 & 12.7 & 2.87 \\
-    ONNX Runtime       & \multicolumn{4}{c}{not measured (onnxruntime not installed on ARM64)} \\
+    PySpark (deployed) & 22.6 & 532 & 24.3 & 71.6 \\
+    scikit-learn       & 204.4 & 49.8 & 13.3 & 2.91 \\
+    ONNX Runtime       & 7870.8 & 1.1 & 15.7 & 0.06 \\
     \bottomrule
   \end{tabular}
 \end{table}
