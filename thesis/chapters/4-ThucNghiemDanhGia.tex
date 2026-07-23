@@ -571,12 +571,19 @@ Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc 
 
 \begin{figure}[htbp]
     \centering
+    \IfFileExists{img/grafana_peak_load.png}{\includegraphics[width=0.9\textwidth]{img/grafana_peak_load.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Dashboard Grafana tại thời điểm tải đỉnh --- chụp lại từ cụm Jetson}\vspace{1.2cm}}}}
+    \caption{Dashboard Grafana tại thời điểm tải đỉnh của chế độ chia pipeline: nút cổng (\texttt{jetson-nano-1}) chỉ sử dụng khoảng 5\,\% CPU trong khi nút phân loại PySpark (\texttt{jetson-nano-2}) đạt tới 91\,\%}
+    \label{fig:grafana_peak_load}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
     \IfFileExists{img/slack_alert.png}{\includegraphics[width=0.9\textwidth]{img/slack_alert.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Thông báo Slack --- chụp lại từ hệ chạy trên Jetson}\vspace{1.2cm}}}}
     \caption{Thông báo cảnh báo tấn công được gửi qua Slack Incoming Webhook (ảnh chụp từ giai đoạn thử nghiệm sớm; định dạng thông điệp giữ nguyên khi triển khai trên cụm Jetson)}
     \label{fig:slack_alert}
 \end{figure}
 
-Hình~\ref{fig:pipeline_terminal} minh họa giao diện terminal thực tế khi pipeline IDS đang xử lý dữ liệu trên Jetson Orin Nano Super, bao gồm thông tin về thông lượng, độ trễ và số lượng tấn công phát hiện được. Hai dashboard Grafana (Hình~\ref{fig:grafana_dashboard} và Hình~\ref{fig:grafana_attacks}) cho phép giám sát hiệu năng hệ thống và chi tiết các cuộc tấn công theo thời gian thực. Khi phát hiện tấn công, hệ thống tự động gửi cảnh báo qua nhiều kênh: email thông qua Mailtrap SMTP (Hình~\ref{fig:mailtrap_alert}) và tin nhắn Slack (Hình~\ref{fig:slack_alert}).
+Hình~\ref{fig:pipeline_terminal} minh họa giao diện terminal thực tế khi pipeline IDS đang xử lý dữ liệu trên Jetson Orin Nano Super, bao gồm thông tin về thông lượng, độ trễ và số lượng tấn công phát hiện được. Hai dashboard Grafana (Hình~\ref{fig:grafana_dashboard} và Hình~\ref{fig:grafana_attacks}) cho phép giám sát hiệu năng hệ thống và chi tiết các cuộc tấn công theo thời gian thực. Hình~\ref{fig:grafana_peak_load} ghi lại thời điểm tải đỉnh, cho thấy rõ sự phân bố tải lệch đặc trưng của chế độ chia pipeline: nút cổng chỉ sử dụng khoảng 5\,\% CPU trong khi nút phân loại PySpark đạt tới 91\,\%, xác nhận bộ phân loại là thành phần chiếm tài nguyên chủ đạo và là căn cứ cho các phân tích năng lượng--thông lượng ở phần sau. Khi phát hiện tấn công, hệ thống tự động gửi cảnh báo qua nhiều kênh: email thông qua Mailtrap SMTP (Hình~\ref{fig:mailtrap_alert}) và tin nhắn Slack (Hình~\ref{fig:slack_alert}).
 \subsection{Kết quả huấn luyện các mô hình ứng viên trên cụm Spark}
 
 Bảng \ref{tab:edge_training} trình bày kết quả huấn luyện và đánh giá ba mô hình ứng viên trên cụm Spark (mô tả ở mục Môi trường thực nghiệm) trước khi triển khai xuống thiết bị biên.

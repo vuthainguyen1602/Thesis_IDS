@@ -15,8 +15,8 @@ echo "Building SOICT 2026..."
 cp "$ROOT/papers/soict2026/manuscript/main.pdf" "$OUT/SOICT2026_draft.pdf"
 
 echo "Building thesis..."
-"$ROOT/thesis/manuscript/compile.sh" || true
-cp "$ROOT/thesis/manuscript/main.pdf" "$OUT/thesis_draft.pdf"
+(cd "$ROOT/thesis" && latexmk -pdf -interaction=nonstopmode main.tex) || true
+cp "$ROOT/thesis/main.pdf" "$OUT/thesis_draft.pdf"
 
 echo ""
 echo "PDF files:"
