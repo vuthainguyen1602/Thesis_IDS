@@ -62,7 +62,7 @@ Trong những năm gần đây, các nền tảng xử lý dữ liệu lớn nh�
 
 Bên cạnh đó, Spark cung cấp giao diện lập trình linh hoạt thông qua các API hỗ trợ nhiều ngôn ngữ phổ biến như Java, Scala, Python và R, giúp việc phát triển và triển khai ứng dụng trở nên thuận tiện hơn.
 
-Apache Spark bao gồm nhiều thành phần chính tạo thành một hệ sinh thái hoàn chỉnh, hỗ trợ đa dạng các tác vụ phân tích dữ liệu như xử lý dữ liệu tuần tự, truy vấn SQL, phân tích luồng dữ liệu thời gian thực, học máy và xử lý đồ thị (Hình~\ref{fig:spark}).
+Apache Spark bao gồm nhiều thành phần chính tạo thành một hệ sinh thái hoàn chỉnh, hỗ trợ đa dạng các tác vụ phân tích dữ liệu như xử lý dữ liệu theo lô (batch), truy vấn SQL, phân tích luồng dữ liệu thời gian thực, học máy và xử lý đồ thị (Hình~\ref{fig:spark}).
 
 \vspace*{1ex}
     \begin{figure}[ht]
@@ -87,7 +87,7 @@ Apache Spark bao gồm nhiều thành phần cốt lõi, mỗi thành phần đ�
 \end{itemize}
 
 \subsection{Kiến trúc của Apache Spark}
-Kiến trúc của Apache Spark được xây dựng theo mô hình master–worker trên nền tảng xử lý phân tán. Thành phần trung tâm là \textbf{Spark Driver}, chịu trách nhiệm điều phối quá trình thực thi ứng dụng, bao gồm việc lên lịch, phân phối tác vụ và giám sát tiến trình. Driver tạo ra một phiên bản logic gọi là \textit{DAG} (Directed Acyclic Graph) để xác định luồng thực thi công việc; tổng quan kiến trúc master--worker được minh họa ở Hình~\ref{fig:spark-structure}.
+Kiến trúc của Apache Spark được xây dựng theo mô hình master–worker trên nền tảng xử lý phân tán. Thành phần trung tâm là \textbf{Spark Driver}, chịu trách nhiệm điều phối quá trình thực thi ứng dụng, bao gồm việc lên lịch, phân phối tác vụ và giám sát tiến trình. Driver xây dựng một đồ thị phi chu trình có hướng (\textit{DAG} -- Directed Acyclic Graph) để xác định luồng thực thi công việc; tổng quan kiến trúc master--worker được minh họa ở Hình~\ref{fig:spark-structure}.
 
 \vspace*{1ex}
     \begin{figure}[ht]
@@ -110,7 +110,7 @@ Học máy (\ac{ml}) đã trở thành một công cụ thiết yếu trong vi�
 \item \textbf{Học tăng cường (Reinforcement Learning)}: Mô hình học dựa trên phản hồi từ môi trường nhằm tối ưu hóa hành vi hoặc quyết định của hệ thống theo thời gian; hướng này không thuộc phạm vi thực nghiệm của luận văn và chỉ được nêu để hoàn chỉnh bức tranh phân loại.
 \end{itemize}
 
-Trong bối cảnh mạng \ac{iot}, học máy được ứng dụng rộng rãi để phân tích lưu lượng dữ liệu và nhận diện các loại tấn công như DDoS, botnet hay giả mạo gói tin. Chẳng hạn, Koroniotis và cộng sự (2019) xây dựng bộ dữ liệu Bot-IoT và báo cáo các mô hình học máy, học sâu đạt độ chính xác gần tuyệt đối khi phát hiện các tấn công DoS/DDoS trong môi trường \ac{iot} \cite{Koroniotis2019}. Tuy nhiên, các kết quả gần như tuyệt đối (xấp xỉ 100\%) trên các tập dữ liệu công khai cần được xem xét thận trọng, vì chúng thường là dấu hiệu của rò rỉ dữ liệu (data leakage) hơn là năng lực thực sự của mô hình. \emph{Rò rỉ dữ liệu} là tình huống trong đó thông tin lẽ ra không sẵn có ở thời điểm triển khai thực tế lại lọt vào quá trình huấn luyện hoặc đánh giá, khiến điểm số bị thổi phồng và không phản ánh đúng khả năng tổng quát hoá của mô hình. Luận văn này nhận diện và xử lý vấn đề đó một cách tường minh ở Chương~\ref{c:thucnghiemdanhgia}.
+Trong bối cảnh mạng \ac{iot}, học máy được ứng dụng rộng rãi để phân tích lưu lượng dữ liệu và nhận diện các loại tấn công như DDoS, botnet hay giả mạo gói tin. Chẳng hạn, Koroniotis và cộng sự (2019) xây dựng bộ dữ liệu Bot-IoT và báo cáo các mô hình học máy, học sâu đạt độ chính xác gần tuyệt đối khi phát hiện các tấn công DoS/DDoS trong môi trường \ac{iot} \cite{Koroniotis2019}. Tuy nhiên, các kết quả gần như tuyệt đối (xấp xỉ 100\%) trên các tập dữ liệu công khai cần được xem xét thận trọng, vì chúng thường là dấu hiệu của rò rỉ dữ liệu (data leakage) hơn là năng lực thực sự của mô hình. \emph{Rò rỉ dữ liệu} là tình huống trong đó thông tin lẽ ra không sẵn có ở thời điểm triển khai thực tế lại lọt vào quá trình huấn luyện hoặc đánh giá, khiến điểm số bị thổi phồng và không phản ánh đúng khả năng tổng quát hóa của mô hình. Luận văn này nhận diện và xử lý vấn đề đó một cách tường minh ở Chương~\ref{c:thucnghiemdanhgia}.
 
 Tuy nhiên, việc ứng dụng học máy trong hệ thống \ac{iot} vẫn còn gặp nhiều thách thức vì yêu cầu xử lý theo thời gian thực và hạn chế về tài nguyên tính toán. Việc tích hợp học máy với các nền tảng xử lý dữ liệu lớn như Apache Spark mang lại lợi thế đáng kể, giúp xử lý khối lượng dữ liệu lớn với tốc độ cao và hỗ trợ triển khai các thuật toán học máy hiệu quả trong môi trường phân tán.
 \subsection{Một số thuật toán học máy}
@@ -118,7 +118,7 @@ Tuy nhiên, việc ứng dụng học máy trong hệ thống \ac{iot} vẫn cò
 \item \textbf{Cây quyết định (\ac{dt})} là một trong những thuật toán học máy có giám sát phổ biến, được áp dụng rộng rãi trong các bài toán phân loại. Cấu trúc cơ bản của một cây quyết định bao gồm ba thành phần chính: \textbf{nút gốc}, \textbf{nút quyết định} và \textbf{nút lá}.
 Cây quyết định có ưu điểm là dễ hiểu, dễ diễn giải, có thể trực quan hóa và không yêu cầu giả định về phân phối dữ liệu. Tuy nhiên, \ac{dt} cũng dễ bị quá khớp (\textit{overfitting}) nếu không chọn được các tham số hợp lý hoặc xử lý trên dữ liệu nhiễu \cite{mitchell1997machine}.
 
-\item \textbf{Rừng ngẫu nhiên (\ac{rf})} là một thuật toán học máy được sử dụng phổ biến trong cả hai bài toán phân loại và hồi quy. Đây là một kỹ thuật học kết hợp (\textit{ensemble learning}) dựa trên việc xây dựng và tổng hợp nhiều cây quyết định độc lập nhằm nâng cao độ chính xác và độ ổn định của mô hình. Thuật toán hoạt động bằng cách tạo ra nhiều cây quyết định trên các tập con khác nhau được chọn ngẫu nhiên từ tập dữ liệu huấn luyện. Mỗi cây được xây dựng dựa trên một mẫu bootstrap (lấy mẫu có hoàn lại), đồng thời tại mỗi nút chia, một tập con ngẫu nhiên của các đặc trưng được chọn để tìm điểm chia tốt nhất, thay vì sử dụng toàn bộ đặc trưng như trong cây quyết định truyền thống \cite{breiman2001random}.
+\item \textbf{Rừng ngẫu nhiên (\ac{rf})} là một thuật toán học máy được sử dụng phổ biến trong cả hai bài toán phân loại và hồi quy. Đây là một kỹ thuật học máy tổng hợp (\textit{ensemble learning}) dựa trên việc xây dựng và tổng hợp nhiều cây quyết định độc lập nhằm nâng cao độ chính xác và độ ổn định của mô hình. Thuật toán hoạt động bằng cách tạo ra nhiều cây quyết định trên các tập con khác nhau được chọn ngẫu nhiên từ tập dữ liệu huấn luyện. Mỗi cây được xây dựng dựa trên một mẫu bootstrap (lấy mẫu có hoàn lại), đồng thời tại mỗi nút chia, một tập con ngẫu nhiên của các đặc trưng được chọn để tìm điểm chia tốt nhất, thay vì sử dụng toàn bộ đặc trưng như trong cây quyết định truyền thống \cite{breiman2001random}.
 
 Kết quả cuối cùng được xác định bằng cách:  
 \begin{itemize}
@@ -209,7 +209,7 @@ với điều kiện:
 y_i(w \cdot x_i + b) \ge 1
 \end{equation}
 
-Trong trường hợp dữ liệu không tuyến tính, \ac{svm} sử dụng kỹ thuật \textit{kernel trick} để ánh xạ dữ liệu sang không gian chiều cao hơn, cho phép phân tách tuyến tính trong không gian mới. Nhờ cơ chế tối ưu hóa chặt chẽ, \ac{svm} thường đạt hiệu năng cao trong các bài toán phân loại với dữ liệu chiều cao.
+Trong trường hợp dữ liệu không tuyến tính, \ac{svm} sử dụng kỹ thuật \textit{kernel trick} để ánh xạ dữ liệu sang không gian nhiều chiều hơn, cho phép phân tách tuyến tính trong không gian mới. Nhờ cơ chế tối ưu hóa chặt chẽ, \ac{svm} thường đạt hiệu năng cao trong các bài toán phân loại với dữ liệu nhiều chiều.
 
 \item \textbf{Multilayer Perceptron - MLP} là một mô hình học sâu cơ bản gồm nhiều lớp ẩn, có khả năng mô hình hóa các mối quan hệ phi tuyến giữa các đặc trưng \cite{rumelhart1986learning}. 
 

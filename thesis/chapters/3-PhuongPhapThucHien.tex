@@ -67,7 +67,7 @@ Nguồn dữ liệu                    & \cite{sharafaldin2018toward} \\
 \end{tabular}
 \end{table}
 
-Bên cạnh CICIDS2017 (bộ dữ liệu chính cho toàn bộ các thí nghiệm), luận văn sử dụng thêm \textbf{CSE-CIC-IDS2018} cho thí nghiệm \emph{tổng quát hoá liên bộ dữ liệu} (Mục~\ref{sec:cross-dataset}): huấn luyện trên một bộ, kiểm tra trên bộ kia và ngược lại. Đây là bộ kế nhiệm của CICIDS2017, do CIC phối hợp với Cơ quan An ninh Truyền thông Canada (CSE) thu thập trên hạ tầng AWS quy mô lớn hơn nhiều; đặc trưng luồng được trích bằng CICFlowMeter phiên bản mới hơn nên tên cột được ánh xạ về từ vựng chuẩn của CICIDS2017 qua bảng bí danh tường minh trong mã nguồn. Thông tin chi tiết ở Bảng~\ref{tab:cicids2018}.
+Bên cạnh CICIDS2017 (bộ dữ liệu chính cho toàn bộ các thí nghiệm), luận văn sử dụng thêm \textbf{CSE-CIC-IDS2018} cho thí nghiệm \emph{tổng quát hóa liên bộ dữ liệu} (Mục~\ref{sec:cross-dataset}): huấn luyện trên một bộ, kiểm tra trên bộ kia và ngược lại. Đây là bộ kế nhiệm của CICIDS2017, do CIC phối hợp với Cơ quan An ninh Truyền thông Canada (CSE) thu thập trên hạ tầng AWS quy mô lớn hơn nhiều; đặc trưng luồng được trích bằng CICFlowMeter phiên bản mới hơn nên tên cột được ánh xạ về từ vựng chuẩn của CICIDS2017 qua bảng bí danh tường minh trong mã nguồn. Thông tin chi tiết ở Bảng~\ref{tab:cicids2018}.
 
 \begin{table}[htbp]
 \centering
@@ -231,11 +231,11 @@ thông tin chi tiết về biến thể và phương pháp học.
 \textbf{Thuật toán}              & \textbf{Biến thể / Ghi chú}        & \textbf{Phương pháp học} \\
 \midrule
 Decision Tree                   & CART                                & Phân chia đệ quy theo Gini / Entropy \\
-Logistic Regression             & Chuẩn hoá L2                        & Tối ưu hàm mất mát logistic \\
-Linear \ac{svm}                 & SVC tuyến tính                      & Tối đa hoá biên phân loại \\
+Logistic Regression             & Chuẩn hóa L2                        & Tối ưu hàm mất mát logistic \\
+Linear \ac{svm}                 & SVC tuyến tính                      & Tối đa hóa biên phân loại \\
 Naive Bayes                     & Phân phối Gaussian                  & Ước lượng xác suất hậu nghiệm \\
 Random Forest                   & Bagging                             & Tổ hợp cây quyết định ngẫu nhiên \\
-\ac{gbt}                        & Gradient Boosting                   & Tối thiểu hoá hàm mất mát theo bậc \\
+\ac{gbt}                        & Gradient Boosting                   & Tối thiểu hóa hàm mất mát theo gradient \\
 XGBoost                         & Gradient Boosting tối ưu            & Regularised Gradient Boosting \\
 \ac{mlp}                        & Mạng nơ-ron nhân tạo                & Lan truyền ngược (Backpropagation) \\
 \bottomrule
@@ -323,7 +323,7 @@ Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữ
 \addcontentsline{toc}{subsection}{b) Áp dụng Bagging}
 Để khai thác hiệu quả sức mạnh của kỹ thuật học máy tổng hợp Bagging, luận văn đề xuất xây dựng một mô hình ensemble lai (Hybrid Bagging Ensemble) dựa trên các mô hình cơ sở có hiệu năng cao nhất (đã huấn luyện và xếp hạng ở bước trước). Cụ thể, thay vì chỉ sử dụng một mô hình đơn lẻ, quy trình bắt đầu bằng việc huấn luyện và đánh giá $K$ thuật toán học cơ sở trên tập dữ liệu huấn luyện $D$. Hiệu năng của từng mô hình được đo lường thông qua chỉ số F1-Score, từ đó lựa chọn ba mô hình có kết quả tốt nhất để đưa vào giai đoạn kết hợp.
 
-Sau khi xác định Top-3 mô hình, phương pháp Bagging được áp dụng theo phân bố bản sao $(3,2,2)$. Đối với mỗi mô hình trong ba mô hình được chọn, nhiều tập dữ liệu bootstrap được tạo ra bằng cách lấy mẫu ngẫu nhiên có hoàn lại từ tập huấn luyện ban đầu. Trên mỗi tập bootstrap này, một bản sao của mô hình tương ứng được huấn luyện độc lập, tạo thành các \textit{bộ học cơ sở (base learners)} trong ensemble. Mỗi base learner được gán trọng số tỷ lệ với F1-Score của mô hình gốc nhằm phản ánh mức độ tin cậy tương đối của nó trong quá trình tổng hợp. Việc phân bổ bất đối xứng $(3,2,2)$, tức cấp nhiều bản sao bootstrap hơn cho mô hình hạng cao, là một lựa chọn thiết kế thực nghiệm nhằm thiên ensemble về phía các bộ học mạnh hơn trong khi vẫn giữ tính đa dạng từ ba thuật toán khác loại; đây là một heuristic, không phải kết quả của tối ưu hoá lý thuyết, và các tỷ lệ khác (chẳng hạn $3$-$3$-$3$) có thể được khảo sát trong nghiên cứu tiếp theo.
+Sau khi xác định Top-3 mô hình, phương pháp Bagging được áp dụng theo phân bổ số bản sao $(3,2,2)$. Đối với mỗi mô hình trong ba mô hình được chọn, nhiều tập dữ liệu bootstrap được tạo ra bằng cách lấy mẫu ngẫu nhiên có hoàn lại từ tập huấn luyện ban đầu. Trên mỗi tập bootstrap này, một bản sao của mô hình tương ứng được huấn luyện độc lập, tạo thành các \textit{bộ học cơ sở (base learners)} trong ensemble. Mỗi base learner được gán trọng số tỷ lệ với F1-Score của mô hình gốc nhằm phản ánh mức độ tin cậy tương đối của nó trong quá trình tổng hợp. Việc phân bổ bất đối xứng $(3,2,2)$, tức cấp nhiều bản sao bootstrap hơn cho mô hình hạng cao, là một lựa chọn thiết kế thực nghiệm nhằm thiên ensemble về phía các bộ học mạnh hơn trong khi vẫn giữ tính đa dạng từ ba thuật toán khác loại; đây là một heuristic, không phải kết quả của tối ưu hóa lý thuyết, và các tỷ lệ khác (chẳng hạn $3$-$3$-$3$) có thể được khảo sát trong nghiên cứu tiếp theo.
 
 Trong giai đoạn dự đoán, toàn bộ các mô hình trong ensemble đưa ra phân phối xác suất dự đoán cho mẫu đầu vào mới. Kết quả cuối cùng được xác định thông qua cơ chế Soft Voting có trọng số, trong đó xác suất của từng lớp được tính bằng tổng có trọng số của các xác suất thành phần. Nhãn dự đoán cuối cùng được chọn là lớp có xác suất tổng hợp lớn nhất.
 
@@ -336,7 +336,7 @@ Cách tiếp cận này cho phép giảm phương sai của các mô hình cơ s
 \Require Tập dữ liệu huấn luyện $D = \{(x_i, y_i)\}_{i=1}^{n}$ với $x_i \in \mathbb{R}^d$, $y_i \in \{0, 1\}$ (BENIGN $=0$, Attack $=1$)
 \Statex \qquad Tập kiểm định $D_{\text{val}}$ (tách từ $D$, dùng để xếp hạng và chọn Top-3)
 \Statex \qquad Tập $K$ thuật toán học cơ sở $\{\mathcal{L}_1, \mathcal{L}_2, \dots, \mathcal{L}_K\}$
-\Statex \qquad Phân bố số bản sao $\mathbf{r} = (r_1, r_2, r_3) = (3, 2, 2)$
+\Statex \qquad Phân bổ số bản sao $\mathbf{r} = (r_1, r_2, r_3) = (3, 2, 2)$
 \Ensure Nhãn dự đoán cuối cùng $y_{\text{bag}} \in \{0, 1\}$
 
 \State \textbf{Bước 1: Huấn luyện và đánh giá $K$ mô hình cơ sở}
@@ -391,7 +391,7 @@ Mỗi mô hình (cơ sở và ensemble) được đánh giá toàn diện trên 
 Độ chính xác (Accuracy)         & Tỉ lệ dự đoán đúng trên toàn bộ mẫu kiểm tra \\
 Precision                        & Tỉ lệ cảnh báo đúng trong tổng số cảnh báo được phát ra \\
 Recall                           & Tỉ lệ phát hiện đúng trong tổng số mẫu tấn công thực tế \\
-F1-Score                         & Trung bình điều hoà của Precision và Recall \\
+F1-Score                         & Trung bình điều hòa của Precision và Recall \\
 \ac{auc} – \ac{roc}             & Diện tích dưới đường cong ROC — đo hiệu năng phân biệt lớp \\
 \ac{auc} – PR                   & Diện tích dưới đường cong Precision-Recall \\
 Chi phí tính toán                & Thời gian huấn luyện, thời gian dự đoán và kích thước mô hình \\
@@ -513,7 +513,7 @@ RAM                              & 8\,GB LPDDR5 (102\,GB/s) \\
 Lưu trữ                          & SSD NVMe 256\,GB \\
 Hiệu năng AI                     & tới $\sim$67\,TOPS (khung 25\,W) \\
 Hệ điều hành                     & Ubuntu (NVIDIA JetPack / L4T) \\
-Vai trò                          & Worker huấn luyện (Spark) \& thiết bị suy diễn biên \\
+Vai trò                          & Worker huấn luyện (Spark) \& thiết bị suy luận biên \\
 \bottomrule
 \end{tabular}
 \end{table}
