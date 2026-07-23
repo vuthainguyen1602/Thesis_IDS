@@ -35,6 +35,8 @@
 \renewcommand{\floatpagefraction}{0.85}
 \setlength{\floatsep}{8pt plus 2pt minus 2pt}
 \setlength{\textfloatsep}{10pt plus 4pt minus 3pt}
+% Allow slightly looser interword glue instead of overfull lines
+\setlength{\emergencystretch}{1.5em}
 % No-op fallback: \babelshorthandoff is a babel command, undefined under polyglossia.
 \providecommand{\babelshorthandoff}[1]{}
 

@@ -16,7 +16,7 @@ cp "$ROOT/papers/soict2026/manuscript/main.pdf" "$OUT/SOICT2026_draft.pdf"
 
 echo "Building thesis..."
 (cd "$ROOT/thesis" && latexmk -pdf -interaction=nonstopmode main.tex) || true
-cp "$ROOT/thesis/main.pdf" "$OUT/thesis_draft.pdf"
+cp "$ROOT/thesis/main.pdf" "$OUT/LuanVan_ThacSi.pdf"
 
 echo ""
 echo "PDF files:"
