@@ -4,17 +4,17 @@ set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$DIR/../../.." && pwd)"
-SPRINGER="$ROOT/Latex-Template-for-Springer"
+IEEETPL="$ROOT/papers/fair2026/IEEE-conference-template-062824"
 BIB="$ROOT/papers/latex"
 OUT="$ROOT/output/pdfs"
 
-export TEXINPUTS="${SPRINGER}//:${TEXINPUTS:-}"
-export BSTINPUTS="${BIB}//:${SPRINGER}//:${BSTINPUTS:-}"
+export TEXINPUTS="${IEEETPL}//:${TEXINPUTS:-}"
+export BSTINPUTS="${BIB}//:${IEEETPL}//:${BSTINPUTS:-}"
 
 cd "$DIR"
 mkdir -p "$OUT"
 
-echo "Using Springer template: $SPRINGER"
+echo "Using IEEEtran template: $IEEETPL"
 echo "Compiling main.tex with xelatex ..."
 
 xelatex -interaction=nonstopmode main.tex || true

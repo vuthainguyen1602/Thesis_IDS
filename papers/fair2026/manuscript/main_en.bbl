@@ -1,11 +1,5 @@
 \begin{thebibliography}{10}
 
-\bibitem{sharafaldin2018toward}
-I.~Sharafaldin, A.~H. Lashkari, and A.~A. Ghorbani, ``Toward generating a new
-  intrusion detection dataset and intrusion traffic characterization,'' in {\em
-  Proceedings of the 4th International Conference on Information Systems
-  Security and Privacy (ICISSP)}, pp.~108--116, 2018.
-
 \bibitem{ring2019survey}
 M.~Ring, S.~Wunderlich, D.~Gr{\"u}dl, D.~Landes, and A.~Hotho, ``A survey of
   network-based intrusion detection data sets,'' {\em Computers \& Security},
@@ -15,6 +9,12 @@ M.~Ring, S.~Wunderlich, D.~Gr{\"u}dl, D.~Landes, and A.~Hotho, ``A survey of
 A.~Khraisat, I.~Gondal, P.~Vamplew, and J.~Kamruzzaman, ``Survey of intrusion
   detection systems: techniques, datasets and challenges,'' {\em
   Cybersecurity}, vol.~2, no.~1, pp.~1--22, 2019.
+
+\bibitem{sharafaldin2018toward}
+I.~Sharafaldin, A.~H. Lashkari, and A.~A. Ghorbani, ``Toward generating a new
+  intrusion detection dataset and intrusion traffic characterization,'' in {\em
+  Proceedings of the 4th International Conference on Information Systems
+  Security and Privacy (ICISSP)}, pp.~108--116, 2018.
 
 \bibitem{lanvin2023errors}
 M.~Lanvin, P.-F. Gimenez, Y.~Han, F.~Majorczyk, L.~M{\'e}, and {\'E}.~Totel,
