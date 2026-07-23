@@ -24,7 +24,10 @@ import sys
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_CSV = os.path.join(HERE, "results", "benchmarks", "summary.csv")
+# summary_paper.csv holds the run-level worst-node p95 from raw per-flow logs
+# (the same aggregation reported in the paper's Table 4); summary.csv holds
+# per-node monitor values and does NOT match the table.
+DEFAULT_CSV = os.path.join(HERE, "results", "benchmarks", "summary_paper.csv")
 
 MODE_LABELS = {
     "single": "Single node",
@@ -71,23 +74,26 @@ def main():
     import matplotlib.pyplot as plt
     import numpy as np
 
+    # Two side-by-side panels (one axis each) instead of a dual-axis chart.
     x = np.arange(len(order))
-    fig, ax1 = plt.subplots(figsize=(8, 5))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 3.6), sharex=True)
 
-    b1 = ax1.bar(x - 0.2, df["throughput_rps"].values, 0.4,
-                 color="#1f77b4", label="Throughput (flows/s)")
-    ax1.set_ylabel("Throughput (flows/s)", color="#1f77b4")
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(labels, rotation=15, ha="right")
+    b1 = ax1.bar(x, df["throughput_rps"].values, 0.55, color="#0072B2")
+    ax1.set_ylabel("Throughput (flows/s)")
+    ax1.set_title("Verdict throughput", fontsize=10)
 
-    ax2 = ax1.twinx()
-    b2 = ax2.bar(x + 0.2, df["latency_p95_ms"].values, 0.4,
-                 color="#d62728", label="p95 latency (ms)")
-    ax2.set_ylabel("p95 latency (ms)", color="#d62728")
+    b2 = ax2.bar(x, df["latency_p95_ms"].values, 0.55, color="#D55E00")
+    ax2.set_ylabel("p95 latency (ms)")
+    ax2.set_title("p95 latency", fontsize=10)
 
-    ax1.bar_label(b1, fmt="%.0f", fontsize=8, padding=2)
-    ax2.bar_label(b2, fmt="%.0f", fontsize=8, padding=2)
-    ax1.set_title("Edge deployment modes: throughput vs. p95 latency")
+    for ax, bars in ((ax1, b1), (ax2, b2)):
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=15, ha="right")
+        ax.bar_label(bars, fmt="%.1f", fontsize=8, padding=2)
+        ax.grid(axis="y", color="0.9", linewidth=0.8)
+        ax.set_axisbelow(True)
+        for spine in ("top", "right"):
+            ax.spines[spine].set_visible(False)
     fig.tight_layout()
 
     out = args.out or os.path.join(os.path.dirname(args.csv), "edge_modes.png")

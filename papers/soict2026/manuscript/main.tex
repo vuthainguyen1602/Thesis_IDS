@@ -367,11 +367,11 @@ We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with 
 \begin{figure}[htbp]
   \centering
   \IfFileExists{../../../papers/soict2026/results/benchmarks/edge_modes.png}{%
-    \includegraphics[width=0.62\textwidth]{edge_modes.png}%
+    \includegraphics[width=0.95\textwidth]{edge_modes.png}%
   }{%
     \fbox{\parbox{0.76\textwidth}{\centering\vspace{1.2cm}\ph{Edge-mode bars --- run plot\_edge\_modes.py}\vspace{1.2cm}}}%
   }
-  \caption{Throughput and p95 latency across deployment modes.}
+  \caption{Deployment-mode comparison: verdict throughput (left) and p95 latency (right).}
   \label{fig:edge-modes}
 \end{figure}
 
@@ -380,11 +380,11 @@ The anomaly gate is a \emph{tunable} filter rather than a single point: sweeping
 \begin{figure}[htbp]
   \centering
   \IfFileExists{../../../results/ml_08_anomaly_gate/gate_operating_points.png}{%
-    \includegraphics[width=0.6\textwidth]{gate_operating_points.png}%
+    \includegraphics[width=0.95\textwidth]{gate_operating_points.png}%
   }{%
     \fbox{\parbox{0.74\textwidth}{\centering\vspace{1.2cm}\ph{Gate operating curve --- run ml\_08\_anomaly\_gate\_autoencoder.py}\vspace{1.2cm}}}%
   }
-  \caption{Anomaly-gate operating curve: attack recall vs.\ gate-skip ratio (and FPR).}
+  \caption{Anomaly-gate operating curve: attack recall (left) and false-positive rate (right) vs.\ gate-skip ratio.}
   \label{fig:gate}
 \end{figure}
 

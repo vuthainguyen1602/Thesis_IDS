@@ -229,15 +229,22 @@ def main():
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
-        fig, ax1 = plt.subplots(figsize=(8, 5))
-        ax1.plot(sweep_df["gate_skip_ratio"], sweep_df["recall"], "o-", color="#1f77b4", label="Recall")
-        ax1.set_xlabel("Gate skip ratio (benign offloaded from Spark)")
-        ax1.set_ylabel("Attack recall", color="#1f77b4")
-        ax1.set_ylim(0, 1.12)
-        ax2 = ax1.twinx()
-        ax2.plot(sweep_df["gate_skip_ratio"], sweep_df["fpr"], "s--", color="#d62728", label="FPR")
-        ax2.set_ylabel("False positive rate", color="#d62728")
-        plt.title("Anomaly-gate operating points: recall vs. offload (and FPR)")
+        # Two side-by-side panels (one axis each) instead of a dual-axis chart.
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 3.6), sharex=True)
+        ax1.plot(sweep_df["gate_skip_ratio"], sweep_df["recall"], "o-", color="#0072B2")
+        ax1.set_ylabel("Attack recall")
+        ax1.set_ylim(0, 1.05)
+        ax1.set_title("Recall vs. offload", fontsize=10)
+        ax2.plot(sweep_df["gate_skip_ratio"], sweep_df["fpr"], "s-", color="#D55E00")
+        ax2.set_ylabel("False positive rate")
+        ax2.set_ylim(bottom=0)
+        ax2.set_title("FPR vs. offload", fontsize=10)
+        for ax in (ax1, ax2):
+            ax.set_xlabel("Gate skip ratio (benign offloaded from Spark)")
+            ax.grid(color="0.9", linewidth=0.8)
+            ax.set_axisbelow(True)
+            for spine in ("top", "right"):
+                ax.spines[spine].set_visible(False)
         fig.tight_layout()
         plot_path = os.path.join(results_dir, "gate_operating_points.png")
         plt.savefig(plot_path, dpi=150, bbox_inches="tight")
