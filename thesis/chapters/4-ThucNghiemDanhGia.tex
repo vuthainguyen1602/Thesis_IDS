@@ -22,11 +22,11 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
         font=\small, >=Stealth,
         every node/.style={align=center},
         master/.style={draw=gray!65,        thick, rounded corners, fill=gray!8,   text width=12.6cm, minimum height=1.25cm, inner sep=4pt},
-        work/.style  ={draw=green!55!black,  thick, rounded corners, fill=green!8,  text width=5.6cm,  minimum height=2.35cm, inner sep=5pt},
-        store/.style ={draw=blue!55,         thick, rounded corners, fill=blue!5,   text width=5.6cm,  minimum height=0.85cm, inner sep=3pt},
+        work/.style  ={draw=accGreen!80!black,  thick, rounded corners, fill=accGreen!8,  text width=5.6cm,  minimum height=2.35cm, inner sep=5pt},
+        store/.style ={draw=accBlue,         thick, rounded corners, fill=accBlue!5,   text width=5.6cm,  minimum height=0.85cm, inner sep=3pt},
         lbl/.style   ={font=\footnotesize, fill=white, inner sep=1.5pt, text=gray!35!black},
         dn/.style    ={-{Stealth[length=2.6mm]}, thick, draw=gray!55!black},
-        up/.style    ={-{Stealth[length=2.6mm]}, thick, draw=orange!75!black, dashed},
+        up/.style    ={-{Stealth[length=2.6mm]}, thick, draw=accOrange, dashed},
     ]
         \node[master] (m) at (0,0) {\textbf{Máy chủ điều phối: MacBook Air (Apple M3, 16\,GB)}\\[2pt]
             Spark \textbf{Master} (điều phối cụm) \;$|$\; Tiền xử lý CSV\,$\rightarrow$\,Parquet \;$|$\; Docker: Kafka / PostgreSQL / InfluxDB / Grafana\\[1pt]
@@ -446,11 +446,11 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
         font=\small, >=Stealth,
         every node/.style={align=center},
         pc/.style ={draw=gray!60,         thick, rounded corners, fill=gray!8,  minimum width=13.4cm, minimum height=1.3cm, inner sep=3pt},
-        jet/.style={draw=green!55!black,  thick, rounded corners, fill=green!8, text width=4.2cm, minimum height=2.0cm, inner sep=4pt},
-        mtr/.style={draw=blue!55,         thick, rounded corners, fill=blue!5,  minimum width=13.4cm, minimum height=1.0cm, inner sep=3pt},
-        lbl/.style={font=\footnotesize, fill=white, inner sep=1.5pt, align=center, text=cyan!40!black},
+        jet/.style={draw=accGreen!80!black,  thick, rounded corners, fill=accGreen!8, text width=4.2cm, minimum height=2.0cm, inner sep=4pt},
+        mtr/.style={draw=accBlue,         thick, rounded corners, fill=accBlue!5,  minimum width=13.4cm, minimum height=1.0cm, inner sep=3pt},
+        lbl/.style={font=\footnotesize, fill=white, inner sep=1.5pt, align=center, text=accBlue!75!black},
         arr/.style ={-{Stealth[length=2.5mm]}, thick, draw=gray!60!black},
-        dsh/.style={-{Stealth[length=2.5mm]}, thick, draw=cyan!50!black, dashed},
+        dsh/.style={-{Stealth[length=2.5mm]}, thick, draw=accBlue, dashed},
     ]
         \node[pc]  (pc)  at (0, 0.0)   {\textbf{Máy chủ điều phối (MacBook, Docker)}\\[2pt]
             Apache Kafka \;$|$\; PostgreSQL \;$|$\; InfluxDB \;$|$\; Grafana \;$|$\; \texttt{data\_sender.py}};
