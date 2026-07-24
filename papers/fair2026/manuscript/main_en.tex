@@ -177,7 +177,7 @@ We merge the eight CICIDS2017 CSV files, normalize column names, replace infinit
 \end{list}
 \end{algorithm}
 
-Algorithm~\ref{alg:prep} summarizes the procedure, and Figure~\ref{fig:pipeline} places it in the full evaluation pipeline. After processing, the data are split into \textbf{80\% training / 20\% test} (with a fixed seed), stored in Parquet format, and reused throughout the experiments. The number of remaining numeric features is 77, and the number of samples after deduplication is 1,785,349/447,275 ($\approx$2,232,624 total after feature-level dedup).
+Algorithm~\ref{alg:prep} summarizes the procedure, and Figure~\ref{fig:pipeline} places it in the full evaluation pipeline. After processing, the data are split into \textbf{80\% training / 20\% test} (with a fixed seed), stored in Parquet format, and reused throughout the experiments. The number of remaining numeric features is 77, and the number of samples after deduplication is 1,785,349/447,275 (2,232,624 total after feature-level dedup).
 
 \subsection{Classifiers and the four dimensionality-reduction strategies}
 
