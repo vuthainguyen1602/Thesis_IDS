@@ -8,7 +8,7 @@ Việc \emph{huấn luyện} mô hình được thực hiện trên một \textb
 \begin{itemize}
   \item \textbf{Máy chủ (Spark master):} máy tính xách tay MacBook Air, vi xử lý Apple M3, RAM 16 GB, macOS Sonoma 14.3; đảm nhận điều phối cụm (master), tiền xử lý dữ liệu thô (từ CSV sang Parquet) và chạy hạ tầng Docker (Kafka, PostgreSQL, InfluxDB, Grafana).
   \item \textbf{Hai nút worker:} \textbf{NVIDIA Jetson Orin Nano Super Developer Kit}; cấu hình chi tiết (CPU/GPU/RAM/lưu trữ) nêu tại Bảng~\ref{tab:hardware}, Chương~3; hệ điều hành Ubuntu (NVIDIA JetPack/L4T). Jetson~\#1 đồng thời chạy tiến trình \emph{driver} của Spark (driver là tiến trình điều khiển ứng dụng, khác với vai trò \emph{master} điều phối cụm của MacBook).
-  \item \textbf{Phần mềm:} Python 3, Apache Spark / PySpark 3.4.1, MLlib; cấu hình cụm tiêu biểu: \texttt{executor.memory}=3\,GB, \texttt{executor.cores}=4, \texttt{driver.memory}=3\,GB, \texttt{shuffle.partitions}=32; mỗi Jetson được cấp 8\,GB swap trên ổ NVMe để tránh tràn bộ nhớ khi cao điểm (xem \texttt{cluster/spark\_cluster.env}, \texttt{cluster/setup\_swap\_jetson.sh}).
+  \item {\sloppy \textbf{Phần mềm:} Python 3, Apache Spark / PySpark 3.4.1, MLlib; cấu hình cụm tiêu biểu: \texttt{executor.memory}=3\,GB, \texttt{executor.cores}=4, \texttt{driver.memory}=3\,GB, \texttt{shuffle.partitions}=32; mỗi Jetson được cấp 8\,GB swap trên ổ NVMe để tránh tràn bộ nhớ khi cao điểm (xem \texttt{cluster/spark\_cluster.env}, \texttt{cluster/setup\_swap\_jetson.sh}).\par}
 \end{itemize}
 
 Các thuật toán học máy, phương pháp giảm chiều và các bước đánh giá đều được triển khai bằng PySpark và thực thi phân tán trên hai nút Jetson; tập dữ liệu Parquet được đồng bộ sang cả hai worker trước khi huấn luyện. Kiến trúc cụm huấn luyện phân tán (gồm vai trò \textit{master} điều phối trên MacBook và hai \textit{worker}/\textit{executor} trên Jetson) được minh họa ở Hình~\ref{fig:spark_cluster}. Cần phân biệt rõ với Hình~\ref{fig:ids_diagram} (pha suy luận): cùng một cặp Jetson nhưng ở pha huấn luyện đóng vai trò worker của cụm Spark, còn ở pha suy luận đóng vai trò cổng lọc (gate) và bộ phân loại.
@@ -521,7 +521,7 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
     Mỗi nút ghi nhận thời gian dự đoán/mẫu, mức sử dụng CPU/RAM/nhiệt độ và thông lượng (gắn nhãn theo \texttt{EDGE\_NODE\_ID}); các chỉ số được lưu vào InfluxDB.
 
     \item \textbf{Lưu trữ và cảnh báo}:
-    Kết quả dự đoán và sự kiện tấn công được lưu vào PostgreSQL; khi phát hiện lưu lượng bất thường, hệ thống kích hoạt cảnh báo qua Email/Webhook (Mailtrap, Slack trong môi trường kiểm thử) từ một nút chính được chỉ định để tránh trùng lặp.
+    Kết quả dự đoán và sự kiện tấn công được lưu vào PostgreSQL; khi phát hiện lưu lượng bất thường, hệ thống kích hoạt cảnh báo qua Email/\allowbreak Webhook (Mailtrap, Slack trong môi trường kiểm thử) từ một nút chính được chỉ định để tránh trùng lặp.
 
     \item \textbf{Trực quan hóa và giám sát}:
     Grafana truy xuất dữ liệu từ InfluxDB và PostgreSQL để xây dựng dashboard theo thời gian thực, giám sát trạng thái hệ thống và thống kê các sự kiện tấn công.
