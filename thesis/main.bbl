@@ -433,8 +433,8 @@
       \strng{authornamehash}{8a50650b0877dcea692fcd79f410478a}
       \strng{authorfullhash}{8a50650b0877dcea692fcd79f410478a}
       \strng{authorfullhashraw}{8a50650b0877dcea692fcd79f410478a}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Scientific Reports}
@@ -473,8 +473,8 @@
       \strng{authornamehash}{db153483c5f250be04cb18177715ddaf}
       \strng{authorfullhash}{774ea61000aad37d2f927c186556407c}
       \strng{authorfullhashraw}{774ea61000aad37d2f927c186556407c}
-      \field{sortinit}{8}
-      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Computer Networks}
@@ -513,8 +513,8 @@
       \strng{authornamehash}{8ff87cc38722bc4baab0529589501317}
       \strng{authorfullhash}{a8ac134b9759ab4ac21c445272bf5fb2}
       \strng{authorfullhashraw}{a8ac134b9759ab4ac21c445272bf5fb2}
-      \field{sortinit}{9}
-      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Future Internet}
@@ -1274,8 +1274,8 @@
       \strng{authornamehash}{a7064352fbb55a4d6cecfa3f5566452c}
       \strng{authorfullhash}{3238bcfde2cc2eb0ee92abe33ed93c20}
       \strng{authorfullhashraw}{3238bcfde2cc2eb0ee92abe33ed93c20}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Sensors}
@@ -1310,8 +1310,8 @@
       \strng{authornamehash}{69f51a0fd423b95a8354e8bc66ef39e0}
       \strng{authorfullhash}{69f51a0fd423b95a8354e8bc66ef39e0}
       \strng{authorfullhashraw}{69f51a0fd423b95a8354e8bc66ef39e0}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Proc. 15th IEEE Int. Conf. on Machine Learning and Applications (ICMLA)}
@@ -1905,8 +1905,8 @@
       \strng{authornamehash}{4c67d5268f413e83454c8adc14ab43c3}
       \strng{authorfullhash}{4c67d5268f413e83454c8adc14ab43c3}
       \strng{authorfullhashraw}{4c67d5268f413e83454c8adc14ab43c3}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Machine learning}
@@ -1943,8 +1943,8 @@
       \strng{authornamehash}{3c6614c24b144f1599c64619f275bade}
       \strng{authorfullhash}{fd75cea68d6982b503a0cd84f7cc7b51}
       \strng{authorfullhashraw}{fd75cea68d6982b503a0cd84f7cc7b51}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Nature}
@@ -2272,8 +2272,8 @@
       \strng{authornamehash}{9cd6e49767b1dfa9f5df9a46216a8739}
       \strng{authorfullhash}{9cd6e49767b1dfa9f5df9a46216a8739}
       \strng{authorfullhashraw}{9cd6e49767b1dfa9f5df9a46216a8739}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Advances in Neural Information Processing Systems (NeurIPS)}
@@ -2281,6 +2281,45 @@
       \field{year}{2017}
       \field{pages}{4765\bibrangedash 4774}
       \range{pages}{10}
+    \endentry
+    \entry{engelen2021troubleshooting}{inproceedings}{}{}
+      \name{author}{3}{}{%
+        {{hash=96eadf01b764576c2d551a8ff008f008}{%
+           family={Engelen},
+           familyi={E\bibinitperiod},
+           given={Gints},
+           giveni={G\bibinitperiod}}}%
+        {{hash=30383b07c1567b99fd721bc7bbc13db2}{%
+           family={Rimmer},
+           familyi={R\bibinitperiod},
+           given={Vera},
+           giveni={V\bibinitperiod}}}%
+        {{hash=ebb6bf71def119ef341be1fc1974891e}{%
+           family={Joosen},
+           familyi={J\bibinitperiod},
+           given={Wouter},
+           giveni={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{ad3332ad0367d114564d927aea7bd0aa}
+      \strng{fullhash}{f5d983a3878f56e54f53390de27297fe}
+      \strng{fullhashraw}{f5d983a3878f56e54f53390de27297fe}
+      \strng{bibnamehash}{f5d983a3878f56e54f53390de27297fe}
+      \strng{authorbibnamehash}{f5d983a3878f56e54f53390de27297fe}
+      \strng{authornamehash}{ad3332ad0367d114564d927aea7bd0aa}
+      \strng{authorfullhash}{f5d983a3878f56e54f53390de27297fe}
+      \strng{authorfullhashraw}{f5d983a3878f56e54f53390de27297fe}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2021 IEEE Security and Privacy Workshops (SPW)}
+      \field{title}{Troubleshooting an Intrusion Detection Dataset: the {CICIDS2017} Case Study}
+      \field{year}{2021}
+      \field{pages}{7\bibrangedash 12}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.1109/SPW53761.2021.00009
+      \endverb
     \endentry
     \entry{nadeau2003inference}{article}{}{}
       \name{author}{2}{}{%
@@ -2708,8 +2747,8 @@
       \strng{authornamehash}{3b7e00bc88d7aca4d4d5ddb8c252e36c}
       \strng{authorfullhash}{4ccabcfdf9c34f3d9a88fdca5bb95dd5}
       \strng{authorfullhashraw}{4ccabcfdf9c34f3d9a88fdca5bb95dd5}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{IEEE International Conference on Computer Vision (ICCV)}
@@ -2754,8 +2793,8 @@
       \strng{authornamehash}{56431deb8901de6306944b9ccd741193}
       \strng{authorfullhash}{1254394f61dcdeed105976a04fa49560}
       \strng{authorfullhashraw}{1254394f61dcdeed105976a04fa49560}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{ACM Computing Surveys}

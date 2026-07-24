@@ -3,9 +3,9 @@ Chương này trình bày các nền tảng lý thuyết liên quan đến đề
 \section{Tổng quan về \ac{iot}}
 Internet of Things (\ac{iot}) là mạng lưới các thiết bị vật lý được tích hợp cảm biến, phần mềm và khả năng kết nối mạng, cho phép thu thập và trao đổi dữ liệu qua Internet \cite{Atzori2010}. \ac{iot} bao gồm các thiết bị như cảm biến môi trường, thiết bị gia dụng thông minh và phương tiện giao thông tạo ra khối lượng dữ liệu lớn với đặc điểm đa dạng, tốc độ cao và yêu cầu xử lý thời gian thực. Theo báo cáo Cisco Annual Internet Report (2018--2023), tổng số thiết bị nối mạng toàn cầu được dự báo đạt khoảng 29,3 tỷ vào năm 2023, trong đó khoảng một nửa là kết nối máy-với-máy (M2M/\ac{iot}), nhấn mạnh tầm quan trọng của bảo mật trong lĩnh vực này \cite{Cisco2023}. Kiến trúc \ac{iot} thường được chia thành ba tầng:
 \begin{itemize}
-  \item \textbf{Tầng nhận thức}: Thu thập dữ liệu từ cảm biến và thiết bị.
-  \item \textbf{Tầng mạng}: Truyền tải dữ liệu qua các giao thức như MQTT, CoAP hoặc HTTP.
-  \item \textbf{Tầng ứng dụng}: Phân tích dữ liệu để cung cấp dịch vụ \cite{Khan2012}.
+  \item \textbf{Tầng cảm biến (Perception Layer)}: Thu thập dữ liệu từ cảm biến và thiết bị.
+  \item \textbf{Tầng mạng (Network Layer)}: Truyền tải dữ liệu qua các giao thức như MQTT, CoAP hoặc HTTP.
+  \item \textbf{Tầng ứng dụng (Application Layer)}: Phân tích dữ liệu để cung cấp dịch vụ \cite{Khan2012}.
 \end{itemize}
 
 Tuy nhiên, các thiết bị \ac{iot} thường có tài nguyên hạn chế (bộ nhớ, năng lượng, khả năng tính toán), dẫn đến thách thức trong việc triển khai các giải pháp bảo mật truyền thống. Các mối đe dọa như tấn công từ chối dịch vụ (DDoS), tấn công giả mạo và khai thác lỗ hổng giao thức đòi hỏi các giải pháp bảo mật tiên tiến như \ac{ids}~\cite{HaddadPajouh2021}.
@@ -24,7 +24,7 @@ Hệ thống phát hiện xâm nhập (\ac{ids}) giám sát và phân tích ho�
 \textbf{Dựa trên phương pháp phát hiện:}
 \begin{itemize}
   \item \textbf{Signature-based \ac{ids}}: Sử dụng các mẫu tấn công đã biết, hiệu quả với các mối đe dọa quen thuộc nhưng hạn chế với các tấn công mới.
-  \item \textbf{Anomaly-based \ac{ids}}: Phát hiện hành vi bất thường dựa trên mô hình hoạt động bình thường, phù hợp với các cuộc tấn công chưa biết \cite{chandola2009anomaly,ruff2021unifying}; các bộ phát hiện dựa trên autoencoder \cite{lopez2017autoencoder,alrawashdeh2016toward} là một hướng phổ biến của nhóm này.
+  \item \textbf{Anomaly-based \ac{ids}}: Phát hiện hành vi bất thường dựa trên mô hình hoạt động bình thường, phù hợp với các cuộc tấn công chưa biết \cite{chandola2009anomaly,ruff2021unifying}; các bộ phát hiện dựa trên học sâu như autoencoder \cite{lopez2017autoencoder} hay mạng niềm tin sâu (Deep Belief Network) \cite{alrawashdeh2016toward} là một hướng phổ biến của nhóm này.
   \item \textbf{Hybrid \ac{ids}}: Kết hợp cả hai phương pháp để tăng độ chính xác \cite{Liao2013}.
 \end{itemize}
 
@@ -79,7 +79,7 @@ Apache Spark bao gồm nhiều thành phần cốt lõi, mỗi thành phần đ�
 
   \item \textbf{MLlib}: Thư viện học máy tích hợp sẵn trong Spark \cite{meng2016mllib}, hỗ trợ huấn luyện và triển khai các mô hình học máy trên quy mô lớn. MLlib cung cấp các thuật toán như phân loại, hồi quy, phân cụm, khai thác mẫu và lọc cộng tác.
 
-  \item \textbf{Spark Streaming}: Công cụ xử lý dữ liệu thời gian thực bằng cách chia dòng dữ liệu thành các lô nhỏ để xử lý tương tự như dữ liệu theo lô. Công cụ này cho phép sử dụng lại mã nguồn và hỗ trợ nhiều nguồn dữ liệu như Kafka, Flume, Twitter, HDFS.
+  \item \textbf{Spark Streaming}: Công cụ xử lý dữ liệu thời gian thực bằng cách chia luồng dữ liệu thành các lô nhỏ để xử lý tương tự như dữ liệu theo lô. Công cụ này cho phép sử dụng lại mã nguồn và hỗ trợ nhiều nguồn dữ liệu như Kafka, Flume, Twitter, HDFS.
 
   \item \textbf{Spark SQL}: Thành phần truy vấn dữ liệu phân tán, hỗ trợ ngôn ngữ SQL tiêu chuẩn và HiveQL với hiệu suất cao nhờ tối ưu hóa Catalyst và định dạng cột. Nó hỗ trợ nhiều nguồn dữ liệu như JSON, Hive, Parquet, JDBC, MongoDB, Cassandra.
 
@@ -118,7 +118,7 @@ Tuy nhiên, việc ứng dụng học máy trong hệ thống \ac{iot} vẫn cò
 \item \textbf{Cây quyết định (\ac{dt})} là một trong những thuật toán học máy có giám sát phổ biến, được áp dụng rộng rãi trong các bài toán phân loại. Cấu trúc cơ bản của một cây quyết định bao gồm ba thành phần chính: \textbf{nút gốc}, \textbf{nút quyết định} và \textbf{nút lá}.
 Cây quyết định có ưu điểm là dễ hiểu, dễ diễn giải, có thể trực quan hóa và không yêu cầu giả định về phân phối dữ liệu. Tuy nhiên, \ac{dt} cũng dễ bị quá khớp (\textit{overfitting}) nếu không chọn được các tham số hợp lý hoặc xử lý trên dữ liệu nhiễu \cite{mitchell1997machine}.
 
-\item \textbf{Rừng ngẫu nhiên (\ac{rf})} là một thuật toán học máy được sử dụng phổ biến trong cả hai bài toán phân loại và hồi quy. Đây là một kỹ thuật học máy tổng hợp (\textit{ensemble learning}) dựa trên việc xây dựng và tổng hợp nhiều cây quyết định độc lập nhằm nâng cao độ chính xác và độ ổn định của mô hình. Thuật toán hoạt động bằng cách tạo ra nhiều cây quyết định trên các tập con khác nhau được chọn ngẫu nhiên từ tập dữ liệu huấn luyện. Mỗi cây được xây dựng dựa trên một mẫu bootstrap (lấy mẫu có hoàn lại), đồng thời tại mỗi nút chia, một tập con ngẫu nhiên của các đặc trưng được chọn để tìm điểm chia tốt nhất, thay vì sử dụng toàn bộ đặc trưng như trong cây quyết định truyền thống \cite{breiman2001random}.
+\item \textbf{Rừng ngẫu nhiên (\ac{rf})} là một thuật toán học máy được sử dụng phổ biến trong cả hai bài toán phân loại và hồi quy. Đây là một kỹ thuật học tổ hợp (\textit{ensemble learning}) dựa trên việc xây dựng và tổng hợp nhiều cây quyết định độc lập nhằm nâng cao độ chính xác và độ ổn định của mô hình. Thuật toán hoạt động bằng cách tạo ra nhiều cây quyết định trên các tập con khác nhau được chọn ngẫu nhiên từ tập dữ liệu huấn luyện. Mỗi cây được xây dựng dựa trên một mẫu bootstrap (lấy mẫu có hoàn lại), đồng thời tại mỗi nút chia, một tập con ngẫu nhiên của các đặc trưng được chọn để tìm điểm chia tốt nhất, thay vì sử dụng toàn bộ đặc trưng như trong cây quyết định truyền thống \cite{breiman2001random}.
 
 Kết quả cuối cùng được xác định bằng cách:  
 \begin{itemize}
@@ -140,7 +140,7 @@ Trong đó:
 \begin{itemize}
     \item $x_{i,j}$ là giá trị của biến độc lập thứ $j$ tại quan sát thứ $i$
     \item $\beta_0$ là hệ số chặn (bias), $\beta_j$ là hệ số hồi quy ứng với biến $x_j$
-    \item $z_i$ là đầu ra tuyến tính trước khi chuẩn hóa
+    \item $z_i$ là đầu ra tuyến tính trước khi đưa qua hàm kích hoạt (sigmoid)
 \end{itemize}
 
 Sau đó, xác suất xảy ra của sự kiện được tính thông qua hàm logistic (sigmoid):
@@ -213,7 +213,7 @@ Trong trường hợp dữ liệu không tuyến tính, \ac{svm} sử dụng k�
 
 \item \textbf{Multilayer Perceptron - MLP} là một mô hình học sâu cơ bản gồm nhiều lớp ẩn, có khả năng mô hình hóa các mối quan hệ phi tuyến giữa các đặc trưng \cite{rumelhart1986learning}. 
 
-Mỗi neuron trong mạng thực hiện phép biến đổi tuyến tính:
+Mỗi nơ-ron trong mạng thực hiện phép biến đổi tuyến tính:
 
 \begin{equation}
 z = w^T x + b
@@ -229,7 +229,7 @@ Trong đó $\sigma(\cdot)$ có thể là các hàm kích hoạt như sigmoid, ta
 
 \item \textbf{\ac{xgb}} là một phiên bản cải tiến của thuật toán \ac{gbt} truyền thống, được đề xuất bởi Chen và Guestrin vào năm 2016. \ac{xgb} được thiết kế để tối ưu hóa tốc độ huấn luyện, hiệu năng mô hình, và khả năng xử lý dữ liệu quy mô lớn trong các hệ thống tính toán phân tán \cite{chen2016xgboost}. \ac{xgb} sử dụng các chiến lược sau để cải thiện hiệu năng:
 \begin{itemize}
-    \item Ánh xạ gradient và Hessian để tối ưu hóa hiệu quả (second-order optimization).
+    \item Khai thác gradient và Hessian để tối ưu hóa hiệu quả (second-order optimization).
     \item Cắt tỉa cây (pruning) theo độ phức tạp thay vì độ sâu cố định.
     \item Tính song song trong việc tìm điểm chia tối ưu (split finding).
     \item Hỗ trợ xử lý thiếu giá trị (missing values) tự động.
@@ -237,8 +237,8 @@ Trong đó $\sigma(\cdot)$ có thể là các hàm kích hoạt như sigmoid, ta
 
 Mô hình \ac{xgb} đã được ứng dụng thành công trong nhiều bài toán học máy thực tế như dự báo tài chính, chẩn đoán y tế, phát hiện gian lận và phân tích hành vi khách hàng, nhờ độ chính xác cao và hiệu quả tính toán tốt.
 \end{itemize}
-\subsection{Một số thuật toán Ensemble learning}
-\textbf{Ensemble Learning (\ac{el})} là một kỹ thuật trong học máy nhằm kết hợp nhiều mô hình riêng lẻ để nâng cao độ chính xác và độ ổn định trong dự đoán. Thay vì chỉ dựa vào một mô hình đơn lẻ, phương pháp \ac{el} tận dụng sức mạnh tổng hợp của nhiều mô hình (ví dụ \ac{dt}, \ac{rf}, \ac{lr}) để xây dựng một hệ thống dự đoán chính xác hơn. Nguyên lý cốt lõi của \ac{el} là: mỗi mô hình riêng lẻ có thể chỉ đạt độ chính xác thấp hoặc dự đoán sai ở một số trường hợp, nhưng sự kết hợp hợp lý của chúng có thể giảm thiểu sai số, tăng độ chính xác nhờ tận dụng điểm mạnh và khắc phục điểm yếu của từng mô hình thành phần \cite{zhou2012ensemble}.
+\subsection{Một số thuật toán học tổ hợp}
+\textbf{Học tổ hợp (Ensemble Learning, \ac{el})} là một kỹ thuật trong học máy nhằm kết hợp nhiều mô hình riêng lẻ để nâng cao độ chính xác và độ ổn định trong dự đoán. Thay vì chỉ dựa vào một mô hình đơn lẻ, phương pháp \ac{el} tận dụng sức mạnh tổng hợp của nhiều mô hình (ví dụ \ac{dt}, \ac{rf}, \ac{lr}) để xây dựng một hệ thống dự đoán chính xác hơn. Nguyên lý cốt lõi của \ac{el} là: mỗi mô hình riêng lẻ có thể chỉ đạt độ chính xác thấp hoặc dự đoán sai ở một số trường hợp, nhưng sự kết hợp hợp lý của chúng có thể giảm thiểu sai số, tăng độ chính xác nhờ tận dụng điểm mạnh và khắc phục điểm yếu của từng mô hình thành phần \cite{zhou2012ensemble}.
 
 Kỹ thuật \ac{el} đã chứng minh được tính hiệu quả cao trong nhiều lĩnh vực yêu cầu độ chính xác cao như: phát hiện gian lận, phân tích dữ liệu lớn, nhận diện hình ảnh và xử lý ngôn ngữ tự nhiên. Trong lĩnh vực bảo mật mạng \ac{iot}, \ac{el} cũng được ứng dụng để cải thiện khả năng phát hiện bất thường hoặc xâm nhập dựa trên nhiều mô hình học máy được huấn luyện song song hoặc tuần tự.
 
