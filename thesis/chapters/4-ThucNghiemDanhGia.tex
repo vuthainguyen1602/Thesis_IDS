@@ -31,24 +31,24 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
         \node[master] (m) at (0,0) {\textbf{Máy chủ điều phối: MacBook Air (Apple M3, 16\,GB)}\\[2pt]
             Spark \textbf{Master} (điều phối cụm) \;$|$\; Tiền xử lý CSV\,$\rightarrow$\,Parquet \;$|$\; Docker: Kafka / PostgreSQL / InfluxDB / Grafana\\[1pt]
             \textit{Không chạy executor, không tham gia tính toán huấn luyện}};
-        \node[work] (w1) at (-3.6,-4.15) {\textbf{Jetson Orin Nano Super \#1}\\[1pt]
+        \node[work] (w1) at (-3.6,-4.7) {\textbf{Jetson Orin Nano Super \#1}\\[1pt]
             Spark \textbf{Worker} + \textbf{Driver}\\[2pt]
             Executor: cores=4, mem=3\,GB\\
             Phân vùng dữ liệu (partitions)\\
             swap 8\,GB (NVMe)};
-        \node[work] (w2) at ( 3.6,-4.15) {\textbf{Jetson Orin Nano Super \#2}\\[1pt]
+        \node[work] (w2) at ( 3.6,-4.7) {\textbf{Jetson Orin Nano Super \#2}\\[1pt]
             Spark \textbf{Worker}\\[2pt]
             Executor: cores=4, mem=3\,GB\\
             Phân vùng dữ liệu (partitions)\\
             swap 8\,GB (NVMe)};
-        \node[store] (s1) at (-3.6,-6.35) {Parquet (đồng bộ)};
-        \node[store] (s2) at ( 3.6,-6.35) {Parquet (đồng bộ)};
+        \node[store] (s1) at (-3.6,-7.3) {Parquet (đồng bộ)};
+        \node[store] (s2) at ( 3.6,-7.3) {Parquet (đồng bộ)};
         \draw[dn] (m.south -| w1) -- node[lbl]{giao tác vụ\\ + partition} (w1.north);
         \draw[dn] (m.south -| w2) -- node[lbl]{giao tác vụ\\ + partition} (w2.north);
         \draw[up] (w1.west) -- ++(-0.75,0) |- (m.west);
         \draw[up] (w2.east) -- ++( 0.75,0) |- (m.east);
         % Nhãn xoay dọc trên đường hồi trái (2 dòng để không lòi lên mũi tên ngang); nền trắng che line
-        \node[lbl, rotate=90] at (-7.3,-2.1) {gom kết quả\\(shuffle/collect)};
+        \node[lbl, rotate=90] at (-7.3,-2.35) {gom kết quả\\(shuffle/collect)};
         \draw[dn] (w1.south) -- (s1.north);
         \draw[dn] (w2.south) -- (s2.north);
     \end{tikzpicture}}
