@@ -163,7 +163,7 @@ Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn
     \begin{tikzpicture}[
         box/.style ={draw, thick, rounded corners, align=center, minimum height=0.95cm, inner sep=4pt, font=\small},
         arr/.style ={-{Stealth[length=2.4mm]}, thick, draw=gray!55!black},
-        lbl/.style ={font=\footnotesize\itshape, text=gray!40!black},
+        lbl/.style ={font=\footnotesize\itshape, text=gray!40!black, fill=white, inner sep=1.5pt},
     ]
         \node[box, draw=gray!55!black, fill=gray!8,       text width=2.7cm] (raw)   at (0,0)      {CICIDS2017 thô\\(tệp CSV)};
         \node[box, draw=accOrange,      fill=accOrange!12, text width=3.1cm] (prep)  at (4.2,0)    {Tiền xử lý\\\textbf{+ loại trừ rò rỉ}\\(Thuật toán~\ref{data_preparation_ag})};
