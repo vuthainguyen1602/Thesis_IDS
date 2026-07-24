@@ -27,6 +27,7 @@ Thumbs.db
 *.synctex.gz
 *.fdb_latexmk
 *.fls
+*.xdv
 missfont.log
 papers/*/manuscript/main.pdf
 thesis/manuscript/main.pdf
