@@ -251,7 +251,7 @@ Bổ sung cho xếp hạng tổng thể, Hình~\ref{fig:shap_beeswarm} trình b�
 
 % (Ghi chú nội bộ: hình và danh sách phải được tạo lại trên tập đặc trưng đã loại rò rỉ;
 % điền từ ml_06_feature_selection_shap/shap_feature_importance.csv.)
-Bên cạnh đó, giá trị trung bình tuyệt đối của SHAP (mean $|\text{SHAP}|$) được dùng để xếp hạng mức quan trọng tổng thể. Trên tập đặc trưng đã loại trừ rò rỉ, các đặc trưng có mean$|\text{SHAP}|$ lớn nhất là: \texttt{bwd\_packet\_length\_std}, \texttt{init\_win\_bytes\_backward}, \texttt{init\_win\_bytes\_forward} và \texttt{bwd\_packet\_length\_mean}.
+Bên cạnh đó, giá trị trung bình tuyệt đối của SHAP (mean $|\text{SHAP}|$) được dùng để xếp hạng mức quan trọng tổng thể. Trên tập đặc trưng đã loại trừ rò rỉ, các đặc trưng có mean $|\text{SHAP}|$ lớn nhất là: \texttt{bwd\_packet\_length\_std}, \texttt{init\_win\_bytes\_backward}, \texttt{init\_win\_bytes\_forward} và \texttt{bwd\_packet\_length\_mean}.
 
 Các đặc trưng như \texttt{\path{init_win_bytes_forward}}, \texttt{\path{init_win_bytes_backward}} (kích thước cửa sổ TCP giai đoạn khởi tạo) và \texttt{\path{bwd_packet_length_std}}, \texttt{\path{packet_length_std}} (sự biến thiên độ dài gói tin) phản ánh đặc tính phân phối lưu lượng — là các tín hiệu mạng có ý nghĩa, không phụ thuộc vào định danh dịch vụ. Việc loại \texttt{destination\_port} buộc mô hình dựa vào các đặc trưng hành vi này thay vì ghi nhớ ánh xạ cổng~$\rightarrow$~nhãn.
 
@@ -345,14 +345,14 @@ Baseline & \ac{xgb} & 0{,}9971 & 0{,}9999 \\
 \label{sec:cross-dataset}
 Đánh giá trên tập giữ lại ở trên là phép thử \emph{cùng bộ} (in-domain, cùng phân phối). Để kiểm chứng khả năng \emph{tổng quát hóa} thực sự, mô hình được huấn luyện trên một bộ dữ liệu và kiểm tra trên bộ \emph{khác} (đánh giá \emph{khác bộ}, cross-dataset; và ngược lại) trên tập đặc trưng đã loại trừ rò rỉ \emph{chung} của hai bộ. Do hai bộ dữ liệu đặt tên cột khác nhau (CSE-CIC-IDS2018 dùng tên viết tắt kiểu CICFlowMeter v3), tên cột của CSE-CIC-IDS2018 được ánh xạ về tên chuẩn của CICIDS2017 qua một bảng bí danh (alias) tường minh trong mã nguồn; danh sách đặc trưng chung sau ánh xạ được lưu tại \texttt{common\_features.txt} để bảo đảm tái lập. Mô hình dùng cho thí nghiệm là Random Forest có trọng số lớp (\texttt{weightCol}), nhất quán với cơ chế xử lý mất cân bằng ở Chương~3. Khoảng cách giữa F1 cùng bộ và F1 khác bộ (Bảng~\ref{tab:cross_dataset}) định lượng mức suy giảm khi gặp dịch chuyển phân phối, một thước đo độ ổn định chặt chẽ hơn holdout cùng phân phối.
 
-Do CSE-CIC-IDS2018~\cite{CSECICIDS2018} có quy mô rất lớn ($\sim$16 triệu luồng, $\sim$6\,GB), vượt khả năng xử lý thoải mái của thiết bị biên Jetson (8\,GB), thí nghiệm này dùng \emph{mẫu phân tầng theo nhãn} của CSE-CIC-IDS2018 (tỉ lệ 0{,}2, $\sim$3{,}14 triệu luồng lấy mẫu, còn $\sim$2{,}39 triệu sau khử trùng lặp mức đặc trưng, \texttt{seed}=42, công tắc \texttt{IDS\_SAMPLE\_FRAC}) nhằm bảo toàn tỉ lệ các lớp trong khi vừa với phần cứng; CICIDS2017 dùng $\sim$2{,}23 triệu luồng. Toàn bộ quy trình tiền xử lý và căn chỉnh CSE-CIC-IDS2018 cho thí nghiệm liên bộ dữ liệu được trình bày ở Thuật toán~\ref{alg:prep_2018}; các bước loại trừ rò rỉ (giao đặc trưng chung không chứa cổng/IP, khử trùng lặp mức đặc trưng) hoàn toàn nhất quán với quy trình cho CICIDS2017 (Thuật toán~\ref{data_preparation_ag}). Các con số mẫu được báo cáo tường minh để bảo đảm tính tái lập; việc mở rộng lên toàn bộ CSE-CIC-IDS2018 là hướng phát triển tiếp theo.
+Do CSE-CIC-IDS2018~\cite{CSECICIDS2018} có quy mô rất lớn ($\sim$16 triệu luồng, $\sim$6\,GB), vượt khả năng xử lý thoải mái của thiết bị biên Jetson (8\,GB), thí nghiệm này dùng \emph{mẫu phân tầng theo nhãn} của CSE-CIC-IDS2018 (tỷ lệ 0{,}2, $\sim$3{,}14 triệu luồng lấy mẫu, còn $\sim$2{,}39 triệu sau khử trùng lặp mức đặc trưng, \texttt{seed}=42, công tắc \texttt{IDS\_SAMPLE\_FRAC}) nhằm bảo toàn tỷ lệ các lớp trong khi vừa với phần cứng; CICIDS2017 dùng $\sim$2{,}23 triệu luồng. Toàn bộ quy trình tiền xử lý và căn chỉnh CSE-CIC-IDS2018 cho thí nghiệm liên bộ dữ liệu được trình bày ở Thuật toán~\ref{alg:prep_2018}; các bước loại trừ rò rỉ (giao đặc trưng chung không chứa cổng/IP, khử trùng lặp mức đặc trưng) hoàn toàn nhất quán với quy trình cho CICIDS2017 (Thuật toán~\ref{data_preparation_ag}). Các con số mẫu được báo cáo tường minh để bảo đảm tính tái lập; việc mở rộng lên toàn bộ CSE-CIC-IDS2018 là hướng phát triển tiếp theo.
 
 \begin{algorithm}[htbp]
 \caption{Tiền xử lý và căn chỉnh CSE-CIC-IDS2018 cho đánh giá liên bộ dữ liệu}
 \label{alg:prep_2018}
 \begin{algorithmic}[1]
 \Require Tập tệp CSV của CSE-CIC-IDS2018; lược đồ tên cột chuẩn của CICIDS2017 $\mathcal{S}_{2017}$;
-\Statex \qquad bảng bí danh tên cột $\mathcal{A}$ (2018 $\rightarrow$ 2017); tỉ lệ lấy mẫu $r = 0.2$; \texttt{seed} $= 42$
+\Statex \qquad bảng bí danh tên cột $\mathcal{A}$ (2018 $\rightarrow$ 2017); tỷ lệ lấy mẫu $r = 0.2$; \texttt{seed} $= 42$
 \Ensure Bộ dữ liệu $D_{2018}$ trên tập đặc trưng chung đã loại rò rỉ $\mathcal{F}_{\text{chung}}$, sẵn sàng cho thí nghiệm khác bộ
 
 \State \textbf{Bước 1: Nạp và làm sạch} (giống Thuật toán~\ref{data_preparation_ag})
@@ -370,7 +370,7 @@ Do CSE-CIC-IDS2018~\cite{CSECICIDS2018} có quy mô rất lớn ($\sim$16 triệ
 \State Lưu $\mathcal{F}_{\text{chung}}$ vào \texttt{common\_features.txt} \Comment{cố định cho cả hai chiều huấn luyện/kiểm tra}
 
 \State \textbf{Bước 5: Lấy mẫu phân tầng theo nhãn}
-\State $D \gets \Call{StratifiedSample}{D, r, \text{seed}=42}$ \Comment{bảo toàn tỉ lệ lớp; còn $\sim$3{,}14 triệu luồng}
+\State $D \gets \Call{StratifiedSample}{D, r, \text{seed}=42}$ \Comment{bảo toàn tỷ lệ lớp; còn $\sim$3{,}14 triệu luồng}
 
 \State \textbf{Bước 6 [loại rò rỉ~--~II]: Loại trùng lặp ở mức đặc trưng} (tất định, như Bước 4b của Thuật toán~\ref{data_preparation_ag})
 \State Gom nhóm theo $\mathcal{F}_{\text{chung}}$; loại toàn bộ nhóm mâu thuẫn nhãn; giữ đúng một đại diện của mỗi nhóm nhất quán \Comment{còn $\sim$2{,}39 triệu luồng}
