@@ -486,11 +486,11 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
     ]
         \node[pc]  (pc)  at (0, 0.0)   {\textbf{Máy chủ điều phối (MacBook, Docker)}\\[2pt]
             Apache Kafka \;$|$\; PostgreSQL \;$|$\; InfluxDB \;$|$\; Grafana \;$|$\; \texttt{data\_sender.py}};
-        \node[jet] (j1)  at (-4.6,-3.6) {\textbf{Jetson Orin Nano Super \#1}\\[2pt] \texttt{anomaly\_gate}\\[2pt]
+        \node[jet] (j1)  at (-4.6,-4.7) {\textbf{Jetson Orin Nano Super \#1}\\[2pt] \texttt{anomaly\_gate}\\[2pt]
             Autoencoder lọc bớt\\ lưu lượng bình thường};
-        \node[jet] (j2)  at ( 4.6,-3.6) {\textbf{Jetson Orin Nano Super \#2}\\[2pt] \texttt{classifier}\\[2pt]
+        \node[jet] (j2)  at ( 4.6,-4.7) {\textbf{Jetson Orin Nano Super \#2}\\[2pt] \texttt{classifier}\\[2pt]
             PySpark \texttt{PipelineModel}\\ phân loại Benign / Attack};
-        \node[mtr] (out) at (0,-6.9)    {Chỉ số hiệu năng $\rightarrow$ InfluxDB $\rightarrow$ Grafana \quad$|$\quad
+        \node[mtr] (out) at (0,-9.0)    {Chỉ số hiệu năng $\rightarrow$ InfluxDB $\rightarrow$ Grafana \quad$|$\quad
             Cảnh báo: Email (Mailtrap) / Slack};
 
         \draw[arr] (pc.south -| j1) -- node[lbl]{topic\\ \texttt{ids-network-flow}} (j1.north);
