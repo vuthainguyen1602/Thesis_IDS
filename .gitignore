@@ -42,7 +42,7 @@ data_smoke/
 *.parquet.crc
 
 # Experiment outputs (regenerate via reproduce.sh)
-results/
+results/*
 exp*_results/
 exp7_comparison/
 feature_importance.csv
@@ -55,6 +55,9 @@ jetson/.env
 cluster/spark_cluster.env
 
 !results/.gitkeep
+# Keep the cross-dataset results (source of tab:cross_dataset; generated on the Jetson cluster)
+!results/ml_11_cross_dataset/
+!results/ml_11_cross_dataset/**
 papers/fair2026/tables/
 papers/fair2026/results/
 papers/soict2026/results/benchmarks/
