@@ -1,12 +1,12 @@
 # Manuscript — FAIR'2026 (IEEE conference template)
 
-Built on the IEEE conference template (`IEEEtran.cls` + `ieeetr.bst`) in `../IEEE-conference-template-062824/`, compiled with **XeLaTeX** for Vietnamese.
+Built on the IEEE conference template (`IEEEtran.cls` + `ieeetr.bst`) in `../IEEE-conference-template-062824/`, compiled with **XeLaTeX**.
 
 ## Files
 
 | File | Description |
 |------|-------------|
-| `main.tex` | The paper (Vietnamese, IEEE 2-column, ~6 pages) |
+| `main_en.tex` | The paper (English, IEEE 2-column, ~8 pages) |
 | `references.bib` | BibTeX references |
 | `compile.sh` | Build the PDF (xelatex → bibtex → xelatex ×2) |
 
@@ -19,10 +19,10 @@ Built on the IEEE conference template (`IEEEtran.cls` + `ieeetr.bst`) in `../IEE
 # Compile
 cd papers/fair2026/manuscript
 ./compile.sh
-# → main.pdf
+# → main_en.pdf
 ```
 
-**Requirements:** TeX Live with `xelatex` and `bibtex`; packages `IEEEtran`, `fontspec`, `polyglossia`, `booktabs`, `amsmath`, `multirow`. The Vietnamese main font is set in `../../latex/fonts-xelatex-vi.tex` (Times New Roman by default).
+**Requirements:** TeX Live with `xelatex` and `bibtex`; packages `IEEEtran`, `fontspec`, `polyglossia`, `booktabs`, `amsmath`, `multirow`. The main serif font is set in `../../latex/fonts-xelatex-vi.tex` (Times New Roman by default).
 
 ```bash
 # macOS — full TeX Live if packages are missing

@@ -51,7 +51,7 @@ Figures are read directly from the results folders (no duplicate copies):
 
 ## Manuscript
 
-The paper is in `manuscript/` (IEEE conference template, XeLaTeX + Vietnamese).
+The paper is in `manuscript/` (IEEE conference template, XeLaTeX; `main_en.tex`).
 
 ## Out of scope for this paper
 
