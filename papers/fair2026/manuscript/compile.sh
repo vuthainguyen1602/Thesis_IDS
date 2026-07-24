@@ -15,16 +15,16 @@ cd "$DIR"
 mkdir -p "$OUT"
 
 echo "Using IEEEtran template: $IEEETPL"
-echo "Compiling main.tex with xelatex ..."
+echo "Compiling main_en.tex with xelatex ..."
 
-xelatex -interaction=nonstopmode main.tex || true
-bibtex main || true
-xelatex -interaction=nonstopmode main.tex || true
-xelatex -interaction=nonstopmode main.tex || true
+xelatex -interaction=nonstopmode main_en.tex || true
+bibtex main_en || true
+xelatex -interaction=nonstopmode main_en.tex || true
+xelatex -interaction=nonstopmode main_en.tex || true
 
-cp main.pdf "$OUT/FAIR2026_draft.pdf"
+cp main_en.pdf "$OUT/FAIR2026.pdf"
 
 echo ""
 echo "PDF saved:"
-echo "  $DIR/main.pdf"
-echo "  $OUT/FAIR2026_draft.pdf"
+echo "  $DIR/main_en.pdf"
+echo "  $OUT/FAIR2026.pdf"

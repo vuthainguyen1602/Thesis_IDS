@@ -11,9 +11,9 @@ export TEXINPUTS="$HERE/IEEE-conference-template-062824//:$HERE/../latex//:"
 export BSTINPUTS="$HERE/../latex//:"
 export BIBINPUTS="$HERE/../latex//:"
 
-xelatex -interaction=nonstopmode main.tex
-bibtex main
-xelatex -interaction=nonstopmode main.tex
-xelatex -interaction=nonstopmode main.tex
+xelatex -interaction=nonstopmode main_en.tex
+bibtex main_en
+xelatex -interaction=nonstopmode main_en.tex
+xelatex -interaction=nonstopmode main_en.tex
 
-echo "Done -> $HERE/manuscript/main.pdf"
+echo "Done -> $HERE/manuscript/main_en.pdf"
