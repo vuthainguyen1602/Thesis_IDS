@@ -181,7 +181,7 @@ Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn
         \node[box, draw=accGreen, fill=accGreen!14, text width=3.6cm] (val)  at (17.6,0.3) {\textbf{Validation} (16\%)\\{\footnotesize chọn Top-3 / cặp phương pháp so sánh}};
         \draw[arr] (train.east) -- ++(0.5,0) |- (base.west);
         \draw[arr] (train.east) -- ++(0.5,0) |- (val.west);
-        \node[lbl] at (15.6,1.95) {80/20, seed=42};
+        \node[lbl, anchor=east] at (15.4,1.85) {80/20, seed=42};
     \end{tikzpicture}}
     \caption{Sơ đồ phân chia dữ liệu CICIDS2017. Sau tiền xử lý và loại trừ rò rỉ (Thuật toán~\ref{data_preparation_ag}), dữ liệu được chia 80/20 thành train/test (\texttt{seed}=42); tập test được giữ lại, chỉ dùng để công bố kết quả cuối. Trong tập train lại tách 80/20 thành base-train (huấn luyện, và \emph{fit} các phép biến đổi StandardScaler/PCA cùng việc xếp hạng đặc trưng) và validation (chọn Top-3 mô hình thành phần và cặp phương pháp đưa vào kiểm định). Riêng ngưỡng cổng bất thường được chọn trên 10\% lưu lượng benign của tập train (\texttt{seed}=42). Tập test không tham gia bất kỳ khâu lựa chọn nào.}
     \label{fig:data_split}
