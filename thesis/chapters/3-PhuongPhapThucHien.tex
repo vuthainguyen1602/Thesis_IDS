@@ -131,11 +131,12 @@ Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng 
 \State \textbf{Bước 3: Tạo nhãn nhị phân}
 \State $\forall (x_i, \text{label}_i) \in D: \ y_i \gets \begin{cases} 0 & \text{nếu label}_i = \text{``BENIGN''} \\ 1 & \text{ngược lại (Attack)} \end{cases}$
 
-\State \textbf{Bước 4: Xác định các đặc trưng số (đã loại trừ rò rỉ)}
+\Statex \textcolor{accOrange}{\textbf{$\rightarrow$ Hai bước loại trừ rò rỉ dữ liệu (data leakage): Bước 4 và Bước 4b}}
+\State \textbf{Bước 4 [loại rò rỉ~--~I]: Xác định các đặc trưng số (đã loại trừ rò rỉ)}
 \State $\mathcal{C}_{\text{exclude}} \gets \{\text{label, label\_binary, source\_ip, destination\_ip, flow\_id, timestamp, protocol,}$
 \Statex \qquad\qquad $\text{\textbf{destination\_port, source\_port}}\}$ \Comment{Loại bỏ đặc trưng gây rò rỉ nhãn}
 \State $\mathcal{F} \gets \{c \in \text{columns}(D) \mid c \notin \mathcal{C}_{\text{exclude}} \wedge \text{dtype}(c) \in \{\text{double, float, int, bigint}\}\}$
-\State \textbf{Bước 4b: Loại bỏ trùng lặp ở mức đặc trưng (tất định)}
+\State \textbf{Bước 4b [loại rò rỉ~--~II]: Loại bỏ trùng lặp ở mức đặc trưng (tất định)}
 \State $G \gets \text{GroupBy}(D, \mathcal{F})$ \Comment{Gom nhóm theo toàn bộ vector đặc trưng}
 \For{mỗi nhóm $g \in G$}
     \If{$|\{y_i : (x_i, y_i) \in g\}| > 1$} \Comment{Nhóm mâu thuẫn nhãn (Benign lẫn Attack)}
@@ -154,7 +155,37 @@ Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng 
 
 \textbf{Phân chia tập dữ liệu}
 
-Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn luyện và kiểm tra bằng phép chia ngẫu nhiên (random split) với seed cố định (=42) để đảm bảo tái lập. Các chỉ số hiệu năng được \textbf{công bố trên tập kiểm tra} (tập giữ lại cuối cùng, không tham gia huấn luyện, xếp hạng đặc trưng hay tinh chỉnh siêu tham số); kết quả trên tập huấn luyện chỉ được dùng để chẩn đoán hiện tượng quá khớp (overfitting) hoặc thiếu khớp (underfitting). Đáng lưu ý, \texttt{StandardScaler}, \ac{pca} và việc xếp hạng đặc trưng (RF Importance, \ac{shap}) đều được \emph{fit chỉ trên tập huấn luyện $D_{\text{train}}$} rồi \emph{transform} lên tập kiểm tra, nhằm tránh rò rỉ thông tin từ tập kiểm tra vào quá trình huấn luyện. Riêng việc \textbf{chọn Top-3 mô hình thành phần} cho các ensemble (cũng như việc chọn mô hình đại diện mỗi phương pháp và cặp phương pháp đưa vào kiểm định thống kê, Chương~4) được thực hiện trên một \emph{tập kiểm định (validation)} tách từ tập huấn luyện (theo tỷ lệ 80/20, \texttt{seed}=42, các mô hình cơ sở huấn luyện trên phần còn lại); nhờ vậy tập kiểm tra hoàn toàn không tham gia vào khâu lựa chọn mô hình, khép kín nguy cơ rò rỉ chọn lọc.
+Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn luyện và kiểm tra bằng phép chia ngẫu nhiên (random split) với seed cố định (=42) để đảm bảo tái lập. Các chỉ số hiệu năng được \textbf{công bố trên tập kiểm tra} (tập giữ lại cuối cùng, không tham gia huấn luyện, xếp hạng đặc trưng hay tinh chỉnh siêu tham số); kết quả trên tập huấn luyện chỉ được dùng để chẩn đoán hiện tượng quá khớp (overfitting) hoặc thiếu khớp (underfitting). Đáng lưu ý, \texttt{StandardScaler}, \ac{pca} và việc xếp hạng đặc trưng (RF Importance, \ac{shap}) đều được \emph{fit chỉ trên tập huấn luyện $D_{\text{train}}$} rồi \emph{transform} lên tập kiểm tra, nhằm tránh rò rỉ thông tin từ tập kiểm tra vào quá trình huấn luyện. Riêng việc \textbf{chọn Top-3 mô hình thành phần} cho các ensemble (cũng như việc chọn mô hình đại diện mỗi phương pháp và cặp phương pháp đưa vào kiểm định thống kê, Chương~4) được thực hiện trên một \emph{tập kiểm định (validation)} tách từ tập huấn luyện (theo tỷ lệ 80/20, \texttt{seed}=42, các mô hình cơ sở huấn luyện trên phần còn lại); nhờ vậy tập kiểm tra hoàn toàn không tham gia vào khâu lựa chọn mô hình, khép kín nguy cơ rò rỉ chọn lọc. Toàn bộ quy trình phân chia được minh họa ở Hình~\ref{fig:data_split}.
+
+\begin{figure}[htbp]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        box/.style ={draw, thick, rounded corners, align=center, minimum height=0.95cm, inner sep=4pt, font=\small},
+        arr/.style ={-{Stealth[length=2.4mm]}, thick, draw=gray!55!black},
+        lbl/.style ={font=\footnotesize\itshape, text=gray!40!black},
+    ]
+        \node[box, draw=gray!55!black, fill=gray!8,       text width=2.7cm] (raw)   at (0,0)      {CICIDS2017 thô\\(tệp CSV)};
+        \node[box, draw=accOrange,      fill=accOrange!12, text width=3.1cm] (prep)  at (4.2,0)    {Tiền xử lý\\\textbf{+ loại trừ rò rỉ}\\(Thuật toán~\ref{data_preparation_ag})};
+        \node[box, draw=gray!55!black,  fill=gray!8,       text width=1.9cm] (clean) at (8.2,0)    {$D$ sạch};
+        \draw[arr] (raw)  -- (prep);
+        \draw[arr] (prep) -- (clean);
+
+        \node[box, draw=accBlue,   fill=accBlue!8,    text width=2.5cm] (train) at (12.4,1.4)  {\textbf{Train} (80\%)};
+        \node[box, draw=accOrange, fill=accOrange!16, text width=3.3cm] (test)  at (12.4,-1.4) {\textbf{Test} (20\%)\\{\footnotesize giữ lại --- chỉ công bố cuối}};
+        \draw[arr] (clean.east) -- ++(0.5,0) |- (train.west);
+        \draw[arr] (clean.east) -- ++(0.5,0) |- (test.west);
+        \node[lbl] at (10.5,0.95) {RandomSplit 80/20, seed=42};
+
+        \node[box, draw=accBlue,  fill=accBlue!8,   text width=3.6cm] (base) at (17.6,2.5) {\textbf{Base-train} (64\%)\\{\footnotesize fit scaler/PCA/xếp hạng đặc trưng $+$ huấn luyện}};
+        \node[box, draw=accGreen, fill=accGreen!14, text width=3.6cm] (val)  at (17.6,0.3) {\textbf{Validation} (16\%)\\{\footnotesize chọn Top-3 / cặp phương pháp so sánh}};
+        \draw[arr] (train.east) -- ++(0.5,0) |- (base.west);
+        \draw[arr] (train.east) -- ++(0.5,0) |- (val.west);
+        \node[lbl] at (15.6,1.95) {80/20, seed=42};
+    \end{tikzpicture}}
+    \caption{Sơ đồ phân chia dữ liệu CICIDS2017. Sau tiền xử lý và loại trừ rò rỉ (Thuật toán~\ref{data_preparation_ag}), dữ liệu được chia 80/20 thành train/test (\texttt{seed}=42); tập test được giữ lại, chỉ dùng để công bố kết quả cuối. Trong tập train lại tách 80/20 thành base-train (huấn luyện, và \emph{fit} các phép biến đổi StandardScaler/PCA cùng việc xếp hạng đặc trưng) và validation (chọn Top-3 mô hình thành phần và cặp phương pháp đưa vào kiểm định). Riêng ngưỡng cổng bất thường được chọn trên 10\% lưu lượng benign của tập train (\texttt{seed}=42). Tập test không tham gia bất kỳ khâu lựa chọn nào.}
+    \label{fig:data_split}
+\end{figure}
 
 
 \section{Lựa chọn đặc trưng và giảm chiều dữ liệu}
