@@ -159,7 +159,7 @@ Chúng tôi gộp tám file CSV CICIDS2017, chuẩn hoá tên cột, thay giá t
 \label{alg:prep}
 \footnotesize
 \begin{list}{}{\setlength{\leftmargin}{0.8em}\setlength{\itemsep}{1pt}\setlength{\parsep}{0pt}\setlength{\topsep}{2pt}}
-\item \textbf{Đầu vào:} các tệp CSV $\{F_1,\dots,F_N\}$; tỉ lệ chia $\alpha{=}0.8$
+\item \textbf{Đầu vào:} các tệp CSV $\{F_1,\dots,F_N\}$; tỷ lệ chia $\alpha{=}0.8$
 \item \textbf{Đầu ra:} $D_{\text{train}}$, $D_{\text{test}}$ (Parquet)
 \item 1:\ $D \gets \bigcup_i F_i$ \hfill $\triangleright$ chuẩn hoá tên cột; $\pm\infty \rightarrow$ NaN
 \item 2:\ $D \gets \textsc{DropDuplicates}(D)$;\ \ $D \gets \textsc{DropNaN}(D)$
@@ -364,7 +364,7 @@ Trong kiểm tra độ ổn định trong-phân-phối (mẫu con của tập ki
 \subsection{Tổng quát hoá liên bộ dữ liệu}
 \label{sec:cross-dataset}
 
-Để vượt khỏi đánh giá \emph{cùng bộ} (in-domain), chúng tôi huấn luyện trên một bộ dữ liệu và kiểm tra trên bộ \emph{khác} (đánh giá \emph{khác bộ}, cross-dataset; và ngược lại) trên tập đặc trưng đã loại trừ rò rỉ \emph{chung} của hai bộ. Khoảng cách giữa F1 cùng bộ (A$\to$A) và F1 khác bộ (A$\to$B) trong Bảng~\ref{tab:cross-dataset} định lượng khả năng \emph{tổng quát hoá} của mô hình đã loại rò rỉ. Đây là một phép thử dịch chuyển phân phối thực sự, khác với holdout cùng phân phối ở trên. Do CSE-CIC-IDS2018~\cite{csecicids2018} rất lớn ($\sim$16 triệu luồng), chúng tôi sử dụng \emph{mẫu phân tầng theo nhãn} (tỉ lệ 0{,}2, $\sim$3{,}14 triệu luồng lấy mẫu, còn $\sim$2{,}39 triệu sau khử trùng lặp mức đặc trưng, seed cố định) bảo toàn tỉ lệ các lớp; CICIDS2017 dùng $\sim$2{,}23 triệu luồng. Các con số mẫu được báo cáo tường minh để bảo đảm tái lập.
+Để vượt khỏi đánh giá \emph{cùng bộ} (in-domain), chúng tôi huấn luyện trên một bộ dữ liệu và kiểm tra trên bộ \emph{khác} (đánh giá \emph{khác bộ}, cross-dataset; và ngược lại) trên tập đặc trưng đã loại trừ rò rỉ \emph{chung} của hai bộ. Khoảng cách giữa F1 cùng bộ (A$\to$A) và F1 khác bộ (A$\to$B) trong Bảng~\ref{tab:cross-dataset} định lượng khả năng \emph{tổng quát hoá} của mô hình đã loại rò rỉ. Đây là một phép thử dịch chuyển phân phối thực sự, khác với holdout cùng phân phối ở trên. Do CSE-CIC-IDS2018~\cite{csecicids2018} rất lớn ($\sim$16 triệu luồng), chúng tôi sử dụng \emph{mẫu phân tầng theo nhãn} (tỷ lệ 0{,}2, $\sim$3{,}14 triệu luồng lấy mẫu, còn $\sim$2{,}39 triệu sau khử trùng lặp mức đặc trưng, seed cố định) bảo toàn tỷ lệ các lớp; CICIDS2017 dùng $\sim$2{,}23 triệu luồng. Các con số mẫu được báo cáo tường minh để bảo đảm tái lập.
 
 \begin{table}[htbp]
   \caption{Tổng quát hoá liên bộ dữ liệu (CICIDS2017 và CSE-CIC-IDS2018, mẫu phân tầng theo nhãn với seed cố định; số liệu từ bộ kết quả thí nghiệm công bố kèm mã nguồn).}
