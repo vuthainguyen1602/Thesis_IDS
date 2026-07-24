@@ -2012,6 +2012,38 @@
       \field{title}{Ensemble Methods: Foundations and Algorithms}
       \field{year}{2012}
     \endentry
+    \entry{goldschmidt2025datasets}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=66520fe6a2b3efaf49197e83b8d4e73d}{%
+           family={Goldschmidt},
+           familyi={G\bibinitperiod},
+           given={Patrik},
+           giveni={P\bibinitperiod}}}%
+        {{hash=d9bb76983d94eb57c0c8e2e8ccb0749a}{%
+           family={Chudá},
+           familyi={C\bibinitperiod},
+           given={Daniela},
+           giveni={D\bibinitperiod}}}%
+      }
+      \strng{namehash}{5179483acade1b9d7de0338176d755eb}
+      \strng{fullhash}{5179483acade1b9d7de0338176d755eb}
+      \strng{fullhashraw}{5179483acade1b9d7de0338176d755eb}
+      \strng{bibnamehash}{5179483acade1b9d7de0338176d755eb}
+      \strng{authorbibnamehash}{5179483acade1b9d7de0338176d755eb}
+      \strng{authornamehash}{5179483acade1b9d7de0338176d755eb}
+      \strng{authorfullhash}{5179483acade1b9d7de0338176d755eb}
+      \strng{authorfullhashraw}{5179483acade1b9d7de0338176d755eb}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Computers \& Security}
+      \field{title}{Network intrusion datasets: A survey, limitations, and recommendations}
+      \field{volume}{156}
+      \field{year}{2025}
+      \field{pages}{104510}
+      \range{pages}{1}
+    \endentry
     \entry{sharafaldin2018toward}{inproceedings}{}{}
       \name{author}{3}{}{%
         {{hash=bae5716ccbaae232f09efe69262a8ca1}{%
@@ -2239,8 +2271,8 @@
       \strng{authornamehash}{2d87c65d6bc93daaaf4c9f1e98b5e53a}
       \strng{authorfullhash}{2d87c65d6bc93daaaf4c9f1e98b5e53a}
       \strng{authorfullhashraw}{2d87c65d6bc93daaaf4c9f1e98b5e53a}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{edition}{2}
@@ -2661,8 +2693,8 @@
       \strng{authornamehash}{d009307c8a7d167729aa617586c9fd8a}
       \strng{authorfullhash}{410d77ed28aaaef357bb86242898553b}
       \strng{authorfullhashraw}{410d77ed28aaaef357bb86242898553b}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Proceedings of the NetDB Workshop}
@@ -2700,8 +2732,8 @@
       \strng{authornamehash}{6bcc313fb25bc61f74b62ca709ae4b05}
       \strng{authorfullhash}{c8dfb87590a41f2f9294282b456dede4}
       \strng{authorfullhashraw}{c8dfb87590a41f2f9294282b456dede4}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Journal of Artificial Intelligence Research}
