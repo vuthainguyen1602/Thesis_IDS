@@ -134,17 +134,17 @@ Kết quả hiệu năng của các thuật toán \ac{ml} đơn lẻ và phươn
 \toprule
 \textbf{Thuật toán} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{AUC-ROC} & \textbf{AUC-\ac{pr}} \\ 
 \midrule
-Decision Tree          & 0,9986 & 0,9925 & 0,9983 & 0,9954 & 0,9994 & 0,9988 \\
-Logistic Regression    & 0,9288 & 0,6937 & 0,9422 & 0,7991 & 0,9859 & 0,9509 \\
-\ac{svm} (LinearSVC)        & 0,9199 & 0,6650 & 0,9395 & 0,7788 & 0,9843 & 0,9485 \\
-\ac{nb}            & 0,3163 & 0,1793 & 0,9933 & 0,3038 & 0,8829 & 0,6364 \\
-Random Forest          & 0,9985 & 0,9939 & 0,9960 & 0,9949 & 0,9999 & 0,9997 \\
-\ac{gbt}                    & 0,9980 & 0,9900 & 0,9965 & 0,9932 & 0,9998 & 0,9991 \\
-\ac{xgb}                & 0,9991 & 0,9950 & 0,9993 & 0,9971 & 1,0000 & 0,9999 \\
-MLP                    & 0,9900 & 0,9844 & 0,9487 & 0,9662 & 0,9984 & 0,9936 \\
+Decision Tree          & 0{,}9986 & 0{,}9925 & 0{,}9983 & 0{,}9954 & 0{,}9994 & 0{,}9988 \\
+Logistic Regression    & 0{,}9288 & 0{,}6937 & 0{,}9422 & 0{,}7991 & 0{,}9859 & 0{,}9509 \\
+\ac{svm} (LinearSVC)        & 0{,}9199 & 0{,}6650 & 0{,}9395 & 0{,}7788 & 0{,}9843 & 0{,}9485 \\
+\ac{nb}            & 0{,}3163 & 0{,}1793 & 0{,}9933 & 0{,}3038 & 0{,}8829 & 0{,}6364 \\
+Random Forest          & 0{,}9985 & 0{,}9939 & 0{,}9960 & 0{,}9949 & 0{,}9999 & 0{,}9997 \\
+\ac{gbt}                    & 0{,}9980 & 0{,}9900 & 0{,}9965 & 0{,}9932 & 0{,}9998 & 0{,}9991 \\
+\ac{xgb}                & 0{,}9991 & 0{,}9950 & 0{,}9993 & 0{,}9971 & 1{,}0000 & 0{,}9999 \\
+MLP                    & 0{,}9900 & 0{,}9844 & 0{,}9487 & 0{,}9662 & 0{,}9984 & 0{,}9936 \\
 \midrule
-\textbf{Hybrid Bagging}   & 0,9990 & 0,9950 & 0,9984 & 0,9967 & 1,0000 & 0,9999 \\
-\textbf{Soft Voting}  & 0,9991 & 0,9952 & 0,9985 & 0,9969 & 1,0000 & 0,9999 \\
+\textbf{Hybrid Bagging}   & 0{,}9990 & 0{,}9950 & 0{,}9984 & 0{,}9967 & 1{,}0000 & 0{,}9999 \\
+\textbf{Soft Voting}  & 0{,}9991 & 0{,}9952 & 0{,}9985 & 0{,}9969 & 1{,}0000 & 0{,}9999 \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -172,10 +172,10 @@ Bảng \ref{tab:summary_comparison} tóm tắt sự khác biệt giữa các ph�
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
 \toprule
 \textbf{Phương pháp} & \textbf{\shortstack{Số đặc\\trưng}} & \textbf{\shortstack{Mô hình\\tốt nhất}} & \textbf{F1-Score} & \textbf{\shortstack{Huấn luyện\\(s)}} & \textbf{\shortstack{Dung lượng\\(MB)}} \\ \midrule
-Baseline (Toàn bộ) & 77 & \ac{xgb} & 0,9971 & 4615,5 & 2,32 \\
-\ac{rf} Importance & 30 & \ac{xgb} & 0,9922 & 1295,1 & 2,52 \\
-\ac{shap} Importance & 30 & \ac{xgb} & 0,9970 & 1226,1 & 0,003$^{\dagger}$ \\
-\ac{pca} (k=40) & 40 & \ac{xgb} & 0,9939 & 1444,8 & 3,82 \\ \bottomrule
+Baseline (Toàn bộ) & 77 & \ac{xgb} & 0{,}9971 & 4615{,}5 & 2{,}32 \\
+\ac{rf} Importance & 30 & \ac{xgb} & 0{,}9922 & 1295{,}1 & 2{,}52 \\
+\ac{shap} Importance & 30 & \ac{xgb} & 0{,}9970 & 1226{,}1 & 0{,}003$^{\dagger}$ \\
+\ac{pca} (k=40) & 40 & \ac{xgb} & 0{,}9939 & 1444{,}8 & 3{,}82 \\ \bottomrule
 \end{tabular*}
 
 \vspace{2pt}
@@ -191,10 +191,10 @@ Ngoài ra, sự so sánh trực tiếp giữa hai phương pháp lựa chọn đ
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
 \textbf{Thuật toán} & \textbf{F1 (\ac{rf} Top-30)} & \textbf{F1 (\ac{shap} Top-30)} & \textbf{Chênh lệch (\%)} \\ \midrule
-Random Forest & 0,9879 & 0,9955 & +0,77 \\
-\ac{xgb} & 0,9922 & 0,9970 & +0,48 \\
-\ac{gbt} & 0,9844 & 0,9918 & +0,75 \\
-Decision Tree & 0,9835 & 0,9948 & +1,15 \\ \bottomrule
+Random Forest & 0{,}9879 & 0{,}9955 & +0{,}77 \\
+\ac{xgb} & 0{,}9922 & 0{,}9970 & +0{,}48 \\
+\ac{gbt} & 0{,}9844 & 0{,}9918 & +0{,}75 \\
+Decision Tree & 0{,}9835 & 0{,}9948 & +1{,}15 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
@@ -212,17 +212,17 @@ Kết quả hiệu năng của phương pháp Tối ưu hóa tham số được 
 \toprule
 \textbf{Thuật toán} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{AUC-ROC} & \textbf{AUC-\ac{pr}} \\ 
 \midrule
-Decision Tree          & 0,9987 & 0,9977 & 0,9936 & 0,9957 & 0,9994 & 0,9980 \\
-Logistic Regression    & 0,9541 & 0,9787 & 0,7094 & 0,8226 & 0,9749 & 0,9371 \\
+Decision Tree          & 0{,}9987 & 0{,}9977 & 0{,}9936 & 0{,}9957 & 0{,}9994 & 0{,}9980 \\
+Logistic Regression    & 0{,}9541 & 0{,}9787 & 0{,}7094 & 0{,}8226 & 0{,}9749 & 0{,}9371 \\
 \ac{svm} (LinearSVC)        & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
 \ac{nb}            & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
-Random Forest          & 0,9986 & 0,9985 & 0,9922 & 0,9953 & 0,9999 & 0,9997 \\
-\ac{gbt}                    & 0,9985 & 0,9979 & 0,9924 & 0,9951 & 0,9999 & 0,9993 \\
+Random Forest          & 0{,}9986 & 0{,}9985 & 0{,}9922 & 0{,}9953 & 0{,}9999 & 0{,}9997 \\
+\ac{gbt}                    & 0{,}9985 & 0{,}9979 & 0{,}9924 & 0{,}9951 & 0{,}9999 & 0{,}9993 \\
 \ac{xgb}                & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
 MLP                    & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
 \midrule
-\textbf{Hybrid Bagging}   & 0,9986 & 0,9956 & 0,9949 & 0,9953 & 0,9999 & 0,9998 \\
-\textbf{Soft Voting}  & 0,9988 & 0,9985 & 0,9932 & 0,9958 & 1,0000 & 0,9998 \\
+\textbf{Hybrid Bagging}   & 0{,}9986 & 0{,}9956 & 0{,}9949 & 0{,}9953 & 0{,}9999 & 0{,}9998 \\
+\textbf{Soft Voting}  & 0{,}9988 & 0{,}9985 & 0{,}9932 & 0{,}9958 & 1{,}0000 & 0{,}9998 \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -267,8 +267,8 @@ Các đặc trưng như \texttt{\path{init_win_bytes_forward}}, \texttt{\path{in
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
 \textbf{Cấu hình} & \textbf{F1} & \textbf{Recall (Attack)} & \textbf{AUC-\ac{pr}} \\ \midrule
-Giữ \texttt{destination\_port} (rò rỉ) & 0,9965 & 0,9988 & 0,9999 \\
-Loại \texttt{destination\_port} (đề xuất) & 0,9955 & 0,9961 & 0,9997 \\ \bottomrule
+Giữ \texttt{destination\_port} (rò rỉ) & 0{,}9965 & 0{,}9988 & 0{,}9999 \\
+Loại \texttt{destination\_port} (đề xuất) & 0{,}9955 & 0{,}9961 & 0{,}9997 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
@@ -288,16 +288,16 @@ Kết quả trong Bảng \ref{tab:exp0_system_performance} cho thấy:
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
 \textbf{Thuật toán} & \textbf{\shortstack{Huấn luyện\\(s)}} & \textbf{\shortstack{Dự đoán\\(s)}} & \textbf{\shortstack{Kích thước\\(MB)}} \\ \midrule
-Decision Tree          & 33,4   & 6,1  & 0,0004 \\
-Logistic Regression    & 49,2   & 5,4  & 0,009 \\
-\ac{svm} (LinearSVC)        & 224,3  & 5,4  & 0,002 \\
-\ac{nb}            & 8,2    & 5,2  & 0,012 \\
-Random Forest          & 610,3  & 18,6 & 3,69 \\
-\ac{gbt}                    & 1346,8 & 8,9  & 0,92 \\
-\ac{xgb}                & 4615,5 & 9,0  & 2,32 \\
-MLP                    & 314,7  & 8,0  & 0,0004 \\ \midrule
-\textbf{Hybrid Bagging}   & 11934,5 & 36,4 & 7,24 \\
-\textbf{Soft Voting}  & \textbf{--} & 25,6 & \textbf{--} \\ \bottomrule
+Decision Tree          & 33{,}4   & 6{,}1  & 0{,}0004 \\
+Logistic Regression    & 49{,}2   & 5{,}4  & 0{,}009 \\
+\ac{svm} (LinearSVC)        & 224{,}3  & 5{,}4  & 0{,}002 \\
+\ac{nb}            & 8{,}2    & 5{,}2  & 0{,}012 \\
+Random Forest          & 610{,}3  & 18{,}6 & 3{,}69 \\
+\ac{gbt}                    & 1346{,}8 & 8{,}9  & 0{,}92 \\
+\ac{xgb}                & 4615{,}5 & 9{,}0  & 2{,}32 \\
+MLP                    & 314{,}7  & 8{,}0  & 0{,}0004 \\ \midrule
+\textbf{Hybrid Bagging}   & 11934{,}5 & 36{,}4 & 7{,}24 \\
+\textbf{Soft Voting}  & \textbf{--} & 25{,}6 & \textbf{--} \\ \bottomrule
 \end{tabular*}
 \end{table}
 \begin{itemize}
@@ -318,8 +318,8 @@ Do các con số F1 giữa những phương pháp/thuật toán hàng đầu r�
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcccc@{}}
 \toprule
 \textbf{Phương pháp} & \textbf{Mô hình} & \textbf{\shortstack{F1 (mean $\pm$\\CI95 $t$)}} & \textbf{\shortstack{CI95\\Nadeau--Bengio}} & \textbf{\shortstack{$p$\\(ghép cặp)}} & \textbf{Cohen's $d$} \\ \midrule
-Baseline (toàn bộ) & \ac{xgb} & 0,99734 $\pm$ 0,00007 & [0,99722; 0,99746] & \multirow{2}{*}{0,031} & \multirow{2}{*}{1,94} \\
-\ac{shap} Top-30 & \ac{xgb} & 0,99720 $\pm$ 0,00009 & [0,99705; 0,99735] & & \\ \bottomrule
+Baseline (toàn bộ) & \ac{xgb} & 0{,}99734 $\pm$ 0{,}00007 & [0{,}99722; 0{,}99746] & \multirow{2}{*}{0{,}031} & \multirow{2}{*}{1{,}94} \\
+\ac{shap} Top-30 & \ac{xgb} & 0{,}99720 $\pm$ 0{,}00009 & [0{,}99705; 0{,}99735] & & \\ \bottomrule
 \end{tabular*}
 \end{table}
 
@@ -334,10 +334,10 @@ Mô hình đại diện của mỗi phương pháp được đánh giá lại tr
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
 \toprule
 \textbf{Phương pháp} & \textbf{Mô hình} & \textbf{F1 (holdout)} & \textbf{AUC-\ac{pr}} \\ \midrule
-Baseline & \ac{xgb} & 0,9971 & 0,9999 \\
-\ac{rf} Top-30 & \ac{xgb} & 0,9921 & 0,9998 \\
-\ac{shap} Top-30 & \ac{xgb} & 0,9969 & 0,9999 \\
-\ac{pca} & \ac{xgb} & 0,9939 & 0,9998 \\ \bottomrule
+Baseline & \ac{xgb} & 0{,}9971 & 0{,}9999 \\
+\ac{rf} Top-30 & \ac{xgb} & 0{,}9921 & 0{,}9998 \\
+\ac{shap} Top-30 & \ac{xgb} & 0{,}9969 & 0{,}9999 \\
+\ac{pca} & \ac{xgb} & 0{,}9939 & 0{,}9998 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
@@ -407,22 +407,22 @@ Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; đ�
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
 \textbf{Lớp} & \textbf{Support} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} \\ \midrule
-Benign                       & 380.119 & 0,9981 & 0,9997 & 0,9989 \\
-DoS Hulk                     & 34.446  & 0,9990 & 0,9904 & 0,9947 \\
-DDoS                         & 25.694  & 0,9996 & 0,9992 & 0,9994 \\
-DoS GoldenEye                & 2.020   & 1,0000 & 0,9757 & 0,9877 \\
-FTP-Patator                  & 1.147   & 0,9965 & 0,9965 & 0,9965 \\
-DoS slowloris                & 1.068   & 0,9953 & 0,9925 & 0,9939 \\
-DoS Slowhttptest             & 1.023   & 0,9286 & 0,9912 & 0,9589 \\
-SSH-Patator                  & 642     & 1,0000 & 0,9346 & 0,9662 \\
-PortScan                     & 383     & 1,0000 & 0,9530 & 0,9759 \\
-Web Attack~-- Brute Force    & 311     & 0,7346 & 0,7299 & 0,7323 \\
-Bot                          & 290     & 1,0000 & 0,4552 & 0,6256 \\
-Web Attack~-- XSS            & 111     & 1,0000 & 0,0270 & 0,0526 \\
-Infiltration                 & 12      & 1,0000 & 0,6667 & 0,8000 \\
-Web Attack~-- SQL Injection  & 6       & 0,0000 & 0,0000 & 0,0000 \\
-Heartbleed                   & 3       & 1,0000 & 1,0000 & 1,0000 \\ \midrule
-\multicolumn{2}{l}{\textbf{macro-F1 / weighted-F1}} & \multicolumn{3}{c}{0,806 / 0,998} \\ \bottomrule
+Benign                       & 380.119 & 0{,}9981 & 0{,}9997 & 0{,}9989 \\
+DoS Hulk                     & 34.446  & 0{,}9990 & 0{,}9904 & 0{,}9947 \\
+DDoS                         & 25.694  & 0{,}9996 & 0{,}9992 & 0{,}9994 \\
+DoS GoldenEye                & 2.020   & 1{,}0000 & 0{,}9757 & 0{,}9877 \\
+FTP-Patator                  & 1.147   & 0{,}9965 & 0{,}9965 & 0{,}9965 \\
+DoS slowloris                & 1.068   & 0{,}9953 & 0{,}9925 & 0{,}9939 \\
+DoS Slowhttptest             & 1.023   & 0{,}9286 & 0{,}9912 & 0{,}9589 \\
+SSH-Patator                  & 642     & 1{,}0000 & 0{,}9346 & 0{,}9662 \\
+PortScan                     & 383     & 1{,}0000 & 0{,}9530 & 0{,}9759 \\
+Web Attack~-- Brute Force    & 311     & 0{,}7346 & 0{,}7299 & 0{,}7323 \\
+Bot                          & 290     & 1{,}0000 & 0{,}4552 & 0{,}6256 \\
+Web Attack~-- XSS            & 111     & 1{,}0000 & 0{,}0270 & 0{,}0526 \\
+Infiltration                 & 12      & 1{,}0000 & 0{,}6667 & 0{,}8000 \\
+Web Attack~-- SQL Injection  & 6       & 0{,}0000 & 0{,}0000 & 0{,}0000 \\
+Heartbleed                   & 3       & 1{,}0000 & 1{,}0000 & 1{,}0000 \\ \midrule
+\multicolumn{2}{l}{\textbf{macro-F1 / weighted-F1}} & \multicolumn{3}{c}{0{,}806 / 0{,}998} \\ \bottomrule
 \end{tabular*}
 \end{table}
 
@@ -546,10 +546,10 @@ Kiến trúc này đảm bảo tính mô-đun, tách biệt các thành phần x
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
 \textbf{Quantile (validation)} & \textbf{Ngưỡng} & \textbf{Recall (Attack)} & \textbf{FPR} & \textbf{Tỷ lệ bỏ qua tại cổng (\%)} \\ \midrule
-0{,}90 & 0,0023 & 0,7589 & 0,1003 & 80,08 \\
-0{,}95 & 0,0052 & 0,7552 & 0,0506 & 84,36 \\
-0{,}99 & 0,0192 & 0,7420 & 0,0101 & 88,00 \\
-0{,}995 & 0,0317 & 0,7229 & 0,0053 & 88,70 \\ \bottomrule
+0{,}90 & 0{,}0023 & 0{,}7589 & 0{,}1003 & 80{,}08 \\
+0{,}95 & 0{,}0052 & 0{,}7552 & 0{,}0506 & 84{,}36 \\
+0{,}99 & 0{,}0192 & 0{,}7420 & 0{,}0101 & 88{,}00 \\
+0{,}995 & 0{,}0317 & 0{,}7229 & 0{,}0053 & 88{,}70 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
@@ -627,9 +627,9 @@ Bảng \ref{tab:edge_training} trình bày kết quả huấn luyện và đánh
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
 \textbf{Mô hình} & \textbf{F1-Score} & \textbf{Accuracy} & \textbf{Thời gian huấn luyện (s)} & \textbf{Kích thước (MB)} \\ \midrule
-Decision Tree    & 0,9814 & 0,9943 & 24,4  & 0,046 \\
-\ac{gbt}              & 0,9753 & 0,9925 & 341,8 & 0,865 \\
-Random Forest    & 0,9826 & 0,9947 & 687,3 & 4,427 \\
+Decision Tree    & 0{,}9814 & 0{,}9943 & 24{,}4  & 0{,}046 \\
+\ac{gbt}              & 0{,}9753 & 0{,}9925 & 341{,}8 & 0{,}865 \\
+Random Forest    & 0{,}9826 & 0{,}9947 & 687{,}3 & 4{,}427 \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -650,9 +650,9 @@ Bảng \ref{tab:edge_benchmark} trình bày kết quả đo hiệu năng (benchm
 \toprule
 \textbf{Mô hình} & \textbf{Thông lượng} & \textbf{Độ trễ suy luận (ms)} & \textbf{CPU} & \textbf{RAM} & \textbf{Kích thước} \\
                   & \textbf{(mẫu/giây)} & \textbf{p50 / p95 / p99} & \textbf{(\%)} & \textbf{(\%)} & \textbf{(MB)} \\ \midrule
-Decision Tree     & 22,0 & 441 / 537 / -- & 46,4 & 21,9 & 0,046 \\
-\ac{gbt}               & 24,3 & 414 / 439 / -- & 40,9 & 24,0 & 0,865 \\
-Random Forest     & 26,8 & 378 / 397 / -- & 35,2 & 27,5 & 4,427 \\
+Decision Tree     & 22{,}0 & 441 / 537 / -- & 46{,}4 & 21{,}9 & 0{,}046 \\
+\ac{gbt}               & 24{,}3 & 414 / 439 / -- & 40{,}9 & 24{,}0 & 0{,}865 \\
+Random Forest     & 26{,}8 & 378 / 397 / -- & 35{,}2 & 27{,}5 & 4{,}427 \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -670,9 +670,9 @@ Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của S
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
 \textbf{Engine} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ\\p95 (ms)}} & \textbf{RAM (\%)} & \textbf{\shortstack{Năng lượng\\/suy luận (mJ)}} \\ \midrule
-PySpark (triển khai) & 22,6 & 532 & 24,3 & 71,6 \\
-scikit-learn         & 204,4 & 49,8 & 13,3 & 2,91 \\
-ONNX Runtime         & 7870,8 & 1,1 & 15,7 & 0,06 \\
+PySpark (triển khai) & 22{,}6 & 532 & 24{,}3 & 71{,}6 \\
+scikit-learn         & 204{,}4 & 49{,}8 & 13{,}3 & 2{,}91 \\
+ONNX Runtime         & 7870{,}8 & 1{,}1 & 15{,}7 & 0{,}06 \\
 \bottomrule
 \end{tabular*}
 \end{table}
