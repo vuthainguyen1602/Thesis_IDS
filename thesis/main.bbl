@@ -2789,54 +2789,6 @@
       \field{pages}{2980\bibrangedash 2988}
       \range{pages}{9}
     \endentry
-    \entry{gama2014survey}{article}{}{}
-      \name{author}{5}{}{%
-        {{hash=844d99c5b8c67291826b6a62fea44989}{%
-           family={Gama},
-           familyi={G\bibinitperiod},
-           given={João},
-           giveni={J\bibinitperiod}}}%
-        {{hash=56534dec9cf5897497e2925fa379194c}{%
-           family={Žliobaitė},
-           familyi={Ž\bibinitperiod},
-           given={Indrė},
-           giveni={I\bibinitperiod}}}%
-        {{hash=9e432ecb5f30e4b9b6eb8dde24e2ba38}{%
-           family={Bifet},
-           familyi={B\bibinitperiod},
-           given={Albert},
-           giveni={A\bibinitperiod}}}%
-        {{hash=8e2774559888845d8e0e20be5a4dd907}{%
-           family={Pechenizkiy},
-           familyi={P\bibinitperiod},
-           given={Mykola},
-           giveni={M\bibinitperiod}}}%
-        {{hash=2cb927209b522e1d5fff80c38210c753}{%
-           family={Bouchachia},
-           familyi={B\bibinitperiod},
-           given={Abdelhamid},
-           giveni={A\bibinitperiod}}}%
-      }
-      \strng{namehash}{56431deb8901de6306944b9ccd741193}
-      \strng{fullhash}{1254394f61dcdeed105976a04fa49560}
-      \strng{fullhashraw}{1254394f61dcdeed105976a04fa49560}
-      \strng{bibnamehash}{1254394f61dcdeed105976a04fa49560}
-      \strng{authorbibnamehash}{1254394f61dcdeed105976a04fa49560}
-      \strng{authornamehash}{56431deb8901de6306944b9ccd741193}
-      \strng{authorfullhash}{1254394f61dcdeed105976a04fa49560}
-      \strng{authorfullhashraw}{1254394f61dcdeed105976a04fa49560}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{ACM Computing Surveys}
-      \field{number}{4}
-      \field{title}{A survey on concept drift adaptation}
-      \field{volume}{46}
-      \field{year}{2014}
-      \field{pages}{1\bibrangedash 37}
-      \range{pages}{37}
-    \endentry
   \enddatalist
 \endrefsection
 \endinput
