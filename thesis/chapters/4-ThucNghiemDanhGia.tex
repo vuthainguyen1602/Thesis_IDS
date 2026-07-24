@@ -47,8 +47,8 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
         \draw[dn] (m.south -| w2) -- node[lbl]{giao tác vụ\\ + partition} (w2.north);
         \draw[up] (w1.west) -- ++(-0.75,0) |- (m.west);
         \draw[up] (w2.east) -- ++( 0.75,0) |- (m.east);
-        % Nhãn xoay dọc, đè lên chính đường hồi trái: bounding box cân hai bên
-        \node[lbl, rotate=90] at (-7.3,-2.1) {gom kết quả (shuffle/collect)};
+        % Nhãn xoay dọc trên đường hồi trái (2 dòng để không lòi lên mũi tên ngang); nền trắng che line
+        \node[lbl, rotate=90] at (-7.3,-2.1) {gom kết quả\\(shuffle/collect)};
         \draw[dn] (w1.south) -- (s1.north);
         \draw[dn] (w2.south) -- (s2.north);
     \end{tikzpicture}}
