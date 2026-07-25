@@ -75,30 +75,37 @@ def main():
     import numpy as np
 
     # Two side-by-side panels (one axis each) instead of a dual-axis chart.
+    # The figure is authored at the LNCS text width (4.8 in) so it is included
+    # at scale 1:1 in the paper and its labels keep the intended point size
+    # instead of shrinking with a \includegraphics rescale.
     x = np.arange(len(order))
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 3.6), sharex=True)
+    with plt.rc_context({
+        "font.size": 8, "axes.titlesize": 9, "axes.labelsize": 8,
+        "xtick.labelsize": 7.5, "ytick.labelsize": 7.5,
+    }):
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(4.8, 2.8), sharex=True)
 
-    b1 = ax1.bar(x, df["throughput_rps"].values, 0.55, color="#0072B2")
-    ax1.set_ylabel("Throughput (flows/s)")
-    ax1.set_title("Verdict throughput", fontsize=10)
+        b1 = ax1.bar(x, df["throughput_rps"].values, 0.55, color="#0072B2")
+        ax1.set_ylabel("Throughput (flows/s)")
+        ax1.set_title("Verdict throughput")
 
-    b2 = ax2.bar(x, df["latency_p95_ms"].values, 0.55, color="#D55E00")
-    ax2.set_ylabel("p95 latency (ms)")
-    ax2.set_title("p95 latency", fontsize=10)
+        b2 = ax2.bar(x, df["latency_p95_ms"].values, 0.55, color="#D55E00")
+        ax2.set_ylabel("p95 latency (ms)")
+        ax2.set_title("p95 latency")
 
-    for ax, bars in ((ax1, b1), (ax2, b2)):
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels, rotation=15, ha="right")
-        ax.bar_label(bars, fmt="%.1f", fontsize=8, padding=2)
-        ax.grid(axis="y", color="0.9", linewidth=0.8)
-        ax.set_axisbelow(True)
-        for spine in ("top", "right"):
-            ax.spines[spine].set_visible(False)
-    fig.tight_layout()
+        for ax, bars in ((ax1, b1), (ax2, b2)):
+            ax.set_xticks(x)
+            ax.set_xticklabels(labels, rotation=20, ha="right")
+            ax.bar_label(bars, fmt="%.1f", fontsize=7, padding=2)
+            ax.grid(axis="y", color="0.9", linewidth=0.8)
+            ax.set_axisbelow(True)
+            for spine in ("top", "right"):
+                ax.spines[spine].set_visible(False)
+        fig.tight_layout(pad=0.4)
 
-    out = args.out or os.path.join(os.path.dirname(args.csv), "edge_modes.png")
-    plt.savefig(out, dpi=150, bbox_inches="tight")
-    plt.close()
+        out = args.out or os.path.join(os.path.dirname(args.csv), "edge_modes.png")
+        plt.savefig(out, dpi=300, bbox_inches="tight")
+        plt.close()
     print(f"[OK] Saved: {out}")
 
 

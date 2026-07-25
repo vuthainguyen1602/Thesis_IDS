@@ -123,7 +123,7 @@ Fig.~\ref{fig:architecture} shows the split-deployment architecture. A host PC r
 
 \begin{figure}[t]
   \centering
-  \resizebox{0.92\textwidth}{!}{%
+  \resizebox{\textwidth}{!}{%
   \begin{tikzpicture}[
       font=\small, >=Stealth, every node/.style={align=center},
       pc/.style ={draw=gray!60,        thick, rounded corners, fill=gray!8,  minimum width=13.4cm, minimum height=1.3cm, inner sep=3pt},
@@ -164,16 +164,16 @@ Fig.~\ref{fig:architecture} shows the split-deployment architecture. A host PC r
 
 Each node tags its metrics with a unique node identifier in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Fig.~\ref{fig:grafana} shows the live Grafana dashboard while CICIDS2017 flows are replayed through the split deployment: prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM utilization are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL. Fig.~\ref{fig:grafana-peak} captures the dashboard at peak load: the gate node idles near 5\% CPU while the PySpark classifier node reaches roughly 91\%, confirming that the classifier dominates the compute budget.
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.75\textwidth]{grafana_dashboard.png}
+  \includegraphics[width=\textwidth]{grafana_dashboard.png}
   \caption{Real-time Grafana monitoring of the running edge IDS: per-node throughput, detected attacks, inference latency, and CPU/RAM utilization for both Jetson Orin Nano Super nodes, plus recent PostgreSQL-backed attack alerts.}
   \label{fig:grafana}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.75\textwidth]{grafana_peak_load.png}
+  \includegraphics[width=\textwidth]{grafana_peak_load.png}
   \caption{Grafana dashboard at peak load in the split deployment: the anomaly-gate node (\texttt{jetson-nano-1}) uses about 5\% CPU while the PySpark classifier node (\texttt{jetson-nano-2}) reaches roughly 91\%, showing the load asymmetry between the two pipeline roles.}
   \label{fig:grafana-peak}
 \end{figure}
@@ -374,7 +374,7 @@ We run each deployment mode through a host-side orchestration script that starts
 \begin{figure}[htbp]
   \centering
   \IfFileExists{../../../papers/soict2026/results/benchmarks/edge_modes.png}{%
-    \includegraphics[width=0.95\textwidth]{edge_modes.png}%
+    \includegraphics[width=\textwidth]{edge_modes.png}%
   }{%
     \fbox{\parbox{0.76\textwidth}{\centering\vspace{1.2cm}\ph{Edge-mode bars --- run plot\_edge\_modes.py}\vspace{1.2cm}}}%
   }
@@ -387,7 +387,7 @@ The anomaly gate is a \emph{tunable} filter rather than a single point: sweeping
 \begin{figure}[htbp]
   \centering
   \IfFileExists{../../../results/ml_08_anomaly_gate/gate_operating_points.png}{%
-    \includegraphics[width=0.95\textwidth]{gate_operating_points.png}%
+    \includegraphics[width=\textwidth]{gate_operating_points.png}%
   }{%
     \fbox{\parbox{0.74\textwidth}{\centering\vspace{1.2cm}\ph{Gate operating curve --- run ml\_08\_anomaly\_gate\_autoencoder.py}\vspace{1.2cm}}}%
   }
