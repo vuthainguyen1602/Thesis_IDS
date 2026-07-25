@@ -337,7 +337,7 @@
       \field{journaltitle}{Computers \& Security}
       \field{title}{A hybrid {CNN-LSTM} approach for intelligent cyber intrusion detection system}
       \field{volume}{148}
-      \field{year}{2024}
+      \field{year}{2025}
       \field{pages}{104146}
       \range{pages}{1}
       \verb{doi}
@@ -1295,8 +1295,8 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{howpublished}{\url{https://www.cisco.com/c/en/us/solutions/collateral/executive-perspectives/annual-internet-report/white-paper-c11-741490.html}}
-      \field{title}{Cisco annual Internet report (2018–2023)}
-      \field{year}{2023}
+      \field{title}{Cisco Annual Internet Report (2018--2023) White Paper}
+      \field{year}{2020}
     \endentry
     \entry{Khan2012}{inproceedings}{}{}
       \name{author}{4}{}{%
@@ -2064,8 +2064,8 @@
       \field{title}{The regression analysis of binary sequences}
       \field{volume}{20}
       \field{year}{1958}
-      \field{pages}{215\bibrangedash 242}
-      \range{pages}{28}
+      \field{pages}{215\bibrangedash 232}
+      \range{pages}{18}
     \endentry
     \entry{friedman2001greedy}{article}{}{}
       \name{author}{1}{}{%
@@ -3085,11 +3085,14 @@
       \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{booktitle}{IEEE International Conference on Computer Vision (ICCV)}
+      \field{booktitle}{2017 IEEE International Conference on Computer Vision (ICCV)}
       \field{title}{Focal Loss for Dense Object Detection}
       \field{year}{2017}
-      \field{pages}{2980\bibrangedash 2988}
+      \field{pages}{2999\bibrangedash 3007}
       \range{pages}{9}
+      \verb{doi}
+      \verb 10.1109/ICCV.2017.324
+      \endverb
     \endentry
   \enddatalist
 \endrefsection
