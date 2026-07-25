@@ -28,6 +28,16 @@
 \usetikzlibrary{positioning, arrows.meta, shapes.geometric, fit, backgrounds, calc}
 
 \newcommand{\ph}[1]{{\color{gray}\textit{[#1]}}}
+% Table notes: symbol legends go BELOW the table (caption stays a single descriptive
+% sentence). The minipage cancels the surrounding \centering so notes set justified.
+\newcommand{\tabnote}[1]{%
+  \vspace{4pt}\par\noindent
+  \begin{minipage}{\textwidth}%
+    % \relax terminates the glue spec: without it TeX keeps scanning for the
+    % "fil(l)" keyword and swallows a leading letter "l"/"L" of the note text.
+    \footnotesize\parindent=0pt\leftskip=0pt\rightskip=0pt\parfillskip=0pt plus 1fil\relax
+    #1%
+  \end{minipage}}
 % Tighter float packing (reclaim near-empty float pages)
 \renewcommand{\topfraction}{0.92}
 \renewcommand{\bottomfraction}{0.6}
@@ -43,6 +53,11 @@
 \graphicspath{{../../../results/ml_07_cross_method_comparison/}{../../../results/ml_08_anomaly_gate/}{../../../papers/soict2026/results/benchmarks/}{../figures/}}
 
 \begin{document}
+
+% polyglossia's \setdefaultlanguage{english} resets \figurename to "Figure",
+% overriding llncs. Springer LNCS style is "Fig." in captions AND in running
+% text, so restore it here (after all \AtBeginDocument hooks have run).
+\renewcommand{\figurename}{Fig.}
 
 \title{A Distributed Real-Time Intrusion Detection System on a Jetson Orin Nano Super Edge Cluster using Kafka and PySpark}
 
@@ -76,19 +91,27 @@ Deploying machine learning (ML) based intrusion detection on resource-constraine
 
 \section{Introduction}
 
-Network intrusion detection systems (IDS) increasingly must operate closer to data sources to reduce bandwidth and response time~\cite{shi2016edge}. Edge devices such as the NVIDIA Jetson Orin Nano Super offer limited CPU, memory, and thermal headroom, making monolithic ML inference challenging. A practical edge IDS must therefore decide \emph{which} model to deploy (small, accurate, and explainable) and \emph{how} to distribute inference across nodes under streaming load.
+Network intrusion detection systems (IDS) increasingly must operate closer to data sources to reduce bandwidth and response time~\cite{shi2016edge,hamdan2020edge}. Recent work confirms that accurate detectors now fit on single-board hardware: ensemble and metaheuristic-optimized detectors have been demonstrated on IoT-edge platforms~\cite{baalaji2025ensemble,asghar2026hedid}, lightweight models have been deployed for industrial control networks~\cite{zhang2026edgeics}, and NVIDIA Jetson-class boards have been used both for autoencoder-based IIoT detection~\cite{hasan2025iiot} and, on the Jetson Orin Nano specifically, for generative-AI-assisted traffic classification~\cite{diazgorrin2026jetson}. Nevertheless, such devices offer limited CPU, memory, and thermal headroom, so a monolithic detector that classifies \emph{every} flow quickly saturates the board.
+
+Three gaps persist in this literature. First, the recent edge-IDS studies above evaluate a \emph{single} device: streaming middleware such as Kafka has been paired with Spark for distributed detection~\cite{kumar2025kafkaspark}, but the resulting pipelines are not measured on a multi-node cluster of constrained edge boards with explicit role separation, so it remains unclear how much a second board actually buys and in which distribution mode. Second, energy has become a first-class design constraint at the edge~\cite{nassef2026tinyml}, yet throughput, latency percentiles, and per-inference energy are rarely reported together for one deployed system. Third, offline detection scores are increasingly under scrutiny: methodological pitfalls in security ML~\cite{arp2022dosdonts} and documented labeling and duplication errors in CICIDS2017~\cite{lanvin2023errors} mean that a model selected under a leaky protocol may be optimistic by several F1 points before it is ever deployed.
+
+We address all three at once. A practical edge IDS must decide \emph{which} model to deploy (small, accurate, explainable, and selected under a leakage-aware protocol) and \emph{how} to distribute inference across nodes under streaming load. We therefore split detection into a lightweight autoencoder gate and a heavier PySpark classifier placed on separate Jetson Orin Nano Super boards, and we measure the resulting system end to end.
 
 \textbf{Contributions.}
 (1) A two-stage distributed IDS combining a lightweight anomaly gate with a Spark-based classifier;
 (2) Three deployment modes for a two-node Jetson cluster (pipeline split, horizontal scaling, Spark standalone cluster);
-(3) An end-to-end performance evaluation reporting throughput, latency percentiles, and per-node resource usage, which are metrics that offline studies typically omit;
+(3) An end-to-end performance evaluation reporting throughput, latency percentiles, per-node resource usage, and energy per verdict, which are metrics that offline studies typically omit;
 (4) Open, reproducible scripts integrated with a \emph{leakage-aware} Spark ML training pipeline, so the deployed model is the one validated under a rigorous offline protocol; all code and configurations are publicly available\footnote{\url{https://github.com/vuthainguyen1602/Thesis_IDS} (branch \texttt{develop}).}.
 
 \section{Related Work}
 
-Edge computing pushes analytics closer to data sources to reduce latency and bandwidth~\cite{shi2016edge,hamdan2020edge}. Prior edge IDS studies~\cite{sforzin2016rpids,baalaji2025ensemble,asghar2026hedid} benchmark single-node inference on resource-constrained boards, including recent NVIDIA Jetson deployments, but they rarely evaluate multi-node Kafka pipelines with explicit role separation. Streaming platforms such as Kafka~\cite{kreps2011kafka} decouple producers and consumers; however, most ML-based IDS papers~\cite{khraisat2019survey,ferrag2020deep,vinayakumar2019deep} report offline batch accuracy without end-to-end throughput or per-node resource traces.
+\textbf{Edge and on-device intrusion detection.} Edge computing pushes analytics closer to data sources to reduce latency and bandwidth~\cite{shi2016edge,hamdan2020edge}, and successive work has shrunk IDS models until they fit single-board hardware. Early systems such as RPiDS~\cite{sforzin2016rpids} established that a complete detection stack runs on a Raspberry Pi at all; recent studies instead optimize the detector itself, via deep ensemble stacking on IoT-edge platforms~\cite{baalaji2025ensemble}, metaheuristic hyper-parameter search combined with explainability~\cite{asghar2026hedid}, and compact models tailored to industrial control traffic~\cite{zhang2026edgeics}. NVIDIA Jetson boards are a recurring target: autoencoder-based feature learning reaches sub-millisecond inference on a Jetson Nano~\cite{hasan2025iiot}, and generative models have been run on the Jetson Orin Nano to classify traffic and synthesize training data at once~\cite{diazgorrin2026jetson}. These studies share a single-device assumption: the detector is benchmarked in isolation on one board, so how detection work should be \emph{placed} across several boards, and what a second board actually buys, remain open.
 
-\textbf{Split inference.} Anomaly-detection surveys~\cite{chandola2009anomaly,ruff2021unifying} motivate two-stage designs: a lightweight gate followed by a heavier classifier. Autoencoder-based detectors~\cite{lopez2017autoencoder,hasan2025iiot} and federated edge IDS~\cite{nguyen2019diot} explore similar ideas on servers or homogeneous edge nodes, and recently on a single Jetson Nano~\cite{hasan2025iiot}, but none use PySpark MLlib classifiers on the NVIDIA Jetson Orin Nano Super~\cite{nvidia2019jetson}. Our companion ML study selects a leakage-free SHAP Top-30 model on CICIDS2017~\cite{sharafaldin2018toward,lundberg2017unified}; this paper focuses on \emph{how} to deploy that model across two Jetsons with a measurable gate-skip ratio and three scaling modes. Table~\ref{tab:related-work} positions our system against representative related work.
+\textbf{Streaming and distributed detection pipelines.} Kafka~\cite{kreps2011kafka} decouples producers from consumers and has become the de-facto ingest layer for streaming analytics, while Spark~\cite{zaharia2010spark} and its MLlib library~\cite{meng2016mllib} supply the distributed training and scoring primitives. Combining the two for intrusion detection is an established pattern; Mohan Kiran Kumar et al.~\cite{kumar2025kafkaspark}, for instance, route Kafka streams into Spark classifiers for distributed detection. Such pipelines are conceived for datacenter-class resources, where an additional executor is cheap, whereas on an 8\,GB ARM board the JVM footprint is itself a design constraint, and the corresponding per-node CPU, memory, and energy traces are rarely published. More broadly, ML-based IDS surveys~\cite{khraisat2019survey,ferrag2020deep,vinayakumar2019deep} catalogue detection accuracy across dozens of models but seldom report the end-to-end throughput or latency percentiles of a running deployment.
+
+\textbf{Two-stage and split inference.} Anomaly-detection surveys~\cite{chandola2009anomaly,ruff2021unifying} motivate cascaded designs in which a cheap unsupervised stage filters the bulk of normal data and a costlier supervised stage adjudicates the remainder. Unsupervised deep detectors---deep belief networks~\cite{alrawashdeh2016toward} and autoencoders~\cite{lopez2017autoencoder,hasan2025iiot}---are the usual choice for the cheap stage, since they can be calibrated on benign traffic alone. Distributing detection across devices has so far been explored mainly along the federated-learning axis, where nodes collaborate during \emph{training} while inference stays local~\cite{nguyen2019diot,hernandezramos2025federated}. Our split is orthogonal and concerns \emph{inference}: the two stages are physically separated across boards and joined by a Kafka topic, so gate and classifier scale independently, and no prior work applies a PySpark MLlib classifier in this role on the NVIDIA Jetson Orin Nano Super.\footnote{\url{https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/}} Energy is what makes the placement matter: recent TinyML work argues that energy per inference is a first-class edge metric~\cite{nassef2026tinyml}, and skipping the heavy stage is the most direct way to lower it.
+
+\textbf{Evaluation protocol.} A parallel line of work questions how faithfully offline scores transfer to deployment. Arp et al.~\cite{arp2022dosdonts} catalogue recurring pitfalls in security ML, and Lanvin et al.~\cite{lanvin2023errors} document labeling and duplication errors in CICIDS2017~\cite{sharafaldin2018toward} that measurably inflate reported performance; Sarhan et al.~\cite{sarhan2022explainable} similarly show that the choice of standard feature set shapes both generalizability and explainability. Our companion ML study responds by selecting a leakage-free SHAP Top-30 model~\cite{lundberg2017unified}, and the present paper deploys exactly that model, so the operational numbers reported here do not belong to a configuration that would fail a stricter offline audit. Concept drift~\cite{gama2014survey} lies outside the present scope and motivates the retraining direction we outline in the conclusion. Table~\ref{tab:related-work} positions our system against representative related work along the five axes above: multi-node role separation, streaming ingest, joint energy and latency reporting, leakage-aware model selection, and open code.
 
 \input{../../../papers/latex/related_work_table_soict.tex}
 
@@ -96,7 +119,7 @@ Edge computing pushes analytics closer to data sources to reduce latency and ban
 
 \subsection{Split Deployment Overview}
 
-Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC runs Kafka, PostgreSQL, InfluxDB, and Grafana. Two Jetson Orin Nano Super nodes consume messages from the network-flow topic. In pipeline-split mode, Jetson~\#1 runs the anomaly gate and forwards only \emph{suspicious} flows to a dedicated suspicious-flow topic. Jetson~\#2 then applies the PySpark classifier and writes the classification results back to PostgreSQL. Both nodes stream performance metrics to InfluxDB/Grafana and raise alerts via Email/Slack (dashed arrows in Fig.~\ref{fig:architecture}).
+Fig.~\ref{fig:architecture} shows the split-deployment architecture. A host PC runs Kafka, PostgreSQL, InfluxDB, and Grafana. Two Jetson Orin Nano Super nodes consume messages from the network-flow topic. In pipeline-split mode, Jetson~\#1 runs the anomaly gate and forwards only \emph{suspicious} flows to a dedicated suspicious-flow topic. Jetson~\#2 then applies the PySpark classifier and writes the classification results back to PostgreSQL. Both nodes stream performance metrics to InfluxDB/Grafana and raise alerts via Email/Slack (dashed arrows in Fig.~\ref{fig:architecture}).
 
 \begin{figure}[t]
   \centering
@@ -139,7 +162,7 @@ Figure~\ref{fig:architecture} shows the split-deployment architecture. A host PC
 
 \subsection{Monitoring and Alerting}
 
-Each node tags its metrics with a unique node identifier in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Figure~\ref{fig:grafana} shows the live Grafana dashboard while CICIDS2017 flows are replayed through the split deployment: prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM utilization are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL. Figure~\ref{fig:grafana-peak} captures the dashboard at peak load: the gate node idles near 5\% CPU while the PySpark classifier node reaches roughly 91\%, confirming that the classifier dominates the compute budget.
+Each node tags its metrics with a unique node identifier in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Fig.~\ref{fig:grafana} shows the live Grafana dashboard while CICIDS2017 flows are replayed through the split deployment: prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM utilization are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL. Fig.~\ref{fig:grafana-peak} captures the dashboard at peak load: the gate node idles near 5\% CPU while the PySpark classifier node reaches roughly 91\%, confirming that the classifier dominates the compute budget.
 
 \begin{figure}[htbp]
   \centering
@@ -264,8 +287,7 @@ In our companion ML study, we evaluate four feature configurations (baseline wit
     \bottomrule
   \end{tabular}
 
-  \vspace{2pt}
-  {\footnotesize $^{\dagger}$Serialized on the training cluster, where the distributed model-saving step scatters the tree-data partitions across executors; KB-scale entries captured only driver-local metadata and under-report the true size (a 30-feature XGBoost is in reality $\approx$2.5\,MB, on par with RF Top-30, since ensemble size depends on trees/nodes rather than input features; with fewer split candidates trees may even need slightly more nodes than the baseline, cf.\ 2.52 vs.\ 2.32\,MB). The single-node export used for deployment measures sizes reliably (cf.\ Table~\ref{tab:engines}).}
+  \tabnote{$^{\dagger}$Serialized on the training cluster, where the distributed model-saving step scatters the tree-data partitions across executors; KB-scale entries captured only driver-local metadata and under-report the true size (a 30-feature XGBoost is in reality $\approx$2.5\,MB, on par with RF Top-30, since ensemble size depends on trees/nodes rather than input features; with fewer split candidates trees may even need slightly more nodes than the baseline, cf.\ 2.52 vs.\ 2.32\,MB). The single-node export used for deployment measures sizes reliably (cf.\ Table~\ref{tab:engines}).}
 \end{table}
 
 \subsection{Edge Phase (Jetson Orin Nano Super)}
@@ -294,21 +316,11 @@ Table~\ref{tab:metrics-split} clarifies which metric belongs to which phase. Mix
   \end{tabular}
 \end{table}
 
-We deploy the SHAP Top-30 feature set on Jetson~\#2 with a Random Forest classifier (offline F1 0.9955, within 0.002 of the best XGBoost score in Table~\ref{tab:spark-edge-bridge}): it retains near-baseline F1 with substantially fewer features, and Random Forest is a native Spark ML estimator, so the exported \texttt{PipelineModel} loads on the ARM board without the additional native libraries that Spark's XGBoost integration requires. Section~\ref{sec:benchmark-results} then evaluates this choice under streaming load; the companion ML paper reports the full four-method comparison and drift analysis.
+We deploy the SHAP Top-30 feature set on Jetson~\#2 with a Random Forest classifier (offline F1 0.9955, within 0.002 of the best XGBoost score in Table~\ref{tab:spark-edge-bridge}): it retains near-baseline F1 with substantially fewer features, and Random Forest is a native Spark ML estimator, so the exported \texttt{PipelineModel} loads on the ARM board without the additional native libraries that Spark's XGBoost integration requires. Sect.~\ref{sec:benchmark-results} then evaluates this choice under streaming load; the companion ML paper reports the full four-method comparison and drift analysis.
 
 \section{Experimental Setup}
 
-\subsection{Hardware and Software}
-
-2$\times$ NVIDIA Jetson Orin Nano Super Developer Kit (6-core Arm Cortex-A78AE, NVIDIA Ampere GPU with 1024 CUDA + 32 Tensor cores, 8\,GB LPDDR5, 256\,GB NVMe SSD, $\sim$67 TOPS), host PC running Docker Compose, Wi-Fi LAN. PySpark 3.4.1, Apache Kafka 3.5 (Confluent Platform 7.5.0), InfluxDB and Grafana for metrics.
-
-\subsection{Workloads}
-
-CSV replay at 100 flows/s over CICIDS2017. Reported metrics: throughput, p50/p95 latency (per-node percentiles over raw per-flow samples; the cluster p95 is the worst node's p95, plus end-to-end send-to-verdict latency from producer timestamps under NTP-synchronized clocks), per-node CPU/RAM/temperature, attack-class F1, gate-skip ratio, and energy-per-inference (mJ, via \texttt{tegrastats}, idle baseline subtracted).
-
-\subsection{Baselines}
-
-Single-node full pipeline vs.\ distributed modes A (pipeline split), B (horizontal Kafka scaling), and C (Spark standalone cluster).
+The testbed comprises 2$\times$ NVIDIA Jetson Orin Nano Super Developer Kit (6-core Arm Cortex-A78AE, NVIDIA Ampere GPU with 1024 CUDA + 32 Tensor cores, 8\,GB LPDDR5, 256\,GB NVMe SSD, $\sim$67 TOPS) and a host PC running Docker Compose, connected over a Wi-Fi LAN; the software stack is PySpark 3.4.1, Apache Kafka 3.5 (Confluent Platform 7.5.0), InfluxDB, and Grafana for metrics. The workload is a CSV replay of CICIDS2017 at 100 flows/s, against which we compare a single-node full pipeline with the three distributed modes A (pipeline split), B (horizontal Kafka scaling), and C (Spark standalone cluster). For every run we report throughput, p50/p95 latency (per-node percentiles over raw per-flow samples; the cluster p95 is the worst node's p95, plus end-to-end send-to-verdict latency from producer timestamps under NTP-synchronized clocks), per-node CPU/RAM/temperature, attack-class F1, gate-skip ratio, and energy-per-inference (mJ, via \texttt{tegrastats}, idle baseline subtracted).
 
 \section{Results}
 \label{sec:benchmark-results}
@@ -316,7 +328,7 @@ Single-node full pipeline vs.\ distributed modes A (pipeline split), B (horizont
 We run each deployment mode through a host-side orchestration script that starts the corresponding pipeline roles on the Jetson nodes over SSH, drives the load, and collects per-node logs. Each configuration is measured over at least three repetitions preceded by representative warmup traffic (excluded from the measured window, so JVM/JIT warmup does not inflate early-batch latency); Table~\ref{tab:benchmark} reports mean~$\pm$~std across repetitions. All metric queries are aligned to the exact load window rather than a trailing time range. Latency percentiles are computed per node over the raw per-flow samples logged during the window, and pipeline throughput is counted as \emph{final verdicts per second} (a flow's verdict is issued either at the gate, for skipped flows, or at the classifier), which avoids double-counting forwarded flows in pipeline-split mode. Aggregated results are reported in Table~\ref{tab:benchmark}, with throughput and p95 latency across modes visualized in Fig.~\ref{fig:edge-modes}.
 
 \begin{table}[htbp]
-  \caption{Distributed deployment comparison on the 2-node Jetson cluster (CICIDS2017 replay at 100 flows/s; mean~$\pm$~std over $\geq$3 repetitions; p95 from raw per-flow logs, worst node). ``(inline)'': in the combined role the gate runs in-process and its skips are persisted as verdicts, so no separate skip ratio applies. Energy is \emph{total-board} energy per verdict: at this load the idle-subtracted (active) power delta was below the \texttt{tegrastats} noise floor ($<$0.15\,W), so the figure is dominated by board idle power and measures how effectively each mode amortizes it over verdicts. $\dagger$~Detection quality is mode-independent (identical exported models); offline attack-class F1 is reported in Table~\ref{tab:spark-edge-bridge}.}
+  \caption{Distributed deployment comparison on the 2-node Jetson cluster (CICIDS2017 replay at 100 flows/s; mean~$\pm$~std over $\geq$3 repetitions).}
   \label{tab:benchmark}
   \centering
   \small
@@ -332,23 +344,16 @@ We run each deployment mode through a host-side orchestration script that starts
     \bottomrule
   \end{tabular}%
   }
+
+  \tabnote{Latency p95 is computed from the raw per-flow logs and reported for the \emph{worst} node.
+  ``(inline)'': in the combined role the gate runs in-process and its skips are persisted as verdicts, so no separate skip ratio applies.
+  Energy is \emph{total-board} energy per verdict: at this load the idle-subtracted (active) power delta was below the \texttt{tegrastats} noise floor ($<$0.15\,W), so the figure is dominated by board idle power and measures how effectively each mode amortizes it over verdicts.
+  $\dagger$~Detection quality is mode-independent (identical exported models); offline attack-class F1 is reported in Table~\ref{tab:spark-edge-bridge}.}
 \end{table}
 
 \textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run (30\,s idle baseline, then the load window; for two-node modes the powers of both nodes are summed). At 100 flows/s the measured \emph{active} (idle-subtracted) power delta was below the sampling noise floor ($<$0.15\,W on every node), so Table~\ref{tab:benchmark} reports \emph{total-board} energy per verdict instead: essentially board power amortized over verdict throughput. This still separates the modes sharply: the gate-based modes (A and C) amortize the two boards' power over 24--35$\times$ more verdicts than the single node, cutting energy per verdict from $\approx$2.5\,J to 0.12--0.18\,J. Nevertheless, the figures should be read as a deployment-level (not model-level) energy metric.
 
-Figure~\ref{fig:classifier-terminal} shows the PySpark classifier node processing replayed CICIDS2017 traffic in operation: it sustains a steady final-verdict throughput ($\approx$6 flows/s in this window), per-batch inference latency of a few milliseconds, and correct per-batch attack counts, while the per-node monitor reports live CPU/RAM/temperature.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.62\textwidth]{pipeline_terminal_jetson2.png}
-  \caption{Classifier node in operation: per-batch attack detection, few-millisecond inference latency, and live per-node resource telemetry during CICIDS2017 replay.}
-  \label{fig:classifier-terminal}
-\end{figure}
-
-\subsection{Inference-engine baseline (cost of the unified stack)}
-\label{sec:engine-baseline}
-
-We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with the distributed training phase}: the same stack trains on the cluster and serves on the device. To quantify the price of that unification, we benchmark the \emph{same} RandomForest (matched hyper-parameters) on the \emph{same} deployed SHAP-selected feature set (Sec.~\ref{sec:bridge}) through lighter single-node engines: scikit-learn (CPU, no JVM) and ONNX Runtime (CPU execution provider), in Table~\ref{tab:engines}. Accuracy is comparable by construction; the comparison targets inference cost. The JVM/Spark stack indeed incurs substantially higher inference cost than scikit-learn on the 8\,GB ARM board ($9\times$ lower throughput, $\approx$11$\times$ higher p95, roughly double the RAM share, and $\approx$25$\times$ the active energy per inference), and compiling the same forest to ONNX Runtime widens the gap dramatically: $\approx$7{,}900 flows/s at a p95 of 1.1\,ms, i.e.\ $348\times$ the deployed Spark throughput at $\approx$2\% of the per-inference energy of scikit-learn. Reporting this honestly motivates exporting the \texttt{PipelineModel} to ONNX/TensorRT for inference while retaining Spark for training; wiring the ONNX session into the streaming pipeline (and exploiting the GPU via TensorRT) is left as future work.
+\textbf{Inference-engine baseline (cost of the unified stack).} We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with the distributed training phase}: the same stack trains on the cluster and serves on the device. To quantify the price of that unification, we benchmark the \emph{same} RandomForest (matched hyper-parameters) on the \emph{same} deployed SHAP-selected feature set (Sect.~\ref{sec:bridge}) through lighter single-node engines: scikit-learn (CPU, no JVM) and ONNX Runtime (CPU execution provider), in Table~\ref{tab:engines}. Accuracy is comparable by construction; the comparison targets inference cost. The JVM/Spark stack indeed incurs substantially higher inference cost than scikit-learn on the 8\,GB ARM board ($9\times$ lower throughput, $\approx$11$\times$ higher p95, roughly double the RAM share, and $\approx$25$\times$ the active energy per inference), and compiling the same forest to ONNX Runtime widens the gap dramatically: $\approx$7{,}900 flows/s at a p95 of 1.1\,ms, i.e.\ $348\times$ the deployed Spark throughput at $\approx$2\% of the per-inference energy of scikit-learn. Reporting this honestly motivates exporting the \texttt{PipelineModel} to ONNX/TensorRT for inference while retaining Spark for training; wiring the ONNX session into the streaming pipeline (and exploiting the GPU via TensorRT) is left as future work.
 
 \begin{table}[htbp]
   \caption{Single-node inference cost on the same model/features, measured on the classifier node under identical board conditions (batch size 10; energy is \emph{active}, i.e.\ idle-subtracted, per inference at engine saturation).}
@@ -394,15 +399,13 @@ The anomaly gate is a \emph{tunable} filter rather than a single point: sweeping
 
 Pipeline split relieves Spark of most benign traffic, and the realized benefit scales with the gate-skip ratio ($\approx$96\% in our runs): decoupling the gate from the Spark classifier lifted verdict throughput from 2.6 to 62.5 flows/s ($24\times$) at essentially unchanged p95. Horizontal scaling of the \emph{full} role roughly doubles the single node (5.9 vs.\ 2.6 flows/s) but remains Spark-bound, because every node still runs the classifier in-process. The Spark standalone cluster variant reached the highest mean throughput (90 flows/s) but with large run-to-run variance ($\pm$26) and an extra host dependency (the Spark master), so pipeline split remains the recommended default; cluster mode is most useful when model or batch size exceeds single-node memory.
 
-As summarized in Sec.~\ref{sec:bridge}, offline Spark experiments and edge Jetson benchmarks answer different questions. Feature reduction from 77 to 30 dimensions (SHAP Top-30) directly reduces \texttt{VectorAssembler} and \texttt{PipelineModel} cost on the Orin Nano Super, while the anomaly gate skips a large fraction of benign flows before Spark inference is invoked. Together, these design choices connect the accuracy-oriented conclusions of the companion ML study to a deployable, measurable edge architecture.
+As summarized in Sect.~\ref{sec:bridge}, offline Spark experiments and edge Jetson benchmarks answer different questions. Feature reduction from 77 to 30 dimensions (SHAP Top-30) directly reduces \texttt{VectorAssembler} and \texttt{PipelineModel} cost on the Orin Nano Super, while the anomaly gate skips a large fraction of benign flows before Spark inference is invoked. Together, these design choices connect the accuracy-oriented conclusions of the companion ML study to a deployable, measurable edge architecture.
 
-\subsection{Limitations}
-
-Benchmarks are obtained on a two-node lab cluster over Wi-Fi; wired networking and larger clusters may shift latency tails. The anomaly-gate threshold trades attack recall against the gate-skip ratio, so we report it as an operating curve (Fig.~\ref{fig:gate}) and leave live-traffic re-calibration to future work. Each configuration is repeated at least three times with warmup excluded (Sec.~\ref{sec:benchmark-results}); run-to-run variance on a thermally constrained board is reported alongside the means. Latency percentiles are computed per node from raw per-flow samples, and the cluster-level p95 is conservatively the \emph{worst node's} p95; end-to-end latency (from producer send to final verdict) relies on NTP-synchronized clocks and excludes DB-write cost. Running PySpark on the JVM on an 8\,GB Jetson incurs substantial overhead: Spark is chosen for consistency with the distributed training phase, the overhead is quantified in Sec.~\ref{sec:engine-baseline}, and the $\sim$67-TOPS GPU remains unexploited by the CPU-only pipeline (TensorRT is future work). The energy-per-inference figures subtract a single pre-run idle baseline, so within-run drift in background power is not captured; in split mode they sum both nodes' active energy, and the gate-skip saving does not subtract the autoencoder cost incurred on all flows. Finally, results are tied to CICIDS2017 replay: live traffic and deliberately evasive (adversarial) traffic remain untested.
+\textbf{Limitations.} Benchmarks are obtained on a two-node lab cluster over Wi-Fi; wired networking and larger clusters may shift latency tails. The anomaly-gate threshold trades attack recall against the gate-skip ratio, so we report it as an operating curve (Fig.~\ref{fig:gate}) and leave live-traffic re-calibration to future work. Each configuration is repeated at least three times with warmup excluded (Sect.~\ref{sec:benchmark-results}); run-to-run variance on a thermally constrained board is reported alongside the means. Latency percentiles are computed per node from raw per-flow samples, and the cluster-level p95 is conservatively the \emph{worst node's} p95; end-to-end latency (from producer send to final verdict) relies on NTP-synchronized clocks and excludes DB-write cost. Running PySpark on the JVM on an 8\,GB Jetson incurs substantial overhead: Spark is chosen for consistency with the distributed training phase, the overhead is quantified in Table~\ref{tab:engines}, and the $\sim$67-TOPS GPU remains unexploited by the CPU-only pipeline (TensorRT is future work). The energy-per-inference figures subtract a single pre-run idle baseline, so within-run drift in background power is not captured; in split mode they sum both nodes' active energy, and the gate-skip saving does not subtract the autoencoder cost incurred on all flows. Finally, results are tied to CICIDS2017 replay: live traffic and deliberately evasive (adversarial) traffic remain untested.
 
 \section{Conclusion}
 
-We presented a reproducible distributed edge IDS for Jetson Orin Nano Super clusters with Kafka streaming and PySpark inference, deploying a model validated under a leakage-aware offline protocol. Future work includes TensorRT optimization, live-traffic validation, and federated retraining under drift.
+We presented a reproducible distributed edge IDS for Jetson Orin Nano Super clusters that pairs Kafka streaming with PySpark inference and deploys a model validated under a leakage-aware offline protocol, closing the gap between an accuracy-oriented offline study and a measurable edge deployment. Splitting the pipeline so that a lightweight autoencoder gate and the Spark classifier occupy separate boards raises verdict throughput from 2.6 to 62.5 flows/s ($24\times$) at an essentially unchanged p95 of $\approx$13\,ms, because the gate absorbs 95.8\% of benign traffic before it reaches the classifier; amortized over that many more verdicts, board energy falls from $\approx$2.5\,J to 0.18\,J per verdict. Horizontal scaling of the full role stays Spark-bound (5.9 flows/s), while the Spark standalone cluster attains the highest mean throughput (90 flows/s) at a far larger run-to-run spread ($\pm$25.6 vs.\ $\pm$0.6 flows/s), so pipeline split remains our recommended default and cluster mode is reserved for models that exceed single-node memory. We also quantified the price of running one stack for both training and serving: on the same forest and the same feature set, ONNX Runtime sustains $348\times$ the throughput of the deployed PySpark path, which sets a concrete target for the next iteration rather than an argument against the unified stack. Future work includes TensorRT optimization, live-traffic validation, and federated retraining under drift~\cite{hernandezramos2025federated}.
 
 \begin{credits}
 \subsubsection{\discintname}

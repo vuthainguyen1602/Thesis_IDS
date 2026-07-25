@@ -60,14 +60,15 @@ X.~Meng, J.~Bradley, B.~Yavuz, E.~Sparks, S.~Venkataraman, D.~Liu, J.~Freeman,
   pp.~1--7, 2016.
 
 \bibitem{baalaji2025ensemble}
-K.~Baalaji {\em et~al.}, ``Deep learning-based ensemble stacking for enhanced
-  intrusion detection in {IoT}-edge platforms,'' {\em Discover Applied
+P.~R. Chithra~Rani and K.~Baalaji, ``Deep learning-based ensemble stacking for
+  enhanced intrusion detection in {IoT}-edge platforms,'' {\em Discover Applied
   Sciences}, vol.~7, p.~928, 2025.
 
 \bibitem{asghar2026hedid}
-M.~Z. Asghar {\em et~al.}, ``{HED-ID}: an edge-deployable and explainable
-  intrusion detection system optimized via metaheuristic learning,'' {\em
-  Scientific Reports}, vol.~16, p.~2313, 2026.
+K.~Nasir, S.~K. Badri, D.~M. Alghazzawi, M.~Y. Alghamdi, M.~Alkhozae,
+  A.~Almakky, R.~M. Alhazmi, and M.~Z. Asghar, ``{HED-ID}: an edge-deployable
+  and explainable intrusion detection system optimized via metaheuristic
+  learning,'' {\em Scientific Reports}, vol.~16, p.~2313, 2026.
 
 \bibitem{guyon2003introduction}
 I.~Guyon and A.~Elisseeff, ``An introduction to variable and feature

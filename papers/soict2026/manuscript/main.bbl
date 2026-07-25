@@ -3,32 +3,42 @@
 \providecommand{\urlprefix}{URL }
 \providecommand{\doi}[1]{https://doi.org/#1}
 
+\bibitem{alrawashdeh2016toward}
+Alrawashdeh, K., Purdy, C.: Toward an online anomaly intrusion detection system
+  based on deep learning. In: Proc. 15th IEEE Int. Conf. on Machine Learning
+  and Applications (ICMLA). pp. 195--200 (2016). \doi{10.1109/ICMLA.2016.0040}
+
 \bibitem{arp2022dosdonts}
 Arp, D., Quiring, E., Pendlebury, F., Warnecke, A., Pierazzi, F., Wressnegger,
   C., Cavallaro, L., Rieck, K.: Dos and don'ts of machine learning in computer
   security. In: 31st USENIX Security Symposium (USENIX Security 22). pp.
   3971--3988 (2022)
 
-\bibitem{asghar2026hedid}
-Asghar, M.Z., et~al.: {HED-ID}: an edge-deployable and explainable intrusion
-  detection system optimized via metaheuristic learning. Scientific Reports
-  \textbf{16}, ~2313 (2026). \doi{10.1038/s41598-025-32183-8}
-
-\bibitem{baalaji2025ensemble}
-Baalaji, K., et~al.: Deep learning-based ensemble stacking for enhanced
-  intrusion detection in {IoT}-edge platforms. Discover Applied Sciences
-  \textbf{7}, ~928 (2025). \doi{10.1007/s42452-025-06871-z}
-
 \bibitem{chandola2009anomaly}
 Chandola, V., Banerjee, A., Kumar, V.: Anomaly detection: A survey. ACM
   Computing Surveys  \textbf{41}(3),  1--58 (2009).
   \doi{10.1145/1541880.1541882}
+
+\bibitem{baalaji2025ensemble}
+Chithra~Rani, P.R., Baalaji, K.: Deep learning-based ensemble stacking for
+  enhanced intrusion detection in {IoT}-edge platforms. Discover Applied
+  Sciences  \textbf{7}, ~928 (2025). \doi{10.1007/s42452-025-06871-z}
+
+\bibitem{diazgorrin2026jetson}
+Diaz-Gorrin, J., Caballero-Gil, C., Brankovic, L.: Enhancing network security
+  with generative {AI} on {Jetson Orin Nano}. Applied Sciences  \textbf{16}(3),
+  ~1442 (2026). \doi{10.3390/app16031442}
 
 \bibitem{ferrag2020deep}
 Ferrag, M.A., Maglaras, L., Janicke, H., Jiang, J., Shu, L.: Deep learning for
   cyber security intrusion detection: Approaches, datasets, and comparative
   study. Journal of Information Security and Applications  \textbf{50},  102419
   (2020)
+
+\bibitem{gama2014survey}
+Gama, J., {\c{Z}}liobait{\.e}, I., Bifet, A., Pechenizkiy, M., Bouchachia, A.:
+  A survey on concept drift adaptation. ACM Computing Surveys  \textbf{46}(4),
+  1--37 (2014)
 
 \bibitem{hamdan2020edge}
 Hamdan, S., Ayyash, M., Almajali, S.: Edge-computing architectures for internet
@@ -39,6 +49,12 @@ Hamdan, S., Ayyash, M., Almajali, S.: Edge-computing architectures for internet
 Hasan, T., Hossain, A., Ansari, M.Q., Syed, T.H.: Enhanced intrusion detection
   in {IIoT} networks: A lightweight approach with autoencoder-based feature
   learning (2025), arXiv:2501.15266
+
+\bibitem{hernandezramos2025federated}
+Hernandez-Ramos, J.L., Karopoulos, G., Chatzoglou, E., Kouliaridis, V., Marmol,
+  E., Gonzalez-Vidal, A., Kambourakis, G.: Intrusion detection based on
+  federated learning: A systematic review. ACM Computing Surveys
+  \textbf{57}(12),  1--65 (2025). \doi{10.1145/3731596}
 
 \bibitem{khraisat2019survey}
 Khraisat, A., Gondal, I., Vamplew, P., Kamruzzaman, J.: Survey of intrusion
@@ -67,20 +83,48 @@ Lundberg, S.M., Lee, S.I.: A unified approach to interpreting model
   predictions. Advances in Neural Information Processing Systems  \textbf{30}
   (2017)
 
+\bibitem{meng2016mllib}
+Meng, X., Bradley, J., Yavuz, B., Sparks, E., Venkataraman, S., Liu, D.,
+  Freeman, J., Tsai, D., Amde, M., Owen, S., Xin, D., Xin, R., Franklin, M.J.,
+  Zadeh, R., Zaharia, M., Talwalkar, A.: {MLlib}: Machine learning in {Apache
+  Spark}. Journal of Machine Learning Research  \textbf{17}(34), ~1--7 (2016)
+
+\bibitem{kumar2025kafkaspark}
+Mohan Kiran~Kumar, K., Vivek Srikar~Reddy, M., Ullas, K., Supriya, M.:
+  Distributed intrusion detection system using {Kafka} and {Spark} streaming.
+  In: 2025 International Conference on Visual Analytics and Data Visualization
+  (ICVADV). pp. 302--309. IEEE (2025). \doi{10.1109/ICVADV63329.2025.10961691}
+
+\bibitem{asghar2026hedid}
+Nasir, K., Badri, S.K., Alghazzawi, D.M., Alghamdi, M.Y., Alkhozae, M.,
+  Almakky, A., Alhazmi, R.M., Asghar, M.Z.: {HED-ID}: an edge-deployable and
+  explainable intrusion detection system optimized via metaheuristic learning.
+  Scientific Reports  \textbf{16}, ~2313 (2026).
+  \doi{10.1038/s41598-025-32183-8}
+
+\bibitem{nassef2026tinyml}
+Nassef, L., Alghamdi, M.I., Ben~Chaabane, S., Abbas, Q., Alawad, W.M.,
+  Albalawi, O.H., Alqaisi, O.I., Fakieh, B.: Lightweight and energy-aware
+  intrusion detection for industrial {IoT} using {TinyML} and edge {AI}.
+  Scientific Reports  \textbf{16}(1),  18524 (2026).
+  \doi{10.1038/s41598-026-50690-0}
+
 \bibitem{nguyen2019diot}
 Nguyen, T.D., Marchal, S., Miettinen, M., Fereidooni, H., Asokan, N., Sadeghi,
   A.R.: {D{\"I}oT}: A federated self-learning anomaly detection system for
   {IoT}. In: Proc. IEEE 39th Int. Conf. on Distributed Computing Systems
   (ICDCS). pp. 756--767 (2019). \doi{10.1109/ICDCS.2019.00080}
 
-\bibitem{nvidia2019jetson}
-{NVIDIA Corporation}: Jetson orin nano super developer kit (2024),
-  \url{https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/}
-
 \bibitem{ruff2021unifying}
 Ruff, L., Kauffmann, J.R., Vandermeulen, R.A., Montavon, G., Samek, W., Kloft,
   M., Dietterich, T.G., M{\"u}ller, K.R.: A unifying review of deep and shallow
   anomaly detection. Proceedings of the IEEE  \textbf{109}(5),  756--795 (2021)
+
+\bibitem{sarhan2022explainable}
+Sarhan, M., Layeghy, S., Portmann, M.: Evaluating standard feature sets towards
+  increased generalisability and explainability of ml-based network intrusion
+  detection. Big Data Research  \textbf{30},  100359 (2022).
+  \doi{10.1016/j.bdr.2022.100359}
 
 \bibitem{sforzin2016rpids}
 Sforzin, A., G{\'o}mez~M{\'a}rmol, F., Conti, M., Bohli, J.M.: {RPiDS}:
@@ -109,5 +153,10 @@ Vinayakumar, R., Alazab, M., Soman, K.P., Poornachandran, P., Al-Nemrat, A.,
 Zaharia, M., Chowdhury, M., Franklin, M.J., Shenker, S., Stoica, I.: Spark:
   Cluster computing with working sets. In: Proceedings of the 2nd USENIX
   Workshop on Hot Topics in Cloud Computing (HotCloud'10) (2010)
+
+\bibitem{zhang2026edgeics}
+Zhang, Z., Zhang, L., Xu, J., Chen, Z., Wang, P.: An edge-deployable
+  lightweight intrusion detection system for industrial control. Electronics
+  \textbf{15}(3), ~644 (2026). \doi{10.3390/electronics15030644}
 
 \end{thebibliography}
