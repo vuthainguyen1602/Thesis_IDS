@@ -53,8 +53,8 @@
       \strng{authornamehash}{92d3ab44af6488585069c3feb533caac}
       \strng{authorfullhash}{850e47207157d916a61981ee87bae53d}
       \strng{authorfullhashraw}{850e47207157d916a61981ee87bae53d}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Cybersecurity}
@@ -101,8 +101,8 @@
       \strng{authornamehash}{2269d84c1e9ed86aa06afcc75f81bf87}
       \strng{authorfullhash}{1878f943ed59084cc8ac8317987de593}
       \strng{authorfullhashraw}{1878f943ed59084cc8ac8317987de593}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Journal of Information Security and Applications}
@@ -153,8 +153,8 @@
       \strng{authornamehash}{a395f46d78914c5ea239a04983cea549}
       \strng{authorfullhash}{7590c33b0c972cb40255178540ef61c6}
       \strng{authorfullhashraw}{7590c33b0c972cb40255178540ef61c6}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{IEEE Access}
@@ -185,8 +185,8 @@
       \strng{authornamehash}{0bb172117000eb4998712337ea237844}
       \strng{authorfullhash}{0bb172117000eb4998712337ea237844}
       \strng{authorfullhashraw}{0bb172117000eb4998712337ea237844}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{eprintclass}{cs.CR}
@@ -243,8 +243,8 @@
       \strng{authornamehash}{1fd5b86f2d2d423b6ab6ae192edbe3b0}
       \strng{authorfullhash}{833a9a38016874568c88b63f1d6aaafa}
       \strng{authorfullhashraw}{833a9a38016874568c88b63f1d6aaafa}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Security and Communication Networks}
@@ -285,8 +285,8 @@
       \strng{authornamehash}{ae5c8395a8e79ac5aeaa1e90865efb1b}
       \strng{authorfullhash}{e2ce544da24d6e5354bb7b4732afccf6}
       \strng{authorfullhashraw}{e2ce544da24d6e5354bb7b4732afccf6}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Scientific Reports}
@@ -330,8 +330,8 @@
       \strng{authornamehash}{728a25e6263a168c3c9592e577471de3}
       \strng{authorfullhash}{469f0df8d507d0982cc4ceb44f3557d7}
       \strng{authorfullhashraw}{469f0df8d507d0982cc4ceb44f3557d7}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Computers \& Security}
@@ -375,8 +375,8 @@
       \strng{authornamehash}{b4a626ee2b12ca30cd6058bc1f89aa8a}
       \strng{authorfullhash}{21bf46cffc3bd1b468bea00ef8674360}
       \strng{authorfullhashraw}{21bf46cffc3bd1b468bea00ef8674360}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{note}{arXiv:2501.15266}
@@ -384,25 +384,28 @@
       \field{year}{2025}
     \endentry
     \entry{baalaji2025ensemble}{article}{}{}
-      \true{moreauthor}
-      \true{morelabelname}
-      \name{author}{1}{}{%
+      \name{author}{2}{}{%
+        {{hash=76a06513bac507719ffb284f7464e5b4}{%
+           family={Chithra\bibnamedelima Rani},
+           familyi={C\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={P.\bibnamedelimi R.},
+           giveni={P\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
         {{hash=7bae6a92bb024dd3ca9704e324d4e0b1}{%
            family={Baalaji},
            familyi={B\bibinitperiod},
            given={K.},
            giveni={K\bibinitperiod}}}%
       }
-      \strng{namehash}{b3195d323e3ee30cd15867b40b9d999e}
-      \strng{fullhash}{b3195d323e3ee30cd15867b40b9d999e}
-      \strng{fullhashraw}{b3195d323e3ee30cd15867b40b9d999e}
-      \strng{bibnamehash}{b3195d323e3ee30cd15867b40b9d999e}
-      \strng{authorbibnamehash}{b3195d323e3ee30cd15867b40b9d999e}
-      \strng{authornamehash}{b3195d323e3ee30cd15867b40b9d999e}
-      \strng{authorfullhash}{b3195d323e3ee30cd15867b40b9d999e}
-      \strng{authorfullhashraw}{b3195d323e3ee30cd15867b40b9d999e}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \strng{namehash}{c9398fbfbf4489822a79a36bbab30d2b}
+      \strng{fullhash}{c9398fbfbf4489822a79a36bbab30d2b}
+      \strng{fullhashraw}{c9398fbfbf4489822a79a36bbab30d2b}
+      \strng{bibnamehash}{c9398fbfbf4489822a79a36bbab30d2b}
+      \strng{authorbibnamehash}{c9398fbfbf4489822a79a36bbab30d2b}
+      \strng{authornamehash}{c9398fbfbf4489822a79a36bbab30d2b}
+      \strng{authorfullhash}{c9398fbfbf4489822a79a36bbab30d2b}
+      \strng{authorfullhashraw}{c9398fbfbf4489822a79a36bbab30d2b}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Discover Applied Sciences}
@@ -416,25 +419,58 @@
       \endverb
     \endentry
     \entry{asghar2026hedid}{article}{}{}
-      \true{moreauthor}
-      \true{morelabelname}
-      \name{author}{1}{}{%
+      \name{author}{8}{}{%
+        {{hash=e5bdaf28d02de36b1a1b653248a1759e}{%
+           family={Nasir},
+           familyi={N\bibinitperiod},
+           given={Kushboo},
+           giveni={K\bibinitperiod}}}%
+        {{hash=f9a128500bc5773f67198e796fc94ae2}{%
+           family={Badri},
+           familyi={B\bibinitperiod},
+           given={Sahar\bibnamedelima K.},
+           giveni={S\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+        {{hash=bbf5f8d2b1b816a3384e9757d75cc865}{%
+           family={Alghazzawi},
+           familyi={A\bibinitperiod},
+           given={Daniyal\bibnamedelima M.},
+           giveni={D\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=1a31ca1dd5ec3e71cb29a3f44436761a}{%
+           family={Alghamdi},
+           familyi={A\bibinitperiod},
+           given={Mohammed\bibnamedelima Yahya},
+           giveni={M\bibinitperiod\bibinitdelim Y\bibinitperiod}}}%
+        {{hash=3979a17f507c12d883b5903887e0c23e}{%
+           family={Alkhozae},
+           familyi={A\bibinitperiod},
+           given={Mona},
+           giveni={M\bibinitperiod}}}%
+        {{hash=1a3b1740e4429ef54f9e448f0c0dfe67}{%
+           family={Almakky},
+           familyi={A\bibinitperiod},
+           given={Abeer},
+           giveni={A\bibinitperiod}}}%
+        {{hash=a288fa4da2f8a6566e6559f8e28efd47}{%
+           family={Alhazmi},
+           familyi={A\bibinitperiod},
+           given={Rania\bibnamedelima M.},
+           giveni={R\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
         {{hash=eb57c4680499dc18c46997fa86d40f51}{%
            family={Asghar},
            familyi={A\bibinitperiod},
            given={Muhammad\bibnamedelima Zubair},
            giveni={M\bibinitperiod\bibinitdelim Z\bibinitperiod}}}%
       }
-      \strng{namehash}{8a50650b0877dcea692fcd79f410478a}
-      \strng{fullhash}{8a50650b0877dcea692fcd79f410478a}
-      \strng{fullhashraw}{8a50650b0877dcea692fcd79f410478a}
-      \strng{bibnamehash}{8a50650b0877dcea692fcd79f410478a}
-      \strng{authorbibnamehash}{8a50650b0877dcea692fcd79f410478a}
-      \strng{authornamehash}{8a50650b0877dcea692fcd79f410478a}
-      \strng{authorfullhash}{8a50650b0877dcea692fcd79f410478a}
-      \strng{authorfullhashraw}{8a50650b0877dcea692fcd79f410478a}
-      \field{sortinit}{8}
-      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \strng{namehash}{5341601ac4e47f56f7a0dc3bed66993d}
+      \strng{fullhash}{03ede38cd45aef8e62264a0528d069cc}
+      \strng{fullhashraw}{03ede38cd45aef8e62264a0528d069cc}
+      \strng{bibnamehash}{03ede38cd45aef8e62264a0528d069cc}
+      \strng{authorbibnamehash}{03ede38cd45aef8e62264a0528d069cc}
+      \strng{authornamehash}{5341601ac4e47f56f7a0dc3bed66993d}
+      \strng{authorfullhash}{03ede38cd45aef8e62264a0528d069cc}
+      \strng{authorfullhashraw}{03ede38cd45aef8e62264a0528d069cc}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Scientific Reports}
@@ -445,6 +481,211 @@
       \range{pages}{1}
       \verb{doi}
       \verb 10.1038/s41598-025-32183-8
+      \endverb
+    \endentry
+    \entry{diazgorrin2026jetson}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=0ee7ef8bcb907cdda08ec8da9a33539a}{%
+           family={Diaz-Gorrin},
+           familyi={D\bibinithyphendelim G\bibinitperiod},
+           given={Jackson},
+           giveni={J\bibinitperiod}}}%
+        {{hash=b1fc7c9ab5888bb768de59d99358ef84}{%
+           family={Caballero-Gil},
+           familyi={C\bibinithyphendelim G\bibinitperiod},
+           given={Candido},
+           giveni={C\bibinitperiod}}}%
+        {{hash=3bbebab51e883d8d107fa72c90c93b5a}{%
+           family={Brankovic},
+           familyi={B\bibinitperiod},
+           given={Ljiljana},
+           giveni={L\bibinitperiod}}}%
+      }
+      \strng{namehash}{ded34e4f42740d8aec0c838d062ca801}
+      \strng{fullhash}{6b88131861255fb342e3eb0c1c114d0c}
+      \strng{fullhashraw}{6b88131861255fb342e3eb0c1c114d0c}
+      \strng{bibnamehash}{6b88131861255fb342e3eb0c1c114d0c}
+      \strng{authorbibnamehash}{6b88131861255fb342e3eb0c1c114d0c}
+      \strng{authornamehash}{ded34e4f42740d8aec0c838d062ca801}
+      \strng{authorfullhash}{6b88131861255fb342e3eb0c1c114d0c}
+      \strng{authorfullhashraw}{6b88131861255fb342e3eb0c1c114d0c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Applied Sciences}
+      \field{number}{3}
+      \field{title}{Enhancing Network Security with Generative {AI} on {Jetson Orin Nano}}
+      \field{volume}{16}
+      \field{year}{2026}
+      \field{pages}{1442}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.3390/app16031442
+      \endverb
+    \endentry
+    \entry{zhang2026edgeics}{article}{}{}
+      \name{author}{5}{}{%
+        {{hash=682c74fbda1d3ad48dcba0b4cbf756e9}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Zhenxiong},
+           giveni={Z\bibinitperiod}}}%
+        {{hash=f4a4cbf770add19c206827116c68732e}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Lei},
+           giveni={L\bibinitperiod}}}%
+        {{hash=dbd69a08785b60917d277ddcc77b96b4}{%
+           family={Xu},
+           familyi={X\bibinitperiod},
+           given={Jialong},
+           giveni={J\bibinitperiod}}}%
+        {{hash=3e6fdfc3b547cd86243de8f86fbfab01}{%
+           family={Chen},
+           familyi={C\bibinitperiod},
+           given={Zhengze},
+           giveni={Z\bibinitperiod}}}%
+        {{hash=c26cc02bbb5db725a2c79cb200894d76}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Peng},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{312917fe45eb15c4e2a2812c3257d009}
+      \strng{fullhash}{92d093792621833bb9c7bf3725bb9698}
+      \strng{fullhashraw}{92d093792621833bb9c7bf3725bb9698}
+      \strng{bibnamehash}{92d093792621833bb9c7bf3725bb9698}
+      \strng{authorbibnamehash}{92d093792621833bb9c7bf3725bb9698}
+      \strng{authornamehash}{312917fe45eb15c4e2a2812c3257d009}
+      \strng{authorfullhash}{92d093792621833bb9c7bf3725bb9698}
+      \strng{authorfullhashraw}{92d093792621833bb9c7bf3725bb9698}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Electronics}
+      \field{number}{3}
+      \field{title}{An Edge-Deployable Lightweight Intrusion Detection System for Industrial Control}
+      \field{volume}{15}
+      \field{year}{2026}
+      \field{pages}{644}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.3390/electronics15030644
+      \endverb
+    \endentry
+    \entry{nassef2026tinyml}{article}{}{}
+      \name{author}{8}{}{%
+        {{hash=929fc163f386c2bb4b269ced04daba2b}{%
+           family={Nassef},
+           familyi={N\bibinitperiod},
+           given={Laila},
+           giveni={L\bibinitperiod}}}%
+        {{hash=ac90ed8b764df91f37471d1f1d1af462}{%
+           family={Alghamdi},
+           familyi={A\bibinitperiod},
+           given={Mohammed\bibnamedelima Ibrahim},
+           giveni={M\bibinitperiod\bibinitdelim I\bibinitperiod}}}%
+        {{hash=9d8a7607a73a79e7c2b16bf8cefbd766}{%
+           family={Ben\bibnamedelima Chaabane},
+           familyi={B\bibinitperiod\bibinitdelim C\bibinitperiod},
+           given={Slim},
+           giveni={S\bibinitperiod}}}%
+        {{hash=78282f1d8b77c1c11a9a39da28d06e45}{%
+           family={Abbas},
+           familyi={A\bibinitperiod},
+           given={Qaisar},
+           giveni={Q\bibinitperiod}}}%
+        {{hash=fe71dc24f95acabcc3abd590987da0ca}{%
+           family={Alawad},
+           familyi={A\bibinitperiod},
+           given={Wedad\bibnamedelima M.},
+           giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=637c8093d608d0d730ea45ff44c08e1c}{%
+           family={Albalawi},
+           familyi={A\bibinitperiod},
+           given={Omar\bibnamedelima H.},
+           giveni={O\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=001046fe9e92dfff30886eee63415d6d}{%
+           family={Alqaisi},
+           familyi={A\bibinitperiod},
+           given={Osamah\bibnamedelima I.},
+           giveni={O\bibinitperiod\bibinitdelim I\bibinitperiod}}}%
+        {{hash=7d9562da1271cb86b9eaa4b6afdf462d}{%
+           family={Fakieh},
+           familyi={F\bibinitperiod},
+           given={Bahjat},
+           giveni={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{116353c62d8c283a947e9c6e90dd4397}
+      \strng{fullhash}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
+      \strng{fullhashraw}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
+      \strng{bibnamehash}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
+      \strng{authorbibnamehash}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
+      \strng{authornamehash}{116353c62d8c283a947e9c6e90dd4397}
+      \strng{authorfullhash}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
+      \strng{authorfullhashraw}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Scientific Reports}
+      \field{number}{1}
+      \field{title}{Lightweight and Energy-Aware Intrusion Detection for Industrial {IoT} Using {TinyML} and Edge {AI}}
+      \field{volume}{16}
+      \field{year}{2026}
+      \field{pages}{18524}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1038/s41598-026-50690-0
+      \endverb
+    \endentry
+    \entry{kumar2025kafkaspark}{inproceedings}{}{}
+      \name{author}{4}{}{%
+        {{hash=637bc9a697ca2befd38226179c3160a3}{%
+           family={Mohan\bibnamedelimb Kiran\bibnamedelima Kumar},
+           familyi={M\bibinitperiod\bibinitdelim K\bibinitperiod\bibinitdelim K\bibinitperiod},
+           given={Kotyada},
+           giveni={K\bibinitperiod}}}%
+        {{hash=d49002c631c30c957b2fe589e783c1bb}{%
+           family={Vivek\bibnamedelimb Srikar\bibnamedelima Reddy},
+           familyi={V\bibinitperiod\bibinitdelim S\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+        {{hash=708b67f35926bc0ac365e3f35d73706c}{%
+           family={Ullas},
+           familyi={U\bibinitperiod},
+           given={Karthik},
+           giveni={K\bibinitperiod}}}%
+        {{hash=afd556242f23b7cc828802efcc87b303}{%
+           family={Supriya},
+           familyi={S\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{9bbdc4061785d707257d4565089db8e7}
+      \strng{fullhash}{f6872252b12d77e47a12c56684ce1cd0}
+      \strng{fullhashraw}{f6872252b12d77e47a12c56684ce1cd0}
+      \strng{bibnamehash}{f6872252b12d77e47a12c56684ce1cd0}
+      \strng{authorbibnamehash}{f6872252b12d77e47a12c56684ce1cd0}
+      \strng{authornamehash}{9bbdc4061785d707257d4565089db8e7}
+      \strng{authorfullhash}{f6872252b12d77e47a12c56684ce1cd0}
+      \strng{authorfullhashraw}{f6872252b12d77e47a12c56684ce1cd0}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2025 International Conference on Visual Analytics and Data Visualization (ICVADV)}
+      \field{title}{Distributed Intrusion Detection System using {Kafka} and {Spark} Streaming}
+      \field{year}{2025}
+      \field{pages}{302\bibrangedash 309}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1109/ICVADV63329.2025.10961691
       \endverb
     \endentry
     \entry{kilincer2021}{article}{}{}
@@ -473,8 +714,8 @@
       \strng{authornamehash}{db153483c5f250be04cb18177715ddaf}
       \strng{authorfullhash}{774ea61000aad37d2f927c186556407c}
       \strng{authorfullhashraw}{774ea61000aad37d2f927c186556407c}
-      \field{sortinit}{9}
-      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Computer Networks}
@@ -704,6 +945,67 @@
       \range{pages}{6}
       \verb{doi}
       \verb 10.1109/GLOBECOM48099.2022.10001280
+      \endverb
+    \endentry
+    \entry{hernandezramos2025federated}{article}{}{}
+      \name{author}{7}{}{%
+        {{hash=1b35f0579dc8cc595171717725b88517}{%
+           family={Hernandez-Ramos},
+           familyi={H\bibinithyphendelim R\bibinitperiod},
+           given={Jose\bibnamedelima Luis},
+           giveni={J\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=67a1d0f2bb503d0135d5dbe16d6e8cda}{%
+           family={Karopoulos},
+           familyi={K\bibinitperiod},
+           given={Georgios},
+           giveni={G\bibinitperiod}}}%
+        {{hash=d7eafb66deb2d3e3688753848df2ef24}{%
+           family={Chatzoglou},
+           familyi={C\bibinitperiod},
+           given={Efstratios},
+           giveni={E\bibinitperiod}}}%
+        {{hash=c6972dffa423900a3c9d49fa05a16817}{%
+           family={Kouliaridis},
+           familyi={K\bibinitperiod},
+           given={Vasileios},
+           giveni={V\bibinitperiod}}}%
+        {{hash=62ae837cf8088375daaaa285645e881e}{%
+           family={Marmol},
+           familyi={M\bibinitperiod},
+           given={Enrique},
+           giveni={E\bibinitperiod}}}%
+        {{hash=99b53ac6a307da7217bf698f4504010f}{%
+           family={Gonzalez-Vidal},
+           familyi={G\bibinithyphendelim V\bibinitperiod},
+           given={Aurora},
+           giveni={A\bibinitperiod}}}%
+        {{hash=3de7aa7e992bb6cafda7bff2d7390c76}{%
+           family={Kambourakis},
+           familyi={K\bibinitperiod},
+           given={Georgios},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{3a14cfef6eb85d9dfccbb1d8249dd1a7}
+      \strng{fullhash}{42c43d136b89ad3f2deaceef90ec5a8a}
+      \strng{fullhashraw}{42c43d136b89ad3f2deaceef90ec5a8a}
+      \strng{bibnamehash}{42c43d136b89ad3f2deaceef90ec5a8a}
+      \strng{authorbibnamehash}{42c43d136b89ad3f2deaceef90ec5a8a}
+      \strng{authornamehash}{3a14cfef6eb85d9dfccbb1d8249dd1a7}
+      \strng{authorfullhash}{42c43d136b89ad3f2deaceef90ec5a8a}
+      \strng{authorfullhashraw}{42c43d136b89ad3f2deaceef90ec5a8a}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{ACM Computing Surveys}
+      \field{number}{12}
+      \field{title}{Intrusion Detection Based on Federated Learning: A Systematic Review}
+      \field{volume}{57}
+      \field{year}{2025}
+      \field{pages}{1\bibrangedash 65}
+      \range{pages}{65}
+      \verb{doi}
+      \verb 10.1145/3731596
       \endverb
     \endentry
     \entry{baidar2025}{misc}{}{}
@@ -1087,7 +1389,7 @@
       \field{pages}{100129}
       \range{pages}{1}
       \verb{doi}
-      \verb 10.1016/j.iot.2020.100129
+      \verb 10.1016/j.iot.2019.100129
       \endverb
     \endentry
     \entry{Liao2013}{article}{}{}
@@ -1121,8 +1423,8 @@
       \strng{authornamehash}{32ff27d618e39d943d4858e76f83aa24}
       \strng{authorfullhash}{b14962c531295bc3cec46b9effa9ad84}
       \strng{authorfullhashraw}{b14962c531295bc3cec46b9effa9ad84}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Journal of Network and Computer Applications}
@@ -1162,8 +1464,8 @@
       \strng{authornamehash}{3843f6427d6ca01b54e95297405107bb}
       \strng{authorfullhash}{135c55bbecd240d054a5541e3cf77609}
       \strng{authorfullhashraw}{135c55bbecd240d054a5541e3cf77609}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{ACM Computing Surveys}
@@ -1228,8 +1530,8 @@
       \strng{authornamehash}{f49556d617d4a5ffe2baa6d71026cde2}
       \strng{authorfullhash}{a09c781c6451282e18378c2eade6342b}
       \strng{authorfullhashraw}{a09c781c6451282e18378c2eade6342b}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Proceedings of the IEEE}
@@ -1587,8 +1889,8 @@
       \strng{authornamehash}{44182fc3af381fb90a8e2fc98767375f}
       \strng{authorfullhash}{9181fa8ed15a7be38b0e5fd5d58fd50d}
       \strng{authorfullhashraw}{9181fa8ed15a7be38b0e5fd5d58fd50d}
-      \field{sortinit}{2}
-      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Journal of Machine Learning Research}
@@ -1844,8 +2146,8 @@
       \strng{authornamehash}{cec83448a93ad6a5cdc6f494a8f2dbcb}
       \strng{authorfullhash}{138b620984178bfaf960c59da39eb14f}
       \strng{authorfullhashraw}{138b620984178bfaf960c59da39eb14f}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Advances in Neural Information Processing Systems}
@@ -1876,8 +2178,8 @@
       \strng{authornamehash}{9a2f1094aec23d912c635dc84bd186d0}
       \strng{authorfullhash}{9a2f1094aec23d912c635dc84bd186d0}
       \strng{authorfullhashraw}{9a2f1094aec23d912c635dc84bd186d0}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{AAAI Workshop on Learning for Text Categorization}
@@ -2207,8 +2509,8 @@
       \strng{authornamehash}{40ce643d08f8071d042d43830d503aaa}
       \strng{authorfullhash}{a14864ae09d25944293d4a2c2834e6f0}
       \strng{authorfullhashraw}{a14864ae09d25944293d4a2c2834e6f0}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Risks and Security of Internet and Systems (CRiSIS 2022), Revised Selected Papers}
@@ -2241,8 +2543,8 @@
       \strng{authornamehash}{975fa6513949a08fe98fc5ebc01f3ed8}
       \strng{authorfullhash}{975fa6513949a08fe98fc5ebc01f3ed8}
       \strng{authorfullhashraw}{975fa6513949a08fe98fc5ebc01f3ed8}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Journal of Machine Learning Research}
@@ -2564,8 +2866,8 @@
       \strng{authornamehash}{b13d56fe65b8052396f26390274b4978}
       \strng{authorfullhash}{9eda1f9615db9420697f36712b056545}
       \strng{authorfullhashraw}{9eda1f9615db9420697f36712b056545}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{IEEE Internet of Things Journal}
@@ -2608,8 +2910,8 @@
       \strng{authornamehash}{aff82f082da9b377454b7acc5e0e2015}
       \strng{authorfullhash}{9fe43816a92af37f900c4d64b535a441}
       \strng{authorfullhashraw}{9fe43816a92af37f900c4d64b535a441}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Sensors}
@@ -2654,8 +2956,8 @@
       \strng{authornamehash}{4bdb2b89218f53fcde38938d7fe73370}
       \strng{authorfullhash}{7c30954f72df1304b8c592e96d13a64f}
       \strng{authorfullhashraw}{7c30954f72df1304b8c592e96d13a64f}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Proc. Int. IEEE Conf. on Ubiquitous Intelligence \& Computing (UIC/ATC/ScalCom)}
