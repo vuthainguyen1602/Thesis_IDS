@@ -162,7 +162,7 @@ Fig.~\ref{fig:architecture} shows the split-deployment architecture. A host PC r
 
 \subsection{Monitoring and Alerting}
 
-Each node tags its metrics with a unique node identifier in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Fig.~\ref{fig:grafana} shows the live Grafana dashboard while CICIDS2017 flows are replayed through the split deployment: prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM utilization are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL. Fig.~\ref{fig:grafana-peak} captures the dashboard at peak load: the gate node idles near 5\% CPU while the PySpark classifier node reaches roughly 91\%, confirming that the classifier dominates the compute budget.
+Each node tags its metrics with a unique node identifier in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Fig.~\ref{fig:grafana} shows the live Grafana dashboard while CICIDS2017 flows are replayed through the split deployment: prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM utilization are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL. Fig.~\ref{fig:grafana-peak} captures the dashboard at peak load: the gate node idles at 4.6\% CPU while the PySpark classifier node reaches 90.8\%, confirming that the classifier dominates the compute budget.
 
 \begin{figure}[tbp]
   \centering
@@ -174,7 +174,7 @@ Each node tags its metrics with a unique node identifier in InfluxDB and Postgre
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{grafana_peak_load.png}
-  \caption{Grafana dashboard at peak load in the split deployment: the anomaly-gate node (\texttt{jetson-nano-1}) uses about 5\% CPU while the PySpark classifier node (\texttt{jetson-nano-2}) reaches roughly 91\%, showing the load asymmetry between the two pipeline roles.}
+  \caption{Grafana dashboard at peak load in the split deployment: the anomaly-gate node (\texttt{jetson-nano-1}) uses 4.6\% CPU while the PySpark classifier node (\texttt{jetson-nano-2}) reaches 90.8\%, showing the load asymmetry between the two pipeline roles.}
   \label{fig:grafana-peak}
 \end{figure}
 
