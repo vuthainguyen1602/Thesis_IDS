@@ -235,10 +235,10 @@ CICIDS2017; an 80/20 training/test split after leakage removal (Section~\ref{sec
 
 \subsection{Port-feature ablation}
 
-Table~\ref{tab:port-ablation} and Figure~\ref{fig:leakage-ablation} quantify the impact of \texttt{destination\_port}. After feature-level deduplication, the port's isolated effect is \emph{small}: binary F1 is 0.9965 with the port and 0.9955 without it (a $\approx$0.001 gap): the in-domain binary task is near saturation and the dominant leakage source (duplicate flows) is already handled; the direction (keeping the port yields slightly higher F1/recall) is nonetheless consistent with leakage. All subsequent results use the \emph{port-removed} configuration.
+Table~\ref{tab:port-ablation} and Figure~\ref{fig:leakage-ablation} quantify the impact of \texttt{destination\_port}, using a Random Forest fixed a priori per the Table~\ref{tab:hparams} configuration (class-weighted; binary task). After feature-level deduplication, the port's isolated effect is \emph{small}: binary F1 is 0.9965 with the port and 0.9955 without it (a $\approx$0.001 gap): the in-domain binary task is near saturation and the dominant leakage source (duplicate flows) is already handled; the direction (keeping the port yields slightly higher F1/recall) is nonetheless consistent with leakage. All subsequent results use the \emph{port-removed} configuration.
 
 \begin{table}[htbp]
-  \caption{Impact of the leaking feature \texttt{destination\_port} (Random Forest fixed a priori per the Table~\ref{tab:hparams} configuration, class-weighted; binary).}
+  \caption{Impact of the leaking feature \texttt{destination\_port} (Random Forest, binary task).}
   \label{tab:port-ablation}
   \centering
   \footnotesize
@@ -304,7 +304,7 @@ Table~\ref{tab:best-results} summarizes the best model per method, and Figure~\r
   }{%
     \fbox{\parbox{0.9\columnwidth}{\centering\vspace{1.2cm}\ph{Training/prediction time --- run ml\_07\_cross\_method\_comparison.py}\vspace{1.2cm}}}%
   }
-  \caption{Training and inference time of the representative model of each method, measured on the Spark cluster used for training (Section~\ref{sec:exp}); inference latency/throughput measurements on the edge device belong to a companion systems paper (under submission), not this paper.}
+  \caption{Training and inference time of each method's representative model on the training Spark cluster (Section~\ref{sec:exp}).}
   \label{fig:timing}
 \end{figure}
 
@@ -371,7 +371,7 @@ In the in-distribution stability check (a subset of the test set), the ranking o
 To go beyond \emph{in-domain} evaluation, we train on one dataset and test on a \emph{different} one (\emph{cross-dataset} evaluation; and vice versa) on the \emph{shared} leakage-free feature set of the two datasets. The gap between in-domain F1 (A$\to$A) and cross-dataset F1 (A$\to$B) in Table~\ref{tab:cross-dataset} quantifies the \emph{generalization} ability of the leakage-free model. This is a genuine distribution-shift test, unlike the in-distribution holdout above. Because CSE-CIC-IDS2018~\cite{csecicids2018} is very large ($\sim$16 million flows), we use a \emph{label-stratified} sample (fraction 0.2, $\sim$3.14M sampled flows, $\sim$2.39M after feature-level deduplication, fixed seed) that preserves the class proportions; CICIDS2017 uses $\sim$2.23M flows. The sample sizes are reported explicitly to ensure reproducibility.
 
 \begin{table}[htbp]
-  \caption{Cross-dataset generalization (CICIDS2017 and CSE-CIC-IDS2018, label-stratified sample with a fixed seed; values from the released experiment outputs).}
+  \caption{Cross-dataset generalization between CICIDS2017 and CSE-CIC-IDS2018.}
   \label{tab:cross-dataset}
   \centering
   \footnotesize

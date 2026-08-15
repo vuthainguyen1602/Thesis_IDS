@@ -167,14 +167,14 @@ Each node tags its metrics with a unique node identifier in InfluxDB and Postgre
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{grafana_dashboard.png}
-  \caption{Real-time Grafana monitoring of the running edge IDS: per-node throughput, detected attacks, inference latency, and CPU/RAM utilization for both Jetson Orin Nano Super nodes, plus recent PostgreSQL-backed attack alerts.}
+  \caption{Real-time Grafana monitoring of the edge IDS during CICIDS2017 replay.}
   \label{fig:grafana}
 \end{figure}
 
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{grafana_peak_load.png}
-  \caption{Grafana dashboard at peak load in the split deployment: the anomaly-gate node (\texttt{jetson-nano-1}) uses 4.6\% CPU while the PySpark classifier node (\texttt{jetson-nano-2}) reaches 90.8\%, showing the load asymmetry between the two pipeline roles.}
+  \caption{Grafana dashboard at peak load in the split deployment, showing the load asymmetry between the two pipeline roles.}
   \label{fig:grafana-peak}
 \end{figure}
 
@@ -216,7 +216,7 @@ Training and model export run on a Spark standalone cluster (host PC as master, 
     \draw[dn] (w1.south) -- (s1.north);
     \draw[dn] (w2.south) -- (s2.north);
   \end{tikzpicture}}
-  \caption{Apache Spark standalone training cluster: the host acts as \emph{master} (coordination only, no executor), while two Jetson Orin Nano Super devices are the \emph{worker}/\emph{executor} nodes; Parquet data is partitioned and synced to both, with results gathered via shuffle/collect.}
+  \caption{Apache Spark standalone training cluster: the host as \emph{master} (no executor), two Jetson Orin Nano Super devices as \emph{worker}/\emph{executor} nodes.}
   \label{fig:spark-cluster}
 \end{figure}
 
@@ -272,7 +272,7 @@ This paper does \emph{not} compare Spark against Jetson Orin Nano Super as compe
 In our companion ML study, we evaluate four feature configurations (baseline with all features, RF Importance Top-30, SHAP Top-30, and PCA with $k$=40) under a fixed 80/20 train--test split, using eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). PCA uses $k$=40 rather than 30 because it \emph{extracts} components (linear combinations spreading variance across many axes) rather than \emph{selecting} original features, so it needs more components to retain comparable variance; across the common $\{20,30,40\}$ sweep, $k$=40 retains the most variance and is the fairest representative operating point for PCA. LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. Crucially, the offline protocol is \emph{leakage-aware}~\cite{arp2022dosdonts}: it removes information that would be unavailable at deployment time but that otherwise inflates test scores. Motivated by documented labeling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores obtained when these leaks are left in place. Offline metrics constrain \emph{which} exported model is worth deploying; they are not directly comparable to edge throughput or latency.
 
 \begin{table}[htbp]
-  \caption{Bridge table: offline Spark selection criteria (leakage-free offline evaluation on CICIDS2017; values from the companion study's released outputs).}
+  \caption{Bridge table: offline Spark selection criteria from the leakage-aware companion study.}
   \label{tab:spark-edge-bridge}
   \centering
   \small
@@ -328,7 +328,7 @@ The testbed comprises two NVIDIA Jetson Orin Nano Super Developer Kits and a hos
 We run each deployment mode through a host-side orchestration script that starts the corresponding pipeline roles on the Jetson nodes over SSH, drives the load, and collects per-node logs. Each configuration is measured over at least three repetitions preceded by representative warmup traffic (excluded from the measured window, so JVM/JIT warmup does not inflate early-batch latency); Table~\ref{tab:benchmark} reports mean~$\pm$~std across repetitions. All metric queries are aligned to the exact load window rather than a trailing time range. Latency percentiles are computed per node over the raw per-flow samples logged during the window, and pipeline throughput is counted as \emph{final verdicts per second} (a flow's verdict is issued either at the gate, for skipped flows, or at the classifier), which avoids double-counting forwarded flows in pipeline-split mode. Aggregated results are reported in Table~\ref{tab:benchmark}, with throughput and p95 latency across modes visualized in Fig.~\ref{fig:edge-modes}.
 
 \begin{table}[htbp]
-  \caption{Distributed deployment comparison on the 2-node Jetson cluster (CICIDS2017 replay at 100 flows/s; mean~$\pm$~std over $\geq$3 repetitions).}
+  \caption{Distributed deployment comparison on the 2-node Jetson cluster (mean~$\pm$~std over repetitions).}
   \label{tab:benchmark}
   \centering
   \small
@@ -353,10 +353,10 @@ We run each deployment mode through a host-side orchestration script that starts
 
 \textbf{Energy efficiency.} On-board power is sampled with \texttt{tegrastats} during each run (30\,s idle baseline, then the load window; for two-node modes the powers of both nodes are summed). At 100 flows/s the measured \emph{active} (idle-subtracted) power delta was below the sampling noise floor ($<$0.15\,W on every node), so Table~\ref{tab:benchmark} reports \emph{total-board} energy per verdict instead: essentially board power amortized over verdict throughput. This still separates the modes sharply: the gate-based modes (A and C) amortize the two boards' power over 24--35$\times$ more verdicts than the single node, cutting energy per verdict from $\approx$2.5\,J to 0.12--0.18\,J. Nevertheless, the figures should be read as a deployment-level (not model-level) energy metric.
 
-\textbf{Inference-engine baseline (cost of the unified stack).} We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with the distributed training phase}: the same stack trains on the cluster and serves on the device. To quantify the price of that unification, we benchmark the \emph{same} RandomForest (matched hyper-parameters) on the \emph{same} deployed SHAP-selected feature set (Sect.~\ref{sec:bridge}) through lighter single-node engines: scikit-learn (CPU, no JVM) and ONNX Runtime (CPU execution provider), in Table~\ref{tab:engines}. Accuracy is comparable by construction; the comparison targets inference cost. The JVM/Spark stack indeed incurs substantially higher inference cost than scikit-learn on the 8\,GB ARM board ($9\times$ lower throughput, $\approx$11$\times$ higher p95, roughly double the RAM share, and $\approx$25$\times$ the active energy per inference), and compiling the same forest to ONNX Runtime widens the gap dramatically: $\approx$7{,}900 flows/s at a p95 of 1.1\,ms, i.e.\ $348\times$ the deployed Spark throughput at $\approx$2\% of the per-inference energy of scikit-learn. Reporting this honestly motivates exporting the \texttt{PipelineModel} to ONNX/TensorRT for inference while retaining Spark for training; wiring the ONNX session into the streaming pipeline (and exploiting the GPU via TensorRT) is left as future work.
+\textbf{Inference-engine baseline (cost of the unified stack).} We deploy a Spark \texttt{PipelineModel} on the edge for \emph{consistency with the distributed training phase}: the same stack trains on the cluster and serves on the device. To quantify the price of that unification, we benchmark the \emph{same} RandomForest (matched hyper-parameters) on the \emph{same} deployed SHAP-selected feature set (Sect.~\ref{sec:bridge}) through lighter single-node engines: scikit-learn (CPU, no JVM) and ONNX Runtime (CPU execution provider), in Table~\ref{tab:engines}. Accuracy is comparable by construction; the comparison targets inference cost. All three engines are measured on the classifier node under identical board conditions at batch size 10; energy is \emph{active} (idle-subtracted) per inference at engine saturation. The JVM/Spark stack indeed incurs substantially higher inference cost than scikit-learn on the 8\,GB ARM board ($9\times$ lower throughput, $\approx$11$\times$ higher p95, roughly double the RAM share, and $\approx$25$\times$ the active energy per inference), and compiling the same forest to ONNX Runtime widens the gap dramatically: $\approx$7{,}900 flows/s at a p95 of 1.1\,ms, i.e.\ $348\times$ the deployed Spark throughput at $\approx$2\% of the per-inference energy of scikit-learn. Reporting this honestly motivates exporting the \texttt{PipelineModel} to ONNX/TensorRT for inference while retaining Spark for training; wiring the ONNX session into the streaming pipeline (and exploiting the GPU via TensorRT) is left as future work.
 
 \begin{table}[htbp]
-  \caption{Single-node inference cost on the same model/features, measured on the classifier node under identical board conditions (batch size 10; energy is \emph{active}, i.e.\ idle-subtracted, per inference at engine saturation).}
+  \caption{Single-node inference cost of the same model and feature set across engines.}
   \label{tab:engines}
   \centering
   \small
