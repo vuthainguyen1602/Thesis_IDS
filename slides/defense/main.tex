@@ -289,7 +289,7 @@
       \fitwidth{%
       \begin{tabular}{lccc}
         \toprule
-        Thuật toán & RF Top-30 & SHAP Top-30 & Chênh lệch \\
+        Thuật toán & RF Top-30 & SHAP Top-30 & Chênh lệch t.đối \\
         \midrule
         Random Forest & 0,9879 & 0,9955 & \good{$+$0,77\%} \\
         XGBoost       & 0,9922 & 0,9970 & \good{$+$0,48\%} \\
@@ -353,7 +353,7 @@
       \fitwidth{%
       \begin{tabular}{llc}
         \toprule
-        Phương pháp & Mô hình & F1 (TB $\pm$ CI95) \\
+        Phương pháp & Mô hình & F1 (TB $\pm$ CI95 $t$) \\
         \midrule
         Baseline    & XGBoost & 0,99734 $\pm$ 0,00007 \\
         SHAP Top-30 & XGBoost & 0,99720 $\pm$ 0,00009 \\
@@ -388,7 +388,10 @@
   \end{columns}
   \takeaway{Chênh lệch tuyệt đối chỉ $\approx$0,0001 $\rightarrow$ hai cấu hình
   \key{tương đương về mặt thực tiễn}; tiêu chí phụ mới quyết định.}
-  \note{Đây là chỗ thể hiện sự cẩn trọng phương pháp: p nhỏ không đồng nghĩa
+  \note{Bảng hiện khoảng tin cậy $t$; khoảng Nadeau--Bengio rộng hơn
+  (Baseline 0,99722--0,99746; SHAP Top-30 0,99705--0,99735) và mới là căn cứ
+  kết luận chính --- luận văn trình bày cả hai cột.
+  Đây là chỗ thể hiện sự cẩn trọng phương pháp: p nhỏ không đồng nghĩa
   khác biệt có ý nghĩa thực tiễn --- ở đây p = 0,031 chỉ vừa chạm ngưỡng sàn
   của độ phân giải kiểm định. Lấy mẫu chồng lấn vi phạm giả định độc lập của
   phân phối t, nên Nadeau--Bengio là căn cứ chính.}
