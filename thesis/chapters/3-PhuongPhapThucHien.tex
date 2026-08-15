@@ -183,7 +183,7 @@ Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn
         \draw[arr] (train.east) -- ++(0.5,0) |- (val.west);
         \node[lbl, rotate=90, font=\scriptsize\itshape] at (14.29,1.4) {80/20, seed=42};
     \end{tikzpicture}}
-    \caption{Sơ đồ phân chia dữ liệu CICIDS2017. Sau tiền xử lý và loại trừ rò rỉ (Thuật toán~\ref{data_preparation_ag}), dữ liệu được chia 80/20 thành train/test (\texttt{seed}=42); tập test được giữ lại, chỉ dùng để công bố kết quả cuối. StandardScaler, PCA và việc xếp hạng đặc trưng (RF/SHAP) được \emph{fit trên toàn bộ tập train} rồi giữ cố định. Riêng để chọn Top-3 mô hình thành phần và cặp phương pháp đưa vào kiểm định, tập train được tách tiếp 80/20 thành base-train (huấn luyện mô hình cơ sở) và validation (chấm điểm chọn lọc); ngưỡng cổng bất thường được chọn trên 10\% lưu lượng benign của tập train (\texttt{seed}=42). Tập test không tham gia bất kỳ khâu lựa chọn nào.}
+    \caption[Sơ đồ phân chia dữ liệu CICIDS2017]{Sơ đồ phân chia dữ liệu CICIDS2017. Sau tiền xử lý và loại trừ rò rỉ (Thuật toán~\ref{data_preparation_ag}), dữ liệu được chia 80/20 thành train/test (\texttt{seed}=42); tập test được giữ lại, chỉ dùng để công bố kết quả cuối. StandardScaler, PCA và việc xếp hạng đặc trưng (RF/SHAP) được \emph{fit trên toàn bộ tập train} rồi giữ cố định. Riêng để chọn Top-3 mô hình thành phần và cặp phương pháp đưa vào kiểm định, tập train được tách tiếp 80/20 thành base-train (huấn luyện mô hình cơ sở) và validation (chấm điểm chọn lọc); ngưỡng cổng bất thường được chọn trên 10\% lưu lượng benign của tập train (\texttt{seed}=42). Tập test không tham gia bất kỳ khâu lựa chọn nào.}
     \label{fig:data_split}
 \end{figure}
 

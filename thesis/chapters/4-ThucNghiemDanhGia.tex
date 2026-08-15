@@ -52,7 +52,7 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
         \draw[dn] (w1.south) -- (s1.north);
         \draw[dn] (w2.south) -- (s2.north);
     \end{tikzpicture}}
-    \caption{Cụm huấn luyện phân tán Apache Spark Standalone: MacBook giữ vai trò \textit{master} điều phối (không chạy executor), hai Jetson Orin Nano Super là \textit{worker}/\textit{executor} thực thi tính toán; dữ liệu Parquet được phân vùng và đồng bộ sang cả hai nút, kết quả được gom về qua shuffle/collect.}
+    \caption[Cụm huấn luyện phân tán Apache Spark Standalone]{Cụm huấn luyện phân tán Apache Spark Standalone: MacBook giữ vai trò \textit{master} điều phối (không chạy executor), hai Jetson Orin Nano Super là \textit{worker}/\textit{executor} thực thi tính toán; dữ liệu Parquet được phân vùng và đồng bộ sang cả hai nút, kết quả được gom về qua shuffle/collect.}
     \label{fig:spark_cluster}
 \end{figure}
 
@@ -380,7 +380,7 @@ Do CSE-CIC-IDS2018~\cite{CSECICIDS2018} có quy mô rất lớn ($\sim$16 triệ
 
 \begin{table}[htbp]
 \centering
-\caption{Tổng quát hóa liên bộ dữ liệu giữa CICIDS2017 và CSE-CIC-IDS2018 (CSE-CIC-IDS2018: mẫu phân tầng \texttt{seed}=42; từ \texttt{cross\_dataset\_results.csv})}
+\caption[Tổng quát hóa liên bộ dữ liệu CICIDS2017 và CSE-CIC-IDS2018]{Tổng quát hóa liên bộ dữ liệu giữa CICIDS2017 và CSE-CIC-IDS2018 (CSE-CIC-IDS2018: mẫu phân tầng \texttt{seed}=42; từ \texttt{cross\_dataset\_results.csv})}
 \label{tab:cross_dataset}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
 \toprule
@@ -540,7 +540,7 @@ Kiến trúc này đảm bảo tính mô-đun, tách biệt các thành phần x
 
 \begin{table}[htbp]
 \centering
-\caption{Điểm vận hành của cổng bất thường khi quét quantile trên tập kiểm định benign (10\% benign train, \texttt{seed}=42; từ \texttt{gate\_operating\_points.csv}). FPR ở đây là tỷ lệ luồng benign bị cổng chuyển nhầm sang bộ phân loại, không phải FPR của toàn hệ thống.}
+\caption[Điểm vận hành của cổng bất thường theo ngưỡng quantile]{Điểm vận hành của cổng bất thường khi quét quantile trên tập kiểm định benign (10\% benign train, \texttt{seed}=42; từ \texttt{gate\_operating\_points.csv}). FPR ở đây là tỷ lệ luồng benign bị cổng chuyển nhầm sang bộ phân loại, không phải FPR của toàn hệ thống.}
 \label{tab:gate_oc}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
@@ -574,7 +574,7 @@ Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc 
     {\footnotesize (a) Jetson \#1 (\texttt{jetson-nano-1}): cổng phát hiện bất thường, giám sát tài nguyên theo node}\\[8pt]
     \IfFileExists{img/pipeline_terminal_jetson2.png}{\includegraphics[width=0.85\textwidth]{img/pipeline_terminal_jetson2.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Ảnh terminal node phân loại (jetson-nano-2)}\vspace{1.2cm}}}}\\[2pt]
     {\footnotesize (b) Jetson \#2 (\texttt{jetson-nano-2}): bộ phân loại PySpark, thông lượng \textasciitilde6 luồng/giây, độ trễ suy luận \textasciitilde4\,ms, đếm tấn công theo lô}
-    \caption{Giao diện terminal khi pipeline IDS hoạt động trên hai node Jetson Orin Nano Super: (a) node cổng lọc bất thường và (b) node phân loại PySpark}
+    \caption[Giao diện terminal của pipeline IDS trên hai node Jetson]{Giao diện terminal khi pipeline IDS hoạt động trên hai node Jetson Orin Nano Super: (a) node cổng lọc bất thường và (b) node phân loại PySpark}
     \label{fig:pipeline_terminal}
 \end{figure}
 
@@ -589,7 +589,7 @@ Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc 
 \begin{figure}[htbp]
     \centering
     \IfFileExists{img/mailtrap_alert.png}{\includegraphics[width=0.9\textwidth]{img/mailtrap_alert.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Email cảnh báo Mailtrap --- chụp lại từ hệ chạy trên Jetson}\vspace{1.2cm}}}}
-    \caption{Email cảnh báo tấn công được gửi qua Mailtrap trong môi trường kiểm thử (ảnh chụp từ giai đoạn thử nghiệm sớm của hệ thống; mô-đun cảnh báo và định dạng thông điệp giữ nguyên khi triển khai trên cụm Jetson)}
+    \caption[Email cảnh báo tấn công gửi qua Mailtrap]{Email cảnh báo tấn công được gửi qua Mailtrap trong môi trường kiểm thử (ảnh chụp từ giai đoạn thử nghiệm sớm của hệ thống; mô-đun cảnh báo và định dạng thông điệp giữ nguyên khi triển khai trên cụm Jetson)}
     \label{fig:mailtrap_alert}
 \end{figure}
 
@@ -603,14 +603,14 @@ Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc 
 \begin{figure}[htbp]
     \centering
     \IfFileExists{img/grafana_peak_load.png}{\includegraphics[width=0.9\textwidth]{img/grafana_peak_load.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Dashboard Grafana tại thời điểm tải đỉnh --- chụp lại từ cụm Jetson}\vspace{1.2cm}}}}
-    \caption{Dashboard Grafana tại thời điểm tải đỉnh của chế độ tách pipeline: nút cổng (\texttt{jetson-nano-1}) chỉ sử dụng khoảng 5\,\% CPU trong khi nút phân loại PySpark (\texttt{jetson-nano-2}) đạt tới 91\,\%}
+    \caption[Dashboard Grafana tại thời điểm tải đỉnh của chế độ tách pipeline]{Dashboard Grafana tại thời điểm tải đỉnh của chế độ tách pipeline: nút cổng (\texttt{jetson-nano-1}) chỉ sử dụng khoảng 5\,\% CPU trong khi nút phân loại PySpark (\texttt{jetson-nano-2}) đạt tới 91\,\%}
     \label{fig:grafana_peak_load}
 \end{figure}
 
 \begin{figure}[htbp]
     \centering
     \IfFileExists{img/slack_alert.png}{\includegraphics[width=0.9\textwidth]{img/slack_alert.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Thông báo Slack --- chụp lại từ hệ chạy trên Jetson}\vspace{1.2cm}}}}
-    \caption{Thông báo cảnh báo tấn công được gửi qua Slack Incoming Webhook (ảnh chụp từ giai đoạn thử nghiệm sớm; định dạng thông điệp giữ nguyên khi triển khai trên cụm Jetson)}
+    \caption[Thông báo cảnh báo tấn công gửi qua Slack]{Thông báo cảnh báo tấn công được gửi qua Slack Incoming Webhook (ảnh chụp từ giai đoạn thử nghiệm sớm; định dạng thông điệp giữ nguyên khi triển khai trên cụm Jetson)}
     \label{fig:slack_alert}
 \end{figure}
 
@@ -662,7 +662,7 @@ Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của S
 
 \begin{table}[htbp]
 \centering
-\caption{Chi phí suy luận một nút trên cùng mô hình/đặc trưng (Spark vs sklearn vs ONNX), đo trên nút phân loại trong cùng điều kiện bo mạch (batch 10; năng lượng là phần \emph{hoạt động}, đã trừ idle)}
+\caption[Chi phí suy luận một nút: Spark, sklearn và ONNX]{Chi phí suy luận một nút trên cùng mô hình/đặc trưng (Spark vs sklearn vs ONNX), đo trên nút phân loại trong cùng điều kiện bo mạch (batch 10; năng lượng là phần \emph{hoạt động}, đã trừ idle)}
 \label{tab:engines_thesis}
 \renewcommand{\arraystretch}{1.1}
 \small
