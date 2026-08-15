@@ -32,6 +32,13 @@ missfont.log
 papers/*/manuscript/main.pdf
 thesis/manuscript/main.pdf
 
+# Beamer build artifacts (slides/) — the deliverable PDFs live in output/pdfs/
+*.nav
+*.snm
+*.vrb
+slides/*/main.pdf
+slides/*/main_notes.pdf
+
 # Keep exported PDFs here
 !output/pdfs/*.pdf
 

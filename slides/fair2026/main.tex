@@ -1,0 +1,454 @@
+% =====================================================================
+% FAIR 2026 — 7-minute oral presentation
+% Paper: papers/fair2026/manuscript/main_en.tex
+% Compile: ./compile.sh   (XeLaTeX; notes version via NOTES=1 ./compile.sh)
+%
+% TIMING PLAN (7:00 total, ~30 s buffer)
+%   1 Title .................. 0:20
+%   2 The suspicious number .. 0:50
+%   3 Contributions .......... 0:35
+%   4 Leakage-aware pipeline . 0:55
+%   5 Method comparison ...... 1:00
+%   6 Statistical testing .... 0:40
+%   7 Multiclass truth ....... 0:55
+%   8 Cross-dataset collapse . 0:55
+%   9 Conclusion ............. 0:40
+% Slides 10+ are BACKUP for Q&A and are not part of the 7 minutes.
+% Speaker notes live in \note{} — build them with NOTES=1.
+% =====================================================================
+\documentclass[aspectratio=169, 11pt]{beamer}
+\input{../common/preamble.tex}
+
+\graphicspath{%
+  {../../results/ml_07_cross_method_comparison/}%
+  {../../results/ml_05_shap_explainability/}%
+  {../../results/ml_06_feature_selection_shap/}%
+  {../../results/ml_09_multiclass_eval/}%
+  {../../results/ml_10_leakage_ablation/}%
+  {../../results/ml_11_cross_dataset/}%
+}
+
+\title{Dimensionality Reduction and Feature Selection for Network Intrusion Detection on Apache Spark ML}
+\subtitle{\ldots with a Leakage-Aware Evaluation Pipeline}
+\author{\textbf{Thai Nguyen Vu}\inst{1} \and Dung Van Bui\inst{2} \and Nhut Tri Do\inst{2} \and Van Du Nguyen\inst{3}}
+\institute{\scriptsize \inst{1}University of Transport and Communications, HCMC Campus \quad
+           \inst{2}University of Information Technology, VNU-HCM \\
+           \inst{3}Nong Lam University, HCMC}
+\date{FAIR 2026}
+
+\begin{document}
+
+% ---------------------------------------------------------------- 0:20
+\maketitle
+\note{Seven minutes on a single claim: on CICIDS2017, a near-perfect F1 is
+usually a property of the evaluation pipeline, not of the model.}
+
+% ---------------------------------------------------------------- 0:50
+\begin{frame}{A near-perfect F1 on CICIDS2017 is a warning sign}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \textbf{Two problems, usually treated apart}
+      \begin{itemize}\small
+        \item \key{Cost.} $\approx$80 features per flow --- expensive to train,
+              to score, to fit on an edge device.
+        \item \key{Trust.} Near-perfect binary F1 is normally
+              \bad{data leakage}.
+      \end{itemize}
+      \vspace{0.3em}
+      \textbf{Two concrete leakage sources}
+      \begin{enumerate}
+        \item \texttt{destination\_port} encodes the \emph{attacked service}
+              $\rightarrow$ a port\,$\rightarrow$\,label shortcut.
+        \item \bad{Feature-level duplicates} survive full-row dedup $\rightarrow$
+              the same sample lands in train \emph{and} test.
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{alertblock}{This paper}
+        Compare four reduction strategies over the same eight Spark ML
+        classifiers --- but first make the \emph{evaluation pipeline} trustworthy.
+      \end{alertblock}
+      \begin{exampleblock}{The contribution is the protocol}
+        Not ``which method wins'' but \key{how to measure so the answer means
+        something}.
+      \end{exampleblock}%
+    \end{column}
+  \end{columns}
+  \note{Frame the talk as a measurement paper. Two leakage sources, both
+  removed before any split.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:35
+\begin{frame}{Contributions}
+  \begin{enumerate}
+    \item A \key{uniform comparison} of RF Importance, SHAP and PCA across the
+          same 8 Spark ML algorithms $+$ 2 ensembles on CICIDS2017.
+    \item SHAP contrasted \key{directly} against RF Importance on the same
+          training set.
+    \item A \key{leakage-aware, statistically tested} pipeline: leak removal,
+          deterministic feature-level dedup, validation-based selection, exact
+          paired permutation test with Nadeau--Bengio correction.
+    \item A \key{per-attack-type multiclass} evaluation --- where the methods
+          genuinely differ.
+    \item An \key{edge-aware} recommendation: F1 \emph{and} feature count
+          \emph{and} model size, for a Jetson Orin Nano Super (deployed in a
+          companion systems paper).
+  \end{enumerate}
+  \note{Five contributions; three, four and five are the ones nobody else
+  does together.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:55
+\begin{frame}{The leakage-aware pipeline}
+  \begin{columns}[c]
+    \begin{column}{0.5\textwidth}
+      \centering
+      \resizebox{0.98\textwidth}{!}{%
+      \begin{tikzpicture}[
+        font=\footnotesize, node distance=2.6mm, >=Stealth,
+        box/.style={draw=gray!60, rounded corners=2pt, align=center, inner sep=4pt, minimum width=7.6cm},
+        hl/.style={box, draw=accOrange, fill=accOrange!10},
+        ed/.style={box, draw=accGreen!80!black, fill=accGreen!10},
+        arr/.style={-{Stealth[length=2mm]}, semithick}]
+        \node[box] (raw)  {CICIDS2017 --- 8 CSV files, $\approx$2.8M flows};
+        \node[hl, below=of raw] (prep) {\textbf{Leakage-aware preparation}\\
+              remove \texttt{destination\_port} $\cdot$ feature-level dedup};
+        \node[box, below=of prep] (split) {80/20 split (fixed seed) $\cdot$ Parquet};
+        \node[box, below=of split] (strat) {\textbf{4 strategies}: Baseline $|$ RF Top-$K$ $|$ SHAP Top-$K$ $|$ PCA\\
+              (rankings fit on the \emph{training set only})};
+        \node[box, below=of strat] (clf) {8 Spark ML classifiers $+$ 2 ensembles};
+        \node[hl, below=of clf] (val) {Validation-based selection $\cdot$ paired permutation test\\
+              Nadeau--Bengio CI $\cdot$ effect size $\cdot$ multiclass};
+        \node[ed, below=of val] (edge) {SHAP Top-30 $\rightarrow$ Jetson Orin Nano Super};
+        \draw[arr] (raw)--(prep); \draw[arr] (prep)--(split); \draw[arr] (split)--(strat);
+        \draw[arr] (strat)--(clf); \draw[arr] (clf)--(val); \draw[arr] (val)--(edge);
+      \end{tikzpicture}}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \textbf{Removals happen \emph{before} the split}
+      \begin{itemize}\small
+        \item Feature-identical groups with \bad{conflicting labels} are
+              dropped \emph{entirely}: \num{270 groups, 44{,}260 rows}.
+        \item Result: 77 features, 1.79M / 0.45M train/test flows.
+      \end{itemize}
+      \vspace{0.2em}
+      \textbf{Design fixed \emph{a priori}}
+      \begin{itemize}\small
+        \item Exploration ($K$ sweep) separated from confirmation.
+        \item Hyper-parameters shared across all methods.
+        \item The test set enters \bad{no} selection step.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \note{Deterministic deduplication is the part people get wrong. Conflicting
+  groups are removed wholesale, so the result does not depend on how Spark
+  partitions the data.}
+\end{frame}
+
+% ---------------------------------------------------------------- 1:00
+\begin{frame}{Result 1: 60\% of the features are removable}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \centering\small
+      \fitwidth{%
+      \begin{tabular}{llccc}
+        \toprule
+        Method & Model & F1 & Train (s) & Feat. \\
+        \midrule
+        Baseline           & XGBoost & 0.9971 & 4615.5 & 77 \\
+        \textbf{SHAP Top-30} & XGBoost & \num{0.9970} & \num{1226.1} & \num{30} \\
+        PCA $k$=40         & XGBoost & 0.9939 & 1444.8 & 40 \\
+        RF Top-30          & XGBoost & 0.9922 & 1295.1 & 30 \\
+        \bottomrule
+      \end{tabular}
+      }
+      \vspace{0.5em}
+
+      \footnotesize
+      \fitwidth{%
+      \begin{tabular}{lccc}
+        \toprule
+        Algorithm & RF Top-30 & SHAP Top-30 & $\Delta$ \\
+        \midrule
+        Random Forest & 0.9879 & 0.9955 & \good{$+$0.77\%} \\
+        XGBoost       & 0.9922 & 0.9970 & \good{$+$0.48\%} \\
+        GBT           & 0.9844 & 0.9918 & \good{$+$0.75\%} \\
+        Decision Tree & 0.9835 & 0.9948 & \good{$+$1.15\%} \\
+        \bottomrule
+      \end{tabular}
+      }
+    \end{column}
+    \begin{column}{0.43\textwidth}
+      \begin{itemize}\small
+        \item SHAP Top-30 keeps baseline F1 while cutting \good{$\approx$60\%
+              of features} and \good{$\approx$73\% of training time}.
+        \item At \emph{equal} feature count, SHAP beats RF Importance on every
+              tree-based algorithm.
+        \item PCA uses $k$=40 because it \emph{extracts} rather than
+              \emph{selects} --- each component carries only part of the
+              variance. Cheaper, but not explainable.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \note{Two tables, one message: SHAP Top-30 is the operating point. Same
+  accuracy, 60 percent fewer features, and it is explainable — which matters
+  for the SOC analyst and for the edge board downstream.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:40
+\begin{frame}{Result 2: testing the difference instead of asserting it}
+  \begin{columns}[T]
+    \begin{column}{0.47\textwidth}
+      \centering\small
+      \fitwidth{%
+      \begin{tabular}{llc}
+        \toprule
+        Method & Model & F1 (mean $\pm$ CI95) \\
+        \midrule
+        Baseline    & XGBoost & 0.99734 $\pm$ 0.00007 \\
+        SHAP Top-30 & XGBoost & 0.99720 $\pm$ 0.00009 \\
+        \midrule
+        \multicolumn{3}{c}{\footnotesize paired permutation $p = 0.031$;\ $d \approx 1.94$} \\
+        \bottomrule
+      \end{tabular}
+      }
+      \vspace{0.6em}
+
+      \footnotesize
+      \fitwidth{%
+      \begin{tabular}{lcc}
+        \toprule
+        Port ablation (RF) & F1 & Recall (Attack) \\
+        \midrule
+        Keep port          & 0.9965 & 0.9988 \\
+        \textbf{Remove port} & 0.9955 & 0.9961 \\
+        \bottomrule
+      \end{tabular}
+      }
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{itemize}\small
+        \item $N{=}6$ paired \emph{resamplings}: variance reflects data sampling,
+              not just seeds.
+        \item Two-sided permutation test, \key{exact enumeration} of all $2^6$
+              sign flips: smallest reachable $p$ is $2/2^6$, so $N \geq 6$ is
+              \emph{required} to cross 0.05.
+        \item Overlapping resamplings break $t$-independence $\rightarrow$ we use
+              the \key{Nadeau--Bengio corrected} CI.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \takeaway{Significant \emph{only at the resolution floor}, absolute gap
+  $\approx$0.0001: the two are \key{practically equivalent}, so explainability
+  and cost decide. After dedup, the port's isolated effect is small --- the
+  duplicates were the dominant leak.}
+  \note{Small p, tiny effect in absolute terms. Say plainly that we treat them
+  as equivalent rather than claiming a winner.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:55
+\begin{frame}{Result 3: binary F1 hides everything that matters}
+  \begin{columns}[c]
+    \begin{column}{0.40\textwidth}
+      \centering
+      \IfFileExists{../../results/ml_09_multiclass_eval/confusion_matrix.png}
+        {\includegraphics[width=0.98\textwidth]{confusion_matrix.png}}
+        {\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.2cm}
+          \texttt{confusion\_matrix.png}\vspace{1.2cm}}}}
+    \end{column}
+    \begin{column}{0.58\textwidth}
+      \centering\footnotesize
+      \fitwidth{%
+      \begin{tabular}{lccc}
+        \toprule
+        Class & Support & Recall & F1 \\
+        \midrule
+        Benign                & 380{,}119 & 0.9997 & 0.9989 \\
+        DoS Hulk              & 34{,}446  & 0.9904 & 0.9947 \\
+        Web -- Brute Force    & 311       & 0.7299 & 0.7323 \\
+        Bot                   & 290       & \bad{0.4552} & 0.6256 \\
+        Web -- XSS            & 111       & \bad{0.0270} & 0.0526 \\
+        Web -- SQL Injection  & 6         & \bad{0.0000} & 0.0000 \\
+        \midrule
+        \multicolumn{2}{l}{weighted-F1 $=$ 0.998} &
+        \multicolumn{2}{l}{\bad{macro-F1 $=$ 0.806}} \\
+        \bottomrule
+      \end{tabular}
+      }
+      \par\vspace{0.2em}
+      \raggedright\footnotesize
+      Two failure modes, read \emph{by destination}:
+      \begin{itemize}\footnotesize
+        \item \textbf{Mislabelled but caught}: 81/111 XSS land on Web Brute
+              Force --- \good{76\% still flagged} at the binary level.
+        \item \textbf{Leaking into Benign} (dangerous): all 6 SQL Injection,
+              \bad{54\% of Bot}, 27\% of Brute Force.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \note{This is where the paper earns its keep. Weighted F1 0.998 versus macro
+  F1 0.806. Three causes: extreme imbalance; removing the port hits web
+  attacks hardest — without the port-80 shortcut short HTTP flows look like
+  browsing, so the honest 0.027 recall replaces a leakage-inflated one; and
+  Bot C\&C beaconing resembles background traffic.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:55
+\begin{frame}{Result 4: the most honest number in the paper}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \centering\small
+      \fitwidth{%
+      \begin{tabular}{llc}
+        \toprule
+        Train & Test & F1 \\
+        \midrule
+        CICIDS2017 & CICIDS2017      & \good{0.9952} \\
+        CICIDS2017 & CSE-CIC-IDS2018 & \bad{0.0423} \\
+        CSE-CIC-IDS2018 & CSE-CIC-IDS2018 & \good{0.9245} \\
+        CSE-CIC-IDS2018 & CICIDS2017 & \bad{0.0535} \\
+        \bottomrule
+      \end{tabular}
+      }
+      \\[0.4em]
+      \footnotesize
+      Shared leakage-free feature set; CSE-CIC-IDS2018 label-stratified sample
+      ($\sim$2.39M flows after dedup, fixed seed).
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{itemize}\small
+        \item In-domain F1 is high in \emph{both} directions --- cross-dataset
+              F1 collapses to \bad{0.04--0.05}.
+        \item Driven by near-zero \emph{recall} (0.022 / 0.030) while precision
+              stays at 0.596: the model \key{fails to recognise} the other
+              testbed's attacks rather than alarming indiscriminately.
+        \item Causes: different CICFlowMeter version, different network
+              configuration, non-overlapping attack tooling.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \takeaway{Near-perfect in-domain scores --- \emph{even leakage-free ones} ---
+  do not certify deployability under distribution shift.}
+  \note{Do not soften this. In-domain 0.99, cross-dataset 0.04. Consistent
+  with prior cross-dataset IDS studies, and the reason domain adaptation is a
+  prerequisite rather than a nice-to-have.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:40
+\begin{frame}{Conclusion}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \textbf{What we showed}
+      \begin{itemize}
+        \item SHAP Top-30 retains baseline F1 with \good{$\approx$60\% fewer
+              features}.
+        \item Baseline vs.\ SHAP Top-30 are \key{practically equivalent}.
+        \item \bad{macro-F1 0.806} against weighted-F1 0.998.
+        \item Cross-dataset F1 \bad{collapses to 0.04--0.05}.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \textbf{The real contribution}
+      \begin{itemize}\small
+        \item Not ``which method is best'' but \key{how to evaluate reliably}.
+      \end{itemize}
+      \textbf{Next}
+      \begin{itemize}\small
+        \item Full CSE-CIC-IDS2018; newer sets (RoEduNet, CIC-IoT).
+        \item Does the SHAP Top-30 \emph{set itself} transfer?
+        \item Targeted imbalance handling; temporal features for beaconing.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vfill
+  \centering \key{Thank you --- questions?}\quad
+  \footnotesize\texttt{github.com/vuthainguyen1602/Thesis\_IDS}
+  \note{Close on the protocol, not the leaderboard.}
+\end{frame}
+
+% =====================================================================
+\appendix
+
+\begin{frame}[standout]
+  Backup slides
+\end{frame}
+
+\begin{frame}{Backup: F1 heatmap, method $\times$ algorithm}
+  \centering
+  \IfFileExists{../../results/ml_07_cross_method_comparison/f1_heatmap.png}
+    {\includegraphics[height=0.74\textheight]{f1_heatmap.png}}
+    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
+      \texttt{f1\_heatmap.png}\vspace{1.5cm}}}}
+  \\[0.2em]\footnotesize Binary, port removed. 8 algorithms $\times$ 4 methods.
+\end{frame}
+
+\begin{frame}{Backup: hyper-parameters, fixed a priori}
+  \centering\footnotesize
+  \fitwidth{%
+  \begin{tabular}{ll}
+    \toprule
+    Model & Main hyper-parameters \\
+    \midrule
+    Decision Tree       & maxDepth=15, minInstancesPerNode=5, impurity=entropy \\
+    Logistic Regression & maxIter=200, regParam=0.001, L2, threshold=0.5 \\
+    SVM (LinearSVC)     & maxIter=200, regParam=0.001 \\
+    Naive Bayes         & gaussian, smoothing=1.0 \\
+    Random Forest       & numTrees=200, maxDepth=15, featureSubset=sqrt \\
+    GBT                 & maxIter=150, maxDepth=6, stepSize=0.05, subsample=0.8 \\
+    XGBoost             & n\_estimators=300, max\_depth=8, lr=0.05, subsample=0.8 \\
+    MLP                 & layers=[$d$,64,32,2], maxIter=150, stepSize=0.01 \\
+    \bottomrule
+  \end{tabular}
+  }
+  \\[0.4em]
+  \raggedright\footnotesize
+  Shared across all reduction methods, so differences reflect the
+  \emph{method}, not per-model tuning. Class weights for 6 models,
+  \texttt{scale\_pos\_weight} for XGBoost; MLP unweighted (Spark ML has no
+  sample weights for it) --- stated in the limitations. LightGBM excluded: its
+  SynapseML native library is x86\_64-only, and the deployment target is ARM64.
+\end{frame}
+
+\begin{frame}{Backup: training and prediction cost}
+  \centering
+  \IfFileExists{../../results/ml_07_cross_method_comparison/train_predict_time.png}
+    {\includegraphics[height=0.68\textheight]{train_predict_time.png}}
+    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
+      \texttt{train\_predict\_time.png}\vspace{1.5cm}}}}
+  \\[0.2em]\footnotesize
+  Measured on the Spark training cluster. Latency/throughput \emph{on the edge
+  device} belong to the companion systems paper.
+\end{frame}
+
+\begin{frame}{Backup: threats to validity}
+  \begin{itemize}\small
+    \item \textbf{Internal.} RF/SHAP rankings come from the original training
+          set and stay fixed across resamplings --- consistent with the
+          a-priori design, but a slight leak in the ranking step. Re-ranking
+          per resampling is more rigorous, but costly for SHAP. MLP carries the
+          unweighted-training caveat.
+    \item \textbf{External.} CICIDS2017 may not reflect current traffic, and
+          benchmark NIDS datasets have documented quality limitations. The
+          cross-dataset conclusion rests on a \emph{stratified sample} of
+          CSE-CIC-IDS2018. Evasive traffic untested. Feature-level dedup itself
+          shifts the benign/attack distribution.
+    \item \textbf{Statistical.} $N{=}6$ gives low power: two-sided exact
+          enumeration floors $p$ at $2/2^N$, so $N{=}6$ \emph{just} reaches
+          0.05. Resamplings overlap, violating $t$-independence --- hence
+          Nadeau--Bengio as the primary basis. Nested CV with larger $N$ is the
+          next reinforcement.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Backup: SHAP feature attribution}
+  \centering
+  \IfFileExists{../../results/ml_06_feature_selection_shap/shap_summary_beeswarm.png}
+    {\includegraphics[height=0.68\textheight]{shap_summary_beeswarm.png}}
+    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
+      \texttt{shap\_summary\_beeswarm.png}\vspace{1.5cm}}}}
+  \\[0.2em]\footnotesize
+  SHAP is computed on a \emph{class-stratified} sample so both benign and
+  attack traffic are represented in the ranking.
+\end{frame}
+
+\end{document}

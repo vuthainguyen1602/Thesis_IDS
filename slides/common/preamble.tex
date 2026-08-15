@@ -1,0 +1,107 @@
+% =====================================================================
+% Shared Beamer preamble for all decks in slides/
+%   - 16:9, metropolis theme, Okabe-Ito colorblind-safe accents
+%   - XeLaTeX + fontspec with a Vietnamese-capable sans fallback chain
+%   - Speaker notes: compile with \def\shownotes{} to get the notes PDF
+% Input this file right after \documentclass in each deck.
+% =====================================================================
+
+\usetheme{metropolis}
+\metroset{block=fill, numbering=fraction, progressbar=frametitle, sectionpage=progressbar}
+
+\usepackage{fontspec}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric, fit, backgrounds, calc}
+\usepackage{appendixnumberbeamer}
+
+% ---------------------------------------------------------------------
+% Fonts. TeX Gyre Heros is the portable first choice (ships with a full
+% TeX Live and covers Vietnamese); on a BasicTeX/macOS box it is absent,
+% so fall back to system sans fonts that still carry Vietnamese
+% diacritics, and only as a last resort to the serif TeX Gyre Termes
+% (which is always present) rather than silently hitting nullfont.
+% ---------------------------------------------------------------------
+\IfFontExistsTF{TeX Gyre Heros}
+  {\setsansfont{TeX Gyre Heros}[Ligatures=TeX]}
+  {\IfFontExistsTF{Helvetica Neue}
+     {\setsansfont{Helvetica Neue}[Ligatures=TeX]}
+     {\IfFontExistsTF{Arial}
+        {\setsansfont{Arial}[Ligatures=TeX]}
+        {\setsansfont{TeX Gyre Termes}[Ligatures=TeX]}}}
+\IfFontExistsTF{Menlo}
+  {\setmonofont{Menlo}[Scale=0.82]}
+  {\IfFontExistsTF{TeX Gyre Cursor}{\setmonofont{TeX Gyre Cursor}[Scale=0.85]}{}}
+
+% ---------------------------------------------------------------------
+% Okabe-Ito accents, matching the TikZ colours used in the manuscripts.
+% ---------------------------------------------------------------------
+\definecolor{accBlue}{HTML}{0072B2}
+\definecolor{accGreen}{HTML}{009E73}
+\definecolor{accOrange}{HTML}{D55E00}
+\definecolor{accYellow}{HTML}{E69F00}
+\definecolor{accPurple}{HTML}{CC79A7}
+\definecolor{inkDark}{HTML}{23373B}
+
+\setbeamercolor{frametitle}{bg=accBlue, fg=white}
+\setbeamercolor{progress bar}{fg=accOrange, bg=accOrange!25}
+\setbeamercolor{progress bar in head/foot}{fg=accOrange, bg=accBlue!25}
+\setbeamercolor{progress bar in section page}{fg=accOrange, bg=accOrange!25}
+\setbeamercolor{alerted text}{fg=accOrange}
+\setbeamercolor{example text}{fg=accGreen}
+\setbeamercolor{block title}{bg=accBlue!12, fg=inkDark}
+\setbeamercolor{block body}{bg=accBlue!5}
+\setbeamercolor{block title alerted}{bg=accOrange!15, fg=inkDark}
+\setbeamercolor{block body alerted}{bg=accOrange!6}
+\setbeamercolor{block title example}{bg=accGreen!15, fg=inkDark}
+\setbeamercolor{block body example}{bg=accGreen!6}
+
+% Metropolis draws no bullet glyph by default; a small square reads better
+% from the back of a conference room than pure indentation.
+\setbeamertemplate{itemize item}{\raisebox{0.12ex}{\tiny$\blacksquare$}}
+\setbeamertemplate{itemize subitem}{\raisebox{0.12ex}{\tiny$\square$}}
+\setbeamercolor{itemize item}{fg=accBlue}
+\setbeamercolor{itemize subitem}{fg=accBlue!70}
+
+% Tables: booktabs rules look thin on a projector.
+\setlength{\heavyrulewidth}{1.1pt}
+\setlength{\lightrulewidth}{0.6pt}
+\renewcommand{\arraystretch}{1.15}
+
+% Shrink a box to the available width, but only when it would otherwise
+% overflow. A tabular that is wider than its beamer column is NOT clipped —
+% it silently overprints the neighbouring column — so every table that sits
+% inside \begin{columns} goes through this.
+\newcommand{\fitwidth}[1]{%
+  \resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+
+% ---------------------------------------------------------------------
+% Emphasis macros used throughout the decks.
+% ---------------------------------------------------------------------
+\newcommand{\key}[1]{\textcolor{accBlue}{\textbf{#1}}}
+\newcommand{\good}[1]{\textcolor{accGreen}{\textbf{#1}}}
+\newcommand{\bad}[1]{\textcolor{accOrange}{\textbf{#1}}}
+\newcommand{\num}[1]{\textcolor{accOrange}{\textbf{#1}}}
+
+% One-line "so what" strip, pinned at the bottom of a result slide.
+% Kept deliberately compact: this box sits directly above metropolis' frame
+% number, so any extra height here pushes text into the footer and the page
+% number ends up printed on top of the last line.
+\newcommand{\takeaway}[1]{%
+  \vfill
+  \begin{beamercolorbox}[wd=\textwidth, sep=4pt, rounded=true]{block body example}%
+    \footnotesize #1%
+  \end{beamercolorbox}}
+
+% ---------------------------------------------------------------------
+% Speaker notes. Build the plain deck normally; build the notes version
+% with:  xelatex "\def\shownotes{}\input{main.tex}"
+% ---------------------------------------------------------------------
+\ifdefined\shownotes
+  \usepackage{pgfpages}
+  \setbeameroption{show notes on second screen=right}
+\fi

@@ -1,0 +1,369 @@
+% =====================================================================
+% SOICT 2026 — 7-minute oral presentation
+% Paper: papers/soict2026/manuscript/main.tex
+% Compile: ./compile.sh   (XeLaTeX; notes version via NOTES=1 ./compile.sh)
+%
+% TIMING PLAN (7:00 total, ~30 s buffer)
+%   1 Title .................. 0:20
+%   2 Problem ................ 0:50
+%   3 Contributions .......... 0:35
+%   4 Architecture ........... 1:00
+%   5 Deployment modes ....... 0:40
+%   6 Main results ........... 1:20
+%   7 Load asymmetry ......... 0:35
+%   8 Cost of the stack ...... 0:45
+%   9 Conclusion ............. 0:40
+% Slides 10+ are BACKUP for Q&A and are not part of the 7 minutes.
+% Speaker notes live in \note{} — build them with NOTES=1.
+% =====================================================================
+\documentclass[aspectratio=169, 11pt]{beamer}
+\input{../common/preamble.tex}
+
+\graphicspath{%
+  {../../papers/soict2026/results/benchmarks/}%
+  {../../papers/soict2026/figures/}%
+  {../../results/ml_08_anomaly_gate/}%
+  {../../results/ml_07_cross_method_comparison/}%
+}
+
+\title{A Distributed Real-Time Intrusion Detection System on a Jetson Orin Nano Super Edge Cluster using Kafka and PySpark}
+\author{\textbf{Thai Nguyen Vu}\inst{1} \and Dung Van Bui\inst{2} \and Nhut Tri Do\inst{2} \and Van Du Nguyen\inst{3}}
+\institute{\scriptsize \inst{1}University of Transport and Communications, HCMC Campus \quad
+           \inst{2}University of Information Technology, VNU-HCM \\
+           \inst{3}Nong Lam University, HCMC}
+\date{SOICT 2026}
+
+\begin{document}
+
+% ---------------------------------------------------------------- 0:20
+\maketitle
+\note{Good morning. I will show what a second edge board actually buys you
+when you split an ML intrusion detector across two Jetson Orin Nano Super
+devices. Seven minutes, three results.}
+
+% ---------------------------------------------------------------- 0:50
+\begin{frame}{Edge intrusion detection: three open gaps}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      Detectors now \emph{fit} on single-board hardware --- but a monolithic
+      one classifies \key{every} flow and saturates an 8\,GB ARM board.
+      \vspace{0.4em}
+
+      \textbf{What the literature does not tell us}
+      \begin{enumerate}
+        \item Everything is measured on a \bad{single device}. How should
+              detection be \emph{placed} across boards?
+        \item Throughput, latency and \bad{energy} are never reported together.
+        \item Offline scores come from \bad{leaky protocols}.
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{alertblock}{Our question}
+        Which model to deploy --- and \emph{how} to distribute its inference
+        across a constrained two-node edge cluster?
+      \end{alertblock}
+      \begin{exampleblock}{Our answer}
+        Split the detector: a cheap \key{autoencoder gate} on board \#1, the
+        heavy \key{PySpark classifier} on board \#2, joined by a Kafka topic.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+  \note{Three gaps: single-device evaluation, energy never reported next to
+  latency, and offline numbers taken from leaky pipelines. We attack all
+  three with one system.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:35
+\begin{frame}{Contributions}
+  \begin{enumerate}
+    \item A \key{two-stage distributed IDS}: anomaly gate $+$ Spark classifier,
+          physically separated across two boards.
+    \item \key{Three deployment modes} for a two-node Jetson cluster ---
+          pipeline split, horizontal Kafka scaling, Spark standalone cluster.
+    \item An \key{end-to-end evaluation}: throughput, latency percentiles,
+          per-node CPU/RAM \emph{and} energy per verdict.
+    \item \key{Leakage-aware provenance} --- the deployed model is exactly the
+          one our companion study selected under a leakage-free protocol.
+          Open code and configurations.
+  \end{enumerate}
+  \vfill
+  \centering\footnotesize
+  \texttt{github.com/vuthainguyen1602/Thesis\_IDS} (branch \texttt{develop})
+  \note{Four contributions. The fourth matters: the model we deploy is not a
+  fresh model, it is the one that survived a strict offline audit.}
+\end{frame}
+
+% ---------------------------------------------------------------- 1:00
+\begin{frame}{Split-deployment architecture}
+  \centering
+  \resizebox{0.80\textwidth}{!}{%
+  \begin{tikzpicture}[
+      font=\small, >=Stealth, every node/.style={align=center},
+      pc/.style ={draw=gray!60, thick, rounded corners, fill=gray!8, minimum width=13.4cm, minimum height=1.25cm, inner sep=3pt},
+      jet/.style={draw=accGreen!80!black, thick, rounded corners, fill=accGreen!8, text width=4.4cm, minimum height=1.9cm, inner sep=4pt},
+      mtr/.style={draw=accBlue, thick, rounded corners, fill=accBlue!5, minimum width=13.4cm, minimum height=0.95cm, inner sep=3pt},
+      lbl/.style={font=\footnotesize, fill=white, inner sep=1.5pt, align=center, text=accBlue!75!black},
+      arr/.style={-{Stealth[length=2.5mm]}, thick, draw=gray!60!black},
+      dsh/.style={-{Stealth[length=2.5mm]}, thick, draw=accBlue, dashed},
+  ]
+    \node[pc]  (pc)  at (0, 0.0)   {\textbf{Coordination server (PC, Docker)}\\[2pt]
+        Apache Kafka \;$|$\; PostgreSQL \;$|$\; InfluxDB \;$|$\; Grafana \;$|$\; CSV flow replayer};
+    \node[jet] (j1)  at (-4.6,-3.2) {\textbf{Jetson Orin Nano Super \#1}\\[2pt] \key{Anomaly gate}\\[2pt]
+        Autoencoder filters out benign traffic};
+    \node[jet] (j2)  at ( 4.6,-3.2) {\textbf{Jetson Orin Nano Super \#2}\\[2pt] \key{Classifier}\\[2pt]
+        PySpark \texttt{PipelineModel}\\ Benign / Attack};
+    \node[mtr] (out) at (0,-6.0)   {Performance metrics $\rightarrow$ InfluxDB $\rightarrow$ Grafana \quad$|$\quad
+        Alerts: Email (Mailtrap) / Slack};
+    \draw[arr] (pc.south -| j1) -- node[lbl]{network-flow topic} (j1.north);
+    \draw[arr] (j1.east) -- node[lbl]{suspicious-flow topic\\ (only 4.2\% of flows)} (j2.west);
+    \draw[arr] (j2.north) -- node[lbl]{results\\ $\rightarrow$ PostgreSQL} (pc.south -| j2);
+    \draw[dsh] (j1.south) -- (out.north -| j1);
+    \draw[dsh] (j2.south) -- (out.north -| j2);
+  \end{tikzpicture}}
+  \\[0.3em]
+  \footnotesize The gate's MSE threshold is calibrated \emph{offline} on a
+  held-out benign validation split --- committed before evaluation, never tuned
+  on the test set.
+  \note{Host runs the infrastructure. Board one gates, board two classifies.
+  Only suspicious flows cross the Kafka topic between them. Everything is
+  instrumented into Grafana.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:40
+\begin{frame}{Three deployment modes, one workload}
+  \begin{columns}[T]
+    \begin{column}{0.58\textwidth}
+      \begin{description}
+        \item[Single node] full pipeline in one process --- the reference.
+        \item[A: Pipeline split] gate on \#1, classifier on \#2 (our design).
+        \item[B: Horizontal] both boards run the \emph{full} role, sharing a
+              Kafka consumer group.
+        \item[C: Spark cluster] host as master, both boards as workers.
+      \end{description}
+      \vspace{0.4em}
+      \footnotesize Throughput is counted as \key{final verdicts per second}
+      --- a flow is decided at the gate \emph{or} at the classifier --- so
+      forwarded flows are never double-counted.
+    \end{column}
+    \begin{column}{0.40\textwidth}
+      \begin{block}{Setup}
+        \footnotesize
+        2$\times$ Jetson Orin Nano Super\\ (6-core A78AE, 8\,GB, $\approx$67 TOPS)\\[0.3em]
+        PySpark 3.4.1, Kafka 3.5, Wi-Fi LAN\\[0.3em]
+        CICIDS2017 replay at 100 flows/s\\[0.3em]
+        $\geq$3 repetitions, warmup excluded\\[0.3em]
+        Energy via \texttt{tegrastats}, idle subtracted
+      \end{block}
+    \end{column}
+  \end{columns}
+  \note{Four configurations, identical workload. The verdict-per-second
+  definition is what makes the modes comparable.}
+\end{frame}
+
+% ---------------------------------------------------------------- 1:20
+\begin{frame}{Result 1: splitting the pipeline buys 24$\times$ throughput}
+  \centering
+  \small
+  \fitwidth{%
+  \begin{tabular}{lcccc}
+    \toprule
+    Mode & Throughput & p95 latency & Gate skip & Energy/verdict \\
+         & (flows/s)  & (ms)        & (\%)      & (mJ) \\
+    \midrule
+    Single node        & 2.60 $\pm$ 0.41 & 12.3 $\pm$ 3.0  & (inline) & 2490 \\
+    \textbf{A: Pipeline split} & \num{62.5 $\pm$ 0.6}  & \num{13.1 $\pm$ 2.6}  & \num{95.8} & \num{178} \\
+    B: Horizontal      & 5.9 $\pm$ 1.4   & 21.6 $\pm$ 19.2 & (inline) & 2250 \\
+    C: Spark cluster   & 90.0 $\pm$ 25.6 & 23.9 $\pm$ 17.8 & 97.9     & 119 \\
+    \bottomrule
+  \end{tabular}
+  }
+
+  \par\vspace{0.2em}
+  \raggedright\footnotesize
+  \begin{columns}[T]
+    \begin{column}{0.49\textwidth}
+      \begin{itemize}
+        \item \good{A: $24\times$ throughput at unchanged p95} --- the gate
+              absorbs 95.8\% of benign traffic.
+        \item \bad{B stays Spark-bound} ($2\times$): every node still classifies.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{itemize}
+        \item C is fastest on average but $\pm$26 flows/s and needs the host master.
+        \item Energy amortised over $24$--$35\times$ more verdicts:
+              \good{2.5 $\rightarrow$ 0.12--0.18\,J}.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \takeaway{\textbf{Pipeline split is the recommended default} --- the highest
+  throughput \emph{per unit of variance}; cluster mode is for models that exceed
+  single-node memory.}
+  \note{This is the core table. Twenty-four times, at the same p95. Mode B
+  proves the gain comes from role separation, not from adding a board. Energy
+  is total-board per verdict: the active power delta was below the tegrastats
+  noise floor at this load.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:35
+\begin{frame}{Result 2: the load asymmetry is visible live}
+  \begin{columns}[c]
+    \begin{column}{0.63\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{grafana_peak_load.png}
+    \end{column}
+    \begin{column}{0.35\textwidth}
+      At peak load, split mode:
+      \begin{itemize}
+        \item gate node: \good{4.6\% CPU}
+        \item classifier node: \bad{90.8\% CPU}
+      \end{itemize}
+      \vspace{0.5em}
+      The classifier dominates the compute budget --- which is exactly why
+      moving it off the ingest path pays.
+    \end{column}
+  \end{columns}
+  \note{Live Grafana at peak load. Five percent versus ninety percent. The
+  asymmetry is the whole argument for the split. Add: the gate is a tunable
+  filter, not a fixed point — backup slide has the operating curve.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:45
+\begin{frame}{Result 3: the honest price of one unified stack}
+  We serve with Spark for \emph{consistency with distributed training}.
+  What does that cost? Same forest, same 29 deployed features, same board:
+  \vspace{0.5em}
+  \centering
+  \small
+  \fitwidth{%
+  \begin{tabular}{lcccc}
+    \toprule
+    Engine & Throughput (flows/s) & p95 (ms) & RAM (\%) & Energy/inf.\ (mJ) \\
+    \midrule
+    PySpark (deployed) & 22.6   & 532  & 24.3 & 71.6 \\
+    scikit-learn       & 204.4  & 49.8 & 13.3 & 2.91 \\
+    \textbf{ONNX Runtime} & \num{7870.8} & \num{1.1} & 15.7 & \num{0.06} \\
+    \bottomrule
+  \end{tabular}
+  }
+  \takeaway{ONNX Runtime sustains \num{$348\times$} the deployed PySpark
+  throughput. We report this as a \emph{target for the next iteration} ---
+  export to ONNX/TensorRT for serving, keep Spark for training.}
+  \note{We could have hidden this. Instead: the JVM costs us three orders of
+  magnitude, and that sets the roadmap.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:40
+\begin{frame}{Conclusion}
+  \begin{columns}[T]
+    \begin{column}{0.53\textwidth}
+      \textbf{What we showed}
+      \begin{itemize}
+        \item A reproducible distributed edge IDS: Kafka $+$ PySpark on a
+              Jetson Orin Nano Super cluster.
+        \item Splitting gate and classifier across boards:
+              \good{2.6 $\rightarrow$ 62.5 flows/s} at p95 $\approx$13\,ms,
+              gate skipping 95.8\%.
+        \item Energy per verdict: \good{2.5\,J $\rightarrow$ 0.18\,J}.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \textbf{Limitations}
+      \begin{itemize}\footnotesize
+        \item Two-node lab cluster over Wi-Fi; CICIDS2017 replay, not live traffic.
+        \item The $\approx$67-TOPS GPU is unused by the CPU-only pipeline.
+        \item Evasive traffic untested.
+      \end{itemize}
+      \textbf{Next}
+      \begin{itemize}\footnotesize
+        \item TensorRT/ONNX in the streaming path.
+        \item Live traffic; federated retraining under drift.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vfill
+  \centering
+  \key{Thank you --- questions?}\quad
+  \footnotesize\texttt{github.com/vuthainguyen1602/Thesis\_IDS}
+  \note{Recap the three numbers: twenty-four times, thirteen milliseconds,
+  ninety-six percent skipped. Then stop talking.}
+\end{frame}
+
+% =====================================================================
+\appendix
+
+\begin{frame}[standout]
+  Backup slides
+\end{frame}
+
+\begin{frame}{Backup: deployment-mode comparison chart}
+  \centering
+  \IfFileExists{../../papers/soict2026/results/benchmarks/edge_modes.png}
+    {\includegraphics[height=0.72\textheight]{edge_modes.png}}
+    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
+      \texttt{edge\_modes.png} --- run \texttt{plot\_edge\_modes.py}\vspace{1.5cm}}}}
+  \\[0.2em]
+  \footnotesize Verdict throughput (left) and p95 latency (right).
+\end{frame}
+
+\begin{frame}{Backup: the gate is an operating curve, not a point}
+  \centering
+  \IfFileExists{../../results/ml_08_anomaly_gate/gate_operating_points.png}
+    {\includegraphics[height=0.68\textheight]{gate_operating_points.png}}
+    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
+      \texttt{gate\_operating\_points.png}\vspace{1.5cm}}}}
+  \\[0.2em]
+  \footnotesize Attack recall (left) and false-positive rate (right) vs.\
+  gate-skip ratio. Raising the skip ratio offloads more Spark work and costs
+  recall; the operator chooses the point.
+\end{frame}
+
+\begin{frame}{Backup: which model, and why}
+  \centering\small
+  \fitwidth{%
+  \begin{tabular}{lcccp{3.3cm}}
+    \toprule
+    Configuration & F1 & Features & Size (MB) & Edge rationale \\
+    \midrule
+    Baseline $+$ XGBoost      & 0.9971 & 77 & 2.32 & Reference accuracy \\
+    \textbf{SHAP Top-30} $+$ XGBoost & 0.9970 & 30 & 0.003$^{\dagger}$ & Explainable; deployed set \\
+    RF Top-30 $+$ XGBoost     & 0.9922 & 30 & 2.52 & Embedded ranking \\
+    PCA $k$=40 $+$ XGBoost    & 0.9939 & 40 & 3.82 & Unsupervised reduction \\
+    \bottomrule
+  \end{tabular}
+  }
+  \\[0.4em]
+  \raggedright\footnotesize
+  We deploy \key{SHAP Top-30 with Random Forest} (offline F1 0.9955): a native
+  Spark ML estimator, so the exported \texttt{PipelineModel} loads on ARM64
+  without the native libraries Spark's XGBoost integration needs. The input
+  vector has \key{29} features --- \texttt{destination\_port} is in the SHAP
+  ranking but excluded as label-leaking.
+  \\ $^{\dagger}$Distributed saving under-reports size; true size $\approx$2.5\,MB.
+\end{frame}
+
+\begin{frame}{Backup: full monitoring dashboard}
+  \centering
+  \includegraphics[height=0.70\textheight]{grafana_dashboard.png}
+  \\[0.2em]
+  \footnotesize Per-node throughput, detected attacks, inference latency,
+  CPU/RAM for both boards, PostgreSQL-backed alerts.
+\end{frame}
+
+\begin{frame}{Backup: measurement protocol}
+  \begin{itemize}\small
+    \item Host-side orchestration starts pipeline roles on the Jetsons over
+          SSH, drives the load, collects per-node logs.
+    \item $\geq$3 repetitions per configuration; warmup traffic \emph{excluded}
+          from the measured window (no JVM/JIT inflation of early batches).
+    \item Metric queries aligned to the exact load window, not a trailing range.
+    \item Latency percentiles per node over \emph{raw per-flow} samples;
+          cluster p95 is conservatively the \emph{worst node's} p95.
+    \item End-to-end send-to-verdict latency from producer timestamps under
+          NTP-synchronised clocks (excludes DB-write cost).
+    \item Energy: \texttt{tegrastats}, 30\,s idle baseline then load window;
+          two-node modes sum both boards.
+  \end{itemize}
+\end{frame}
+
+\end{document}
