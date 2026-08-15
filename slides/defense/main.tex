@@ -690,7 +690,8 @@
         \item[\key{Q7}] Vì sao chọn Random Forest
               $\rightarrow$ \hyperlink{bk-rf}{\key{Chọn mô hình biên}}
         \item[\key{Q8}] Cấu hình cụm, ba chế độ đo
-              $\rightarrow$ \hyperlink{bk-modes}{\key{Chế độ \& môi trường}}
+              $\rightarrow$ \hyperlink{bk-modes}{\key{Chế độ \& môi trường}},
+              \hyperlink{bk-cluster}{\key{Cụm huấn luyện}}
         \item[\key{Q9}] Cách đo thông lượng, độ trễ, năng lượng
               $\rightarrow$ \hyperlink{bk-protocol}{\key{Giao thức đo}}
         \item[\key{Q10}] Ngưỡng cổng, đánh đổi recall
@@ -918,6 +919,53 @@
   \note{Cách đếm ``luồng xử lý xong/giây'' là điểm mấu chốt để so sánh công
   bằng giữa các chế độ: nếu đếm theo luồng đi qua mỗi nút thì chế độ tách
   pipeline sẽ được cộng đôi một cách vô lý.}
+\end{frame}
+
+\begin{frame}[label=bk-cluster]{Q8 (tiếp) --- Kiến trúc cụm huấn luyện phân tán Spark Standalone}
+  \centering
+  \resizebox{0.78\textwidth}{!}{%
+  \begin{tikzpicture}[
+      font=\small, >=Stealth,
+      every node/.style={align=center},
+      master/.style={draw=gray!65, thick, rounded corners, fill=gray!8, text width=12.6cm, minimum height=1.25cm, inner sep=4pt},
+      work/.style  ={draw=accGreen!80!black, thick, rounded corners, fill=accGreen!8, text width=5.6cm, minimum height=2.35cm, inner sep=5pt},
+      store/.style ={draw=accBlue, thick, rounded corners, fill=accBlue!5, text width=5.6cm, minimum height=0.85cm, inner sep=3pt},
+      lbl/.style   ={font=\footnotesize, fill=white, inner sep=1.5pt, text=gray!35!black},
+      dn/.style    ={-{Stealth[length=2.6mm]}, thick, draw=gray!55!black},
+      up/.style    ={-{Stealth[length=2.6mm]}, thick, draw=accBlue, dashed},
+  ]
+      \node[master] (m) at (0,0) {\textbf{Máy chủ điều phối: MacBook Air (Apple M3, 16\,GB)}\\[2pt]
+          Spark \textbf{Master} (điều phối cụm) \;$|$\; Tiền xử lý CSV\,$\rightarrow$\,Parquet \;$|$\; Docker: Kafka / PostgreSQL / InfluxDB / Grafana\\[1pt]
+          \textit{Không chạy executor, không tham gia tính toán huấn luyện}};
+      \node[work] (w1) at (-3.6,-4.2) {\textbf{Jetson Orin Nano Super \#1}\\[1pt]
+          Spark \textbf{Worker} + \textbf{Driver}\\[2pt]
+          Executor: cores=4, mem=3\,GB\\
+          Phân vùng dữ liệu (partitions)\\
+          swap 8\,GB (NVMe)};
+      \node[work] (w2) at ( 3.6,-4.2) {\textbf{Jetson Orin Nano Super \#2}\\[1pt]
+          Spark \textbf{Worker}\\[2pt]
+          Executor: cores=4, mem=3\,GB\\
+          Phân vùng dữ liệu (partitions)\\
+          swap 8\,GB (NVMe)};
+      \node[store] (s1) at (-3.6,-6.6) {Parquet (đồng bộ)};
+      \node[store] (s2) at ( 3.6,-6.6) {Parquet (đồng bộ)};
+      \draw[dn] (m.south -| w1) -- node[lbl]{giao tác vụ\\ + partition} (w1.north);
+      \draw[dn] (m.south -| w2) -- node[lbl]{giao tác vụ\\ + partition} (w2.north);
+      \draw[up] (w1.west) -- ++(-0.75,0) |- (m.west);
+      \draw[up] (w2.east) -- ++( 0.75,0) |- (m.east);
+      \node[lbl, rotate=90] at (-7.3,-2.1) {gom kết quả\\(shuffle/collect)};
+      \draw[dn] (w1.south) -- (s1.north);
+      \draw[dn] (w2.south) -- (s2.north);
+  \end{tikzpicture}}
+
+  \vspace{0.4em}
+  \footnotesize MacBook \emph{chỉ} điều phối (master) --- không chạy executor,
+  để số liệu thời gian huấn luyện phản ánh đúng năng lực \key{cụm biên thuần
+  Jetson}; đưa M3 vào tính toán sẽ gây lệch tải (straggler) và sai lệch phép đo.
+  \note{Cùng cặp Jetson này ở pha huấn luyện là worker/executor của Spark, ở
+  pha suy luận là cổng lọc và bộ phân loại. Jetson \#1 kiêm tiến trình driver
+  của ứng dụng --- khác vai trò master điều phối cụm nằm trên MacBook. Dữ liệu
+  Parquet được đồng bộ sang cả hai worker trước khi huấn luyện.}
 \end{frame}
 
 \begin{frame}[label=bk-protocol]{Q9 --- Giao thức đo hiệu năng ở pha biên}
