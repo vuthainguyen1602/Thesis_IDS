@@ -650,11 +650,57 @@
 \appendix
 % =====================================================================
 
-\begin{frame}[standout]
-  Slide dự phòng
+\begin{frame}{Slide dự phòng --- tra theo câu hỏi}
+  \scriptsize
+  Bấm vào tên slide để nhảy thẳng tới.
+  \vspace{0.3em}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Phạm vi và phương pháp}
+      \begin{itemize}
+        \item Phạm vi ``IoT'', mô hình mối đe dọa
+              $\rightarrow$ \hyperlink{bk-scope}{\key{Phạm vi \& đe dọa}}
+        \item Khử trùng lặp, chống thiên lệch
+              $\rightarrow$ \hyperlink{bk-prep}{\key{Chi tiết tiền xử lý}}
+        \item Vì sao PCA $k$=40, vì sao loại LightGBM
+              $\rightarrow$ \hyperlink{bk-pca}{\key{PCA \& LightGBM}}
+        \item Siêu tham số từng mô hình
+              $\rightarrow$ \hyperlink{bk-hparams}{\key{Siêu tham số}}
+      \end{itemize}
+      \vspace{0.2em}
+      \textbf{Kết quả offline}
+      \begin{itemize}
+        \item So sánh đầy đủ 8 thuật toán $\times$ 4 phương pháp
+              $\rightarrow$ \hyperlink{bk-heatmap}{\key{Bản đồ nhiệt F1}}
+        \item Độ tin cậy, giới hạn kết luận
+              $\rightarrow$ \hyperlink{bk-threats}{\key{Đe dọa tính hợp lệ}}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Triển khai biên}
+      \begin{itemize}
+        \item Vì sao chọn Random Forest
+              $\rightarrow$ \hyperlink{bk-rf}{\key{Chọn mô hình biên}}
+        \item Cấu hình cụm, ba chế độ đo
+              $\rightarrow$ \hyperlink{bk-modes}{\key{Chế độ \& môi trường}}
+        \item Cách đo thông lượng, độ trễ, năng lượng
+              $\rightarrow$ \hyperlink{bk-protocol}{\key{Giao thức đo}}
+        \item Ngưỡng cổng, đánh đổi recall
+              $\rightarrow$ \hyperlink{bk-gate}{\key{Đường cong vận hành}}
+        \item Bằng chứng chạy thực tế
+              $\rightarrow$ \hyperlink{bk-grafana}{\key{Grafana đỉnh tải}}
+      \end{itemize}
+      \vspace{0.2em}
+      \textbf{Kết luận}
+      \begin{itemize}
+        \item Kế hoạch tiếp theo, chi tiết
+              $\rightarrow$ \hyperlink{bk-future}{\key{Hướng phát triển}}
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
 
-\begin{frame}{Dự phòng --- Phạm vi, dữ liệu và mô hình mối đe dọa}
+\begin{frame}[label=bk-scope]{Dự phòng --- Phạm vi, dữ liệu và mô hình mối đe dọa}
   \begin{columns}[T]
     \begin{column}{0.45\textwidth}
       \textbf{Phạm vi}
@@ -690,7 +736,7 @@
   hỏi phản biện gần như chắc chắn sẽ có.}
 \end{frame}
 
-\begin{frame}{Dự phòng --- Chi tiết tiền xử lý và chống thiên lệch lựa chọn}
+\begin{frame}[label=bk-prep]{Dự phòng --- Chi tiết tiền xử lý và chống thiên lệch lựa chọn}
   \begin{columns}[T]
     \begin{column}{0.46\textwidth}
       \begin{block}{Kết quả tiền xử lý (tất định)}
@@ -727,7 +773,7 @@
   kết quả khử trùng lặp là tất định và tái lập được.
 \end{frame}
 
-\begin{frame}{Dự phòng --- Ba chế độ triển khai và môi trường đo}
+\begin{frame}[label=bk-modes]{Dự phòng --- Ba chế độ triển khai và môi trường đo}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
       \begin{description}
@@ -759,7 +805,7 @@
   giữa các chế độ.}
 \end{frame}
 
-\begin{frame}{Dự phòng --- Bất đối xứng tải lúc đỉnh tải (Grafana)}
+\begin{frame}[label=bk-grafana]{Dự phòng --- Bất đối xứng tải lúc đỉnh tải (Grafana)}
   \begin{columns}[c]
     \begin{column}{0.63\textwidth}
       \centering
@@ -781,7 +827,7 @@
   lưu trong PostgreSQL.}
 \end{frame}
 
-\begin{frame}{Dự phòng --- Hướng phát triển chi tiết}
+\begin{frame}[label=bk-future]{Dự phòng --- Hướng phát triển chi tiết}
   \begin{itemize}\small
     \item \textbf{Cải thiện độ nhạy cho lớp tấn công hiếm.} Xử lý mất cân bằng
           có chủ đích (undersampling/SMOTE áp dụng \emph{sau} khi chia tập),
@@ -804,7 +850,7 @@
   thể hiện sự làm chủ đề tài.}
 \end{frame}
 
-\begin{frame}{Dự phòng --- Siêu tham số cố định trước (a priori)}
+\begin{frame}[label=bk-hparams]{Dự phòng --- Siêu tham số cố định trước (a priori)}
   \centering\footnotesize
   \fitwidth{%
   \begin{tabular}{ll}
@@ -831,7 +877,7 @@
   trong-miền đã gần bão hòa.
 \end{frame}
 
-\begin{frame}{Dự phòng --- Vì sao PCA dùng $k$=40, và vì sao loại LightGBM?}
+\begin{frame}[label=bk-pca]{Dự phòng --- Vì sao PCA dùng $k$=40, và vì sao loại LightGBM?}
   \begin{block}{PCA $k$=40 thay vì $k$=30}
     \small
     PCA là phép \emph{trích xuất}, không phải \emph{chọn lọc}: mỗi thành phần
@@ -850,7 +896,7 @@
   \end{block}
 \end{frame}
 
-\begin{frame}{Dự phòng --- Bản đồ nhiệt F1: phương pháp $\times$ thuật toán}
+\begin{frame}[label=bk-heatmap]{Dự phòng --- Bản đồ nhiệt F1: phương pháp $\times$ thuật toán}
   \centering
   \IfFileExists{../../results/ml_07_cross_method_comparison/f1_heatmap.png}
     {\includegraphics[height=0.74\textheight]{f1_heatmap.png}}
@@ -858,7 +904,7 @@
   \\[0.2em]\footnotesize Nhị phân, đã loại đặc trưng cổng. 8 thuật toán $\times$ 4 phương pháp.
 \end{frame}
 
-\begin{frame}{Dự phòng --- Cổng bất thường là một \emph{đường cong vận hành}}
+\begin{frame}[label=bk-gate]{Dự phòng --- Cổng bất thường là một \emph{đường cong vận hành}}
   \centering
   \IfFileExists{../../results/ml_08_anomaly_gate/gate_operating_points.png}
     {\includegraphics[height=0.68\textheight]{gate_operating_points.png}}
@@ -868,23 +914,9 @@
   cổng. Nâng tỷ lệ bỏ qua giúp giảm tải Spark nhưng đánh đổi bằng recall.
 \end{frame}
 
-\begin{frame}{Dự phòng --- So sánh ba chế độ triển khai (biểu đồ)}
-  \centering
-  \IfFileExists{../../papers/soict2026/results/benchmarks/edge_modes.png}
-    {\includegraphics[height=0.72\textheight]{edge_modes.png}}
-    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}\texttt{edge\_modes.png}\vspace{1.5cm}}}}
-  \\[0.2em]\footnotesize Thông lượng phán quyết (trái) và độ trễ p95 (phải).
-\end{frame}
 
-\begin{frame}{Dự phòng --- Bảng giám sát Grafana đầy đủ}
-  \centering
-  \includegraphics[height=0.76\textheight]{grafana_dashboard.png}
-  \\[0.2em]\footnotesize
-  Thông lượng từng nút, số tấn công phát hiện, độ trễ suy luận, CPU/RAM cả hai
-  board, và các cảnh báo tấn công gần nhất lưu trong PostgreSQL.
-\end{frame}
 
-\begin{frame}{Dự phòng --- Đe dọa đến tính hợp lệ}
+\begin{frame}[label=bk-threats]{Dự phòng --- Đe dọa đến tính hợp lệ}
   \begin{itemize}\small
     \item \textbf{Nội tại.} Xếp hạng RF/SHAP lấy từ tập huấn luyện gốc và giữ
           cố định qua các lần lấy mẫu lại --- nhất quán với thiết kế ``cấu hình
@@ -904,7 +936,7 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Dự phòng --- Giao thức đo hiệu năng ở pha biên}
+\begin{frame}[label=bk-protocol]{Dự phòng --- Giao thức đo hiệu năng ở pha biên}
   \begin{itemize}\small
     \item Script điều phối phía máy chủ khởi động các vai trò pipeline trên
           Jetson qua SSH, sinh tải, thu thập log từng nút.
@@ -921,7 +953,7 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Dự phòng --- Vì sao chọn Random Forest cho thiết bị biên?}
+\begin{frame}[label=bk-rf]{Dự phòng --- Vì sao chọn Random Forest cho thiết bị biên?}
   \centering\small
   \fitwidth{%
   \begin{tabular}{lcccp{3.2cm}}

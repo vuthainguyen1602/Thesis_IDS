@@ -6,7 +6,7 @@ Three Beamer decks built from the same results as the manuscripts and the thesis
 |---|---|---|---|
 | `soict2026/` | English | 7 min (8 slides + 5 backup) | `output/pdfs/SOICT2026_slides.pdf` |
 | `fair2026/` | English | 7 min (8 slides + 5 backup) | `output/pdfs/FAIR2026_slides.pdf` |
-| `defense/` | Vietnamese | 15 min (16 slides + 14 dự phòng) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
+| `defense/` | Vietnamese | 15 min (16 slides + 12 dự phòng) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
 
 ## Building
 
@@ -53,10 +53,16 @@ show up in the rendered PDF:
 Also note that a `tabular` leaves TeX in horizontal mode: text placed after it
 without an explicit `\par` is typeset *beside* the table, not below it.
 
-## Slide numbering
+## Slide numbering and backup navigation
 
 Backup slides sit after `\appendix`, so the footer fraction counts only the
 talk itself (e.g. `5/8`) — the backup slides do not inflate the denominator.
+
+The defense deck opens its backup section with a **clickable index** keyed by
+the question a committee member is likely to ask, so the right slide is one
+click away mid-answer. Each backup frame carries a `label=bk-*` and the index
+reaches it with `\hyperlink`; if you add a backup slide, give it a label and a
+row in that index.
 
 ## Timing
 
