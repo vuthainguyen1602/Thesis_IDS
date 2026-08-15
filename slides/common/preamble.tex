@@ -72,6 +72,40 @@
 \setlength{\lightrulewidth}{0.6pt}
 \renewcommand{\arraystretch}{1.15}
 
+% ---------------------------------------------------------------------
+% Opt-in: centre the title page and the section pages.
+% Metropolis left-aligns both (\raggedright inside its templates), which
+% suits a conference talk but not the formal look expected of a thesis
+% defence. Call \centeredtitles in a deck's preamble to switch it over;
+% the decks that do not call it keep the stock metropolis alignment.
+% ---------------------------------------------------------------------
+\newcommand{\centeredtitles}{%
+  \setbeamertemplate{title}{%
+    \centering\linespread{1.0}\inserttitle\par\vspace*{0.5em}}
+  \setbeamertemplate{subtitle}{%
+    \centering\insertsubtitle\par\vspace*{0.5em}}
+  \setbeamertemplate{author}{%
+    \vspace*{2em}\centering\insertauthor\par\vspace*{0.25em}}
+  \setbeamertemplate{date}{%
+    \centering\insertdate\par}
+  \setbeamertemplate{institute}{%
+    \vspace*{3mm}\centering\insertinstitute\par}
+  % Same as metropolis' "progressbar" section page, but centred. No deck
+  % here uses subsections, so that branch of the original is dropped.
+  \setbeamertemplate{section page}{%
+    \centering
+    \begin{minipage}{22em}
+      \centering
+      \usebeamercolor[fg]{section title}%
+      \usebeamerfont{section title}%
+      \insertsectionhead\\[-1ex]
+      \usebeamertemplate*{progress bar in section page}%
+      \par
+    \end{minipage}
+    \par
+    \vspace{\baselineskip}}%
+}
+
 % Shrink a box to the available width, but only when it would otherwise
 % overflow. A tabular that is wider than its beamer column is NOT clipped —
 % it silently overprints the neighbouring column — so every table that sits
