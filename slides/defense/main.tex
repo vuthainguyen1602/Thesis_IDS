@@ -857,27 +857,33 @@
 \begin{frame}[label=bk-rf]{Q7 --- Vì sao chọn Random Forest cho thiết bị biên?}
   \centering\small
   \fitwidth{%
-  \begin{tabular}{lcccp{3.2cm}}
+  \begin{tabular}{lcccc}
     \toprule
-    Cấu hình & F1 & Đặc trưng & Dung lượng (MB) & Lý do ở pha biên \\
+    Ứng viên (SHAP Top-30) & Thông lượng & p95 & CPU & RAM \\
+                           & (mẫu/giây)  & (ms) & (\%) & (\%) \\
     \midrule
-    Baseline $+$ XGBoost        & 0,9971 & 77 & 2,32 & Mốc tham chiếu \\
-    \textbf{SHAP Top-30} $+$ XGBoost & 0,9970 & 30 & 0,003$^{\dagger}$ & Giải thích được \\
-    RF Top-30 $+$ XGBoost       & 0,9922 & 30 & 2,52 & Xếp hạng nhúng \\
-    PCA $k$=40 $+$ XGBoost      & 0,9939 & 40 & 3,82 & Giảm chiều không giám sát \\
+    \textbf{Random Forest} & \num{26,8} & \num{397} & \num{35,2} & 27,5 \\
+    GBT                    & 24,3 & 439 & 40,9 & 24,0 \\
+    Decision Tree          & 22,0 & 537 & 46,4 & \good{21,9} \\
     \bottomrule
   \end{tabular}
   }
-  \\[0.4em]
-  \raggedright\footnotesize
-  Mô hình triển khai là \key{SHAP Top-30 với Random Forest} (F1 offline 0,9955,
-  chênh 0,002 so với XGBoost tốt nhất): Random Forest là estimator \emph{gốc}
-  của Spark ML nên \texttt{PipelineModel} xuất ra nạp được trên board ARM64 mà
-  không cần thư viện native mà tích hợp XGBoost của Spark đòi hỏi. Vector đầu
-  vào có \key{29} đặc trưng --- \texttt{destination\_port} nằm trong xếp hạng
-  SHAP nhưng bị loại vì rò rỉ nhãn.
-  \\ $^{\dagger}$Bước lưu mô hình phân tán chỉ ghi metadata cục bộ trên driver
-  nên báo thiếu dung lượng thật ($\approx$2,5\,MB).
+  \\[0.5em]
+  \raggedright\small
+  Random Forest thắng ở \key{cả ba chỉ số vận hành} quan trọng nhất với IDS thời
+  gian thực, và có F1 cao nhất trong ba ứng viên (0,9955 ngoại tuyến). Với IDS,
+  \emph{độ trễ phán quyết là ràng buộc trực tiếp} --- mô hình nhỏ nhưng chậm hơn
+  35\% về p95 sẽ kéo dài cửa sổ mà tấn công chưa bị chặn.
+  \\[0.3em]
+  Đánh đổi là bộ nhớ: 27,5\% RAM và 4,4\,MB so với 21,9\% và 0,05\,MB của
+  Decision Tree --- trên board 8\,GB vẫn còn dư địa lớn. Decision Tree là
+  \emph{phương án dự phòng} cho thiết bị IoT eo hẹp hơn.
+  \note{Random Forest cũng là estimator gốc của Spark ML nên PipelineModel xuất
+  ra nạp được trên ARM64, không cần thư viện native mà tích hợp XGBoost của
+  Spark đòi hỏi --- nhưng lý do đó áp dụng cho cả Decision Tree, nên nó chỉ
+  giải thích ``không phải XGBoost''. Cái phân định RF với DT là ba chỉ số vận
+  hành trong bảng. Vector đầu vào có 29 đặc trưng: destination\_port nằm trong
+  xếp hạng SHAP nhưng bị loại vì rò rỉ nhãn.}
 \end{frame}
 
 \begin{frame}[label=bk-modes]{Q8 --- Ba chế độ triển khai và môi trường đo}
