@@ -250,6 +250,8 @@ usually a property of the evaluation pipeline, not of the model.}
   $\approx$0.0001: the two are \key{practically equivalent}, so explainability
   and cost decide. After dedup, the port's isolated effect is small --- the
   duplicates were the dominant leak.}
+  {\tiny\textcolor{gray!55!black}{Nadeau \& Bengio, \emph{Inference for the
+  Generalization Error}, Machine Learning 52(3), 2003.}}
   \note{Variance reflects data sampling, not just model initialisation. The
   test is two-sided, and overlapping resamplings break t-independence.
   Small p, tiny effect in absolute terms: say plainly that we treat them as
@@ -373,6 +375,41 @@ usually a property of the evaluation pipeline, not of the model.}
   \vfill
   \centering \key{Thank you --- questions?}
   \note{Close on the protocol, not the leaderboard.}
+\end{frame}
+
+% ---------------------------------------------------------------- 7:00
+\begin{frame}{Key references}
+  \begin{itemize}\footnotesize
+    \setlength{\itemsep}{0.15em}
+    \item Sharafaldin, I., Lashkari, A.\,H. \& Ghorbani, A.\,A.
+          \emph{Toward generating a new intrusion detection dataset and
+          intrusion traffic characterization}. ICISSP 2018.
+          \hfill{\key{CICIDS2017}}
+    \item Lanvin, M. et al. \emph{Errors in the CICIDS2017 Dataset and the
+          Significant Differences in Detection Performances It Makes}.
+          CRiSIS 2022.
+          \hfill{\key{label conflicts}}
+    \item Arp, D. et al. \emph{Dos and Don'ts of Machine Learning in Computer
+          Security}. USENIX Security 2022.
+          \hfill{\key{leakage pitfalls}}
+    \item Lundberg, S.\,M. \& Lee, S.-I. \emph{A unified approach to
+          interpreting model predictions}. NeurIPS 2017.
+          \hfill{\key{SHAP}}
+    \item Nadeau, C. \& Bengio, Y. \emph{Inference for the Generalization
+          Error}. Machine Learning 52(3), 2003.
+          \hfill{\key{corrected CI}}
+    \item D'hooge, L. et al. \emph{Inter-dataset generalization strength of
+          supervised machine learning methods for intrusion detection}.
+          J.\ Information Security and Applications 54, 2020.
+          \hfill{\key{cross-dataset}}
+    \item Zaharia, M. et al. \emph{Spark: Cluster computing with working
+          sets}. HotCloud 2010.
+          \hfill{\key{Spark ML}}
+    \item CIC \& CSE. \emph{CSE-CIC-IDS2018 dataset}. 2018.
+          \hfill{\key{cross-dataset target}}
+  \end{itemize}
+  \note{Not presented --- shown while taking questions, so sources are on
+  screen if the committee asks. Full list is in the paper.}
 \end{frame}
 
 % =====================================================================

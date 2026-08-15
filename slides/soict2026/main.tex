@@ -125,6 +125,10 @@ devices. Seven minutes, three results.}
   \footnotesize The gate's MSE threshold is calibrated \emph{offline} on a
   held-out benign validation split --- committed before evaluation, never tuned
   on the test set.
+  \\[0.2em]
+  {\tiny\textcolor{gray!55!black}{CICIDS2017: Sharafaldin et al., ICISSP 2018
+  $\cdot$ Kafka: Kreps et al., NetDB 2011 $\cdot$ Spark: Zaharia et al.,
+  HotCloud 2010.}}
   \note{Host runs the infrastructure. Board one gates, board two classifies.
   Only suspicious flows cross the Kafka topic between them. Everything is
   instrumented into Grafana.}
@@ -291,6 +295,40 @@ devices. Seven minutes, three results.}
   \key{Thank you --- questions?}
   \note{Recap the three numbers: twenty-four times, thirteen milliseconds,
   ninety-six percent skipped. Then stop talking.}
+\end{frame}
+
+% ---------------------------------------------------------------- 7:00
+\begin{frame}{Key references}
+  \begin{itemize}\footnotesize
+    \setlength{\itemsep}{0.15em}
+    \item Sharafaldin, I., Lashkari, A.\,H. \& Ghorbani, A.\,A.
+          \emph{Toward generating a new intrusion detection dataset and
+          intrusion traffic characterization}. ICISSP 2018.
+          \hfill{\key{CICIDS2017}}
+    \item Shi, W. et al. \emph{Edge computing: Vision and challenges}.
+          IEEE Internet of Things Journal 3(5), 2016.
+          \hfill{\key{edge setting}}
+    \item Chandola, V., Banerjee, A. \& Kumar, V. \emph{Anomaly detection:
+          A survey}. ACM Computing Surveys 41(3), 2009.
+          \hfill{\key{anomaly gate}}
+    \item Lundberg, S.\,M. \& Lee, S.-I. \emph{A unified approach to
+          interpreting model predictions}. NeurIPS 2017.
+          \hfill{\key{SHAP Top-30}}
+    \item Zaharia, M. et al. \emph{Spark: Cluster computing with working
+          sets}. HotCloud 2010.
+          \hfill{\key{Spark}}
+    \item Kreps, J., Narkhede, N. \& Rao, J. \emph{Kafka: a Distributed
+          Messaging System for Log Processing}. NetDB 2011.
+          \hfill{\key{Kafka}}
+    \item Mohan Kiran Kumar, K. et al. \emph{Distributed Intrusion Detection
+          System using Kafka and Spark Streaming}. ICVADV 2025.
+          \hfill{\key{closest system}}
+    \item Arp, D. et al. \emph{Dos and Don'ts of Machine Learning in Computer
+          Security}. USENIX Security 2022.
+          \hfill{\key{leakage-aware protocol}}
+  \end{itemize}
+  \note{Not presented --- shown while taking questions, so sources are on
+  screen if the committee asks. Full list is in the paper.}
 \end{frame}
 
 % =====================================================================
