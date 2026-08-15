@@ -127,7 +127,9 @@
   \end{columns}
   \vfill
   \small
-  \textbf{Phạm vi.} CICIDS2017, phân loại nhị phân, cụm 2 Jetson Orin Nano
+  \textbf{Phạm vi.} CICIDS2017\footnote{\tiny Sharafaldin, Lashkari \&
+  Ghorbani, \emph{Toward generating a new intrusion detection dataset\ldots},
+  ICISSP 2018.}, phân loại nhị phân, cụm 2 Jetson Orin Nano
   Super. Bộ dữ liệu \emph{không} có lưu lượng IoT đặc thù --- tính ``IoT'' nằm ở
   \key{kịch bản triển khai biên}.
   \note{Đọc chậm ba RQ; hội đồng sẽ đối chiếu với phần kết luận. RQ2 được kiểm
@@ -215,6 +217,9 @@
       \bad{không tham gia} khâu lựa chọn nào.
     \end{column}
   \end{columns}
+  \vspace{0.2em}
+  {\tiny\textcolor{gray!55!black}{Xếp hạng đặc trưng: RF importance --- Breiman,
+  \emph{Machine Learning} 45(1), 2001; SHAP --- Lundberg \& Lee, NeurIPS 2017.}}
   \note{Đóng góp phương pháp luận quan trọng nhất. Nói rõ vì sao khử trùng lặp
   tất định lại quan trọng: kết quả không phụ thuộc cách Spark phân vùng dữ liệu.
   Xếp hạng RF/SHAP chỉ dùng tập huấn luyện; chọn mô hình trên tập kiểm định tách
@@ -704,6 +709,8 @@
       \begin{itemize}
         \item[\key{Q12}] Kế hoạch tiếp theo, chi tiết
               $\rightarrow$ \hyperlink{bk-future}{\key{Hướng phát triển}}
+        \item[\key{Q13}] Nguồn phương pháp, dữ liệu
+              $\rightarrow$ \hyperlink{bk-refs}{\key{Tài liệu tham khảo}}
       \end{itemize}
     \end{column}
   \end{columns}
@@ -784,7 +791,8 @@
 \begin{frame}[label=bk-pca]{Q3 --- Vì sao PCA dùng $k$=40, và vì sao loại LightGBM?}
   \begin{block}{PCA $k$=40 thay vì $k$=30}
     \small
-    PCA là phép \emph{trích xuất}, không phải \emph{chọn lọc}: mỗi thành phần
+    PCA\footnote{\tiny Jolliffe, \emph{Principal Component Analysis}, 2nd ed.,
+    Springer 2002.} là phép \emph{trích xuất}, không phải \emph{chọn lọc}: mỗi thành phần
     chính là một tổ hợp tuyến tính chỉ mang một phần phương sai, nên cần nhiều
     thành phần hơn để giữ lượng thông tin tương đương tập 30 đặc trưng gốc.
     Trong dải quét chung $\{20,30,40\}$, $k$=40 là mức giữ phương sai cao nhất,
@@ -871,7 +879,8 @@
   }
   \\[0.5em]
   \raggedright\small
-  Random Forest thắng ở \key{cả ba chỉ số vận hành} quan trọng nhất với IDS thời
+  Random Forest\footnote{\tiny Breiman, \emph{Random Forests}, Machine Learning
+  45(1), 2001.} thắng ở \key{cả ba chỉ số vận hành} quan trọng nhất với IDS thời
   gian thực, và có F1 cao nhất trong ba ứng viên (0,9955 ngoại tuyến). Với IDS,
   \emph{độ trễ phán quyết là ràng buộc trực tiếp} --- mô hình nhỏ nhưng chậm hơn
   35\% về p95 sẽ kéo dài cửa sổ mà tấn công chưa bị chặn.
@@ -1038,6 +1047,40 @@
   \end{itemize}
   \note{Mỗi hướng phát triển ứng với một hạn chế ở slide trước --- đó là cách
   thể hiện sự làm chủ đề tài.}
+\end{frame}
+
+\begin{frame}[label=bk-refs]{Q13 --- Tài liệu tham khảo chính}
+  \begin{itemize}\footnotesize
+    \setlength{\itemsep}{0.35em}
+    \item Sharafaldin, I., Lashkari, A.\,H. \& Ghorbani, A.\,A.
+          \emph{Toward generating a new intrusion detection dataset and
+          intrusion traffic characterization}. ICISSP 2018.
+          \hfill{\key{CICIDS2017}}
+    \item Canadian Institute for Cybersecurity \& CSE.
+          \emph{CSE-CIC-IDS2018 dataset}. 2018.
+          \hfill{\key{liên bộ dữ liệu}}
+    \item Lundberg, S.\,M. \& Lee, S.-I. \emph{A Unified Approach to
+          Interpreting Model Predictions}. NeurIPS 2017.
+          \hfill{\key{SHAP}}
+    \item Breiman, L. \emph{Random Forests}. Machine Learning 45(1), 2001.
+          \hfill{\key{RF}}
+    \item Chen, T. \& Guestrin, C. \emph{XGBoost: A Scalable Tree Boosting
+          System}. KDD 2016.
+          \hfill{\key{XGBoost}}
+    \item Jolliffe, I.\,T. \emph{Principal Component Analysis}, 2nd ed.
+          Springer, 2002.
+          \hfill{\key{PCA}}
+    \item Zaharia, M. et al. \emph{Apache Spark: A Unified Engine for Big Data
+          Processing}. Communications of the ACM 59(11), 2016.
+          \hfill{\key{Spark}}
+    \item Kreps, J., Narkhede, N. \& Rao, J. \emph{Kafka: a Distributed
+          Messaging System for Log Processing}. NetDB 2011.
+          \hfill{\key{Kafka}}
+  \end{itemize}
+  \vspace{0.3em}
+  \footnotesize Danh mục đầy đủ 71 mục nằm trong quyển luận văn.
+  \note{Chỉ chiếu khi hội đồng hỏi về nguồn phương pháp hoặc dữ liệu; mỗi mục
+  gắn nhãn thành phần tương ứng của pipeline để trỏ nhanh.}
 \end{frame}
 
 
