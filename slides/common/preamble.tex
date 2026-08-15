@@ -61,6 +61,12 @@
 \setbeamercolor{block title example}{bg=accGreen!15, fg=inkDark}
 \setbeamercolor{block body example}{bg=accGreen!6}
 
+% [standout] frames: metropolis paints them dark teal. Use the same blue as
+% the frame titles so the closing slide reads as part of the same deck, and
+% size the text up — it is meant to be seen from the back of the room.
+\setbeamercolor{palette primary}{bg=accBlue, fg=white}
+\setbeamerfont{standout}{size=\huge, series=\bfseries}
+
 % Metropolis draws no bullet glyph by default; a small square reads better
 % from the back of a conference room than pure indentation.
 \setbeamertemplate{itemize item}{\raisebox{0.12ex}{\tiny$\blacksquare$}}

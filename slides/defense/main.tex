@@ -632,21 +632,24 @@
       \emph{``A Comparison of Dimensionality Reduction and Feature Selection for
       Network Intrusion Detection on Apache Spark ML with a Leakage-Aware
       Evaluation Pipeline''}, Hội thảo quốc gia Nghiên cứu cơ bản và ứng dụng
-      CNTT (\textbf{FAIR}), 2026.
+      CNTT (\textbf{FAIR}), 2026. \good{(Accepted)}
     \item Thai Nguyen Vu, \textbf{Dung Van Bui}, Nhut Tri Do, Van Du Nguyen,
       \emph{``A Distributed Real-Time Intrusion Detection System on a Jetson
       Orin Nano Super Edge Cluster using Kafka and PySpark''}, Symposium on
       Information and Communication Technology (\textbf{SOICT}), 2026.
+      \good{(Accepted)}
   \end{enumerate}
-  \vfill
-  \centering
-  Cả hai bài báo \good{đã được chấp nhận đăng} tại hội nghị tương ứng.
 \end{frame}
 
+% Wrapped in a group with an empty footline: the frame number is dark grey
+% and would sit unreadable on the blue field, and a closing slide does not
+% need one. ([plain] is not accepted alongside [standout].)
+{\setbeamertemplate{footline}{}
 \begin{frame}[standout]
-  Xin trân trọng cảm ơn Hội đồng\\[0.5em]
-  \normalsize Em xin lắng nghe các ý kiến nhận xét và câu hỏi.
+  Xin trân trọng cảm ơn Hội đồng\\[0.6em]
+  {\Large Em xin lắng nghe các ý kiến nhận xét và câu hỏi.}
 \end{frame}
+}
 
 % =====================================================================
 \appendix
@@ -654,55 +657,55 @@
 
 \begin{frame}{Q\&A}
   \scriptsize
-  Bấm vào tên slide để nhảy thẳng tới.
+  Bấm vào tên slide để nhảy thẳng tới; số hiệu Q\emph{n} in ở tiêu đề từng slide.
   \vspace{0.3em}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \textbf{Phạm vi và phương pháp}
       \begin{itemize}
-        \item Phạm vi ``IoT'', mô hình mối đe dọa
+        \item[\key{Q1}] Phạm vi ``IoT'', mô hình mối đe dọa
               $\rightarrow$ \hyperlink{bk-scope}{\key{Phạm vi \& đe dọa}}
-        \item Khử trùng lặp, chống thiên lệch
+        \item[\key{Q2}] Khử trùng lặp, chống thiên lệch
               $\rightarrow$ \hyperlink{bk-prep}{\key{Chi tiết tiền xử lý}}
-        \item Vì sao PCA $k$=40, vì sao loại LightGBM
+        \item[\key{Q3}] Vì sao PCA $k$=40, vì sao loại LightGBM
               $\rightarrow$ \hyperlink{bk-pca}{\key{PCA \& LightGBM}}
-        \item Siêu tham số từng mô hình
+        \item[\key{Q4}] Siêu tham số từng mô hình
               $\rightarrow$ \hyperlink{bk-hparams}{\key{Siêu tham số}}
       \end{itemize}
       \vspace{0.2em}
       \textbf{Kết quả offline}
       \begin{itemize}
-        \item So sánh đầy đủ 8 thuật toán $\times$ 4 phương pháp
+        \item[\key{Q5}] So sánh đầy đủ 8 thuật toán $\times$ 4 phương pháp
               $\rightarrow$ \hyperlink{bk-heatmap}{\key{Bản đồ nhiệt F1}}
-        \item Độ tin cậy, giới hạn kết luận
+        \item[\key{Q6}] Độ tin cậy, giới hạn kết luận
               $\rightarrow$ \hyperlink{bk-threats}{\key{Đe dọa tính hợp lệ}}
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
       \textbf{Triển khai biên}
       \begin{itemize}
-        \item Vì sao chọn Random Forest
+        \item[\key{Q7}] Vì sao chọn Random Forest
               $\rightarrow$ \hyperlink{bk-rf}{\key{Chọn mô hình biên}}
-        \item Cấu hình cụm, ba chế độ đo
+        \item[\key{Q8}] Cấu hình cụm, ba chế độ đo
               $\rightarrow$ \hyperlink{bk-modes}{\key{Chế độ \& môi trường}}
-        \item Cách đo thông lượng, độ trễ, năng lượng
+        \item[\key{Q9}] Cách đo thông lượng, độ trễ, năng lượng
               $\rightarrow$ \hyperlink{bk-protocol}{\key{Giao thức đo}}
-        \item Ngưỡng cổng, đánh đổi recall
+        \item[\key{Q10}] Ngưỡng cổng, đánh đổi recall
               $\rightarrow$ \hyperlink{bk-gate}{\key{Đường cong vận hành}}
-        \item Bằng chứng chạy thực tế
+        \item[\key{Q11}] Bằng chứng chạy thực tế
               $\rightarrow$ \hyperlink{bk-grafana}{\key{Grafana đỉnh tải}}
       \end{itemize}
       \vspace{0.2em}
       \textbf{Kết luận}
       \begin{itemize}
-        \item Kế hoạch tiếp theo, chi tiết
+        \item[\key{Q12}] Kế hoạch tiếp theo, chi tiết
               $\rightarrow$ \hyperlink{bk-future}{\key{Hướng phát triển}}
       \end{itemize}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}[label=bk-scope]{Dự phòng --- Phạm vi, dữ liệu và mô hình mối đe dọa}
+\begin{frame}[label=bk-scope]{Q1 --- Phạm vi, dữ liệu và mô hình mối đe dọa}
   \begin{columns}[T]
     \begin{column}{0.45\textwidth}
       \textbf{Phạm vi}
@@ -738,7 +741,7 @@
   hỏi phản biện gần như chắc chắn sẽ có.}
 \end{frame}
 
-\begin{frame}[label=bk-prep]{Dự phòng --- Chi tiết tiền xử lý và chống thiên lệch lựa chọn}
+\begin{frame}[label=bk-prep]{Q2 --- Chi tiết tiền xử lý và chống thiên lệch lựa chọn}
   \begin{columns}[T]
     \begin{column}{0.46\textwidth}
       \begin{block}{Kết quả tiền xử lý (tất định)}
@@ -774,7 +777,107 @@
   dòng tùy cách Spark phân vùng --- nhờ vậy kết quả là tất định, tái lập được.
 \end{frame}
 
-\begin{frame}[label=bk-modes]{Dự phòng --- Ba chế độ triển khai và môi trường đo}
+\begin{frame}[label=bk-pca]{Q3 --- Vì sao PCA dùng $k$=40, và vì sao loại LightGBM?}
+  \begin{block}{PCA $k$=40 thay vì $k$=30}
+    \small
+    PCA là phép \emph{trích xuất}, không phải \emph{chọn lọc}: mỗi thành phần
+    chính là một tổ hợp tuyến tính chỉ mang một phần phương sai, nên cần nhiều
+    thành phần hơn để giữ lượng thông tin tương đương tập 30 đặc trưng gốc.
+    Trong dải quét chung $\{20,30,40\}$, $k$=40 là mức giữ phương sai cao nhất,
+    nên là điểm vận hành đại diện \emph{công bằng nhất} cho PCA; ép $k$=30 sẽ
+    làm PCA mất thêm phương sai và bất lợi khi so sánh.
+  \end{block}
+  \begin{block}{LightGBM bị loại khỏi so sánh}
+    \small
+    Thư viện native của LightGBM (qua SynapseML) chỉ hỗ trợ kiến trúc x86\_64,
+    không chạy được trên thiết bị biên Jetson Orin Nano Super (ARM64) --- vốn là
+    \emph{đích triển khai} của luận văn. Trong họ gradient boosting, XGBoost và
+    GBT đóng vai trò đại diện.
+  \end{block}
+\end{frame}
+
+\begin{frame}[label=bk-hparams]{Q4 --- Siêu tham số cố định trước (a priori)}
+  \centering\footnotesize
+  \fitwidth{%
+  \begin{tabular}{ll}
+    \toprule
+    Mô hình & Siêu tham số chính \\
+    \midrule
+    Decision Tree       & maxDepth=15, minInstancesPerNode=5, impurity=entropy \\
+    Logistic Regression & maxIter=200, regParam=0.001, L2, threshold=0.5 \\
+    SVM (LinearSVC)     & maxIter=200, regParam=0.001 \\
+    Naive Bayes         & gaussian, smoothing=1.0 \\
+    Random Forest       & numTrees=200, maxDepth=15, featureSubset=sqrt \\
+    GBT                 & maxIter=150, maxDepth=6, stepSize=0.05, subsample=0.8 \\
+    XGBoost             & n\_estimators=300, max\_depth=8, lr=0.05, subsample=0.8 \\
+    MLP                 & layers=[$d$,64,32,2], maxIter=150, stepSize=0.01 \\
+    \bottomrule
+  \end{tabular}
+  }
+  \\[0.4em]
+  \raggedright\footnotesize
+  Dùng chung cho \emph{mọi} phương pháp giảm chiều, để khác biệt quan sát được
+  phản ánh đúng \emph{phương pháp chọn đặc trưng}. Tối ưu siêu tham số (grid
+  search $+$ cross-validation) tách thành giai đoạn riêng, chỉ áp dụng cho cấu
+  hình đã chọn --- mức cải thiện nhỏ, phù hợp với nhận định bài toán nhị phân
+  trong-miền đã gần bão hòa.
+\end{frame}
+
+\begin{frame}[label=bk-heatmap]{Q5 --- Bản đồ nhiệt F1: phương pháp $\times$ thuật toán}
+  \centering
+  \IfFileExists{../../results/ml_07_cross_method_comparison/f1_heatmap.png}
+    {\includegraphics[height=0.74\textheight, width=\textwidth, keepaspectratio]{f1_heatmap.png}}
+    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}\texttt{f1\_heatmap.png}\vspace{1.5cm}}}}
+  \\[0.2em]\footnotesize Nhị phân, đã loại đặc trưng cổng. 8 thuật toán $\times$ 4 phương pháp.
+\end{frame}
+
+\begin{frame}[label=bk-threats]{Q6 --- Đe dọa đến tính hợp lệ}
+  \begin{itemize}\small
+    \item \textbf{Nội tại.} Xếp hạng RF/SHAP lấy từ tập huấn luyện gốc và giữ
+          cố định qua các lần lấy mẫu lại --- nhất quán với thiết kế ``cấu hình
+          cố định trước'', nhưng có thể gây rò rỉ nhẹ ở phần xếp hạng. Xếp hạng
+          lại theo từng lần lấy mẫu chặt chẽ hơn nhưng rất tốn kém với SHAP.
+          MLP không được gán trọng số lớp (Spark ML không hỗ trợ).
+    \item \textbf{Ngoại tại.} CICIDS2017 (2017) có thể không phản ánh lưu lượng
+          hiện tại; các bộ dữ liệu NIDS chuẩn đều có hạn chế chất lượng đã ghi
+          nhận. Kết luận liên bộ dữ liệu dựa trên \emph{mẫu phân tầng} của
+          CSE-CIC-IDS2018. Chưa đánh giá trước lưu lượng đối kháng. Bản thân
+          việc khử trùng lặp cũng làm thay đổi phân bố benign/attack.
+    \item \textbf{Thống kê.} $N{=}6$ cho \emph{power} thấp: kiểm định hai phía
+          liệt kê đầy đủ chặn $p$ ở mức $2/2^N$, nên $N{=}6$ chỉ vừa đủ chạm
+          ngưỡng 0,05. Các lần lấy mẫu chồng lấn, vi phạm giả định độc lập của
+          phân phối $t$ --- do đó Nadeau--Bengio là căn cứ chính. Tăng $N$ với
+          cross-validation lồng nhau là hướng củng cố tiếp theo.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=bk-rf]{Q7 --- Vì sao chọn Random Forest cho thiết bị biên?}
+  \centering\small
+  \fitwidth{%
+  \begin{tabular}{lcccp{3.2cm}}
+    \toprule
+    Cấu hình & F1 & Đặc trưng & Dung lượng (MB) & Lý do ở pha biên \\
+    \midrule
+    Baseline $+$ XGBoost        & 0,9971 & 77 & 2,32 & Mốc tham chiếu \\
+    \textbf{SHAP Top-30} $+$ XGBoost & 0,9970 & 30 & 0,003$^{\dagger}$ & Giải thích được \\
+    RF Top-30 $+$ XGBoost       & 0,9922 & 30 & 2,52 & Xếp hạng nhúng \\
+    PCA $k$=40 $+$ XGBoost      & 0,9939 & 40 & 3,82 & Giảm chiều không giám sát \\
+    \bottomrule
+  \end{tabular}
+  }
+  \\[0.4em]
+  \raggedright\footnotesize
+  Mô hình triển khai là \key{SHAP Top-30 với Random Forest} (F1 offline 0,9955,
+  chênh 0,002 so với XGBoost tốt nhất): Random Forest là estimator \emph{gốc}
+  của Spark ML nên \texttt{PipelineModel} xuất ra nạp được trên board ARM64 mà
+  không cần thư viện native mà tích hợp XGBoost của Spark đòi hỏi. Vector đầu
+  vào có \key{29} đặc trưng --- \texttt{destination\_port} nằm trong xếp hạng
+  SHAP nhưng bị loại vì rò rỉ nhãn.
+  \\ $^{\dagger}$Bước lưu mô hình phân tán chỉ ghi metadata cục bộ trên driver
+  nên báo thiếu dung lượng thật ($\approx$2,5\,MB).
+\end{frame}
+
+\begin{frame}[label=bk-modes]{Q8 --- Ba chế độ triển khai và môi trường đo}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
       \begin{description}
@@ -808,7 +911,34 @@
   pipeline sẽ được cộng đôi một cách vô lý.}
 \end{frame}
 
-\begin{frame}[label=bk-grafana]{Dự phòng --- Bất đối xứng tải lúc đỉnh tải (Grafana)}
+\begin{frame}[label=bk-protocol]{Q9 --- Giao thức đo hiệu năng ở pha biên}
+  \begin{itemize}\small
+    \item Script điều phối phía máy chủ khởi động các vai trò pipeline trên
+          Jetson qua SSH, sinh tải, thu thập log từng nút.
+    \item $\geq$3 lần lặp mỗi cấu hình; lưu lượng khởi động \emph{loại khỏi}
+          cửa sổ đo, để JVM/JIT warmup không làm phồng độ trễ batch đầu.
+    \item Mọi truy vấn chỉ số canh đúng cửa sổ tải, không dùng khoảng thời gian
+          trượt phía sau.
+    \item Phân vị độ trễ tính \emph{theo từng nút} trên mẫu thô từng luồng; p95
+          mức cụm lấy \emph{thận trọng} theo nút tệ nhất.
+    \item Độ trễ đầu cuối dựa trên đồng hồ đồng bộ NTP và \emph{không} bao gồm
+          chi phí ghi cơ sở dữ liệu.
+    \item Năng lượng: \texttt{tegrastats}, nền idle 30\,giây rồi đến cửa sổ tải;
+          chế độ hai nút cộng công suất cả hai board.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[label=bk-gate]{Q10 --- Cổng bất thường là một \emph{đường cong vận hành}}
+  \centering
+  \IfFileExists{../../results/ml_08_anomaly_gate/gate_operating_points.png}
+    {\includegraphics[height=0.68\textheight, width=\textwidth, keepaspectratio]{gate_operating_points.png}}
+    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}\texttt{gate\_operating\_points.png}\vspace{1.5cm}}}}
+  \\[0.2em]\footnotesize
+  Recall tấn công (trái) và tỷ lệ báo động giả (phải) theo tỷ lệ bỏ qua tại
+  cổng. Nâng tỷ lệ bỏ qua giúp giảm tải Spark nhưng đánh đổi bằng recall.
+\end{frame}
+
+\begin{frame}[label=bk-grafana]{Q11 --- Bất đối xứng tải lúc đỉnh tải (Grafana)}
   \begin{columns}[c]
     \begin{column}{0.63\textwidth}
       \centering
@@ -830,7 +960,7 @@
   lưu trong PostgreSQL.}
 \end{frame}
 
-\begin{frame}[label=bk-future]{Dự phòng --- Hướng phát triển chi tiết}
+\begin{frame}[label=bk-future]{Q12 --- Hướng phát triển chi tiết}
   \begin{itemize}\small
     \item \textbf{Cải thiện độ nhạy cho lớp tấn công hiếm.} Xử lý mất cân bằng
           có chủ đích (undersampling/SMOTE áp dụng \emph{sau} khi chia tập),
@@ -853,133 +983,5 @@
   thể hiện sự làm chủ đề tài.}
 \end{frame}
 
-\begin{frame}[label=bk-hparams]{Dự phòng --- Siêu tham số cố định trước (a priori)}
-  \centering\footnotesize
-  \fitwidth{%
-  \begin{tabular}{ll}
-    \toprule
-    Mô hình & Siêu tham số chính \\
-    \midrule
-    Decision Tree       & maxDepth=15, minInstancesPerNode=5, impurity=entropy \\
-    Logistic Regression & maxIter=200, regParam=0.001, L2, threshold=0.5 \\
-    SVM (LinearSVC)     & maxIter=200, regParam=0.001 \\
-    Naive Bayes         & gaussian, smoothing=1.0 \\
-    Random Forest       & numTrees=200, maxDepth=15, featureSubset=sqrt \\
-    GBT                 & maxIter=150, maxDepth=6, stepSize=0.05, subsample=0.8 \\
-    XGBoost             & n\_estimators=300, max\_depth=8, lr=0.05, subsample=0.8 \\
-    MLP                 & layers=[$d$,64,32,2], maxIter=150, stepSize=0.01 \\
-    \bottomrule
-  \end{tabular}
-  }
-  \\[0.4em]
-  \raggedright\footnotesize
-  Dùng chung cho \emph{mọi} phương pháp giảm chiều, để khác biệt quan sát được
-  phản ánh đúng \emph{phương pháp chọn đặc trưng}. Tối ưu siêu tham số (grid
-  search $+$ cross-validation) tách thành giai đoạn riêng, chỉ áp dụng cho cấu
-  hình đã chọn --- mức cải thiện nhỏ, phù hợp với nhận định bài toán nhị phân
-  trong-miền đã gần bão hòa.
-\end{frame}
-
-\begin{frame}[label=bk-pca]{Dự phòng --- Vì sao PCA dùng $k$=40, và vì sao loại LightGBM?}
-  \begin{block}{PCA $k$=40 thay vì $k$=30}
-    \small
-    PCA là phép \emph{trích xuất}, không phải \emph{chọn lọc}: mỗi thành phần
-    chính là một tổ hợp tuyến tính chỉ mang một phần phương sai, nên cần nhiều
-    thành phần hơn để giữ lượng thông tin tương đương tập 30 đặc trưng gốc.
-    Trong dải quét chung $\{20,30,40\}$, $k$=40 là mức giữ phương sai cao nhất,
-    nên là điểm vận hành đại diện \emph{công bằng nhất} cho PCA; ép $k$=30 sẽ
-    làm PCA mất thêm phương sai và bất lợi khi so sánh.
-  \end{block}
-  \begin{block}{LightGBM bị loại khỏi so sánh}
-    \small
-    Thư viện native của LightGBM (qua SynapseML) chỉ hỗ trợ kiến trúc x86\_64,
-    không chạy được trên thiết bị biên Jetson Orin Nano Super (ARM64) --- vốn là
-    \emph{đích triển khai} của luận văn. Trong họ gradient boosting, XGBoost và
-    GBT đóng vai trò đại diện.
-  \end{block}
-\end{frame}
-
-\begin{frame}[label=bk-heatmap]{Dự phòng --- Bản đồ nhiệt F1: phương pháp $\times$ thuật toán}
-  \centering
-  \IfFileExists{../../results/ml_07_cross_method_comparison/f1_heatmap.png}
-    {\includegraphics[height=0.74\textheight, width=\textwidth, keepaspectratio]{f1_heatmap.png}}
-    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}\texttt{f1\_heatmap.png}\vspace{1.5cm}}}}
-  \\[0.2em]\footnotesize Nhị phân, đã loại đặc trưng cổng. 8 thuật toán $\times$ 4 phương pháp.
-\end{frame}
-
-\begin{frame}[label=bk-gate]{Dự phòng --- Cổng bất thường là một \emph{đường cong vận hành}}
-  \centering
-  \IfFileExists{../../results/ml_08_anomaly_gate/gate_operating_points.png}
-    {\includegraphics[height=0.68\textheight, width=\textwidth, keepaspectratio]{gate_operating_points.png}}
-    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}\texttt{gate\_operating\_points.png}\vspace{1.5cm}}}}
-  \\[0.2em]\footnotesize
-  Recall tấn công (trái) và tỷ lệ báo động giả (phải) theo tỷ lệ bỏ qua tại
-  cổng. Nâng tỷ lệ bỏ qua giúp giảm tải Spark nhưng đánh đổi bằng recall.
-\end{frame}
-
-
-
-\begin{frame}[label=bk-threats]{Dự phòng --- Đe dọa đến tính hợp lệ}
-  \begin{itemize}\small
-    \item \textbf{Nội tại.} Xếp hạng RF/SHAP lấy từ tập huấn luyện gốc và giữ
-          cố định qua các lần lấy mẫu lại --- nhất quán với thiết kế ``cấu hình
-          cố định trước'', nhưng có thể gây rò rỉ nhẹ ở phần xếp hạng. Xếp hạng
-          lại theo từng lần lấy mẫu chặt chẽ hơn nhưng rất tốn kém với SHAP.
-          MLP không được gán trọng số lớp (Spark ML không hỗ trợ).
-    \item \textbf{Ngoại tại.} CICIDS2017 (2017) có thể không phản ánh lưu lượng
-          hiện tại; các bộ dữ liệu NIDS chuẩn đều có hạn chế chất lượng đã ghi
-          nhận. Kết luận liên bộ dữ liệu dựa trên \emph{mẫu phân tầng} của
-          CSE-CIC-IDS2018. Chưa đánh giá trước lưu lượng đối kháng. Bản thân
-          việc khử trùng lặp cũng làm thay đổi phân bố benign/attack.
-    \item \textbf{Thống kê.} $N{=}6$ cho \emph{power} thấp: kiểm định hai phía
-          liệt kê đầy đủ chặn $p$ ở mức $2/2^N$, nên $N{=}6$ chỉ vừa đủ chạm
-          ngưỡng 0,05. Các lần lấy mẫu chồng lấn, vi phạm giả định độc lập của
-          phân phối $t$ --- do đó Nadeau--Bengio là căn cứ chính. Tăng $N$ với
-          cross-validation lồng nhau là hướng củng cố tiếp theo.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[label=bk-protocol]{Dự phòng --- Giao thức đo hiệu năng ở pha biên}
-  \begin{itemize}\small
-    \item Script điều phối phía máy chủ khởi động các vai trò pipeline trên
-          Jetson qua SSH, sinh tải, thu thập log từng nút.
-    \item $\geq$3 lần lặp mỗi cấu hình; lưu lượng khởi động \emph{loại khỏi}
-          cửa sổ đo, để JVM/JIT warmup không làm phồng độ trễ batch đầu.
-    \item Mọi truy vấn chỉ số canh đúng cửa sổ tải, không dùng khoảng thời gian
-          trượt phía sau.
-    \item Phân vị độ trễ tính \emph{theo từng nút} trên mẫu thô từng luồng; p95
-          mức cụm lấy \emph{thận trọng} theo nút tệ nhất.
-    \item Độ trễ đầu cuối dựa trên đồng hồ đồng bộ NTP và \emph{không} bao gồm
-          chi phí ghi cơ sở dữ liệu.
-    \item Năng lượng: \texttt{tegrastats}, nền idle 30\,giây rồi đến cửa sổ tải;
-          chế độ hai nút cộng công suất cả hai board.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[label=bk-rf]{Dự phòng --- Vì sao chọn Random Forest cho thiết bị biên?}
-  \centering\small
-  \fitwidth{%
-  \begin{tabular}{lcccp{3.2cm}}
-    \toprule
-    Cấu hình & F1 & Đặc trưng & Dung lượng (MB) & Lý do ở pha biên \\
-    \midrule
-    Baseline $+$ XGBoost        & 0,9971 & 77 & 2,32 & Mốc tham chiếu \\
-    \textbf{SHAP Top-30} $+$ XGBoost & 0,9970 & 30 & 0,003$^{\dagger}$ & Giải thích được \\
-    RF Top-30 $+$ XGBoost       & 0,9922 & 30 & 2,52 & Xếp hạng nhúng \\
-    PCA $k$=40 $+$ XGBoost      & 0,9939 & 40 & 3,82 & Giảm chiều không giám sát \\
-    \bottomrule
-  \end{tabular}
-  }
-  \\[0.4em]
-  \raggedright\footnotesize
-  Mô hình triển khai là \key{SHAP Top-30 với Random Forest} (F1 offline 0,9955,
-  chênh 0,002 so với XGBoost tốt nhất): Random Forest là estimator \emph{gốc}
-  của Spark ML nên \texttt{PipelineModel} xuất ra nạp được trên board ARM64 mà
-  không cần thư viện native mà tích hợp XGBoost của Spark đòi hỏi. Vector đầu
-  vào có \key{29} đặc trưng --- \texttt{destination\_port} nằm trong xếp hạng
-  SHAP nhưng bị loại vì rò rỉ nhãn.
-  \\ $^{\dagger}$Bước lưu mô hình phân tán chỉ ghi metadata cục bộ trên driver
-  nên báo thiếu dung lượng thật ($\approx$2,5\,MB).
-\end{frame}
 
 \end{document}
