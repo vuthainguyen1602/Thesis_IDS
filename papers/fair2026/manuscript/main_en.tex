@@ -231,7 +231,7 @@ To avoid selection bias from trying many configurations on the same test set, we
 
 \subsection{Setup}
 
-CICIDS2017; an 80/20 training/test split after leakage removal (Section~\ref{sec:leakage}); Apache Spark 3.4.1, Java 17; hardware: a cluster of 2$\times$ Jetson Orin Nano Super (8\,GB) and a coordinator host. Every script logs the run configuration (seed, environment variables, library versions) to ensure reproducibility. The full source code, configuration, and feature lists are publicly available at \url{https://github.com/vuthainguyen1602/Thesis_IDS} (branch \texttt{develop}); the pipeline can be reproduced on a single machine and does not require an edge-device cluster.
+CICIDS2017; an 80/20 training/test split after leakage removal (Section~\ref{sec:leakage}); Apache Spark 3.4.1, Java 17; hardware: a cluster of 2$\times$ Jetson Orin Nano Super (8\,GB) and a coordinator host. The host acts as Spark \emph{master} only and runs no executor, so every training time reported here reflects compute on the two homogeneous Jetson workers rather than the stronger host CPU. Every script logs the run configuration (seed, environment variables, library versions) to ensure reproducibility. The full source code, configuration, and feature lists are publicly available at \url{https://github.com/vuthainguyen1602/Thesis_IDS} (branch \texttt{develop}); the pipeline can be reproduced on a single machine and does not require an edge-device cluster.
 
 \subsection{Port-feature ablation}
 
