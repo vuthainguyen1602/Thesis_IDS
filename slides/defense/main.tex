@@ -339,7 +339,7 @@
     \item Học tổ hợp chỉ thắng ở cấu hình mà mô hình đơn \emph{yếu}: RF Top-30
           (0,9938 so với 0,9922) và PCA (0,9940 so với 0,9939).
     \item Ở hai cấu hình mạnh nhất (Baseline, SHAP Top-30) thì \bad{thua} mô
-          hình đơn --- nó \emph{bù cho bộ đặc trưng kém}, không tạo thêm năng lực.
+          hình đơn --- nó \emph{bù cho bộ đặc trưng kém}, không tạo thêm hiệu năng.
   \end{itemize}
   \takeaway{Trả lời \key{RQ2}: không có lợi thế đáng kể. Với thiết bị biên, mô
   hình đơn thắng cả về F1 lẫn chi phí --- huấn luyện nhanh gấp 4 lần, mô hình
@@ -1001,7 +1001,7 @@
 
   \vspace{0.4em}
   \footnotesize MacBook \emph{chỉ} điều phối (master) --- không chạy executor,
-  để số liệu thời gian huấn luyện phản ánh đúng năng lực \key{cụm biên thuần
+  để số liệu thời gian huấn luyện phản ánh đúng hiệu năng \key{cụm biên thuần
   Jetson}; đưa M3 vào tính toán sẽ gây lệch tải (straggler) và sai lệch phép đo.
   \note{Cùng cặp Jetson này ở pha huấn luyện là worker/executor của Spark, ở
   pha suy luận là cổng lọc và bộ phân loại. Jetson \#1 kiêm tiến trình driver
