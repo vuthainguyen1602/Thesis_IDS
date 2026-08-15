@@ -18,6 +18,7 @@
 \centeredtitles
 
 \graphicspath{%
+  {../common/img/}%
   {../../results/ml_07_cross_method_comparison/}%
   {../../results/ml_05_shap_explainability/}%
   {../../results/ml_06_feature_selection_shap/}%
@@ -28,6 +29,12 @@
   {../../papers/soict2026/results/benchmarks/}%
   {../../papers/soict2026/figures/}%
 }
+
+% Logo trường trên trang bìa. Dùng bản 8-bit trong common/img/ chứ không
+% dùng thẳng thesis/img/logouit.png: bản gốc là PNG 16-bit/kênh, XeLaTeX
+% chừa chỗ nhưng không vẽ được (pdflatex thì vẽ được, nên bìa luận văn vẫn
+% hiện bình thường).
+\titlegraphic{\includegraphics[height=1.45cm]{logouit.png}}
 
 \title{Phát hiện xâm nhập (IDS) dựa trên Apache Spark cho bảo mật mạng IoT}
 \subtitle{Bảo vệ luận văn Thạc sĩ --- Ngành Công nghệ Thông tin}
