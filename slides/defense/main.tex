@@ -4,10 +4,10 @@
 %        papers/soict2026 (triển khai biên phân tán)
 % Biên dịch: ./compile.sh   (XeLaTeX; bản có ghi chú: NOTES=1 ./compile.sh)
 %
-% KẾ HOẠCH THỜI GIAN — 15 phút trình bày + hỏi đáp (16 slide nội dung)
+% KẾ HOẠCH THỜI GIAN — 15 phút trình bày + hỏi đáp (17 slide nội dung)
 %   I    Đặt vấn đề, mục tiêu, 3 RQ ......... 2,5 phút  (2 slide)
-%   II   Phương pháp ....................... 3,5 phút  (3 slide)
-%   III  Kết quả offline (FAIR) ............ 4   phút  (4 slide)
+%   II   Phương pháp ....................... 3   phút  (3 slide)
+%   III  Kết quả offline (FAIR) ............ 4,5 phút  (5 slide)
 %   IV   Kết quả triển khai biên (SOICT) ... 3   phút  (2 slide)
 %   V    Trả lời RQ và kết luận ............ 2   phút  (4 slide)
 % Các slide sau \appendix là DỰ PHÒNG cho phần hỏi đáp.
@@ -305,8 +305,7 @@
               \good{73\% thời gian huấn luyện}.
         \item Cùng số đặc trưng, SHAP vượt RF Importance trên \emph{mọi} thuật
               toán họ cây.
-        \item \key{Hybrid Bagging} $+$ SHAP Top-30 đạt F1 \num{0,9966} --- cao
-              nhất.
+        \item Học tổ hợp \emph{không} vượt được XGBoost đơn --- xem slide sau.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -316,7 +315,38 @@
   giải thích từng quyết định, có giá trị cho vận hành SOC.}
 \end{frame}
 
-\begin{frame}{KQ2 --- Kiểm định thống kê thay vì so sánh một lần đo}
+\begin{frame}{KQ2 --- Học tổ hợp không vượt được mô hình đơn tốt nhất}
+  \centering\small
+  \fitwidth{%
+  \begin{tabular}{lccc}
+    \toprule
+    Trên SHAP Top-30 (cấu hình triển khai) & F1 & Huấn luyện (s) & Dung lượng (MB) \\
+    \midrule
+    \textbf{XGBoost} (mô hình đơn) & \num{0,9970} & \num{1226} & --- \\
+    Soft Voting                    & 0,9967 & --- & 0,02 \\
+    Hybrid Bagging                 & 0,9966 & \bad{4909} & \bad{7,15} \\
+    \bottomrule
+  \end{tabular}
+  }
+  \par\vspace{0.5em}
+  \raggedright
+  \begin{itemize}
+    \item Học tổ hợp chỉ thắng ở cấu hình mà mô hình đơn \emph{yếu}: RF Top-30
+          (0,9938 so với 0,9922) và PCA (0,9940 so với 0,9939).
+    \item Ở hai cấu hình mạnh nhất (Baseline, SHAP Top-30) thì \bad{thua} mô
+          hình đơn --- nó \emph{bù cho bộ đặc trưng kém}, không tạo thêm năng lực.
+  \end{itemize}
+  \takeaway{Trả lời \key{RQ2}: không có lợi thế đáng kể. Với thiết bị biên, mô
+  hình đơn thắng cả về F1 lẫn chi phí --- huấn luyện nhanh gấp 4 lần, mô hình
+  nhỏ hơn nhiều.}
+  \note{Đây là bằng chứng cho RQ2, và là một kết quả âm tính --- nói thẳng ra
+  thay vì né. Hybrid Bagging ghép Top-3 thuật toán có F1 cao nhất trên tập kiểm
+  định, có trọng số. Dung lượng XGBoost trên cụm phân tán báo thiếu (0,003 MB)
+  nên để trống thay vì ghi con số sai. Slide sau sẽ cho thấy ngay cả chênh lệch
+  giữa các cấu hình hàng đầu cũng không có ý nghĩa thực tiễn.}
+\end{frame}
+
+\begin{frame}{KQ3 --- Kiểm định thống kê thay vì so sánh một lần đo}
   \begin{columns}[T]
     \begin{column}{0.47\textwidth}
       \centering\small
@@ -364,7 +394,7 @@
   phân phối t, nên Nadeau--Bengio là căn cứ chính.}
 \end{frame}
 
-\begin{frame}{KQ3 --- Đánh giá đa lớp: F1 nhị phân che giấu điều quan trọng}
+\begin{frame}{KQ4 --- Đánh giá đa lớp: F1 nhị phân che giấu điều quan trọng}
   \begin{columns}[c]
     \begin{column}{0.40\textwidth}
       \centering
@@ -410,7 +440,7 @@
   lưu lượng nền.}
 \end{frame}
 
-\begin{frame}{KQ4 --- Tổng quát hóa liên bộ dữ liệu: con số trung thực nhất}
+\begin{frame}{KQ5 --- Tổng quát hóa liên bộ dữ liệu: con số trung thực nhất}
   \begin{columns}[T]
     \begin{column}{0.46\textwidth}
       \centering\small
@@ -453,7 +483,7 @@
 \section{IV.\ KẾT QUẢ 2 --- TRIỂN KHAI PHÂN TÁN TRÊN CỤM BIÊN}
 % =====================================================================
 
-\begin{frame}{KQ5 --- Tách pipeline nâng thông lượng gấp 24 lần}
+\begin{frame}{KQ6 --- Tách pipeline nâng thông lượng gấp 24 lần}
   \centering\footnotesize
   \fitwidth{%
   \begin{tabular}{lcccc}
@@ -520,8 +550,8 @@
     trưng, giảm $\approx$73\% thời gian huấn luyện.
   \end{block}
   \begin{block}{RQ2 --- Học tổ hợp có hơn mô hình đơn tốt nhất một cách đáng kể?}
-    \bad{Không đáng kể về mặt thực tiễn.} Hybrid Bagging cao nhất (F1 0,9966),
-    nhưng chênh lệch tuyệt đối chỉ $\approx$0,0001.
+    \bad{Không.} Trên SHAP Top-30, XGBoost đơn đạt \num{0,9970} còn Hybrid
+    Bagging chỉ 0,9966 --- thua, mà huấn luyện lâu gấp 4 lần.
   \end{block}
   \begin{block}{RQ3 --- Pipeline Spark có khả thi trên cụm thiết bị biên?}
     \good{Khả thi, với điều kiện tách vai trò.} Thông lượng \num{2,6 $\rightarrow$
