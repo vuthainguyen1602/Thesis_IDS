@@ -78,66 +78,62 @@
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
       \textbf{Vấn đề thực tiễn}
-      \begin{itemize}\footnotesize
-        \item Thiết bị IoT tăng nhanh, tài nguyên ít, bảo mật yếu.
-        \item Lưu lượng lớn, liên tục $\rightarrow$ cần nền tảng \key{phân tán}.
-        \item Phát hiện cần đặt \key{gần nguồn dữ liệu} để giảm băng thông, độ trễ.
+      \begin{itemize}\small
+        \item Thiết bị IoT nhiều, tài nguyên ít, bảo mật yếu.
+        \item Lưu lượng lớn $\rightarrow$ cần nền tảng \key{phân tán}.
+        \item Cần phát hiện \key{ngay tại biên} để giảm độ trễ.
       \end{itemize}
-      \vspace{0.3em}
+      \vspace{0.5em}
       \textbf{Ba khoảng trống}
-      \begin{enumerate}\footnotesize
-        \item RF, SHAP, PCA hiếm khi so sánh trên \emph{cùng một} pipeline phân tán.
-        \item Điểm số trên CICIDS2017 thường \bad{gần như hoàn hảo} --- dấu hiệu
-              rò rỉ dữ liệu.
-        \item IDS biên thường chỉ đo trên \bad{một thiết bị}.
+      \begin{enumerate}\small
+        \item RF, SHAP, PCA chưa được so sánh trên \emph{cùng một} pipeline.
+        \item Điểm số CICIDS2017 thường \bad{gần như hoàn hảo} --- dấu hiệu rò rỉ.
+        \item IDS biên hầu như chỉ đo trên \bad{một thiết bị}.
       \end{enumerate}
     \end{column}
     \begin{column}{0.42\textwidth}
       \begin{exampleblock}{Cách tiếp cận: hai pha bổ trợ}
-        \key{(A) Offline} --- mô hình nào, bao nhiêu đặc trưng, dưới quy trình
-        loại trừ rò rỉ.\\[0.4em]
-        \key{(B) Biên} --- mô hình đó có chạy được theo thời gian thực trên cụm
-        thiết bị biên hay không?
+        \key{(A) Offline} --- chọn mô hình nào, bao nhiêu đặc trưng.\\[0.5em]
+        \key{(B) Biên} --- mô hình đó có chạy thời gian thực được không?
       \end{exampleblock}
     \end{column}
   \end{columns}
-  \note{Nhấn mạnh: hai pha trả lời hai câu hỏi khác nhau, không phải hai
-  phương án cạnh tranh. Ba câu hỏi nghiên cứu cụ thể ở slide ngay sau.}
+  \note{Nhấn mạnh: hai pha trả lời hai câu hỏi khác nhau, không phải hai phương
+  án cạnh tranh. Pha A dưới quy trình loại trừ rò rỉ. Ba câu hỏi nghiên cứu cụ
+  thể ở slide ngay sau.}
 \end{frame}
 
 \begin{frame}{Mục tiêu và ba câu hỏi nghiên cứu}
-  \textbf{Mục tiêu.} Xây dựng hệ thống IDS kết hợp học máy với Apache Spark,
-  đánh giá dưới quy trình \key{loại trừ rò rỉ dữ liệu} có kiểm định thống kê, và
-  kiểm chứng khả năng chạy thời gian thực trên cụm thiết bị biên.
-  \vspace{0.6em}
+  \textbf{Mục tiêu.} Xây dựng hệ thống IDS trên Apache Spark, đánh giá dưới quy
+  trình \key{loại trừ rò rỉ dữ liệu}, và kiểm chứng khả năng chạy thời gian thực
+  trên cụm thiết bị biên.
+  \vspace{0.8em}
   \begin{columns}[T]
     \begin{column}{0.32\textwidth}
       \begin{block}{RQ1 --- Giảm chiều}
-        \footnotesize Giảm chiều/chọn đặc trưng có giữ được hiệu năng gần mức
-        dùng toàn bộ đặc trưng không, khi cắt hơn 60\% số đặc trưng?
+        \small Cắt hơn 60\% đặc trưng có giữ được hiệu năng không?
       \end{block}
     \end{column}
     \begin{column}{0.32\textwidth}
       \begin{block}{RQ2 --- Học tổ hợp}
-        \footnotesize Học tổ hợp có lợi thế \emph{đáng kể} so với mô hình đơn
-        tốt nhất không, khi được \emph{kiểm định thống kê}?
+        \small Có hơn mô hình đơn tốt nhất một cách \emph{đáng kể} không?
       \end{block}
     \end{column}
     \begin{column}{0.32\textwidth}
       \begin{block}{RQ3 --- Khả thi ở biên}
-        \footnotesize Pipeline Spark có khả thi về thông lượng, độ trễ, năng
-        lượng khi triển khai phân tán trên cụm Jetson không?
+        \small Chạy được thời gian thực trên cụm Jetson không?
       \end{block}
     \end{column}
   \end{columns}
   \vfill
-  \footnotesize
-  \textbf{Phạm vi.} CICIDS2017 (mở rộng CSE-CIC-IDS2018 cho thí nghiệm liên bộ),
-  nhị phân Benign/Attack, cụm 2 Jetson Orin Nano Super. Bộ dữ liệu \emph{không} có
-  lưu lượng IoT đặc thù --- tính chất ``IoT'' nằm ở \key{kịch bản triển khai} trên
-  thiết bị biên; tấn công đối kháng \bad{ngoài phạm vi}.
-  \note{Đọc chậm ba RQ; hội đồng sẽ đối chiếu với phần kết luận. Nêu chủ động giới
-  hạn phạm vi IoT --- slide dự phòng có bản đầy đủ kèm mô hình mối đe dọa.}
+  \small
+  \textbf{Phạm vi.} CICIDS2017, phân loại nhị phân, cụm 2 Jetson Orin Nano
+  Super. Bộ dữ liệu \emph{không} có lưu lượng IoT đặc thù --- tính ``IoT'' nằm ở
+  \key{kịch bản triển khai biên}.
+  \note{Đọc chậm ba RQ; hội đồng sẽ đối chiếu với phần kết luận. RQ2 được kiểm
+  chứng bằng kiểm định thống kê chứ không so một lần đo. Nêu chủ động giới hạn
+  phạm vi IoT và tấn công đối kháng nằm ngoài phạm vi --- slide Q1 có bản đầy
+  đủ kèm mô hình mối đe dọa.}
 \end{frame}
 
 
@@ -196,37 +192,35 @@
 \begin{frame}{Pha A --- Quy trình loại trừ rò rỉ và bốn chiến lược so sánh}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
-      \textbf{Hai nguồn rò rỉ, xử lý \emph{trước khi chia tập}}\vspace{-0.2em}
-      \begin{enumerate}\footnotesize
-        \item \key{Đặc trưng rò rỉ nhãn}: \texttt{destination\_port} mã hóa trực
-              tiếp dịch vụ bị tấn công $\rightarrow$ mô hình học thuộc ánh xạ
-              cổng\,$\rightarrow$\,nhãn thay vì học hành vi luồng.
-        \item \key{Trùng lặp ở mức đặc trưng}: luồng giống hệt nhau trên
-              \emph{toàn bộ} cột đặc trưng không bị loại bởi khử trùng lặp toàn
-              dòng $\rightarrow$ cùng một mẫu vào cả hai tập.
+      \textbf{Hai nguồn rò rỉ, xử lý \emph{trước khi chia tập}}
+      \begin{enumerate}\small
+        \item \key{Đặc trưng rò rỉ nhãn}: \texttt{destination\_port} mã hóa
+              thẳng dịch vụ bị tấn công.
+        \item \key{Trùng lặp mức đặc trưng}: cùng một mẫu lọt vào cả tập huấn
+              luyện lẫn tập kiểm tra.
       \end{enumerate}
-      \vspace{0.2em}
-      \footnotesize Nhóm \emph{nhãn xung đột} bị \bad{loại cả nhóm} (270 nhóm,
-      44.260 dòng); còn 77 đặc trưng, 1,79\,tr / 0,45\,tr.
+      \vspace{0.4em}
+      \small Nhóm \emph{nhãn xung đột} bị \bad{loại cả nhóm}: 270 nhóm,
+      44.260 dòng. Còn 77 đặc trưng.
     \end{column}
     \begin{column}{0.47\textwidth}
       \textbf{Bốn chiến lược, cùng một pipeline}
-      \begin{itemize}\footnotesize
-        \item \textbf{Baseline} 77 đặc trưng $\cdot$ \textbf{RF Top-$K$} $\cdot$
-              \textbf{SHAP Top-$K$} $\cdot$ \textbf{PCA $k$=40}; xếp hạng RF/SHAP
-              chỉ dùng \emph{tập huấn luyện}.
-        \item \textbf{8 thuật toán}: DT, LR, SVM, NB, RF, GBT, XGBoost, MLP.
-        \item \textbf{2 mô hình học tổ hợp}: \key{Soft Voting} và \key{Hybrid
-              Bagging} --- Top-3 theo F1 trên tập kiểm định.
+      \begin{itemize}\small
+        \item Baseline 77 đặc trưng $\cdot$ RF Top-$K$ $\cdot$ SHAP Top-$K$
+              $\cdot$ PCA $k$=40.
+        \item 8 thuật toán $+$ \key{Soft Voting}, \key{Hybrid Bagging}.
       \end{itemize}
-      \vspace{0.2em}
-      \footnotesize \textbf{Chống thiên lệch}: cấu hình cố định trước, chọn mô hình
-      trên \key{tập kiểm định}; tập kiểm tra \bad{không tham gia} khâu lựa chọn.
+      \vspace{0.4em}
+      \small \textbf{Chống thiên lệch}: cấu hình cố định trước; tập kiểm tra
+      \bad{không tham gia} khâu lựa chọn nào.
     \end{column}
   \end{columns}
-  \note{Đóng góp phương pháp luận quan trọng nhất. Nói rõ vì sao khử trùng lặp tất
-  định lại quan trọng: kết quả không phụ thuộc cách Spark phân vùng dữ liệu. PCA
-  dùng k=40 vì là phép trích xuất --- slide dự phòng có lý do đầy đủ.}
+  \note{Đóng góp phương pháp luận quan trọng nhất. Nói rõ vì sao khử trùng lặp
+  tất định lại quan trọng: kết quả không phụ thuộc cách Spark phân vùng dữ liệu.
+  Xếp hạng RF/SHAP chỉ dùng tập huấn luyện; chọn mô hình trên tập kiểm định tách
+  từ tập huấn luyện. PCA dùng k=40 vì là phép trích xuất --- slide Q3 có lý do
+  đầy đủ, kèm lý do loại LightGBM. Tám thuật toán: DT, LR, SVM, NB, RF, GBT,
+  XGBoost, MLP.}
 \end{frame}
 
 
@@ -257,15 +251,15 @@
     \draw[dsh] (j2.south) -- (out.north -| j2);
   \end{tikzpicture}}
   \\[0.3em]
-  \footnotesize
-  \textbf{Ba chế độ được đo:} \textbf{A} tách pipeline (đề xuất) $\cdot$ \textbf{B}
-  mở rộng ngang --- cả hai nút chạy vai trò đầy đủ $\cdot$ \textbf{C} cụm Spark
-  standalone; mốc tham chiếu là chế độ đơn nút. Thông lượng đếm \key{số luồng xử
-  lý xong mỗi giây}: mỗi luồng chỉ tính \emph{một lần}, tại nơi có kết luận ---
-  ở cổng nếu bị bỏ qua, ở bộ phân lớp nếu không. Ngưỡng MSE của cổng hiệu chỉnh
-  ngoại tuyến, chốt \emph{trước} khi đánh giá.
-  \note{Ngưỡng cổng không tinh chỉnh trên tập kiểm tra. Môi trường đo chi tiết
-  (cấu hình board, số lần lặp, cách đo năng lượng) ở slide dự phòng.}
+  \small
+  \textbf{Ba chế độ được đo:} \textbf{A} tách pipeline (đề xuất) $\cdot$
+  \textbf{B} mở rộng ngang $\cdot$ \textbf{C} cụm Spark; mốc tham chiếu là đơn
+  nút. Thông lượng đếm \key{số luồng xử lý xong mỗi giây} --- mỗi luồng chỉ tính
+  \emph{một lần}, tại nơi có kết luận.
+  \note{Chế độ B: cả hai nút chạy vai trò đầy đủ. Ngưỡng MSE của cổng hiệu
+  chỉnh ngoại tuyến, chốt trước khi đánh giá, không tinh chỉnh trên tập kiểm
+  tra. Luồng chỉ tính một lần nên luồng đi qua cả hai nút không bị đếm đôi.
+  Môi trường đo chi tiết ở slide Q8.}
 \end{frame}
 
 
@@ -289,9 +283,9 @@
         \bottomrule
       \end{tabular}
       }
-      \vspace{0.5em}
+      \vspace{0.6em}
 
-      \footnotesize
+      \small
       \fitwidth{%
       \begin{tabular}{lccc}
         \toprule
@@ -306,21 +300,20 @@
       }
     \end{column}
     \begin{column}{0.43\textwidth}
-      \begin{itemize}\small
-        \item SHAP Top-30 giữ F1 ngang baseline, cắt \good{$\approx$60\% đặc
-              trưng} và \good{$\approx$73\% thời gian huấn luyện}.
-        \item Ở \emph{cùng} số đặc trưng, SHAP vượt RF Importance trên mọi
-              thuật toán họ cây.
-        \item Học tổ hợp \key{Hybrid Bagging} với SHAP Top-30 đạt F1
-              \num{0,9966} --- cao nhất trong các cấu hình đã thử.
-        \item Ít đặc trưng hơn $\rightarrow$ chi phí \texttt{VectorAssembler}
-              và bộ nhớ mô hình ở biên nhỏ hơn.
+      \begin{itemize}
+        \item SHAP Top-30 giữ F1 ngang baseline, cắt \good{60\% đặc trưng} và
+              \good{73\% thời gian huấn luyện}.
+        \item Cùng số đặc trưng, SHAP vượt RF Importance trên \emph{mọi} thuật
+              toán họ cây.
+        \item \key{Hybrid Bagging} $+$ SHAP Top-30 đạt F1 \num{0,9966} --- cao
+              nhất.
       \end{itemize}
     \end{column}
   \end{columns}
   \note{Trả lời RQ1 ngay tại đây, nhưng chưa kết luận vội --- còn phải kiểm
-  định thống kê ở slide sau. Nói thêm: SHAP còn cho phép giải thích từng quyết
-  định, có giá trị cho vận hành SOC.}
+  định thống kê ở slide sau. Nói thêm: ít đặc trưng hơn thì chi phí
+  VectorAssembler và bộ nhớ mô hình ở biên cũng nhỏ hơn; SHAP còn cho phép
+  giải thích từng quyết định, có giá trị cho vận hành SOC.}
 \end{frame}
 
 \begin{frame}{KQ2 --- Kiểm định thống kê thay vì so sánh một lần đo}
@@ -339,9 +332,9 @@
         \bottomrule
       \end{tabular}
       }
-      \vspace{0.6em}
+      \vspace{0.7em}
 
-      \footnotesize
+      \small
       \fitwidth{%
       \begin{tabular}{lcc}
         \toprule
@@ -354,22 +347,21 @@
       }
     \end{column}
     \begin{column}{0.50\textwidth}
-      \begin{itemize}\small
-        \item $N{=}6$ lần \emph{lấy mẫu lại} ghép cặp $\rightarrow$ phương sai
-              phản ánh tác động của lấy mẫu dữ liệu, không chỉ của seed.
-        \item Kiểm định hoán vị hai phía \key{liệt kê đầy đủ} $2^6$ hoán vị dấu:
-              $p$ nhỏ nhất là $2/2^6$, nên \key{bắt buộc $N \geq 6$}.
-        \item Các lần lấy mẫu \emph{chồng lấn} nên vi phạm giả định độc lập của
-              phân phối $t$ $\rightarrow$ kết luận theo khoảng tin cậy hiệu chỉnh
-              \key{Nadeau--Bengio}.
+      \begin{itemize}
+        \item $N{=}6$ lần \emph{lấy mẫu lại} ghép cặp, không chỉ đổi seed.
+        \item Hoán vị hai phía \key{liệt kê đầy đủ} $2^6$ dấu: $p$ nhỏ nhất là
+              $2/2^6$ $\rightarrow$ \key{bắt buộc $N \geq 6$}.
+        \item Lấy mẫu \emph{chồng lấn} $\rightarrow$ kết luận theo khoảng tin
+              cậy \key{Nadeau--Bengio}.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Khác biệt có ý nghĩa \emph{chỉ ở ngưỡng sàn} của độ phân giải kiểm
-  định, chênh lệch tuyệt đối $\approx$0,0001 $\rightarrow$ hai cấu hình
+  \takeaway{Chênh lệch tuyệt đối chỉ $\approx$0,0001 $\rightarrow$ hai cấu hình
   \key{tương đương về mặt thực tiễn}; tiêu chí phụ mới quyết định.}
   \note{Đây là chỗ thể hiện sự cẩn trọng phương pháp: p nhỏ không đồng nghĩa
-  khác biệt có ý nghĩa thực tiễn.}
+  khác biệt có ý nghĩa thực tiễn --- ở đây p = 0,031 chỉ vừa chạm ngưỡng sàn
+  của độ phân giải kiểm định. Lấy mẫu chồng lấn vi phạm giả định độc lập của
+  phân phối t, nên Nadeau--Bengio là căn cứ chính.}
 \end{frame}
 
 \begin{frame}{KQ3 --- Đánh giá đa lớp: F1 nhị phân che giấu điều quan trọng}
@@ -382,7 +374,7 @@
           \texttt{confusion\_matrix.png}\vspace{1.2cm}}}}
     \end{column}
     \begin{column}{0.58\textwidth}
-      \centering\scriptsize
+      \centering\footnotesize
       \fitwidth{%
       \begin{tabular}{lccc}
         \toprule
@@ -390,7 +382,6 @@
         \midrule
         Benign               & 380.119 & 0,9997 & 0,9989 \\
         DoS Hulk             & 34.446  & 0,9904 & 0,9947 \\
-        Web -- Brute Force   & 311     & 0,7299 & 0,7323 \\
         Bot                  & 290     & \bad{0,4552} & 0,6256 \\
         Web -- XSS           & 111     & \bad{0,0270} & 0,0526 \\
         Web -- SQL Injection & 6       & \bad{0,0000} & 0,0000 \\
@@ -400,18 +391,19 @@
         \bottomrule
       \end{tabular}
       }
-      \par\vspace{0.2em}
-      \raggedright\scriptsize
-      Đọc lỗi \emph{theo đích} --- hai kiểu suy giảm khác hẳn nhau:
-      \begin{itemize}\scriptsize
-        \item \textbf{Nhầm loại nhưng vẫn bắt được}: 81/111 XSS bị đoán thành
-              Web Brute Force $\rightarrow$ \good{76\% vẫn bị gắn cờ} ở mức nhị phân.
-        \item \textbf{Lọt hẳn thành Benign} (nguy hiểm): cả 6 mẫu SQL Injection,
-              \bad{54\% Bot}, 27\% Brute Force.
+      \par\vspace{0.4em}
+      \raggedright\small
+      Hai kiểu suy giảm khác hẳn nhau:
+      \begin{itemize}\small
+        \item \textbf{Nhầm loại nhưng vẫn bắt được}: \good{76\% XSS} vẫn bị gắn
+              cờ ở mức nhị phân.
+        \item \textbf{Lọt hẳn thành Benign} (nguy hiểm): \bad{54\% Bot}, cả 6
+              mẫu SQL Injection.
       \end{itemize}
     \end{column}
   \end{columns}
-  \note{Ba cơ chế: mất cân bằng cực đoan (6--311 mẫu so với 380 nghìn benign);
+  \note{81/111 mẫu XSS bị đoán thành Web Brute Force, 27\% Brute Force lọt
+  thành Benign. Ba cơ chế: mất cân bằng cực đoan (6--311 mẫu so với 380 nghìn benign);
   loại \texttt{destination\_port} tác động mạnh nhất lên web attack — mất lối tắt cổng
   80, luồng HTTP ngắn trông như duyệt web bình thường, nên recall 0,027 trung
   thực thay thế con số bị rò rỉ thổi phồng; và beaconing C\&C của Bot vốn giống
@@ -421,7 +413,7 @@
 \begin{frame}{KQ4 --- Tổng quát hóa liên bộ dữ liệu: con số trung thực nhất}
   \begin{columns}[T]
     \begin{column}{0.46\textwidth}
-      \centering\footnotesize
+      \centering\small
       \fitwidth{%
       \begin{tabular}{llc}
         \toprule
@@ -434,27 +426,27 @@
         \bottomrule
       \end{tabular}
       }
-      \\[0.4em]
-      \footnotesize
-      Tập đặc trưng chung đã loại rò rỉ; CSE-CIC-IDS2018 lấy mẫu phân tầng theo
-      nhãn ($\sim$2,39 triệu luồng, seed cố định).
+      \\[0.5em]
+      \small
+      Tập đặc trưng chung đã loại rò rỉ; CSE-CIC-IDS2018 lấy mẫu phân tầng.
     \end{column}
     \begin{column}{0.48\textwidth}
-      \begin{itemize}\footnotesize
-        \item F1 trong-miền cao ở \emph{cả hai} chiều --- nhưng F1 liên bộ dữ
-              liệu sụp xuống \bad{0,04--0,05}.
-        \item Do recall gần 0 (0,022 và 0,030) trong khi precision chiều
-              2017$\rightarrow$2018 vẫn đạt 0,596: mô hình \key{không nhận ra} tấn
-              công của testbed kia, chứ không báo động bừa bãi.
-        \item Nguyên nhân: khác phiên bản CICFlowMeter, khác cấu hình mạng, bộ
-              công cụ tấn công không trùng nhau.
+      \begin{itemize}
+        \item Trong-miền cao ở \emph{cả hai} chiều --- liên bộ dữ liệu sụp
+              xuống \bad{0,04--0,05}.
+        \item Do recall gần 0, trong khi precision vẫn 0,596: mô hình
+              \key{không nhận ra} tấn công của testbed kia.
+        \item Nguyên nhân: khác phiên bản CICFlowMeter, khác cấu hình mạng, khác
+              bộ công cụ tấn công.
       \end{itemize}
     \end{column}
   \end{columns}
   \takeaway{Điểm số trong-miền gần hoàn hảo --- \emph{kể cả khi đã loại rò rỉ}
   --- \key{không chứng nhận} khả năng triển khai dưới dịch chuyển phân phối.}
-  \note{Không làm nhẹ con số này. Nó thống nhất với các nghiên cứu liên bộ dữ
-  liệu trước đó và là lý do thích ứng miền là điều kiện tiên quyết.}
+  \note{Không làm nhẹ con số này. Recall cụ thể là 0,022 và 0,030; mẫu
+  CSE-CIC-IDS2018 khoảng 2,39 triệu luồng, seed cố định. Kết quả thống nhất với
+  các nghiên cứu liên bộ dữ liệu trước đó và là lý do thích ứng miền là điều
+  kiện tiên quyết.}
 \end{frame}
 
 % =====================================================================
@@ -466,8 +458,8 @@
   \fitwidth{%
   \begin{tabular}{lcccc}
     \toprule
-    Chế độ & Thông lượng & Độ trễ p95 & Bỏ qua tại cổng & Năng lượng \\
-           & (luồng/giây) & (ms)      & (\%)            & (mJ/luồng) \\
+    Chế độ & Thông lượng & p95 & Bỏ qua ở cổng & Năng lượng \\
+           & (luồng/giây) & (ms) & (\%)         & (mJ/luồng) \\
     \midrule
     Đơn nút                   & 2,60 $\pm$ 0,41 & 12,3 $\pm$ 3,0  & (nội tuyến) & 2490 \\
     \textbf{A: Tách pipeline} & \num{62,5 $\pm$ 0,6} & \num{13,1 $\pm$ 2,6} & \num{95,8} & \num{178} \\
@@ -476,41 +468,29 @@
     \bottomrule
   \end{tabular}
   }
-  \par\vspace{0.1em}
-  \raggedright\scriptsize
-  \begin{columns}[T]
-    \begin{column}{0.49\textwidth}
-      \begin{itemize}
-        \item \good{A: gấp 24 lần, p95 gần như không đổi} --- cổng hấp thụ
-              95,8\% lưu lượng bình thường.
-        \item \bad{B vẫn bị chặn bởi Spark} ($\approx$2 lần): lợi ích đến từ
-              \emph{tách vai trò}, không phải từ thêm board.
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.49\textwidth}
-      \begin{itemize}
-        \item C nhanh nhất về trung bình nhưng \bad{$\pm$26 luồng/giây} và phụ
-              thuộc Spark master.
-        \item Năng lượng chia trên số luồng nhiều hơn 24--35 lần:
-              \good{2,5 $\rightarrow$ 0,12--0,18\,J}.
-      \end{itemize}
-    \end{column}
-  \end{columns}
-  \takeaway{\textbf{Tách pipeline là lựa chọn mặc định được khuyến nghị}: thông
-  lượng cao nhất trên mỗi đơn vị phương sai. Đo trên Grafana lúc đỉnh tải, nút cổng
-  chỉ dùng \good{4,6\%} CPU so với \bad{90,8\%} ở nút phân lớp --- bộ phân lớp
-  chiếm gần hết ngân sách tính toán (ảnh ở slide dự phòng).}
-  \note{Bảng cốt lõi của pha B. Chỉ rõ chế độ B là bằng chứng phản chứng. Năng
-  lượng là mức toàn board trên mỗi luồng: ở tải này phần công suất tích
-  cực nằm dưới ngưỡng nhiễu của tegrastats.}
+  \par\vspace{0.4em}
+  \raggedright
+  \begin{itemize}
+    \item \good{A: gấp 24 lần, p95 gần như không đổi} --- cổng hấp thụ 95,8\%
+          lưu lượng bình thường.
+    \item \bad{B vẫn bị chặn bởi Spark} ($\approx$2 lần) --- lợi ích đến từ
+          \emph{tách vai trò}, không phải từ thêm board.
+  \end{itemize}
+  \takeaway{Lúc đỉnh tải, nút cổng chỉ dùng \good{4,6\%} CPU so với
+  \bad{90,8\%} ở nút phân lớp $\rightarrow$ tách pipeline là mặc định khuyến nghị.}
+  \note{Bảng cốt lõi của pha B. Chỉ rõ chế độ B là bằng chứng phản chứng: thêm
+  board mà không tách vai trò thì gần như không được gì. Chế độ C nhanh nhất về
+  trung bình nhưng lệch ±26 luồng/giây và phụ thuộc Spark master trên máy chủ.
+  Năng lượng là mức toàn board trên mỗi luồng: ở tải này phần công suất tích
+  cực nằm dưới ngưỡng nhiễu của tegrastats. Ảnh Grafana đỉnh tải ở slide Q11.}
 \end{frame}
 
 
 \begin{frame}{KQ7 --- Cái giá trung thực của việc đồng nhất một stack}
-  Luận văn phục vụ suy luận bằng Spark để \emph{đồng nhất với pha huấn luyện
-  phân tán}. Cùng mô hình rừng ngẫu nhiên, cùng 29 đặc trưng, cùng một board:
-  \vspace{0.5em}
-  \centering\footnotesize
+  Phục vụ suy luận bằng Spark để \emph{đồng nhất với pha huấn luyện phân tán}.
+  Cùng mô hình, cùng 29 đặc trưng, cùng một board:
+  \vspace{0.6em}
+  \centering\small
   \fitwidth{%
   \begin{tabular}{lcccc}
     \toprule
@@ -535,94 +515,84 @@
 % =====================================================================
 
 \begin{frame}{Trả lời trực tiếp ba câu hỏi nghiên cứu}
-  \begin{block}{RQ1 --- Giảm chiều có giữ được hiệu năng khi cắt hơn 60\% đặc trưng?}
-    \small
-    \good{Có.} SHAP Top-30 đạt F1 0,9970 (XGBoost) / 0,9955 (Random Forest) so
-    với 0,9971 của baseline 77 đặc trưng, đồng thời giảm $\approx$73\% thời gian
-    huấn luyện. Ở cùng số đặc trưng, SHAP vượt RF Importance trên mọi thuật
-    toán họ cây ($+$0,48\% đến $+$1,15\%).
+  \begin{block}{RQ1 --- Cắt hơn 60\% đặc trưng có giữ được hiệu năng?}
+    \good{Có.} SHAP Top-30 đạt F1 \num{0,9970} so với 0,9971 của baseline 77 đặc
+    trưng, giảm $\approx$73\% thời gian huấn luyện.
   \end{block}
-  \begin{block}{RQ2 --- Học tổ hợp có lợi thế \emph{đáng kể} so với mô hình đơn tốt nhất?}
-    \small
-    \bad{Không đáng kể về mặt thực tiễn.} Hybrid Bagging (SHAP Top-30) đạt F1
-    0,9966 --- cao nhất --- nhưng kiểm định hoán vị ghép cặp cho thấy khác biệt
-    giữa các cấu hình hàng đầu chỉ có ý nghĩa \emph{ở ngưỡng sàn}
-    ($p \approx 0{,}031$) với chênh lệch tuyệt đối $\approx$0,0001.
+  \begin{block}{RQ2 --- Học tổ hợp có hơn mô hình đơn tốt nhất một cách đáng kể?}
+    \bad{Không đáng kể về mặt thực tiễn.} Hybrid Bagging cao nhất (F1 0,9966),
+    nhưng chênh lệch tuyệt đối chỉ $\approx$0,0001.
   \end{block}
   \begin{block}{RQ3 --- Pipeline Spark có khả thi trên cụm thiết bị biên?}
-    \small
-    \good{Khả thi, với điều kiện tách vai trò.} Tách pipeline nâng thông lượng
-    từ 2,6 lên 62,5 luồng/giây ở p95 $\approx$13\,ms; năng lượng giảm từ
-    $\approx$2,5\,J xuống 0,18\,J mỗi luồng. Chỉ thêm board mà không tách
-    vai trò (chế độ B) hầu như không cải thiện.
+    \good{Khả thi, với điều kiện tách vai trò.} Thông lượng \num{2,6 $\rightarrow$
+    62,5} luồng/giây ở p95 $\approx$13\,ms; năng lượng \num{2,5 $\rightarrow$
+    0,18\,J} mỗi luồng.
   \end{block}
   \note{Slide quan trọng nhất với hội đồng. Trả lời thẳng, kể cả câu trả lời
-  ``không'' cho RQ2. Bổ sung cho RQ2: bài toán nhị phân trong-miền đã gần bão
-  hòa, nên tiêu chí phụ mới là căn cứ chọn mô hình.}
+  ``không'' cho RQ2. RQ1: Random Forest đạt 0,9955; cùng số đặc trưng SHAP vượt
+  RF Importance +0,48\% đến +1,15\% trên mọi thuật toán họ cây. RQ2: kiểm định
+  hoán vị ghép cặp cho p ≈ 0,031, chỉ vừa chạm ngưỡng sàn --- bài toán nhị phân
+  trong-miền đã gần bão hòa, nên tiêu chí phụ mới là căn cứ chọn mô hình. RQ3:
+  chỉ thêm board mà không tách vai trò (chế độ B) hầu như không cải thiện.}
 \end{frame}
 
 \begin{frame}{Đóng góp chính của luận văn}
   \begin{columns}[T]
     \begin{column}{0.49\textwidth}
       \textbf{Về phương pháp luận}
-      \begin{itemize}\footnotesize
-        \item \key{Quy trình đánh giá loại trừ rò rỉ}: xử lý hai nguồn rò rỉ,
-              khử trùng lặp \emph{tất định} ở mức đặc trưng, định lượng mức thổi
-              phồng do rò rỉ.
-        \item \key{Kiểm định thống kê chặt chẽ}: hoán vị ghép cặp liệt kê đầy đủ,
-              khoảng tin cậy Nadeau--Bengio, kích thước hiệu ứng.
-        \item \key{Đánh giá đa lớp và liên bộ dữ liệu}: chỉ ra điều F1 nhị phân
-              che giấu (macro-F1 0,806) và giới hạn tổng quát hóa.
+      \begin{itemize}
+        \item \key{Quy trình đánh giá loại trừ rò rỉ}, khử trùng lặp
+              \emph{tất định} ở mức đặc trưng.
+        \item \key{Kiểm định thống kê chặt chẽ}: hoán vị ghép cặp, khoảng tin
+              cậy Nadeau--Bengio.
+        \item \key{Đánh giá đa lớp và liên bộ dữ liệu} --- chỉ ra điều F1 nhị
+              phân che giấu.
       \end{itemize}
     \end{column}
     \begin{column}{0.49\textwidth}
       \textbf{Về hệ thống}
-      \begin{itemize}\footnotesize
-        \item \key{Pipeline IDS hoàn chỉnh trên Apache Spark}: từ tiền xử lý,
-              trích chọn đặc trưng, huấn luyện phân tán đến suy luận thời gian thực.
-        \item \key{Kiến trúc IDS hai tầng trên cụm biên}: cổng bất thường $+$
-              phân lớp PySpark tách trên hai board, nối bằng Kafka; ba chế độ
-              triển khai được đo.
-        \item \key{Đo đạc vận hành đầy đủ}: thông lượng, phân vị độ trễ, CPU/RAM,
-              năng lượng mỗi luồng.
-        \item \key{Mã nguồn và cấu hình công khai}, tái lập được.
+      \begin{itemize}
+        \item \key{Pipeline IDS hoàn chỉnh trên Apache Spark}, từ tiền xử lý đến
+              suy luận thời gian thực.
+        \item \key{Kiến trúc hai tầng trên cụm biên}: cổng bất thường $+$ phân
+              lớp PySpark, nối bằng Kafka.
+        \item \key{Đo đạc vận hành đầy đủ}, kể cả năng lượng mỗi luồng.
       \end{itemize}
     \end{column}
   \end{columns}
-  \note{Chia rõ hai nhóm đóng góp: phương pháp luận và hệ thống.}
+  \note{Chia rõ hai nhóm đóng góp: phương pháp luận và hệ thống. Bổ sung nếu
+  được hỏi: quy trình có định lượng mức thổi phồng do rò rỉ; macro-F1 0,806 so
+  với weighted-F1 0,998; ba chế độ triển khai đều được đo; mã nguồn và cấu hình
+  công khai, tái lập được.}
 \end{frame}
 
 \begin{frame}{Hạn chế và hướng phát triển}
-  \footnotesize
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \textbf{Hạn chế}
       \begin{itemize}
-        \item \textbf{Phân loại}: triển khai chính là nhị phân; bộ phân lớp đa lớp
-              thời gian thực chưa hoàn thiện.
-        \item \textbf{Dữ liệu}: CICIDS2017 không có lưu lượng IoT đặc thù; liên bộ
-              dữ liệu mới thử trên \emph{mẫu phân tầng} CSE-CIC-IDS2018.
-        \item \textbf{Quy mô}: phân tán mới ở mức \emph{minh chứng khái niệm} trên
-              cụm 2 nút 8\,GB, chưa phải quy mô terabyte.
-        \item \textbf{Đối kháng}: chưa kiểm thử lưu lượng né tránh; GPU
-              $\approx$67 TOPS còn bỏ trống.
+        \item \textbf{Phân loại}: triển khai chính là nhị phân.
+        \item \textbf{Dữ liệu}: CICIDS2017 không có lưu lượng IoT đặc thù.
+        \item \textbf{Quy mô}: mới ở mức \emph{minh chứng khái niệm}, cụm 2 nút.
+        \item \textbf{Đối kháng}: chưa kiểm thử lưu lượng né tránh; GPU còn bỏ
+              trống.
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
-      \textbf{Hướng phát triển} --- tương ứng từng hạn chế
+      \textbf{Hướng phát triển} --- ứng với từng hạn chế
       \begin{itemize}
-        \item \key{Lớp tấn công hiếm}: xử lý mất cân bằng có chủ đích, focal loss,
-              hạ ngưỡng theo lớp; \key{kiến trúc phân tầng} tận dụng cổng hai tầng;
-              đặc trưng chuỗi thời gian cho beaconing C\&C.
-        \item \key{Dữ liệu IoT chuyên biệt}: Bot-IoT, TON\_IoT, CIC-IoT-2023; mở
-              rộng lên toàn bộ CSE-CIC-IDS2018.
-        \item \key{ONNX/TensorRT} trong pipeline streaming, khai thác GPU Jetson.
-        \item \key{Bền vững đối kháng}: hai bề mặt tấn công mới do cổng tạo ra.
+        \item \key{Lớp tấn công hiếm}: cân bằng có chủ đích, kiến trúc phân tầng.
+        \item \key{Dữ liệu IoT chuyên biệt}: Bot-IoT, TON\_IoT, CIC-IoT-2023.
+        \item \key{ONNX/TensorRT}, khai thác GPU Jetson.
+        \item \key{Bền vững đối kháng}: hai bề mặt mới do cổng tạo ra.
       \end{itemize}
     \end{column}
   \end{columns}
   \note{Nêu hạn chế trước khi hội đồng nêu, mỗi hạn chế đi kèm hướng khắc phục
-  tương ứng. Slide dự phòng có bản hướng phát triển chi tiết.}
+  tương ứng. Chi tiết: bộ phân lớp đa lớp thời gian thực chưa hoàn thiện; liên
+  bộ dữ liệu mới thử trên mẫu phân tầng CSE-CIC-IDS2018; cụm 2 nút 8 GB chưa
+  phải quy mô terabyte; GPU khoảng 67 TOPS chưa dùng vì pipeline chỉ chạy CPU.
+  Bản hướng phát triển đầy đủ ở slide Q12.}
 \end{frame}
 
 
