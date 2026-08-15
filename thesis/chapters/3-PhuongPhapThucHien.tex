@@ -183,7 +183,7 @@ Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn
         \draw[arr] (train.east) -- ++(0.5,0) |- (val.west);
         \node[lbl, rotate=90, font=\scriptsize\itshape] at (14.29,1.4) {80/20, seed=42};
     \end{tikzpicture}}
-    \caption[Sơ đồ phân chia dữ liệu CICIDS2017]{Sơ đồ phân chia dữ liệu CICIDS2017: chia 80/20 thành train/test (\texttt{seed}=42); tập train tách tiếp 80/20 thành base-train và validation phục vụ chọn lọc, tập test được giữ lại chỉ để công bố kết quả cuối}
+    \caption[Sơ đồ phân chia dữ liệu CICIDS2017]{Sơ đồ phân chia dữ liệu CICIDS2017 (train/test 80/20, \texttt{seed}=42; train tách tiếp 80/20 thành base-train/validation)}
     \label{fig:data_split}
 \end{figure}
 
