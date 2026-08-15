@@ -127,7 +127,7 @@ Trong kịch bản này, toàn bộ tập đặc trưng số (khoảng 78 đặc
 Kết quả hiệu năng của các thuật toán \ac{ml} đơn lẻ và phương pháp Ensemble được trình bày trong Bảng \ref{tab:exp0_ml_metrics}.
 \begin{table}[htbp]
 \centering
-\caption{Kết quả hiệu năng phân lớp kịch bản Baseline (toàn bộ đặc trưng số, $\approx$78 trước khi loại cổng)}
+\caption[Hiệu năng phân lớp kịch bản Baseline]{Kết quả hiệu năng phân lớp kịch bản Baseline (toàn bộ đặc trưng số, $\approx$78 trước khi loại cổng)}
 \label{tab:exp0_ml_metrics}
 \small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc@{}}
@@ -166,7 +166,7 @@ Bảng \ref{tab:summary_comparison} tóm tắt sự khác biệt giữa các ph�
 
 \begin{table}[htbp]
 \centering
-\caption{So sánh hiệu năng tốt nhất của các phương pháp lựa chọn đặc trưng và giảm chiều}
+\caption[So sánh hiệu năng tốt nhất của các phương pháp giảm chiều]{So sánh hiệu năng tốt nhất của các phương pháp lựa chọn đặc trưng và giảm chiều}
 \label{tab:summary_comparison}
 \small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
@@ -185,7 +185,7 @@ Ngoài ra, sự so sánh trực tiếp giữa hai phương pháp lựa chọn đ
 
 \begin{table}[htbp]
 \centering
-\caption{So sánh hiệu năng lựa chọn đặc trưng: \ac{rf} Importance vs \ac{shap} Importance (Top-30)}
+\caption[So sánh lựa chọn đặc trưng: RF Importance vs SHAP (Top-30)]{So sánh hiệu năng lựa chọn đặc trưng: \ac{rf} Importance vs \ac{shap} Importance (Top-30)}
 \label{tab:rf_vs_shap}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
@@ -233,7 +233,7 @@ Tính giải thích (explainability) là một thành phần thiết yếu trong
 \begin{figure}[ht]
     \centering
     \IfFileExists{img/shap_feature_importance_top30.png}{\includegraphics[width=\linewidth]{img/shap_feature_importance_top30.png}}{\fbox{\parbox{0.9\linewidth}{\centering\vspace{1.4cm}\ph{Biểu đồ SHAP Top-30 --- chạy ml\_06\_feature\_selection\_shap.py rồi \texttt{thesis/collect\_figures.sh}}\vspace{1.4cm}}}}
-    \caption{Top 30 đặc trưng quan trọng theo giá trị trung bình tuyệt đối SHAP của mô hình \ac{xgb}}
+    \caption[Top 30 đặc trưng quan trọng nhất theo SHAP (mô hình XGBoost)]{Top 30 đặc trưng quan trọng theo giá trị trung bình tuyệt đối SHAP của mô hình \ac{xgb}}
     \label{fig:shap_summary}
 \end{figure}
 
@@ -242,7 +242,7 @@ Hình~\ref{fig:shap_summary} xếp hạng 30 đặc trưng quan trọng nhất t
 \begin{figure}[ht]
     \centering
     \IfFileExists{img/shap_summary_beeswarm.png}{\includegraphics[width=0.92\linewidth]{img/shap_summary_beeswarm.png}}{\fbox{\parbox{0.9\linewidth}{\centering\vspace{1.4cm}\ph{Biểu đồ SHAP beeswarm --- chạy ml\_06\_feature\_selection\_shap.py rồi \texttt{thesis/collect\_figures.sh}}\vspace{1.4cm}}}}
-    \caption{Biểu đồ SHAP Summary (beeswarm): phân bố và hướng tác động của từng đặc trưng}
+    \caption[Biểu đồ SHAP Summary (beeswarm)]{Biểu đồ SHAP Summary (beeswarm): phân bố và hướng tác động của từng đặc trưng}
     \label{fig:shap_beeswarm}
 \end{figure}
 
@@ -311,7 +311,7 @@ Do các con số F1 giữa những phương pháp/thuật toán hàng đầu r�
 
 \begin{table}[htbp]
 \centering
-\caption{Độ ổn định qua nhiều lần lấy mẫu và kiểm định ghép cặp (từ \texttt{statistical\_validity\_multiseed.csv})}
+\caption[Độ ổn định qua nhiều lần lấy mẫu và kiểm định ghép cặp]{Độ ổn định qua nhiều lần lấy mẫu và kiểm định ghép cặp (từ \texttt{statistical\_validity\_multiseed.csv})}
 \label{tab:stat_validity}
 \footnotesize
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcccc@{}}
@@ -328,7 +328,7 @@ Mô hình đại diện của mỗi phương pháp được đánh giá lại tr
 
 \begin{table}[htbp]
 \centering
-\caption{Kiểm tra độ ổn định trong-phân-phối trên mẫu con tập kiểm tra (từ \texttt{robustness\_holdout\_summary.csv})}
+\caption[Kiểm tra độ ổn định trong-phân-phối trên mẫu con tập kiểm tra]{Kiểm tra độ ổn định trong-phân-phối trên mẫu con tập kiểm tra (từ \texttt{robustness\_holdout\_summary.csv})}
 \label{tab:robustness}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
 \toprule
@@ -400,7 +400,7 @@ Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách; đ�
 
 \begin{table}[htbp]
 \centering
-\caption{Hiệu năng theo từng lớp tấn công (từ \texttt{per\_class\_metrics.csv})}
+\caption[Hiệu năng theo từng lớp tấn công]{Hiệu năng theo từng lớp tấn công (từ \texttt{per\_class\_metrics.csv})}
 \label{tab:per_class}
 \small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
@@ -500,7 +500,7 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
         \draw[dsh] (j2.south) -- (out.north -| j2);
     \end{tikzpicture}%
     }
-    \caption{Kiến trúc hệ thống phát hiện xâm nhập phân tán thời gian thực trên cụm 2 Jetson Orin Nano Super}
+    \caption[Kiến trúc hệ thống IDS phân tán trên cụm 2 Jetson Orin Nano Super]{Kiến trúc hệ thống phát hiện xâm nhập phân tán thời gian thực trên cụm 2 Jetson Orin Nano Super}
     \label{fig:ids_diagram}
 \end{figure}
 
@@ -596,7 +596,7 @@ Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc 
 \begin{figure}[htbp]
     \centering
     \IfFileExists{img/grafana_attacks.png}{\includegraphics[width=0.9\textwidth]{img/grafana_attacks.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Dashboard Grafana chi tiết tấn công --- chụp lại từ cụm Jetson}\vspace{1.2cm}}}}
-    \caption{Dashboard Grafana hiển thị chi tiết các cuộc tấn công được phát hiện và phân loại theo thời gian}
+    \caption[Dashboard Grafana chi tiết các cuộc tấn công được phát hiện]{Dashboard Grafana hiển thị chi tiết các cuộc tấn công được phát hiện và phân loại theo thời gian}
     \label{fig:grafana_attacks}
 \end{figure}
 
@@ -621,7 +621,7 @@ Bảng \ref{tab:edge_training} trình bày kết quả huấn luyện và đánh
 
 \begin{table}[htbp]
 \centering
-\caption{Kết quả huấn luyện các mô hình ứng viên cho triển khai biên (SHAP Top-30)}
+\caption[Các mô hình ứng viên cho triển khai biên (SHAP Top-30)]{Kết quả huấn luyện các mô hình ứng viên cho triển khai biên (SHAP Top-30)}
 \label{tab:edge_training}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
@@ -700,7 +700,7 @@ C: Spark cluster        & 90{,}0 $\pm$ 25{,}6 & 23{,}9 $\pm$ 17{,}8 & 97{,}9    
 \begin{figure}[htbp]
     \centering
     \IfFileExists{img/edge_modes.png}{\includegraphics[width=0.95\textwidth]{img/edge_modes.png}}{\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.2cm}\ph{Biểu đồ so sánh chế độ triển khai --- chạy plot\_edge\_modes.py}\vspace{1.2cm}}}}
-    \caption{Thông lượng và độ trễ p95 của bốn cấu hình (một nút cơ sở + ba chế độ phân tán) trên cụm 2 Jetson}
+    \caption[Thông lượng và độ trễ p95 của bốn cấu hình triển khai]{Thông lượng và độ trễ p95 của bốn cấu hình (một nút cơ sở + ba chế độ phân tán) trên cụm 2 Jetson}
     \label{fig:edge_modes}
 \end{figure}
 
@@ -732,7 +732,7 @@ Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữ
 \begin{figure}[htbp]
     \centering
     \IfFileExists{img/model_tradeoff_radar.png}{\includegraphics[width=0.75\textwidth]{img/model_tradeoff_radar.png}}{\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.4cm}\ph{Biểu đồ radar trade-off --- tạo từ \texttt{benchmark\_comparison.json}}\vspace{1.4cm}}}}
-    \caption{Biểu đồ radar thể hiện sự đánh đổi (trade-off) giữa các mô hình trên thiết bị biên}
+    \caption[Biểu đồ radar đánh đổi giữa các mô hình trên thiết bị biên]{Biểu đồ radar thể hiện sự đánh đổi (trade-off) giữa các mô hình trên thiết bị biên}
     \label{fig:model_tradeoff}
 \end{figure}
 
