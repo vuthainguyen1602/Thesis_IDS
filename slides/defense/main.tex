@@ -52,32 +52,22 @@
 
 % ---------------------------------------------------------------------
 \begin{frame}{Nội dung trình bày}
-  \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      % Roman numerals, matching the section pages. Beamer drives list
-      % labels through templates, not \labelenumi.
-      \setbeamertemplate{enumerate item}{\textbf{\Roman{enumi}.}}
-      \begin{enumerate}
-        \item ĐẶT VẤN ĐỀ VÀ MỤC TIÊU NGHIÊN CỨU
-        \item PHƯƠNG PHÁP THỰC HIỆN
-        \item KẾT QUẢ 1 --- ĐÁNH GIÁ OFFLINE LOẠI TRỪ RÒ RỈ
-        \item KẾT QUẢ 2 --- TRIỂN KHAI PHÂN TÁN TRÊN CỤM BIÊN
-        \item TRẢ LỜI CÂU HỎI NGHIÊN CỨU VÀ KẾT LUẬN
-      \end{enumerate}
-    \end{column}
-    \begin{column}{0.50\textwidth}
-      \begin{block}{Luận văn đã công bố 2 bài báo khoa học}
-        \footnotesize
-        \textbf{FAIR 2026} --- so sánh các chiến lược giảm chiều dưới quy trình
-        đánh giá loại trừ rò rỉ (phần kết quả offline).\\[0.4em]
-        \textbf{SOICT 2026} --- hệ thống IDS phân tán thời gian thực trên cụm
-        Jetson Orin Nano Super (phần triển khai biên).\\[0.4em]
-        Cả hai bài đều \good{đã được chấp nhận đăng}.
-      \end{block}
-    \end{column}
-  \end{columns}
-  \note{Nêu rõ ngay từ đầu: luận văn có hai nhánh kết quả, mỗi nhánh đã được
-  công bố thành một bài báo. Điều này giúp hội đồng định vị đóng góp.}
+  \vfill
+  % Roman numerals, matching the section pages. Beamer drives list labels
+  % through templates, not \labelenumi.
+  \setbeamertemplate{enumerate item}{\textbf{\Roman{enumi}.}}
+  \begin{enumerate}
+    \setlength{\itemsep}{0.9em}
+    \item ĐẶT VẤN ĐỀ VÀ MỤC TIÊU NGHIÊN CỨU
+    \item PHƯƠNG PHÁP THỰC HIỆN
+    \item KẾT QUẢ 1 --- ĐÁNH GIÁ OFFLINE LOẠI TRỪ RÒ RỈ
+    \item KẾT QUẢ 2 --- TRIỂN KHAI PHÂN TÁN TRÊN CỤM BIÊN
+    \item TRẢ LỜI CÂU HỎI NGHIÊN CỨU VÀ KẾT LUẬN
+  \end{enumerate}
+  \vfill
+  \note{Hai nhánh kết quả (III và IV) mỗi nhánh đã công bố thành một bài báo
+  --- FAIR 2026 cho phần offline, SOICT 2026 cho phần triển khai biên; slide
+  Công trình khoa học ở cuối có chi tiết. Nói miệng ở đây, không cần chiếu.}
 \end{frame}
 
 % =====================================================================
@@ -662,7 +652,7 @@
 \appendix
 % =====================================================================
 
-\begin{frame}{Slide dự phòng --- tra theo câu hỏi}
+\begin{frame}{Q\&A}
   \scriptsize
   Bấm vào tên slide để nhảy thẳng tới.
   \vspace{0.3em}
