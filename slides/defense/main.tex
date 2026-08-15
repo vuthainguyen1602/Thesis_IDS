@@ -30,17 +30,20 @@
   {../../papers/soict2026/figures/}%
 }
 
-% Logo trường trên trang bìa. Dùng bản 8-bit trong common/img/ chứ không
-% dùng thẳng thesis/img/logouit.png: bản gốc là PNG 16-bit/kênh, XeLaTeX
-% chừa chỗ nhưng không vẽ được (pdflatex thì vẽ được, nên bìa luận văn vẫn
-% hiện bình thường).
-\titlegraphic{\includegraphics[height=1.45cm]{logouit.png}}
+% Tên trường và logo trên đầu trang bìa. Dùng bản logo 8-bit trong
+% common/img/ chứ không dùng thẳng thesis/img/logouit.png: bản gốc là PNG
+% 16-bit/kênh, XeLaTeX chừa chỗ nhưng không vẽ được (pdflatex thì vẽ được,
+% nên bìa luận văn vẫn hiện bình thường).
+\titlegraphic{%
+  {\normalsize ĐHQG TP.\ Hồ Chí Minh\par
+   \textbf{Trường Đại học Công nghệ Thông tin}\par}%
+  \vspace{0.45em}%
+  \includegraphics[height=1.3cm]{logouit.png}}
 
 \title{Phát hiện xâm nhập (IDS) dựa trên Apache Spark cho bảo mật mạng IoT}
 \subtitle{Bảo vệ luận văn Thạc sĩ --- Ngành Công nghệ Thông tin}
 \author{Học viên: \textbf{Bùi Văn Dũng} --- MSHV 220201014}
-\institute{\small Trường Đại học Công nghệ Thông tin --- ĐHQG TP.\ Hồ Chí Minh\\[0.3em]
-  Cán bộ hướng dẫn: \textbf{TS.\ Nguyễn Văn Dũ} \quad $\cdot$ \quad \textbf{TS.\ Đỗ Trí Nhựt}}
+\institute{\normalsize Cán bộ hướng dẫn: \textbf{TS.\ Nguyễn Văn Dũ} \quad $\cdot$ \quad \textbf{TS.\ Đỗ Trí Nhựt}}
 \date{TP.\ Hồ Chí Minh, 2026}
 
 \begin{document}
