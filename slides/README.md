@@ -20,6 +20,11 @@ Each deck also has a `compile.sh` wrapper. Requires **XeLaTeX** (fontspec, for
 Vietnamese diacritics) plus the `beamer`, `beamertheme-metropolis` and
 `appendixnumberbeamer` packages.
 
+`xelatex` under `-interaction=nonstopmode` exits 0 even when it bailed out on a
+real error, so the script scans each log for `! ` and checks the page count
+before publishing — a collapsed build fails loudly instead of shipping a
+one-page PDF.
+
 `common/preamble.tex` holds the shared theme: 16:9, metropolis, Okabe-Ito
 accents matching the manuscript TikZ colours, and a Vietnamese-capable sans
 font fallback chain (TeX Gyre Heros → Helvetica Neue → Arial → TeX Gyre Termes).

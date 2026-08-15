@@ -43,12 +43,15 @@
 \begin{frame}{Nội dung trình bày}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
+      % Roman numerals, matching the section pages. Beamer drives list
+      % labels through templates, not \labelenumi.
+      \setbeamertemplate{enumerate item}{\textbf{\Roman{enumi}.}}
       \begin{enumerate}
-        \item Đặt vấn đề và mục tiêu nghiên cứu
-        \item Phương pháp thực hiện
-        \item Kết quả 1 --- Đánh giá offline loại trừ rò rỉ dữ liệu
-        \item Kết quả 2 --- Triển khai phân tán trên cụm thiết bị biên
-        \item Trả lời câu hỏi nghiên cứu và kết luận
+        \item ĐẶT VẤN ĐỀ VÀ MỤC TIÊU NGHIÊN CỨU
+        \item PHƯƠNG PHÁP THỰC HIỆN
+        \item KẾT QUẢ 1 --- ĐÁNH GIÁ OFFLINE LOẠI TRỪ RÒ RỈ
+        \item KẾT QUẢ 2 --- TRIỂN KHAI PHÂN TÁN TRÊN CỤM BIÊN
+        \item TRẢ LỜI CÂU HỎI NGHIÊN CỨU VÀ KẾT LUẬN
       \end{enumerate}
     \end{column}
     \begin{column}{0.50\textwidth}
@@ -66,7 +69,7 @@
 \end{frame}
 
 % =====================================================================
-\section{Đặt vấn đề và mục tiêu nghiên cứu}
+\section{I.\ ĐẶT VẤN ĐỀ VÀ MỤC TIÊU NGHIÊN CỨU}
 % =====================================================================
 
 \begin{frame}{Bối cảnh và ba khoảng trống nghiên cứu}
@@ -172,7 +175,7 @@
 \end{frame}
 
 % =====================================================================
-\section{Phương pháp thực hiện}
+\section{II.\ PHƯƠNG PHÁP THỰC HIỆN}
 % =====================================================================
 
 \begin{frame}{Kiến trúc tổng thể: hai pha của cùng một pipeline}
@@ -369,7 +372,7 @@
 \end{frame}
 
 % =====================================================================
-\section{Kết quả 1 --- Đánh giá offline loại trừ rò rỉ}
+\section{III.\ KẾT QUẢ 1 --- ĐÁNH GIÁ OFFLINE LOẠI TRỪ RÒ RỈ}
 % =====================================================================
 
 \begin{frame}{KQ1 --- Giảm 60\% đặc trưng mà vẫn giữ hiệu năng}
@@ -557,7 +560,7 @@
 \end{frame}
 
 % =====================================================================
-\section{Kết quả 2 --- Triển khai phân tán trên cụm biên}
+\section{IV.\ KẾT QUẢ 2 --- TRIỂN KHAI PHÂN TÁN TRÊN CỤM BIÊN}
 % =====================================================================
 
 \begin{frame}{KQ5 --- Tách pipeline nâng thông lượng gấp 24 lần}
@@ -649,7 +652,7 @@
 \end{frame}
 
 % =====================================================================
-\section{Kết luận}
+\section{V.\ TRẢ LỜI CÂU HỎI NGHIÊN CỨU VÀ KẾT LUẬN}
 % =====================================================================
 
 \begin{frame}{Trả lời trực tiếp ba câu hỏi nghiên cứu}

@@ -24,6 +24,18 @@ deck_output() {
   esac
 }
 
+# xelatex under -interaction=nonstopmode exits 0 even when it hit a real
+# error and bailed out early, which would silently ship a one-page PDF. So
+# scan the log ourselves and refuse to publish a broken build.
+check_log() {
+  local log="$1"
+  if grep -q '^! ' "$log"; then
+    echo "!! LaTeX error in $log:"
+    grep -A4 '^! ' "$log" | head -20
+    return 1
+  fi
+}
+
 build_deck() {
   local deck="$1"
   local dir="$SLIDES/$deck"
@@ -35,8 +47,9 @@ build_deck() {
   cd "$dir"
   # Two passes: beamer needs the second one for the frame-count fraction in the
   # footer and for \appendix-aware numbering.
-  xelatex -interaction=nonstopmode -halt-on-error main.tex >/dev/null
-  xelatex -interaction=nonstopmode -halt-on-error main.tex >/dev/null
+  xelatex -interaction=nonstopmode -halt-on-error main.tex >/dev/null || true
+  xelatex -interaction=nonstopmode -halt-on-error main.tex >/dev/null || true
+  check_log main.log
   cp main.pdf "$OUT/$name.pdf"
   echo "    $OUT/$name.pdf"
 
@@ -44,11 +57,19 @@ build_deck() {
     echo "==> Building $deck (speaker notes)"
     # \def\shownotes{} switches the preamble to "notes on second screen".
     xelatex -interaction=nonstopmode -halt-on-error -jobname=main_notes \
-      "\def\shownotes{}\input{main.tex}" >/dev/null
+      "\def\shownotes{}\input{main.tex}" >/dev/null || true
     xelatex -interaction=nonstopmode -halt-on-error -jobname=main_notes \
-      "\def\shownotes{}\input{main.tex}" >/dev/null
+      "\def\shownotes{}\input{main.tex}" >/dev/null || true
+    check_log main_notes.log
     cp main_notes.pdf "$OUT/${name}_notes.pdf"
     echo "    $OUT/${name}_notes.pdf"
+  fi
+
+  # A deck is never one page; if it is, the build collapsed.
+  local pages; pages=$(pdfinfo "$OUT/$name.pdf" 2>/dev/null | awk '/^Pages/{print $2}')
+  if [ "${pages:-0}" -lt 2 ]; then
+    echo "!! $name.pdf has only ${pages:-0} page(s) — build collapsed"
+    return 1
   fi
 }
 
