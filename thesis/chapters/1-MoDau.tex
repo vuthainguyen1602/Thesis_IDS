@@ -37,7 +37,7 @@ Mục tiêu của đề tài “PHÁT HIỆN XÂM NHẬP (\ac{ids}) DỰA TRÊN 
   \item Thiết kế và triển khai pipeline xử lý dữ liệu phân tán và song song sử dụng Apache Spark, bao gồm các bước: tiền xử lý dữ liệu, trích xuất đặc trưng, huấn luyện mô hình và phát hiện thời gian thực.
   \item Khảo sát hiệu năng hệ thống, hướng tới khả năng mở rộng, độ trễ thấp và tính linh hoạt; kiểm chứng khả năng xử lý phân tán ở mức minh chứng khái niệm (proof-of-concept) trên cụm thiết bị biên, làm tiền đề cho việc triển khai trên các hệ thống lớn hoặc mạng \ac{iot} nhiều thiết bị.
   \item So sánh và đánh giá các mô hình học máy phổ biến như Decision Tree, Support Vector Machine, Logistic Regression, \ac{nb}, Random Forest, \ac{gbt}, \ac{xgb}, \ac{mlp} và các thuật toán học tổ hợp (ensemble) trong môi trường xử lý phân tán, từ đó chọn ra mô hình phù hợp nhất.
-  \item Áp dụng quy trình đánh giá chặt chẽ, loại trừ rò rỉ dữ liệu (loại đặc trưng rò rỉ nhãn, loại bỏ trùng lặp ở mức đặc trưng, kiểm định ý nghĩa thống kê) nhằm đảm bảo kết quả phản ánh đúng năng lực mô hình.
+  \item Áp dụng quy trình đánh giá chặt chẽ, loại trừ rò rỉ dữ liệu (loại đặc trưng rò rỉ nhãn, loại bỏ trùng lặp ở mức đặc trưng, kiểm định ý nghĩa thống kê) nhằm đảm bảo kết quả phản ánh đúng hiệu năng mô hình.
 \item Đề xuất giải pháp thực tiễn giúp phát hiện tấn công nhanh chóng và chính xác trong các hệ thống mạng hiện đại có yêu cầu xử lý dữ liệu lớn và liên tục.
 \end{itemize}
 
@@ -88,7 +88,7 @@ Luận văn được định hướng bởi ba câu hỏi nghiên cứu:
   \item \textbf{Xây dựng quy trình xử lý và phát hiện xâm nhập toàn diện trên dữ liệu \ac{iot}}: Từ bước tiền xử lý dữ liệu, trích xuất đặc trưng, huấn luyện mô hình đến đánh giá kết quả, đề tài đã thiết kế và hiện thực một quy trình phát hiện xâm nhập hoàn chỉnh có thể áp dụng cho các hệ thống thực tế.
   \item \textbf{Ứng dụng và đánh giá các thuật toán học máy trong môi trường phân tán}: Đề tài triển khai và so sánh hiệu quả của một số thuật toán học máy và mô hình học sâu MLP trên nền tảng Apache Spark MLlib (ngoài ra một autoencoder được dùng làm cổng phát hiện bất thường ở tầng biên), qua đó làm rõ ưu điểm và hạn chế của từng mô hình trong việc xử lý dữ liệu \ac{iot}.
   \item \textbf{Đánh giá hiệu năng hệ thống trong môi trường xử lý phân tán}: Không chỉ đánh giá độ chính xác của mô hình, đề tài còn phân tích hiệu năng xử lý (thời gian thực thi, khả năng mở rộng) của hệ thống nhằm khảo sát tính khả thi của giải pháp; việc kiểm chứng được thực hiện ở mức minh chứng khái niệm (proof-of-concept) trên cụm thiết bị biên với bộ dữ liệu CICIDS2017, làm cơ sở cho việc mở rộng quy mô về sau.
-  \item \textbf{Quy trình đánh giá loại trừ rò rỉ dữ liệu và có kiểm định thống kê}: Đề tài nhận diện và loại bỏ các nguồn rò rỉ dữ liệu thường gặp trên CICIDS2017 (đặc trưng \texttt{destination\_port} rò rỉ nhãn, trùng lặp luồng ở mức đặc trưng), đồng thời áp dụng kiểm định ý nghĩa thống kê, giúp kết quả phản ánh đúng năng lực mô hình thay vì các con số bị thổi phồng.
+  \item \textbf{Quy trình đánh giá loại trừ rò rỉ dữ liệu và có kiểm định thống kê}: Đề tài nhận diện và loại bỏ các nguồn rò rỉ dữ liệu thường gặp trên CICIDS2017 (đặc trưng \texttt{destination\_port} rò rỉ nhãn, trùng lặp luồng ở mức đặc trưng), đồng thời áp dụng kiểm định ý nghĩa thống kê, giúp kết quả phản ánh đúng hiệu năng mô hình thay vì các con số bị thổi phồng.
 \end{itemize}
 
 \section{Công trình khoa học đã công bố}
