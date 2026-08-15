@@ -270,9 +270,10 @@
   \footnotesize
   \textbf{Ba chế độ được đo:} \textbf{A} tách pipeline (đề xuất) $\cdot$ \textbf{B}
   mở rộng ngang --- cả hai nút chạy vai trò đầy đủ $\cdot$ \textbf{C} cụm Spark
-  standalone; mốc tham chiếu là chế độ đơn nút. Thông lượng tính theo \key{số phán
-  quyết cuối cùng/giây}. Ngưỡng MSE của cổng hiệu chỉnh ngoại tuyến, chốt
-  \emph{trước} khi đánh giá.
+  standalone; mốc tham chiếu là chế độ đơn nút. Thông lượng đếm \key{số luồng xử
+  lý xong mỗi giây}: mỗi luồng chỉ tính \emph{một lần}, tại nơi có kết luận ---
+  ở cổng nếu bị bỏ qua, ở bộ phân lớp nếu không. Ngưỡng MSE của cổng hiệu chỉnh
+  ngoại tuyến, chốt \emph{trước} khi đánh giá.
   \note{Ngưỡng cổng không tinh chỉnh trên tập kiểm tra. Môi trường đo chi tiết
   (cấu hình board, số lần lặp, cách đo năng lượng) ở slide dự phòng.}
 \end{frame}
@@ -476,7 +477,7 @@
   \begin{tabular}{lcccc}
     \toprule
     Chế độ & Thông lượng & Độ trễ p95 & Bỏ qua tại cổng & Năng lượng \\
-           & (luồng/giây) & (ms)      & (\%)            & (mJ/phán quyết) \\
+           & (luồng/giây) & (ms)      & (\%)            & (mJ/luồng) \\
     \midrule
     Đơn nút                   & 2,60 $\pm$ 0,41 & 12,3 $\pm$ 3,0  & (nội tuyến) & 2490 \\
     \textbf{A: Tách pipeline} & \num{62,5 $\pm$ 0,6} & \num{13,1 $\pm$ 2,6} & \num{95,8} & \num{178} \\
@@ -500,7 +501,7 @@
       \begin{itemize}
         \item C nhanh nhất về trung bình nhưng \bad{$\pm$26 luồng/giây} và phụ
               thuộc Spark master.
-        \item Năng lượng phân bổ trên nhiều phán quyết hơn 24--35 lần:
+        \item Năng lượng chia trên số luồng nhiều hơn 24--35 lần:
               \good{2,5 $\rightarrow$ 0,12--0,18\,J}.
       \end{itemize}
     \end{column}
@@ -510,7 +511,7 @@
   chỉ dùng \good{4,6\%} CPU so với \bad{90,8\%} ở nút phân lớp --- bộ phân lớp
   chiếm gần hết ngân sách tính toán (ảnh ở slide dự phòng).}
   \note{Bảng cốt lõi của pha B. Chỉ rõ chế độ B là bằng chứng phản chứng. Năng
-  lượng là mức toàn board trên mỗi phán quyết: ở tải này phần công suất tích
+  lượng là mức toàn board trên mỗi luồng: ở tải này phần công suất tích
   cực nằm dưới ngưỡng nhiễu của tegrastats.}
 \end{frame}
 
@@ -561,8 +562,8 @@
   \begin{block}{RQ3 --- Pipeline Spark có khả thi trên cụm thiết bị biên?}
     \small
     \good{Khả thi, với điều kiện tách vai trò.} Tách pipeline nâng thông lượng
-    từ 2,6 lên 62,5 phán quyết/giây ở p95 $\approx$13\,ms; năng lượng giảm từ
-    $\approx$2,5\,J xuống 0,18\,J mỗi phán quyết. Chỉ thêm board mà không tách
+    từ 2,6 lên 62,5 luồng/giây ở p95 $\approx$13\,ms; năng lượng giảm từ
+    $\approx$2,5\,J xuống 0,18\,J mỗi luồng. Chỉ thêm board mà không tách
     vai trò (chế độ B) hầu như không cải thiện.
   \end{block}
   \note{Slide quan trọng nhất với hội đồng. Trả lời thẳng, kể cả câu trả lời
@@ -593,7 +594,7 @@
               phân lớp PySpark tách trên hai board, nối bằng Kafka; ba chế độ
               triển khai được đo.
         \item \key{Đo đạc vận hành đầy đủ}: thông lượng, phân vị độ trễ, CPU/RAM,
-              năng lượng mỗi phán quyết.
+              năng lượng mỗi luồng.
         \item \key{Mã nguồn và cấu hình công khai}, tái lập được.
       \end{itemize}
     \end{column}
@@ -795,9 +796,10 @@
         \item[C: Cụm Spark] máy chủ làm master, hai Jetson làm worker.
       \end{description}
       \vspace{0.3em}
-      \footnotesize Thông lượng tính theo \key{số phán quyết cuối cùng/giây}
-      --- luồng được quyết định tại cổng \emph{hoặc} tại bộ phân lớp --- nên
-      luồng chuyển tiếp không bị đếm hai lần.
+      \footnotesize Thông lượng đếm \key{số luồng xử lý xong mỗi giây}. Mỗi
+      luồng chỉ tính \emph{một lần}, tại nơi có kết luận: ở cổng nếu bị bỏ qua,
+      ở bộ phân lớp nếu được chuyển tiếp --- nhờ vậy luồng đi qua cả hai nút
+      không bị đếm hai lần.
     \end{column}
     \begin{column}{0.43\textwidth}
       \begin{block}{Môi trường thực nghiệm}
@@ -811,8 +813,9 @@
       \end{block}
     \end{column}
   \end{columns}
-  \note{Định nghĩa ``phán quyết/giây'' là điểm mấu chốt để so sánh công bằng
-  giữa các chế độ.}
+  \note{Cách đếm ``luồng xử lý xong/giây'' là điểm mấu chốt để so sánh công
+  bằng giữa các chế độ: nếu đếm theo luồng đi qua mỗi nút thì chế độ tách
+  pipeline sẽ được cộng đôi một cách vô lý.}
 \end{frame}
 
 \begin{frame}[label=bk-grafana]{Dự phòng --- Bất đối xứng tải lúc đỉnh tải (Grafana)}
