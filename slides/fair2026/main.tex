@@ -49,19 +49,17 @@ usually a property of the evaluation pipeline, not of the model.}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
       \textbf{Two problems, usually treated apart}
-      \begin{itemize}\small
-        \item \key{Cost.} $\approx$80 features per flow --- expensive to train,
-              to score, to fit on an edge device.
+      \begin{itemize}
+        \item \key{Cost.} $\approx$80 features per flow.
         \item \key{Trust.} Near-perfect binary F1 is normally
               \bad{data leakage}.
       \end{itemize}
-      \vspace{0.3em}
+      \vspace{0.5em}
       \textbf{Two concrete leakage sources}
       \begin{enumerate}
-        \item \texttt{destination\_port} encodes the \emph{attacked service}
-              $\rightarrow$ a port\,$\rightarrow$\,label shortcut.
-        \item \bad{Feature-level duplicates} survive full-row dedup $\rightarrow$
-              the same sample lands in train \emph{and} test.
+        \item \texttt{destination\_port} encodes the \emph{attacked service}.
+        \item \bad{Feature-level duplicates} survive full-row dedup --- the
+              same sample lands in train \emph{and} test.
       \end{enumerate}
     \end{column}
     \begin{column}{0.42\textwidth}
@@ -75,8 +73,9 @@ usually a property of the evaluation pipeline, not of the model.}
       \end{exampleblock}%
     \end{column}
   \end{columns}
-  \note{Frame the talk as a measurement paper. Two leakage sources, both
-  removed before any split.}
+  \note{Frame the talk as a measurement paper. The port gives the model a
+  port-to-label shortcut; 80 features are expensive to train, to score and to
+  fit on an edge device. Both leakage sources are removed before any split.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35
@@ -251,8 +250,10 @@ usually a property of the evaluation pipeline, not of the model.}
   $\approx$0.0001: the two are \key{practically equivalent}, so explainability
   and cost decide. After dedup, the port's isolated effect is small --- the
   duplicates were the dominant leak.}
-  \note{Small p, tiny effect in absolute terms. Say plainly that we treat them
-  as equivalent rather than claiming a winner.}
+  \note{Variance reflects data sampling, not just model initialisation. The
+  test is two-sided, and overlapping resamplings break t-independence.
+  Small p, tiny effect in absolute terms: say plainly that we treat them as
+  equivalent rather than claiming a winner.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:55

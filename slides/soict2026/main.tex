@@ -48,30 +48,30 @@ devices. Seven minutes, three results.}
     \begin{column}{0.55\textwidth}
       Detectors now \emph{fit} on single-board hardware --- but a monolithic
       one classifies \key{every} flow and saturates an 8\,GB ARM board.
-      \vspace{0.4em}
+      \vspace{0.6em}
 
       \textbf{What the literature does not tell us}
       \begin{enumerate}
-        \item Everything is measured on a \bad{single device}. How should
-              detection be \emph{placed} across boards?
+        \item Everything is measured on a \bad{single device}.
         \item Throughput, latency and \bad{energy} are never reported together.
         \item Offline scores come from \bad{leaky protocols}.
       \end{enumerate}
     \end{column}
     \begin{column}{0.42\textwidth}
       \begin{alertblock}{Our question}
-        Which model to deploy --- and \emph{how} to distribute its inference
-        across a constrained two-node edge cluster?
+        How should inference be \emph{placed} across a constrained two-node
+        edge cluster?
       \end{alertblock}
       \begin{exampleblock}{Our answer}
-        Split the detector: a cheap \key{autoencoder gate} on board \#1, the
-        heavy \key{PySpark classifier} on board \#2, joined by a Kafka topic.
+        Split it: a cheap \key{autoencoder gate} on board \#1, the heavy
+        \key{PySpark classifier} on board \#2, joined by a Kafka topic.
       \end{exampleblock}
     \end{column}
   \end{columns}
   \note{Three gaps: single-device evaluation, energy never reported next to
-  latency, and offline numbers taken from leaky pipelines. We attack all
-  three with one system.}
+  latency, and offline numbers taken from leaky pipelines. Which model to
+  deploy is the other half of the question. We attack all three with one
+  system.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35

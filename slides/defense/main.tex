@@ -155,7 +155,7 @@
   ]
     \node[stp] (p1) {Dữ liệu Parquet};
     \node[stp, right=0.7cm of p1] (p2) {Loại rò rỉ\\ xếp hạng / PCA};
-    \node[stp, right=0.7cm of p2] (p3) {Huấn luyện\\ 8 bộ phân lớp};
+    \node[stp, right=0.7cm of p2] (p3) {Huấn luyện\\ 8 bộ phân loại};
     \node[stp, right=0.7cm of p3] (p4) {F1 $+$ kiểm định\\ thống kê};
     \node[stp, right=0.7cm of p4] (p5) {Xuất\\ \texttt{PipelineModel}};
     \draw[arr] (p1)--(p2); \draw[arr] (p2)--(p3); \draw[arr] (p3)--(p4); \draw[arr] (p4)--(p5);
@@ -241,7 +241,7 @@
     \node[jet] (j1)  at (-4.7,-3.2) {\textbf{Jetson Orin Nano Super \#1}\\[2pt]
         \key{Cổng phát hiện bất thường}\\[2pt] Autoencoder lọc bỏ lưu lượng bình thường};
     \node[jet] (j2)  at ( 4.7,-3.2) {\textbf{Jetson Orin Nano Super \#2}\\[2pt]
-        \key{Bộ phân lớp}\\[2pt] PySpark \texttt{PipelineModel}\\ Benign / Attack};
+        \key{Bộ phân loại}\\[2pt] PySpark \texttt{PipelineModel}\\ Benign / Attack};
     \node[mtr] (out) at (0,-6.0)   {Chỉ số hiệu năng $\rightarrow$ InfluxDB $\rightarrow$ Grafana
         \quad$|$\quad Cảnh báo: Email (Mailtrap) / Slack};
     \draw[arr] (pc.south -| j1) -- node[lbl]{topic luồng mạng} (j1.north);
@@ -338,10 +338,10 @@
       \fitwidth{%
       \begin{tabular}{lcc}
         \toprule
-        Ablation cổng (RF) & F1 & Recall (Attack) \\
+        Ảnh hưởng đặc trưng cổng (RF) & F1 & Recall (Attack) \\
         \midrule
         Giữ \texttt{destination\_port} & 0,9965 & 0,9988 \\
-        \textbf{Loại cổng} (đề xuất)   & 0,9955 & 0,9961 \\
+        \textbf{Loại đặc trưng cổng}   & 0,9955 & 0,9961 \\
         \bottomrule
       \end{tabular}
       }
@@ -435,7 +435,7 @@
         \item Trong-miền cao ở \emph{cả hai} chiều --- liên bộ dữ liệu sụp
               xuống \bad{0,04--0,05}.
         \item Do recall gần 0, trong khi precision vẫn 0,596: mô hình
-              \key{không nhận ra} tấn công của testbed kia.
+              \key{không nhận ra} tấn công của môi trường thu thập kia.
         \item Nguyên nhân: khác phiên bản CICFlowMeter, khác cấu hình mạng, khác
               bộ công cụ tấn công.
       \end{itemize}
@@ -461,9 +461,9 @@
     Chế độ & Thông lượng & p95 & Bỏ qua ở cổng & Năng lượng \\
            & (luồng/giây) & (ms) & (\%)         & (mJ/luồng) \\
     \midrule
-    Đơn nút                   & 2,60 $\pm$ 0,41 & 12,3 $\pm$ 3,0  & (nội tuyến) & 2490 \\
+    Đơn nút                   & 2,60 $\pm$ 0,41 & 12,3 $\pm$ 3,0  & (chạy chung) & 2490 \\
     \textbf{A: Tách pipeline} & \num{62,5 $\pm$ 0,6} & \num{13,1 $\pm$ 2,6} & \num{95,8} & \num{178} \\
-    B: Mở rộng ngang          & 5,9 $\pm$ 1,4   & 21,6 $\pm$ 19,2 & (nội tuyến) & 2250 \\
+    B: Mở rộng ngang          & 5,9 $\pm$ 1,4   & 21,6 $\pm$ 19,2 & (chạy chung) & 2250 \\
     C: Cụm Spark              & 90,0 $\pm$ 25,6 & 23,9 $\pm$ 17,8 & 97,9        & 119 \\
     \bottomrule
   \end{tabular}
@@ -471,30 +471,30 @@
   \par\vspace{0.4em}
   \raggedright
   \begin{itemize}
-    \item \good{A: gấp 24 lần, p95 gần như không đổi} --- cổng hấp thụ 95,8\%
+    \item \good{A: gấp 24 lần, p95 gần như không đổi} --- cổng lọc bỏ 95,8\%
           lưu lượng bình thường.
     \item \bad{B vẫn bị chặn bởi Spark} ($\approx$2 lần) --- lợi ích đến từ
-          \emph{tách vai trò}, không phải từ thêm board.
+          \emph{tách vai trò}, không phải từ thêm bo mạch.
   \end{itemize}
   \takeaway{Lúc đỉnh tải, nút cổng chỉ dùng \good{4,6\%} CPU so với
-  \bad{90,8\%} ở nút phân lớp $\rightarrow$ tách pipeline là mặc định khuyến nghị.}
+  \bad{90,8\%} ở nút phân loại $\rightarrow$ tách pipeline là mặc định khuyến nghị.}
   \note{Bảng cốt lõi của pha B. Chỉ rõ chế độ B là bằng chứng phản chứng: thêm
-  board mà không tách vai trò thì gần như không được gì. Chế độ C nhanh nhất về
+  bo mạch mà không tách vai trò thì gần như không được gì. Chế độ C nhanh nhất về
   trung bình nhưng lệch ±26 luồng/giây và phụ thuộc Spark master trên máy chủ.
-  Năng lượng là mức toàn board trên mỗi luồng: ở tải này phần công suất tích
+  Năng lượng là mức toàn bo mạch trên mỗi luồng: ở tải này phần công suất tích
   cực nằm dưới ngưỡng nhiễu của tegrastats. Ảnh Grafana đỉnh tải ở slide Q11.}
 \end{frame}
 
 
 \begin{frame}{KQ7 --- Cái giá trung thực của việc đồng nhất một stack}
   Phục vụ suy luận bằng Spark để \emph{đồng nhất với pha huấn luyện phân tán}.
-  Cùng mô hình, cùng 29 đặc trưng, cùng một board:
+  Cùng mô hình, cùng 29 đặc trưng, cùng một bo mạch:
   \vspace{0.6em}
   \centering\small
   \fitwidth{%
   \begin{tabular}{lcccc}
     \toprule
-    Engine suy luận & Thông lượng (luồng/giây) & p95 (ms) & RAM (\%) & Năng lượng (mJ/suy luận) \\
+    Nền tảng suy luận & Thông lượng (luồng/giây) & p95 (ms) & RAM (\%) & Năng lượng (mJ/suy luận) \\
     \midrule
     PySpark (đang triển khai) & 22,6   & 532  & 24,3 & 71,6 \\
     scikit-learn              & 204,4  & 49,8 & 13,3 & 2,91 \\
@@ -533,7 +533,7 @@
   RF Importance +0,48\% đến +1,15\% trên mọi thuật toán họ cây. RQ2: kiểm định
   hoán vị ghép cặp cho p ≈ 0,031, chỉ vừa chạm ngưỡng sàn --- bài toán nhị phân
   trong-miền đã gần bão hòa, nên tiêu chí phụ mới là căn cứ chọn mô hình. RQ3:
-  chỉ thêm board mà không tách vai trò (chế độ B) hầu như không cải thiện.}
+  chỉ thêm bo mạch mà không tách vai trò (chế độ B) hầu như không cải thiện.}
 \end{frame}
 
 \begin{frame}{Đóng góp chính của luận văn}
@@ -589,7 +589,7 @@
     \end{column}
   \end{columns}
   \note{Nêu hạn chế trước khi hội đồng nêu, mỗi hạn chế đi kèm hướng khắc phục
-  tương ứng. Chi tiết: bộ phân lớp đa lớp thời gian thực chưa hoàn thiện; liên
+  tương ứng. Chi tiết: bộ phân loại đa lớp thời gian thực chưa hoàn thiện; liên
   bộ dữ liệu mới thử trên mẫu phân tầng CSE-CIC-IDS2018; cụm 2 nút 8 GB chưa
   phải quy mô terabyte; GPU khoảng 67 TOPS chưa dùng vì pipeline chỉ chạy CPU.
   Bản hướng phát triển đầy đủ ở slide Q12.}
@@ -648,7 +648,7 @@
         \item[\key{Q5}] So sánh đầy đủ 8 thuật toán $\times$ 4 phương pháp
               $\rightarrow$ \hyperlink{bk-heatmap}{\key{Bản đồ nhiệt F1}}
         \item[\key{Q6}] Độ tin cậy, giới hạn kết luận
-              $\rightarrow$ \hyperlink{bk-threats}{\key{Đe dọa tính hợp lệ}}
+              $\rightarrow$ \hyperlink{bk-threats}{\key{Tính hợp lệ}}
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
@@ -801,7 +801,7 @@
   \\[0.2em]\footnotesize Nhị phân, đã loại đặc trưng cổng. 8 thuật toán $\times$ 4 phương pháp.
 \end{frame}
 
-\begin{frame}[label=bk-threats]{Q6 --- Đe dọa đến tính hợp lệ}
+\begin{frame}[label=bk-threats]{Q6 --- Các yếu tố ảnh hưởng tính hợp lệ}
   \begin{itemize}\small
     \item \textbf{Nội tại.} Xếp hạng RF/SHAP lấy từ tập huấn luyện gốc và giữ
           cố định qua các lần lấy mẫu lại --- nhất quán với thiết kế ``cấu hình
@@ -852,7 +852,7 @@
     \begin{column}{0.55\textwidth}
       \begin{description}
         \item[Đơn nút] toàn bộ pipeline trong một tiến trình --- mốc tham chiếu.
-        \item[A: Tách pipeline] cổng trên \#1, phân lớp trên \#2
+        \item[A: Tách pipeline] cổng trên \#1, phân loại trên \#2
               (\key{thiết kế đề xuất}).
         \item[B: Mở rộng ngang] cả hai nút chạy \emph{vai trò đầy đủ}, chia tải
               qua Kafka consumer group.
@@ -861,7 +861,7 @@
       \vspace{0.3em}
       \footnotesize Thông lượng đếm \key{số luồng xử lý xong mỗi giây}. Mỗi
       luồng chỉ tính \emph{một lần}, tại nơi có kết luận: ở cổng nếu bị bỏ qua,
-      ở bộ phân lớp nếu được chuyển tiếp --- nhờ vậy luồng đi qua cả hai nút
+      ở bộ phân loại nếu được chuyển tiếp --- nhờ vậy luồng đi qua cả hai nút
       không bị đếm hai lần.
     \end{column}
     \begin{column}{0.43\textwidth}
@@ -918,10 +918,10 @@
       Tại đỉnh tải, chế độ tách pipeline:
       \begin{itemize}
         \item nút cổng: \good{4,6\% CPU}
-        \item nút phân lớp: \bad{90,8\% CPU}
+        \item nút phân loại: \bad{90,8\% CPU}
       \end{itemize}
       \vspace{0.5em}
-      Bộ phân lớp chiếm gần như toàn bộ ngân sách tính toán --- chính vì vậy
+      Bộ phân loại chiếm gần như toàn bộ ngân sách tính toán --- chính vì vậy
       việc đưa nó ra khỏi đường ingest mới mang lại hiệu quả.
     \end{column}
   \end{columns}
@@ -947,7 +947,7 @@
           Jetson; đo độ trễ đầu cuối đầy đủ.
     \item \textbf{Bền vững trước tấn công đối kháng.} Đặc biệt hai bề mặt tấn
           công mới do cổng tạo ra: giả dạng lưu lượng bình thường để vượt cổng,
-          và cố ý tạo sai số tái tạo cao để dồn tải lên nút phân lớp.
+          và cố ý tạo sai số tái tạo cao để dồn tải lên nút phân loại.
   \end{itemize}
   \note{Mỗi hướng phát triển ứng với một hạn chế ở slide trước --- đó là cách
   thể hiện sự làm chủ đề tài.}
