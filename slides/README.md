@@ -6,7 +6,7 @@ Three Beamer decks built from the same results as the manuscripts and the thesis
 |---|---|---|---|
 | `soict2026/` | English | 7 min (8 slides + 5 backup) | `output/pdfs/SOICT2026_slides.pdf` |
 | `fair2026/` | English | 7 min (8 slides + 5 backup) | `output/pdfs/FAIR2026_slides.pdf` |
-| `defense/` | Vietnamese | ~20 min (21 slides + 8 dự phòng) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
+| `defense/` | Vietnamese | 15 min (16 slides + 14 dự phòng) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
 
 ## Building
 

@@ -4,12 +4,12 @@
 %        papers/soict2026 (triển khai biên phân tán)
 % Biên dịch: ./compile.sh   (XeLaTeX; bản có ghi chú: NOTES=1 ./compile.sh)
 %
-% KẾ HOẠCH THỜI GIAN (~20 phút trình bày + hỏi đáp)
-%   Phần 0  Mở đầu ..................... 3 phút
-%   Phần 1  Phương pháp ................ 4 phút
-%   Phần 2  Kết quả offline (FAIR) ..... 5 phút
-%   Phần 3  Kết quả triển khai (SOICT) . 5 phút
-%   Phần 4  Kết luận ................... 3 phút
+% KẾ HOẠCH THỜI GIAN — 15 phút trình bày + hỏi đáp (16 slide nội dung)
+%   I    Đặt vấn đề, mục tiêu, 3 RQ ......... 2,5 phút  (2 slide)
+%   II   Phương pháp ....................... 3,5 phút  (3 slide)
+%   III  Kết quả offline (FAIR) ............ 4   phút  (4 slide)
+%   IV   Kết quả triển khai biên (SOICT) ... 3   phút  (2 slide)
+%   V    Trả lời RQ và kết luận ............ 2   phút  (4 slide)
 % Các slide sau \appendix là DỰ PHÒNG cho phần hỏi đáp.
 % Ghi chú cho người trình bày nằm trong \note{} — dựng bằng NOTES=1.
 % =====================================================================
@@ -109,10 +109,9 @@
 
 \begin{frame}{Mục tiêu và ba câu hỏi nghiên cứu}
   \textbf{Mục tiêu.} Xây dựng hệ thống IDS kết hợp học máy với Apache Spark,
-  phát hiện các dạng tấn công phổ biến trên CICIDS2017; thiết kế pipeline xử lý
-  phân tán; đánh giá khả năng triển khai trên thiết bị biên; áp dụng quy trình
-  đánh giá \key{loại trừ rò rỉ dữ liệu} có kiểm định thống kê.
-  \vspace{0.7em}
+  đánh giá dưới quy trình \key{loại trừ rò rỉ dữ liệu} có kiểm định thống kê, và
+  kiểm chứng khả năng chạy thời gian thực trên cụm thiết bị biên.
+  \vspace{0.6em}
   \begin{columns}[T]
     \begin{column}{0.32\textwidth}
       \begin{block}{RQ1 --- Giảm chiều}
@@ -134,46 +133,15 @@
     \end{column}
   \end{columns}
   \vfill
-  \centering\footnotesize
-  \key{Ba câu hỏi này được trả lời trực tiếp ở slide kết luận.}
-  \note{Đọc chậm ba RQ. Hội đồng sẽ đối chiếu chúng với phần kết luận.}
+  \footnotesize
+  \textbf{Phạm vi.} CICIDS2017 (mở rộng CSE-CIC-IDS2018 cho thí nghiệm liên bộ),
+  nhị phân Benign/Attack, cụm 2 Jetson Orin Nano Super. Bộ dữ liệu \emph{không} có
+  lưu lượng IoT đặc thù --- tính chất ``IoT'' nằm ở \key{kịch bản triển khai} trên
+  thiết bị biên; tấn công đối kháng \bad{ngoài phạm vi}.
+  \note{Đọc chậm ba RQ; hội đồng sẽ đối chiếu với phần kết luận. Nêu chủ động giới
+  hạn phạm vi IoT --- slide dự phòng có bản đầy đủ kèm mô hình mối đe dọa.}
 \end{frame}
 
-\begin{frame}{Phạm vi, dữ liệu và mô hình mối đe dọa}
-  \begin{columns}[T]
-    \begin{column}{0.45\textwidth}
-      \textbf{Phạm vi}
-      \begin{itemize}\small
-        \item \textbf{Dữ liệu}: CICIDS2017; mở rộng sang CSE-CIC-IDS2018 cho
-              thí nghiệm liên bộ dữ liệu.
-        \item \textbf{Công nghệ}: Spark Core/SQL/Streaming/MLlib; Kafka,
-              PostgreSQL, InfluxDB, Grafana.
-        \item \textbf{Bài toán}: nhị phân Benign/Attack (có bổ sung đánh giá đa
-              lớp theo loại tấn công).
-        \item \textbf{Triển khai}: cụm 2 Jetson Orin Nano Super (8\,GB) $+$ máy
-              chủ điều phối.
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.53\textwidth}
-      \begin{alertblock}{Lưu ý trung thực về phạm vi ``IoT''}
-        \footnotesize
-        CICIDS2017 là lưu lượng doanh nghiệp \emph{mô phỏng}, không chứa giao
-        thức đặc thù IoT (MQTT, CoAP). Tính chất ``IoT'' nằm ở \key{kịch bản
-        triển khai}: toàn bộ pipeline suy luận được đo trên \emph{thiết bị biên
-        tài nguyên hạn chế} --- lớp gateway trong kiến trúc IoT ba tầng --- chứ
-        không ở bản chất lưu lượng huấn luyện.
-      \end{alertblock}
-      \begin{block}{Mô hình mối đe dọa}
-        \footnotesize
-        Kẻ tấn công ở bên trong hoặc ở biên mạng; phạm vi giới hạn ở các tấn
-        công đã biết kiểu CICIDS2017. Tấn công đối kháng (adversarial/evasion)
-        \bad{nằm ngoài phạm vi} đánh giá.
-      \end{block}
-    \end{column}
-  \end{columns}
-  \note{Chủ động nêu giới hạn phạm vi IoT trước khi hội đồng hỏi. Đây là câu
-  hỏi phản biện gần như chắc chắn sẽ có.}
-\end{frame}
 
 % =====================================================================
 \section{II.\ PHƯƠNG PHÁP THỰC HIỆN}
@@ -227,88 +195,46 @@
   mô hình được triển khai chính là mô hình đã qua kiểm định offline.}
 \end{frame}
 
-\begin{frame}{Pha A --- Quy trình đánh giá loại trừ rò rỉ dữ liệu}
-  \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \textbf{Hai nguồn rò rỉ, xử lý \emph{trước khi chia tập}}
-      \begin{enumerate}\small
-        \item \key{Đặc trưng rò rỉ nhãn}: \texttt{destination\_port} mã hóa
-              trực tiếp dịch vụ bị tấn công $\rightarrow$ mô hình học thuộc ánh
-              xạ cổng\,$\rightarrow$\,nhãn thay vì học hành vi luồng.
-        \item \key{Trùng lặp ở mức đặc trưng}: luồng giống hệt nhau trên
-              \emph{toàn bộ} cột đặc trưng không bị loại bởi phép khử trùng lặp
-              toàn dòng $\rightarrow$ \emph{cùng một mẫu} vào cả hai tập.
-      \end{enumerate}
-      \vspace{0.2em}
-      \footnotesize Nhóm luồng giống hệt nhau nhưng \emph{nhãn xung đột} bị
-      \bad{loại bỏ cả nhóm}, thay vì giữ lại một dòng tùy cách phân vùng.
-    \end{column}
-    \begin{column}{0.45\textwidth}
-      \begin{block}{Kết quả tiền xử lý (tất định)}
-        \footnotesize
-        \fitwidth{%
-        \begin{tabular}{lr}
-          Nhóm nhãn mâu thuẫn bị loại & 270 nhóm \\
-          Số dòng bị loại theo         & 44.260 \\
-          Đặc trưng số còn lại         & 77 \\
-          Huấn luyện / kiểm tra        & 1,79\,tr / 0,45\,tr \\
-        \end{tabular}
-        }
-      \end{block}
-      \begin{exampleblock}{Chống thiên lệch lựa chọn}
-        \footnotesize
-        \begin{itemize}
-          \item Tách \emph{pha thăm dò} khỏi \emph{pha xác nhận}.
-          \item Chọn mô hình theo \key{tập kiểm định} tách từ tập huấn luyện.
-          \item Tập kiểm tra \bad{không tham gia} bước lựa chọn nào.
-        \end{itemize}
-      \end{exampleblock}
-    \end{column}
-  \end{columns}
-  \note{Đây là đóng góp phương pháp luận quan trọng nhất. Nói rõ vì sao khử
-  trùng lặp tất định lại quan trọng: kết quả không phụ thuộc cách Spark phân
-  vùng dữ liệu.}
-\end{frame}
-
-\begin{frame}{Pha A --- Bốn chiến lược giảm chiều và các mô hình so sánh}
+\begin{frame}{Pha A --- Quy trình loại trừ rò rỉ và bốn chiến lược so sánh}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
-      \textbf{Bốn chiến lược, cùng một pipeline Spark}
-      \begin{itemize}\small
-        \item \textbf{Baseline}: toàn bộ 77 đặc trưng.
-        \item \textbf{RF Importance Top-$K$}: xếp hạng nhúng từ Random Forest.
-        \item \textbf{SHAP Top-$K$}: giá trị Shapley từ XGBoost, tính trên mẫu
-              \key{phân tầng theo lớp}.
-        \item \textbf{PCA $k$=40}: trích xuất không giám sát.
-      \end{itemize}
+      \textbf{Hai nguồn rò rỉ, xử lý \emph{trước khi chia tập}}\vspace{-0.2em}
+      \begin{enumerate}\footnotesize
+        \item \key{Đặc trưng rò rỉ nhãn}: \texttt{destination\_port} mã hóa trực
+              tiếp dịch vụ bị tấn công $\rightarrow$ mô hình học thuộc ánh xạ
+              cổng\,$\rightarrow$\,nhãn thay vì học hành vi luồng.
+        \item \key{Trùng lặp ở mức đặc trưng}: luồng giống hệt nhau trên
+              \emph{toàn bộ} cột đặc trưng không bị loại bởi khử trùng lặp toàn
+              dòng $\rightarrow$ cùng một mẫu vào cả hai tập.
+      \end{enumerate}
       \vspace{0.2em}
-      \footnotesize Xếp hạng RF/SHAP chỉ dùng \emph{tập huấn luyện}. Lý do PCA
-      dùng $k$=40: xem slide dự phòng.
+      \footnotesize Nhóm \emph{nhãn xung đột} bị \bad{loại cả nhóm} (270 nhóm,
+      44.260 dòng); còn 77 đặc trưng, 1,79\,tr / 0,45\,tr.
     \end{column}
     \begin{column}{0.47\textwidth}
-      \textbf{8 thuật toán $+$ 2 mô hình học tổ hợp}
-      \begin{itemize}\small
-        \item Decision Tree, Logistic Regression, SVM, Naive Bayes, Random
-              Forest, GBT, XGBoost, MLP.
-        \item \key{Soft Voting} và \key{Hybrid Bagging} --- kết hợp Top-3 thuật
-              toán có F1 cao nhất \emph{trên tập kiểm định}.
+      \textbf{Bốn chiến lược, cùng một pipeline}
+      \begin{itemize}\footnotesize
+        \item \textbf{Baseline} 77 đặc trưng $\cdot$ \textbf{RF Top-$K$} $\cdot$
+              \textbf{SHAP Top-$K$} $\cdot$ \textbf{PCA $k$=40}; xếp hạng RF/SHAP
+              chỉ dùng \emph{tập huấn luyện}.
+        \item \textbf{8 thuật toán}: DT, LR, SVM, NB, RF, GBT, XGBoost, MLP.
+        \item \textbf{2 mô hình học tổ hợp}: \key{Soft Voting} và \key{Hybrid
+              Bagging} --- Top-3 theo F1 trên tập kiểm định.
       \end{itemize}
       \vspace{0.2em}
-      \textbf{Mất cân bằng lớp --- xử lý thống nhất}
-      \begin{itemize}\small
-        \item Trọng số lớp cho 6 mô hình; \texttt{scale\_pos\_weight} cho XGBoost;
-              MLP không hỗ trợ.
-      \end{itemize}
+      \footnotesize \textbf{Chống thiên lệch}: cấu hình cố định trước, chọn mô hình
+      trên \key{tập kiểm định}; tập kiểm tra \bad{không tham gia} khâu lựa chọn.
     \end{column}
   \end{columns}
-  \note{Giải thích PCA k=40 chủ động nếu còn thời gian --- đây là câu hỏi phản
-  biện hay gặp về tính công bằng của so sánh; slide dự phòng có đầy đủ lý do.
-  LightGBM bị loại vì thư viện native chỉ chạy x86\_64, không chạy trên ARM64.}
+  \note{Đóng góp phương pháp luận quan trọng nhất. Nói rõ vì sao khử trùng lặp tất
+  định lại quan trọng: kết quả không phụ thuộc cách Spark phân vùng dữ liệu. PCA
+  dùng k=40 vì là phép trích xuất --- slide dự phòng có lý do đầy đủ.}
 \end{frame}
+
 
 \begin{frame}{Pha B --- Kiến trúc triển khai phân tán trên cụm biên}
   \centering
-  \resizebox{0.76\textwidth}{!}{%
+  \resizebox{0.68\textwidth}{!}{%
   \begin{tikzpicture}[
       font=\small, >=Stealth, every node/.style={align=center},
       pc/.style ={draw=gray!60, thick, rounded corners, fill=gray!8, minimum width=13.6cm, minimum height=1.25cm, inner sep=3pt},
@@ -334,43 +260,15 @@
   \end{tikzpicture}}
   \\[0.3em]
   \footnotesize
-  Ngưỡng MSE của cổng được \key{hiệu chỉnh ngoại tuyến} trên tập kiểm định luồng
-  \emph{bình thường} tách riêng --- chốt \emph{trước} khi đánh giá, không tinh
-  chỉnh trên tập kiểm tra.
-  \note{Nhấn: ngưỡng cổng không được tinh chỉnh trên tập kiểm tra.}
+  \textbf{Ba chế độ được đo:} \textbf{A} tách pipeline (đề xuất) $\cdot$ \textbf{B}
+  mở rộng ngang --- cả hai nút chạy vai trò đầy đủ $\cdot$ \textbf{C} cụm Spark
+  standalone; mốc tham chiếu là chế độ đơn nút. Thông lượng tính theo \key{số phán
+  quyết cuối cùng/giây}. Ngưỡng MSE của cổng hiệu chỉnh ngoại tuyến, chốt
+  \emph{trước} khi đánh giá.
+  \note{Ngưỡng cổng không tinh chỉnh trên tập kiểm tra. Môi trường đo chi tiết
+  (cấu hình board, số lần lặp, cách đo năng lượng) ở slide dự phòng.}
 \end{frame}
 
-\begin{frame}{Pha B --- Ba chế độ triển khai và môi trường đo}
-  \begin{columns}[T]
-    \begin{column}{0.55\textwidth}
-      \begin{description}
-        \item[Đơn nút] toàn bộ pipeline trong một tiến trình --- mốc tham chiếu.
-        \item[A: Tách pipeline] cổng trên \#1, phân lớp trên \#2
-              (\key{thiết kế đề xuất}).
-        \item[B: Mở rộng ngang] cả hai nút chạy \emph{vai trò đầy đủ}, chia tải
-              qua Kafka consumer group.
-        \item[C: Cụm Spark] máy chủ làm master, hai Jetson làm worker.
-      \end{description}
-      \vspace{0.3em}
-      \footnotesize Thông lượng tính theo \key{số phán quyết cuối cùng/giây}
-      --- luồng được quyết định tại cổng \emph{hoặc} tại bộ phân lớp --- nên
-      luồng chuyển tiếp không bị đếm hai lần.
-    \end{column}
-    \begin{column}{0.43\textwidth}
-      \begin{block}{Môi trường thực nghiệm}
-        \footnotesize
-        2$\times$ Jetson Orin Nano Super: CPU 6 nhân Arm Cortex-A78AE, GPU
-        Ampere $\approx$67 TOPS, 8\,GB LPDDR5, SSD NVMe 256\,GB.\\[0.3em]
-        PySpark 3.4.1, Kafka 3.5, LAN Wi-Fi.\\[0.3em]
-        Tải: phát lại CICIDS2017 ở 100 luồng/giây.\\[0.3em]
-        $\geq$3 lần lặp; lưu lượng khởi động \emph{loại khỏi} cửa sổ đo.\\[0.3em]
-        Năng lượng: \texttt{tegrastats}, trừ nền idle.
-      \end{block}
-    \end{column}
-  \end{columns}
-  \note{Định nghĩa ``phán quyết/giây'' là điểm mấu chốt để so sánh công bằng
-  giữa các chế độ.}
-\end{frame}
 
 % =====================================================================
 \section{III.\ KẾT QUẢ 1 --- ĐÁNH GIÁ OFFLINE LOẠI TRỪ RÒ RỈ}
@@ -600,33 +498,14 @@
     \end{column}
   \end{columns}
   \takeaway{\textbf{Tách pipeline là lựa chọn mặc định được khuyến nghị}: thông
-  lượng cao nhất trên mỗi đơn vị phương sai.}
+  lượng cao nhất trên mỗi đơn vị phương sai. Đo trên Grafana lúc đỉnh tải, nút cổng
+  chỉ dùng \good{4,6\%} CPU so với \bad{90,8\%} ở nút phân lớp --- bộ phân lớp
+  chiếm gần hết ngân sách tính toán (ảnh ở slide dự phòng).}
   \note{Bảng cốt lõi của pha B. Chỉ rõ chế độ B là bằng chứng phản chứng. Năng
   lượng là mức toàn board trên mỗi phán quyết: ở tải này phần công suất tích
   cực nằm dưới ngưỡng nhiễu của tegrastats.}
 \end{frame}
 
-\begin{frame}{KQ6 --- Bất đối xứng tải quan sát được trực tiếp}
-  \begin{columns}[c]
-    \begin{column}{0.63\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{grafana_peak_load.png}
-    \end{column}
-    \begin{column}{0.35\textwidth}
-      Tại đỉnh tải, chế độ tách pipeline:
-      \begin{itemize}
-        \item nút cổng: \good{4,6\% CPU}
-        \item nút phân lớp: \bad{90,8\% CPU}
-      \end{itemize}
-      \vspace{0.5em}
-      Bộ phân lớp chiếm gần như toàn bộ ngân sách tính toán --- chính vì vậy
-      việc đưa nó ra khỏi đường ingest mới mang lại hiệu quả.
-    \end{column}
-  \end{columns}
-  \note{Ảnh chụp Grafana thật, không phải sơ đồ. Hệ thống giám sát thời gian
-  thực: thông lượng, số tấn công phát hiện, độ trễ, CPU/RAM từng nút, cảnh báo
-  lưu trong PostgreSQL.}
-\end{frame}
 
 \begin{frame}{KQ7 --- Cái giá trung thực của việc đồng nhất một stack}
   Luận văn phục vụ suy luận bằng Spark để \emph{đồng nhất với pha huấn luyện
@@ -714,47 +593,39 @@
   \note{Chia rõ hai nhóm đóng góp: phương pháp luận và hệ thống.}
 \end{frame}
 
-\begin{frame}{Hạn chế của đề tài}
-  \begin{itemize}
-    \item \textbf{Phạm vi phân loại.} Triển khai chính là bài toán nhị phân;
-          luận văn đã bổ sung đánh giá đa lớp để phân tích lớp hiếm, nhưng một
-          bộ phân lớp đa lớp hoàn chỉnh cho thời gian thực vẫn còn ở phía trước.
-    \item \textbf{Phạm vi dữ liệu.} CICIDS2017 không chứa lưu lượng IoT đặc thù;
-          thí nghiệm liên bộ dữ liệu mới thực hiện trên \emph{mẫu phân tầng} của
-          CSE-CIC-IDS2018, chưa phải toàn bộ.
-    \item \textbf{Quy mô.} Khía cạnh xử lý phân tán mới được kiểm chứng ở mức
-          \emph{minh chứng khái niệm} trên cụm hai nút 8\,GB với vài triệu
-          luồng, chưa phải quy mô terabyte hay cụm nhiều nút mạnh.
-    \item \textbf{Đối kháng và tài nguyên chưa khai thác.} Chưa kiểm thử trước
-          lưu lượng né tránh (adversarial/evasion); GPU $\approx$67 TOPS còn bỏ
-          trống do pipeline hiện chỉ dùng CPU.
-  \end{itemize}
-  \note{Nêu hạn chế trước khi hội đồng nêu. Mỗi hạn chế có một hướng khắc phục
-  tương ứng ở slide sau.}
+\begin{frame}{Hạn chế và hướng phát triển}
+  \footnotesize
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Hạn chế}
+      \begin{itemize}
+        \item \textbf{Phân loại}: triển khai chính là nhị phân; bộ phân lớp đa lớp
+              thời gian thực chưa hoàn thiện.
+        \item \textbf{Dữ liệu}: CICIDS2017 không có lưu lượng IoT đặc thù; liên bộ
+              dữ liệu mới thử trên \emph{mẫu phân tầng} CSE-CIC-IDS2018.
+        \item \textbf{Quy mô}: phân tán mới ở mức \emph{minh chứng khái niệm} trên
+              cụm 2 nút 8\,GB, chưa phải quy mô terabyte.
+        \item \textbf{Đối kháng}: chưa kiểm thử lưu lượng né tránh; GPU
+              $\approx$67 TOPS còn bỏ trống.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Hướng phát triển} --- tương ứng từng hạn chế
+      \begin{itemize}
+        \item \key{Lớp tấn công hiếm}: xử lý mất cân bằng có chủ đích, focal loss,
+              hạ ngưỡng theo lớp; \key{kiến trúc phân tầng} tận dụng cổng hai tầng;
+              đặc trưng chuỗi thời gian cho beaconing C\&C.
+        \item \key{Dữ liệu IoT chuyên biệt}: Bot-IoT, TON\_IoT, CIC-IoT-2023; mở
+              rộng lên toàn bộ CSE-CIC-IDS2018.
+        \item \key{ONNX/TensorRT} trong pipeline streaming, khai thác GPU Jetson.
+        \item \key{Bền vững đối kháng}: hai bề mặt tấn công mới do cổng tạo ra.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \note{Nêu hạn chế trước khi hội đồng nêu, mỗi hạn chế đi kèm hướng khắc phục
+  tương ứng. Slide dự phòng có bản hướng phát triển chi tiết.}
 \end{frame}
 
-\begin{frame}{Hướng phát triển}
-  \begin{itemize}\small
-    \item \textbf{Cải thiện độ nhạy cho lớp tấn công hiếm.} Xử lý mất cân bằng
-          có chủ đích (undersampling/SMOTE áp dụng \emph{sau} khi chia tập),
-          focal loss, hạ ngưỡng quyết định theo lớp; \key{kiến trúc phân tầng} ---
-          tận dụng chính thiết kế cổng hai tầng: tầng nhị phân ở biên giữ recall
-          tổng, còn bộ định danh loại chỉ huấn luyện trên \emph{luồng tấn công},
-          huấn luyện lại ngoại tuyến mà không đụng hệ thống đang chạy; thêm
-          \key{đặc trưng chuỗi thời gian theo host} cho beaconing C\&C.
-    \item \textbf{Kiểm chứng trên dữ liệu IoT chuyên biệt.} Bot-IoT, TON\_IoT,
-          CIC-IoT-2023; mở rộng thí nghiệm liên bộ dữ liệu lên toàn bộ
-          CSE-CIC-IDS2018.
-    \item \textbf{Tối ưu suy luận biên bằng ONNX/TensorRT.} Tích hợp phiên suy
-          luận ONNX vào pipeline streaming, tăng tốc bằng TensorRT trên GPU
-          Jetson; đo độ trễ đầu cuối đầy đủ.
-    \item \textbf{Bền vững trước tấn công đối kháng.} Đặc biệt hai bề mặt tấn
-          công mới do cổng tạo ra: giả dạng lưu lượng bình thường để vượt cổng,
-          và cố ý tạo sai số tái tạo cao để dồn tải lên nút phân lớp.
-  \end{itemize}
-  \note{Mỗi hướng phát triển ứng với một hạn chế ở slide trước --- đó là cách
-  thể hiện sự làm chủ đề tài.}
-\end{frame}
 
 \begin{frame}{Công trình khoa học từ luận văn}
   \begin{enumerate}
@@ -781,6 +652,156 @@
 
 \begin{frame}[standout]
   Slide dự phòng
+\end{frame}
+
+\begin{frame}{Dự phòng --- Phạm vi, dữ liệu và mô hình mối đe dọa}
+  \begin{columns}[T]
+    \begin{column}{0.45\textwidth}
+      \textbf{Phạm vi}
+      \begin{itemize}\small
+        \item \textbf{Dữ liệu}: CICIDS2017; mở rộng sang CSE-CIC-IDS2018 cho
+              thí nghiệm liên bộ dữ liệu.
+        \item \textbf{Công nghệ}: Spark Core/SQL/Streaming/MLlib; Kafka,
+              PostgreSQL, InfluxDB, Grafana.
+        \item \textbf{Bài toán}: nhị phân Benign/Attack (có bổ sung đánh giá đa
+              lớp theo loại tấn công).
+        \item \textbf{Triển khai}: cụm 2 Jetson Orin Nano Super (8\,GB) $+$ máy
+              chủ điều phối.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.53\textwidth}
+      \begin{alertblock}{Lưu ý trung thực về phạm vi ``IoT''}
+        \footnotesize
+        CICIDS2017 là lưu lượng doanh nghiệp \emph{mô phỏng}, không chứa giao
+        thức đặc thù IoT (MQTT, CoAP). Tính chất ``IoT'' nằm ở \key{kịch bản
+        triển khai}: toàn bộ pipeline suy luận được đo trên \emph{thiết bị biên
+        tài nguyên hạn chế} --- lớp gateway trong kiến trúc IoT ba tầng --- chứ
+        không ở bản chất lưu lượng huấn luyện.
+      \end{alertblock}
+      \begin{block}{Mô hình mối đe dọa}
+        \footnotesize
+        Kẻ tấn công ở bên trong hoặc ở biên mạng; phạm vi giới hạn ở các tấn
+        công đã biết kiểu CICIDS2017. Tấn công đối kháng (adversarial/evasion)
+        \bad{nằm ngoài phạm vi} đánh giá.
+      \end{block}
+    \end{column}
+  \end{columns}
+  \note{Chủ động nêu giới hạn phạm vi IoT trước khi hội đồng hỏi. Đây là câu
+  hỏi phản biện gần như chắc chắn sẽ có.}
+\end{frame}
+
+\begin{frame}{Dự phòng --- Chi tiết tiền xử lý và chống thiên lệch lựa chọn}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Kết quả tiền xử lý (tất định)}
+        \footnotesize
+        \fitwidth{%
+        \begin{tabular}{lr}
+          Nhóm nhãn mâu thuẫn bị loại & 270 nhóm \\
+          Số dòng bị loại theo         & 44.260 \\
+          Đặc trưng số còn lại         & 77 \\
+          Huấn luyện / kiểm tra        & 1,79\,tr / 0,45\,tr \\
+        \end{tabular}
+        }
+      \end{block}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{exampleblock}{Chống thiên lệch lựa chọn}
+        \footnotesize
+        \begin{itemize}
+          \item Tách \emph{pha thăm dò} (quét $K$) khỏi \emph{pha xác nhận} ---
+                4 cấu hình cố định \emph{trước} khi xem kết quả.
+          \item Mô hình đại diện chọn theo F1 trên \key{tập kiểm định} tách từ tập
+                huấn luyện.
+          \item Tập kiểm tra \bad{không tham gia} bất kỳ bước lựa chọn nào.
+          \item Siêu tham số cố định, dùng chung cho mọi phương pháp.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+  \vspace{0.3em}
+  \footnotesize
+  Nhóm luồng giống hệt nhau trên mọi cột đặc trưng nhưng có \emph{nhãn xung đột}
+  (Benign và Attack --- lỗi đã ghi nhận của CICIDS2017) bị loại bỏ \bad{toàn bộ
+  nhóm}, thay vì giữ lại một dòng tùy theo cách Spark phân vùng dữ liệu; nhờ vậy
+  kết quả khử trùng lặp là tất định và tái lập được.
+\end{frame}
+
+\begin{frame}{Dự phòng --- Ba chế độ triển khai và môi trường đo}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \begin{description}
+        \item[Đơn nút] toàn bộ pipeline trong một tiến trình --- mốc tham chiếu.
+        \item[A: Tách pipeline] cổng trên \#1, phân lớp trên \#2
+              (\key{thiết kế đề xuất}).
+        \item[B: Mở rộng ngang] cả hai nút chạy \emph{vai trò đầy đủ}, chia tải
+              qua Kafka consumer group.
+        \item[C: Cụm Spark] máy chủ làm master, hai Jetson làm worker.
+      \end{description}
+      \vspace{0.3em}
+      \footnotesize Thông lượng tính theo \key{số phán quyết cuối cùng/giây}
+      --- luồng được quyết định tại cổng \emph{hoặc} tại bộ phân lớp --- nên
+      luồng chuyển tiếp không bị đếm hai lần.
+    \end{column}
+    \begin{column}{0.43\textwidth}
+      \begin{block}{Môi trường thực nghiệm}
+        \footnotesize
+        2$\times$ Jetson Orin Nano Super: CPU 6 nhân Arm Cortex-A78AE, GPU
+        Ampere $\approx$67 TOPS, 8\,GB LPDDR5, SSD NVMe 256\,GB.\\[0.3em]
+        PySpark 3.4.1, Kafka 3.5, LAN Wi-Fi.\\[0.3em]
+        Tải: phát lại CICIDS2017 ở 100 luồng/giây.\\[0.3em]
+        $\geq$3 lần lặp; lưu lượng khởi động \emph{loại khỏi} cửa sổ đo.\\[0.3em]
+        Năng lượng: \texttt{tegrastats}, trừ nền idle.
+      \end{block}
+    \end{column}
+  \end{columns}
+  \note{Định nghĩa ``phán quyết/giây'' là điểm mấu chốt để so sánh công bằng
+  giữa các chế độ.}
+\end{frame}
+
+\begin{frame}{Dự phòng --- Bất đối xứng tải lúc đỉnh tải (Grafana)}
+  \begin{columns}[c]
+    \begin{column}{0.63\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{grafana_peak_load.png}
+    \end{column}
+    \begin{column}{0.35\textwidth}
+      Tại đỉnh tải, chế độ tách pipeline:
+      \begin{itemize}
+        \item nút cổng: \good{4,6\% CPU}
+        \item nút phân lớp: \bad{90,8\% CPU}
+      \end{itemize}
+      \vspace{0.5em}
+      Bộ phân lớp chiếm gần như toàn bộ ngân sách tính toán --- chính vì vậy
+      việc đưa nó ra khỏi đường ingest mới mang lại hiệu quả.
+    \end{column}
+  \end{columns}
+  \note{Ảnh chụp Grafana thật, không phải sơ đồ. Hệ thống giám sát thời gian
+  thực: thông lượng, số tấn công phát hiện, độ trễ, CPU/RAM từng nút, cảnh báo
+  lưu trong PostgreSQL.}
+\end{frame}
+
+\begin{frame}{Dự phòng --- Hướng phát triển chi tiết}
+  \begin{itemize}\small
+    \item \textbf{Cải thiện độ nhạy cho lớp tấn công hiếm.} Xử lý mất cân bằng
+          có chủ đích (undersampling/SMOTE áp dụng \emph{sau} khi chia tập),
+          focal loss, hạ ngưỡng quyết định theo lớp; \key{kiến trúc phân tầng} ---
+          tận dụng chính thiết kế cổng hai tầng: tầng nhị phân ở biên giữ recall
+          tổng, còn bộ định danh loại chỉ huấn luyện trên \emph{luồng tấn công},
+          huấn luyện lại ngoại tuyến mà không đụng hệ thống đang chạy; thêm
+          \key{đặc trưng chuỗi thời gian theo host} cho beaconing C\&C.
+    \item \textbf{Kiểm chứng trên dữ liệu IoT chuyên biệt.} Bot-IoT, TON\_IoT,
+          CIC-IoT-2023; mở rộng thí nghiệm liên bộ dữ liệu lên toàn bộ
+          CSE-CIC-IDS2018.
+    \item \textbf{Tối ưu suy luận biên bằng ONNX/TensorRT.} Tích hợp phiên suy
+          luận ONNX vào pipeline streaming, tăng tốc bằng TensorRT trên GPU
+          Jetson; đo độ trễ đầu cuối đầy đủ.
+    \item \textbf{Bền vững trước tấn công đối kháng.} Đặc biệt hai bề mặt tấn
+          công mới do cổng tạo ra: giả dạng lưu lượng bình thường để vượt cổng,
+          và cố ý tạo sai số tái tạo cao để dồn tải lên nút phân lớp.
+  \end{itemize}
+  \note{Mỗi hướng phát triển ứng với một hạn chế ở slide trước --- đó là cách
+  thể hiện sự làm chủ đề tài.}
 \end{frame}
 
 \begin{frame}{Dự phòng --- Siêu tham số cố định trước (a priori)}
