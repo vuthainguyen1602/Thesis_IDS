@@ -4,9 +4,9 @@ Three Beamer decks built from the same results as the manuscripts and the thesis
 
 | Deck | Language | Length | Output PDF |
 |---|---|---|---|
-| `soict2026/` | English | 7 min (8 slides + 5 backup) | `output/pdfs/SOICT2026_slides.pdf` |
-| `fair2026/` | English | 7 min (8 slides + 5 backup) | `output/pdfs/FAIR2026_slides.pdf` |
-| `defense/` | Vietnamese | 15 min (16 slides + 12 dự phòng) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
+| `soict2026/` | English | 7 min (8 slides + 3 section pages + 5 backup) | `output/pdfs/SOICT2026_slides.pdf` |
+| `fair2026/` | English | 7 min (8 slides + 3 section pages + 5 backup) | `output/pdfs/FAIR2026_slides.pdf` |
+| `defense/` | Vietnamese | 15 min (16 slides + 5 section pages + 12 dự phòng) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
 
 ## Building
 
@@ -62,8 +62,10 @@ overflows the line.
 
 ## Slide numbering and backup navigation
 
-Backup slides sit after `\appendix`, so the footer fraction counts only the
-talk itself (e.g. `5/8`) — the backup slides do not inflate the denominator.
+Backup slides sit after `\appendix` and section pages are `noframenumbering`,
+so the footer fraction counts only the talk itself (e.g. `5/8`) — neither
+inflates the denominator. Section titles are Roman-numbered and upper-case in
+all three decks.
 
 The defense deck opens its backup section with a **clickable index** keyed by
 the question a committee member is likely to ask, so the right slide is one

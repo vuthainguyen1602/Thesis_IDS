@@ -78,11 +78,11 @@
 \renewcommand{\arraystretch}{1.15}
 
 % ---------------------------------------------------------------------
-% Opt-in: centre the title page and the section pages.
-% Metropolis left-aligns both (\raggedright inside its templates), which
-% suits a conference talk but not the formal look expected of a thesis
-% defence. Call \centeredtitles in a deck's preamble to switch it over;
-% the decks that do not call it keep the stock metropolis alignment.
+% Centre the title page and the section pages. Metropolis left-aligns both
+% (\raggedright inside its templates); all three decks here want them
+% centred, so each calls \centeredtitles right after loading this file.
+% It stays a macro rather than an unconditional override so a future deck
+% can keep the stock metropolis alignment by simply not calling it.
 % ---------------------------------------------------------------------
 \newcommand{\centeredtitles}{%
   \setbeamertemplate{title}{%

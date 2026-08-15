@@ -3,21 +3,18 @@
 % Paper: papers/fair2026/manuscript/main_en.tex
 % Compile: ./compile.sh   (XeLaTeX; notes version via NOTES=1 ./compile.sh)
 %
-% TIMING PLAN (7:00 total, ~30 s buffer)
-%   1 Title .................. 0:20
-%   2 The suspicious number .. 0:50
-%   3 Contributions .......... 0:35
-%   4 Leakage-aware pipeline . 0:55
-%   5 Method comparison ...... 1:00
-%   6 Statistical testing .... 0:40
-%   7 Multiclass truth ....... 0:55
-%   8 Cross-dataset collapse . 0:55
-%   9 Conclusion ............. 0:40
+% TIMING PLAN (7:00 total, ~30 s buffer). Three section pages sit between
+% the parts; they are not frame-numbered and cost ~5 s each to click past.
+%   Title .......................... 0:20
+%   I   Problem, contributions ..... 1:25   (2 slides)
+%   II  Leakage-aware pipeline ..... 0:55   (1 slide)
+%   III Results, conclusion ........ 3:50   (5 slides)
 % Slides 10+ are BACKUP for Q&A and are not part of the 7 minutes.
 % Speaker notes live in \note{} — build them with NOTES=1.
 % =====================================================================
 \documentclass[aspectratio=169, 11pt]{beamer}
 \input{../common/preamble.tex}
+\centeredtitles
 
 \graphicspath{%
   {../../results/ml_07_cross_method_comparison/}%
@@ -44,6 +41,10 @@
 usually a property of the evaluation pipeline, not of the model.}
 
 % ---------------------------------------------------------------- 0:50
+% =====================================================================
+\section{I.\ PROBLEM AND CONTRIBUTIONS}
+% =====================================================================
+
 \begin{frame}{A near-perfect F1 on CICIDS2017 is a warning sign}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
@@ -99,6 +100,10 @@ usually a property of the evaluation pipeline, not of the model.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:55
+% =====================================================================
+\section{II.\ LEAKAGE-AWARE PIPELINE}
+% =====================================================================
+
 \begin{frame}{The leakage-aware pipeline}
   \begin{columns}[c]
     \begin{column}{0.5\textwidth}
@@ -146,6 +151,10 @@ usually a property of the evaluation pipeline, not of the model.}
 \end{frame}
 
 % ---------------------------------------------------------------- 1:00
+% =====================================================================
+\section{III.\ RESULTS AND CONCLUSION}
+% =====================================================================
+
 \begin{frame}{Result 1: 60\% of the features are removable}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}

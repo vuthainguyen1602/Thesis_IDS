@@ -3,21 +3,18 @@
 % Paper: papers/soict2026/manuscript/main.tex
 % Compile: ./compile.sh   (XeLaTeX; notes version via NOTES=1 ./compile.sh)
 %
-% TIMING PLAN (7:00 total, ~30 s buffer)
-%   1 Title .................. 0:20
-%   2 Problem ................ 0:50
-%   3 Contributions .......... 0:35
-%   4 Architecture ........... 1:00
-%   5 Deployment modes ....... 0:40
-%   6 Main results ........... 1:20
-%   7 Load asymmetry ......... 0:35
-%   8 Cost of the stack ...... 0:45
-%   9 Conclusion ............. 0:40
+% TIMING PLAN (7:00 total, ~30 s buffer). Three section pages sit between
+% the parts; they are not frame-numbered and cost ~5 s each to click past.
+%   Title .......................... 0:20
+%   I   Problem, contributions ..... 1:25   (2 slides)
+%   II  Architecture, modes ........ 1:40   (2 slides)
+%   III Results, conclusion ........ 3:20   (4 slides)
 % Slides 10+ are BACKUP for Q&A and are not part of the 7 minutes.
 % Speaker notes live in \note{} — build them with NOTES=1.
 % =====================================================================
 \documentclass[aspectratio=169, 11pt]{beamer}
 \input{../common/preamble.tex}
+\centeredtitles
 
 \graphicspath{%
   {../../papers/soict2026/results/benchmarks/}%
@@ -42,6 +39,10 @@ when you split an ML intrusion detector across two Jetson Orin Nano Super
 devices. Seven minutes, three results.}
 
 % ---------------------------------------------------------------- 0:50
+% =====================================================================
+\section{I.\ PROBLEM AND CONTRIBUTIONS}
+% =====================================================================
+
 \begin{frame}{Edge intrusion detection: three open gaps}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
@@ -90,6 +91,10 @@ devices. Seven minutes, three results.}
 \end{frame}
 
 % ---------------------------------------------------------------- 1:00
+% =====================================================================
+\section{II.\ SYSTEM AND EVALUATION SETUP}
+% =====================================================================
+
 \begin{frame}{Split-deployment architecture}
   \centering
   \resizebox{0.80\textwidth}{!}{%
@@ -157,6 +162,10 @@ devices. Seven minutes, three results.}
 \end{frame}
 
 % ---------------------------------------------------------------- 1:20
+% =====================================================================
+\section{III.\ RESULTS AND CONCLUSION}
+% =====================================================================
+
 \begin{frame}{Result 1: splitting the pipeline buys 24$\times$ throughput}
   \centering
   \small
