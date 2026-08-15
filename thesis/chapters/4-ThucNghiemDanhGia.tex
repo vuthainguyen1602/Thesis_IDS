@@ -633,7 +633,7 @@ Random Forest    & 0{,}9826 & 0{,}9947 & 687{,}3 & 4{,}427 \\
 \end{tabular*}
 \end{table}
 
-Về tiêu chí \emph{nhận biết ràng buộc biên} (edge-aware), Decision Tree có kích thước mô hình nhỏ nhất (0,046 MB), nhỏ hơn Random Forest khoảng 96 lần và thời gian huấn luyện nhanh hơn khoảng 28 lần; F1/Accuracy cần được cân nhắc cùng các chỉ số chi phí này để chọn mô hình triển khai. (Các mô hình ứng viên biên được huấn luyện trên mẫu con phân tầng khi xuất để vừa bộ nhớ một nút, nên F1 thấp hơn chút ít so với kết quả huấn luyện phân tán đầy đủ ở Bảng~\ref{tab:summary_comparison}; độ chính xác chính thức lấy từ pha huấn luyện đầy đủ.)
+Về tiêu chí \emph{nhận biết ràng buộc biên} (edge-aware), ba mô hình ứng viên đánh đổi khác nhau: Decision Tree có kích thước nhỏ nhất (0,046\,MB, nhỏ hơn Random Forest khoảng 96 lần) và huấn luyện nhanh hơn khoảng 28 lần, trong khi Random Forest đạt F1 cao nhất. Riêng F1/Accuracy chưa đủ để kết luận: quyết định cuối cùng dựa trên số đo vận hành thực tế trên thiết bị (thông lượng, độ trễ, CPU, RAM) ở mục tiếp theo. (Các mô hình ứng viên biên được huấn luyện trên mẫu con phân tầng khi xuất để vừa bộ nhớ một nút, nên F1 thấp hơn chút ít so với kết quả huấn luyện phân tán đầy đủ ở Bảng~\ref{tab:summary_comparison}; độ chính xác chính thức lấy từ pha huấn luyện đầy đủ.)
 
 
 \subsection{Kết quả đo hiệu năng (benchmark) trên Jetson Orin Nano Super}
@@ -722,12 +722,12 @@ Hình~\ref{fig:benchmark_comparison} minh họa trực quan sự khác biệt gi
 Kết quả benchmark cho thấy sự đánh đổi rõ ràng giữa các chỉ số:
 
 \begin{itemize}
-    \item \textbf{Random Forest} đạt thông lượng cao nhất (26{,}8 mẫu/giây) nhờ Spark tối ưu hóa song song trên nhiều cây, nhưng sử dụng RAM nhiều nhất (27{,}5\%) và kích thước mô hình lớn nhất ($\approx$4{,}4\,MB).
+    \item \textbf{Random Forest} thắng ở cả ba chỉ số vận hành quan trọng nhất với phát hiện xâm nhập thời gian thực: thông lượng cao nhất (26{,}8 mẫu/giây), độ trễ p95 thấp nhất (397\,ms) và CPU thấp nhất (35{,}2\%), nhờ Spark song song hóa tốt trên nhiều cây. Cái giá phải trả là RAM cao nhất (27{,}5\%) và mô hình lớn nhất ($\approx$4{,}4\,MB).
     \item \textbf{\ac{gbt}} có hiệu năng trung bình ở tất cả các chỉ số, đóng vai trò cầu nối giữa Decision Tree và Random Forest.
-    \item \textbf{Decision Tree} có F1-Score 0{,}9948 (SHAP Top-30, ngoại tuyến), sử dụng RAM thấp nhất (21{,}9\%), và mô hình có kích thước rất nhỏ ($\approx$0{,}05\,MB). Mặc dù thông lượng thấp nhất (22{,}0 mẫu/giây), giá trị này vẫn đáp ứng yêu cầu giám sát thời gian thực cho mạng quy mô vừa và nhỏ.
+    \item \textbf{Decision Tree} nhẹ nhất về bộ nhớ (RAM 21{,}9\%, mô hình $\approx$0{,}05\,MB) nhưng chậm nhất: thông lượng 22{,}0 mẫu/giây và độ trễ p95 537\,ms, cao hơn Random Forest khoảng 35\%.
 \end{itemize}
 
-Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữa các tiêu chí lựa chọn mô hình. Decision Tree chiếm ưu thế ở hai tiêu chí quan trọng nhất cho thiết bị biên: RAM thấp và kích thước mô hình nhỏ.
+Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữa các tiêu chí lựa chọn mô hình: Decision Tree chiếm ưu thế về bộ nhớ, còn Random Forest chiếm ưu thế về tốc độ xử lý và tải CPU.
 
 \begin{figure}[htbp]
     \centering
@@ -736,17 +736,19 @@ Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữ
     \label{fig:model_tradeoff}
 \end{figure}
 
-\textbf{Decision Tree được chọn} làm mô hình triển khai chính trên thiết bị biên dựa trên ba tiêu chí:
+\textbf{Random Forest được chọn} làm mô hình triển khai chính trên thiết bị biên dựa trên ba tiêu chí:
 \begin{enumerate}
-    \item \textbf{Chất lượng phát hiện}: F1-Score 0{,}9948 -- với tập đặc trưng SHAP Top-30 đã được lựa chọn (đã loại trừ rò rỉ), một cây quyết định đơn lẻ vẫn nắm bắt được các mẫu phân loại, chỉ kém Random Forest 0{,}0007 điểm F1.
-    \item \textbf{Hiệu quả tài nguyên}: Chỉ sử dụng 21{,}9\% RAM, giảm áp lực lên garbage collector của JVM và đảm bảo tính ổn định lâu dài trên thiết bị giới hạn tài nguyên.
-    \item \textbf{Tính khả chuyển}: Kích thước mô hình $\approx$0{,}05\,MB cho phép triển khai trên các thiết bị IoT có bộ nhớ hạn chế hơn.
+    \item \textbf{Năng lực xử lý thời gian thực}: thông lượng cao nhất (26{,}8 mẫu/giây) và độ trễ p95 thấp nhất (397\,ms). Với \ac{ids}, độ trễ phán quyết là ràng buộc trực tiếp --- một mô hình nhỏ nhưng chậm hơn 35\% về p95 sẽ kéo dài cửa sổ mà tấn công chưa bị chặn.
+    \item \textbf{Chất lượng phát hiện}: cao nhất trong ba mô hình ứng viên ở \emph{cả hai} phép đo --- F1 0{,}9955 trên đánh giá ngoại tuyến đầy đủ (Bảng~\ref{tab:summary_comparison}) và 0{,}9826 ở bản xuất huấn luyện trên mẫu con để vừa bộ nhớ một nút (Bảng~\ref{tab:edge_training}).
+    \item \textbf{Tương thích nền tảng}: Random Forest là estimator gốc của Spark ML nên \texttt{PipelineModel} xuất ra nạp được trực tiếp trên board ARM64, không cần các thư viện native mà tích hợp \ac{xgb} của Spark đòi hỏi.
 \end{enumerate}
+
+Đánh đổi được chấp nhận là mức tiêu thụ bộ nhớ: Random Forest dùng 27{,}5\% RAM so với 21{,}9\% của Decision Tree và mô hình nặng $\approx$4{,}4\,MB so với 0{,}05\,MB. Trên board 8\,GB, khoảng chênh này còn dư địa lớn, nên bộ nhớ không phải là ràng buộc quyết định; Decision Tree vẫn là phương án dự phòng hợp lý nếu triển khai xuống các thiết bị \ac{iot} eo hẹp bộ nhớ hơn.
 
 \section{Thảo luận và So sánh tổng hợp}
 Kết quả thực nghiệm cho thấy lựa chọn đặc trưng dựa trên \ac{shap} là hướng tiếp cận phù hợp cho hệ thống \ac{ids} trên bộ dữ liệu CICIDS2017: dưới cấu hình đánh giá loại trừ rò rỉ dữ liệu, \ac{shap} Top-30 giữ được hiệu năng gần như nguyên vẹn trong khi cắt khoảng 60\% số đặc trưng. Ngược lại, học tổ hợp \emph{không} mang lại lợi thế trên chính cấu hình này: Hybrid Bagging đạt F1 0{,}9966 và Soft Voting đạt 0{,}9967, đều \emph{thấp hơn} \ac{xgb} đơn lẻ (0{,}9970). Học tổ hợp chỉ vượt mô hình đơn ở những cấu hình mà mô hình đơn yếu hơn (\ac{rf} Top-30: 0{,}9938 so với 0{,}9922; \ac{pca} $k$=40: 0{,}9940 so với 0{,}9939), nghĩa là nó \emph{bù cho bộ đặc trưng kém} chứ không tạo thêm năng lực phân loại. Chi phí đi kèm lại lớn: trên \ac{shap} Top-30, Hybrid Bagging cần 4909\,giây huấn luyện (so với 1226\,giây của \ac{xgb}), 46{,}6\,giây dự đoán (so với 7{,}1\,giây) và mô hình nặng 7{,}15\,MB --- lớn nhất trong tất cả các cấu hình đã thử. Vì vậy cấu hình được chọn để triển khai lên thiết bị biên là một \emph{mô hình đơn} trên tập đặc trưng \ac{shap} Top-30, không phải mô hình học tổ hợp.
 
-Đặc biệt, khi triển khai trên thiết bị biên Jetson Orin Nano Super, Decision Tree với SHAP Top-30 đặc trưng đạt F1-Score 0{,}9948 ngoại tuyến (đã loại trừ rò rỉ; bản mô hình xuất ra trên thiết bị, huấn luyện trên mẫu phân tầng 20\%, đạt 0{,}981), thông lượng 22{,}0 mẫu/giây, và sử dụng 21{,}9\% RAM. Các số liệu này cho phép đánh giá tính khả thi của việc triển khai hệ thống IDS dựa trên học máy trên các thiết bị biên có tài nguyên giới hạn, mở ra hướng ứng dụng thực tế cho giám sát an ninh mạng phân tán.
+Đặc biệt, khi triển khai trên thiết bị biên Jetson Orin Nano Super, Random Forest với SHAP Top-30 đặc trưng đạt F1-Score 0{,}9955 ngoại tuyến (đã loại trừ rò rỉ), thông lượng 26{,}8 mẫu/giây, độ trễ p95 397\,ms và sử dụng 27{,}5\% RAM. Các số liệu này cho phép đánh giá tính khả thi của việc triển khai hệ thống IDS dựa trên học máy trên các thiết bị biên có tài nguyên giới hạn, mở ra hướng ứng dụng thực tế cho giám sát an ninh mạng phân tán.
 
 
 
