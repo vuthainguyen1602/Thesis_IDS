@@ -50,8 +50,15 @@ show up in the rendered PDF:
   entry (~15.6 pt, metropolis' own title block, harmless). Anything above
   ~11 pt on a content frame needs a line or two cut.
 
+- **An image constrained only by `height` can still be wider than the text
+  block** and stick out sideways. Every `\includegraphics` here passes both
+  `height` and `width=\textwidth` with `keepaspectratio`.
+
 Also note that a `tabular` leaves TeX in horizontal mode: text placed after it
-without an explicit `\par` is typeset *beside* the table, not below it.
+without an explicit `\par` is typeset *beside* the table, not below it. And
+Vietnamese offers few hyphenation points, so the preamble sets
+`\emergencystretch` — without it a long run of words fails to break and
+overflows the line.
 
 ## Slide numbering and backup navigation
 

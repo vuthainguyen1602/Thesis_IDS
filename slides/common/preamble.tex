@@ -67,6 +67,11 @@
 \setbeamercolor{itemize item}{fg=accBlue}
 \setbeamercolor{itemize subitem}{fg=accBlue!70}
 
+% Vietnamese has few hyphenation points, so a long run of words can fail to
+% break and stick out past the text block. Allow looser interword glue as a
+% last resort instead of an overfull line.
+\setlength{\emergencystretch}{2em}
+
 % Tables: booktabs rules look thin on a projector.
 \setlength{\heavyrulewidth}{1.1pt}
 \setlength{\lightrulewidth}{0.6pt}

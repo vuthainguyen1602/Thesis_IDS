@@ -765,12 +765,11 @@
       \end{exampleblock}
     \end{column}
   \end{columns}
-  \vspace{0.3em}
+  \vspace{0.2em}
   \footnotesize
-  Nhóm luồng giống hệt nhau trên mọi cột đặc trưng nhưng có \emph{nhãn xung đột}
-  (Benign và Attack --- lỗi đã ghi nhận của CICIDS2017) bị loại bỏ \bad{toàn bộ
-  nhóm}, thay vì giữ lại một dòng tùy theo cách Spark phân vùng dữ liệu; nhờ vậy
-  kết quả khử trùng lặp là tất định và tái lập được.
+  Nhóm luồng giống hệt nhau trên mọi cột đặc trưng nhưng \emph{nhãn xung đột}
+  (lỗi đã ghi nhận của CICIDS2017) bị loại \bad{cả nhóm}, thay vì giữ lại một
+  dòng tùy cách Spark phân vùng --- nhờ vậy kết quả là tất định, tái lập được.
 \end{frame}
 
 \begin{frame}[label=bk-modes]{Dự phòng --- Ba chế độ triển khai và môi trường đo}
@@ -899,7 +898,7 @@
 \begin{frame}[label=bk-heatmap]{Dự phòng --- Bản đồ nhiệt F1: phương pháp $\times$ thuật toán}
   \centering
   \IfFileExists{../../results/ml_07_cross_method_comparison/f1_heatmap.png}
-    {\includegraphics[height=0.74\textheight]{f1_heatmap.png}}
+    {\includegraphics[height=0.74\textheight, width=\textwidth, keepaspectratio]{f1_heatmap.png}}
     {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}\texttt{f1\_heatmap.png}\vspace{1.5cm}}}}
   \\[0.2em]\footnotesize Nhị phân, đã loại đặc trưng cổng. 8 thuật toán $\times$ 4 phương pháp.
 \end{frame}
@@ -907,7 +906,7 @@
 \begin{frame}[label=bk-gate]{Dự phòng --- Cổng bất thường là một \emph{đường cong vận hành}}
   \centering
   \IfFileExists{../../results/ml_08_anomaly_gate/gate_operating_points.png}
-    {\includegraphics[height=0.68\textheight]{gate_operating_points.png}}
+    {\includegraphics[height=0.68\textheight, width=\textwidth, keepaspectratio]{gate_operating_points.png}}
     {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}\texttt{gate\_operating\_points.png}\vspace{1.5cm}}}}
   \\[0.2em]\footnotesize
   Recall tấn công (trái) và tỷ lệ báo động giả (phải) theo tỷ lệ bỏ qua tại

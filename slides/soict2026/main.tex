@@ -294,7 +294,7 @@ devices. Seven minutes, three results.}
 \begin{frame}{Backup: deployment-mode comparison chart}
   \centering
   \IfFileExists{../../papers/soict2026/results/benchmarks/edge_modes.png}
-    {\includegraphics[height=0.72\textheight]{edge_modes.png}}
+    {\includegraphics[height=0.72\textheight, width=\textwidth, keepaspectratio]{edge_modes.png}}
     {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
       \texttt{edge\_modes.png} --- run \texttt{plot\_edge\_modes.py}\vspace{1.5cm}}}}
   \\[0.2em]
@@ -304,7 +304,7 @@ devices. Seven minutes, three results.}
 \begin{frame}{Backup: the gate is an operating curve, not a point}
   \centering
   \IfFileExists{../../results/ml_08_anomaly_gate/gate_operating_points.png}
-    {\includegraphics[height=0.68\textheight]{gate_operating_points.png}}
+    {\includegraphics[height=0.68\textheight, width=\textwidth, keepaspectratio]{gate_operating_points.png}}
     {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
       \texttt{gate\_operating\_points.png}\vspace{1.5cm}}}}
   \\[0.2em]
@@ -339,7 +339,7 @@ devices. Seven minutes, three results.}
 
 \begin{frame}{Backup: full monitoring dashboard}
   \centering
-  \includegraphics[height=0.70\textheight]{grafana_dashboard.png}
+  \includegraphics[height=0.70\textheight, width=\textwidth, keepaspectratio]{grafana_dashboard.png}
   \\[0.2em]
   \footnotesize Per-node throughput, detected attacks, inference latency,
   CPU/RAM for both boards, PostgreSQL-backed alerts.
