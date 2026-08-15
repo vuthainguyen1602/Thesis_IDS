@@ -648,10 +648,10 @@
            familyi={M\bibinitperiod\bibinitdelim K\bibinitperiod\bibinitdelim K\bibinitperiod},
            given={Kotyada},
            giveni={K\bibinitperiod}}}%
-        {{hash=d49002c631c30c957b2fe589e783c1bb}{%
-           family={Vivek\bibnamedelimb Srikar\bibnamedelima Reddy},
-           familyi={V\bibinitperiod\bibinitdelim S\bibinitperiod\bibinitdelim R\bibinitperiod},
-           given={M.},
+        {{hash=84b3d818efcdce7c4648792a10660f3a}{%
+           family={Sreekar},
+           familyi={S\bibinitperiod},
+           given={Mokshith},
            giveni={M\bibinitperiod}}}%
         {{hash=708b67f35926bc0ac365e3f35d73706c}{%
            family={Ullas},
@@ -668,13 +668,13 @@
         {IEEE}%
       }
       \strng{namehash}{9bbdc4061785d707257d4565089db8e7}
-      \strng{fullhash}{f6872252b12d77e47a12c56684ce1cd0}
-      \strng{fullhashraw}{f6872252b12d77e47a12c56684ce1cd0}
-      \strng{bibnamehash}{f6872252b12d77e47a12c56684ce1cd0}
-      \strng{authorbibnamehash}{f6872252b12d77e47a12c56684ce1cd0}
+      \strng{fullhash}{c94db382bcff5af769e0fc1cc21dfe40}
+      \strng{fullhashraw}{c94db382bcff5af769e0fc1cc21dfe40}
+      \strng{bibnamehash}{c94db382bcff5af769e0fc1cc21dfe40}
+      \strng{authorbibnamehash}{c94db382bcff5af769e0fc1cc21dfe40}
       \strng{authornamehash}{9bbdc4061785d707257d4565089db8e7}
-      \strng{authorfullhash}{f6872252b12d77e47a12c56684ce1cd0}
-      \strng{authorfullhashraw}{f6872252b12d77e47a12c56684ce1cd0}
+      \strng{authorfullhash}{c94db382bcff5af769e0fc1cc21dfe40}
+      \strng{authorfullhashraw}{c94db382bcff5af769e0fc1cc21dfe40}
       \field{sortinit}{9}
       \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
       \field{labelnamesource}{author}
@@ -1039,7 +1039,7 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{howpublished}{\url{https://arxiv.org/abs/2509.15555}}
-      \field{note}{arXiv}
+      \field{note}{arXiv:2509.15555}
       \field{title}{Hybrid deep learning--federated learning powered intrusion detection system for IoT/5G advanced edge computing network}
       \field{year}{2025}
     \endentry
@@ -2345,6 +2345,9 @@
       \field{year}{2025}
       \field{pages}{104510}
       \range{pages}{1}
+      \verb{doi}
+      \verb 10.1016/j.cose.2025.104510
+      \endverb
     \endentry
     \entry{sharafaldin2018toward}{inproceedings}{}{}
       \name{author}{3}{}{%
@@ -2732,10 +2735,10 @@
     \endentry
     \entry{cantone2024crossdataset}{article}{}{}
       \name{author}{3}{}{%
-        {{hash=a16ced7f6ec31b3840af1ad48f7ed907}{%
+        {{hash=1eafb1eb60df4ad6c53268408115c85c}{%
            family={Cantone},
            familyi={C\bibinitperiod},
-           given={Marta},
+           given={Marco},
            giveni={M\bibinitperiod}}}%
         {{hash=f586bf7d03be8e1885c64bc8c53cf857}{%
            family={Marrocco},
@@ -2748,14 +2751,14 @@
            given={Alessandro},
            giveni={A\bibinitperiod}}}%
       }
-      \strng{namehash}{d604d8a750d181e246a8fb5f13b231cf}
-      \strng{fullhash}{b9a98cbae9e91eb4bad7b20143f21b79}
-      \strng{fullhashraw}{b9a98cbae9e91eb4bad7b20143f21b79}
-      \strng{bibnamehash}{b9a98cbae9e91eb4bad7b20143f21b79}
-      \strng{authorbibnamehash}{b9a98cbae9e91eb4bad7b20143f21b79}
-      \strng{authornamehash}{d604d8a750d181e246a8fb5f13b231cf}
-      \strng{authorfullhash}{b9a98cbae9e91eb4bad7b20143f21b79}
-      \strng{authorfullhashraw}{b9a98cbae9e91eb4bad7b20143f21b79}
+      \strng{namehash}{2f4118a4bf1111aefc6da3f38df55328}
+      \strng{fullhash}{690f27d803abbab36a529592c0ddb6b8}
+      \strng{fullhashraw}{690f27d803abbab36a529592c0ddb6b8}
+      \strng{bibnamehash}{690f27d803abbab36a529592c0ddb6b8}
+      \strng{authorbibnamehash}{690f27d803abbab36a529592c0ddb6b8}
+      \strng{authornamehash}{2f4118a4bf1111aefc6da3f38df55328}
+      \strng{authorfullhash}{690f27d803abbab36a529592c0ddb6b8}
+      \strng{authorfullhashraw}{690f27d803abbab36a529592c0ddb6b8}
       \field{sortinit}{5}
       \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
@@ -2764,6 +2767,11 @@
       \field{title}{Machine Learning in Network Intrusion Detection: A Cross-Dataset Generalization Study}
       \field{volume}{12}
       \field{year}{2024}
+      \field{pages}{144489\bibrangedash 144508}
+      \range{pages}{20}
+      \verb{doi}
+      \verb 10.1109/ACCESS.2024.3472907
+      \endverb
     \endentry
     \entry{sarhan2022explainable}{article}{}{}
       \name{author}{3}{}{%

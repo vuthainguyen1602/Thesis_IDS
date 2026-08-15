@@ -90,10 +90,10 @@ Meng, X., Bradley, J., Yavuz, B., Sparks, E., Venkataraman, S., Liu, D.,
   Spark}. Journal of Machine Learning Research  \textbf{17}(34), ~1--7 (2016)
 
 \bibitem{kumar2025kafkaspark}
-Mohan Kiran~Kumar, K., Vivek Srikar~Reddy, M., Ullas, K., Supriya, M.:
-  Distributed intrusion detection system using {Kafka} and {Spark} streaming.
-  In: 2025 International Conference on Visual Analytics and Data Visualization
-  (ICVADV). pp. 302--309. IEEE (2025). \doi{10.1109/ICVADV63329.2025.10961691}
+Mohan Kiran~Kumar, K., Sreekar, M., Ullas, K., Supriya, M.: Distributed
+  intrusion detection system using {Kafka} and {Spark} streaming. In: 2025
+  International Conference on Visual Analytics and Data Visualization (ICVADV).
+  pp. 302--309. IEEE (2025). \doi{10.1109/ICVADV63329.2025.10961691}
 
 \bibitem{asghar2026hedid}
 Nasir, K., Badri, S.K., Alghazzawi, D.M., Alghamdi, M.Y., Alkhozae, M.,
