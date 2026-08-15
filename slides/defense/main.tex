@@ -1,6 +1,6 @@
 % =====================================================================
 % Slide bảo vệ LUẬN VĂN THẠC SĨ (tiếng Việt)
-% Nguồn: thesis/ + hai bản thảo papers/fair2026 (offline ML) và
+% Nguồn: thesis/ + hai bài báo papers/fair2026 (offline ML) và
 %        papers/soict2026 (triển khai biên phân tán)
 % Biên dịch: ./compile.sh   (XeLaTeX; bản có ghi chú: NOTES=1 ./compile.sh)
 %
@@ -66,17 +66,18 @@
       \end{enumerate}
     \end{column}
     \begin{column}{0.50\textwidth}
-      \begin{block}{Luận văn được phát triển thành 2 bản thảo}
+      \begin{block}{Luận văn đã công bố 2 bài báo khoa học}
         \footnotesize
         \textbf{FAIR 2026} --- so sánh các chiến lược giảm chiều dưới quy trình
         đánh giá loại trừ rò rỉ (phần kết quả offline).\\[0.4em]
         \textbf{SOICT 2026} --- hệ thống IDS phân tán thời gian thực trên cụm
-        Jetson Orin Nano Super (phần triển khai biên).
+        Jetson Orin Nano Super (phần triển khai biên).\\[0.4em]
+        Cả hai bài đều \good{đã được chấp nhận đăng}.
       \end{block}
     \end{column}
   \end{columns}
   \note{Nêu rõ ngay từ đầu: luận văn có hai nhánh kết quả, mỗi nhánh đã được
-  viết thành một bản thảo. Điều này giúp hội đồng định vị đóng góp.}
+  công bố thành một bài báo. Điều này giúp hội đồng định vị đóng góp.}
 \end{frame}
 
 % =====================================================================
@@ -179,7 +180,7 @@
       \node[band, fill=gray!4, fit=(p1)(p5)] (offb) {};
     \end{scope}
     \node[hdr, anchor=south west] at (offb.north west)
-      {PHA OFFLINE --- cụm Spark (máy chủ master $+$ 2 Jetson worker) \quad $\Rightarrow$ bản thảo FAIR 2026};
+      {PHA OFFLINE --- cụm Spark (máy chủ master $+$ 2 Jetson worker)};
 
     \node[jst, below=2.8cm of p1] (e1) {Luồng Kafka};
     \node[jst, right=0.7cm of e1] (e2) {Cổng bất thường\\ (Jetson \#1)};
@@ -190,7 +191,7 @@
       \node[band, fill=accGreen!5, fit=(e1)(e4)] (edgb) {};
     \end{scope}
     \node[hdr, anchor=south west, text=green!30!black] at (edgb.north west)
-      {PHA BIÊN --- 2$\times$ Jetson Orin Nano Super \quad $\Rightarrow$ bản thảo SOICT 2026};
+      {PHA BIÊN --- 2$\times$ Jetson Orin Nano Super};
 
     \draw[exp] (p5.south) -- ++(0,-0.95) -|
       node[pos=0.25, above=2pt, font=\footnotesize, text=accBlue!75!black, fill=white, inner sep=2pt]
@@ -649,6 +650,9 @@
       Orin Nano Super Edge Cluster using Kafka and PySpark''}, Symposium on
       Information and Communication Technology (\textbf{SOICT}), 2026.
   \end{enumerate}
+  \vfill
+  \centering
+  Cả hai bài báo \good{đã được chấp nhận đăng} tại hội nghị tương ứng.
 \end{frame}
 
 \begin{frame}[standout]

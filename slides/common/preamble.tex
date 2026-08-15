@@ -38,25 +38,26 @@
   {\IfFontExistsTF{TeX Gyre Cursor}{\setmonofont{TeX Gyre Cursor}[Scale=0.85]}{}}
 
 % ---------------------------------------------------------------------
-% Okabe-Ito accents, matching the TikZ colours used in the manuscripts.
+% Palette. Blue and green follow the Okabe-Ito accents used in the
+% manuscript TikZ figures; the emphasis accent is a red rather than
+% Okabe-Ito's vermillion, so highlighted numbers read unambiguously as
+% "look here" from the back of the room.
 % ---------------------------------------------------------------------
 \definecolor{accBlue}{HTML}{0072B2}
 \definecolor{accGreen}{HTML}{009E73}
-\definecolor{accOrange}{HTML}{D55E00}
-\definecolor{accYellow}{HTML}{E69F00}
-\definecolor{accPurple}{HTML}{CC79A7}
+\definecolor{accRed}{HTML}{C1121F}
 \definecolor{inkDark}{HTML}{23373B}
 
 \setbeamercolor{frametitle}{bg=accBlue, fg=white}
-\setbeamercolor{progress bar}{fg=accOrange, bg=accOrange!25}
-\setbeamercolor{progress bar in head/foot}{fg=accOrange, bg=accBlue!25}
-\setbeamercolor{progress bar in section page}{fg=accOrange, bg=accOrange!25}
-\setbeamercolor{alerted text}{fg=accOrange}
+\setbeamercolor{progress bar}{fg=accRed, bg=accRed!25}
+\setbeamercolor{progress bar in head/foot}{fg=accRed, bg=accBlue!25}
+\setbeamercolor{progress bar in section page}{fg=accRed, bg=accRed!25}
+\setbeamercolor{alerted text}{fg=accRed}
 \setbeamercolor{example text}{fg=accGreen}
 \setbeamercolor{block title}{bg=accBlue!12, fg=inkDark}
 \setbeamercolor{block body}{bg=accBlue!5}
-\setbeamercolor{block title alerted}{bg=accOrange!15, fg=inkDark}
-\setbeamercolor{block body alerted}{bg=accOrange!6}
+\setbeamercolor{block title alerted}{bg=accRed!15, fg=inkDark}
+\setbeamercolor{block body alerted}{bg=accRed!6}
 \setbeamercolor{block title example}{bg=accGreen!15, fg=inkDark}
 \setbeamercolor{block body example}{bg=accGreen!6}
 
@@ -151,8 +152,8 @@
 % ---------------------------------------------------------------------
 \newcommand{\key}[1]{\textcolor{accBlue}{\textbf{#1}}}
 \newcommand{\good}[1]{\textcolor{accGreen}{\textbf{#1}}}
-\newcommand{\bad}[1]{\textcolor{accOrange}{\textbf{#1}}}
-\newcommand{\num}[1]{\textcolor{accOrange}{\textbf{#1}}}
+\newcommand{\bad}[1]{\textcolor{accRed}{\textbf{#1}}}
+\newcommand{\num}[1]{\textcolor{accRed}{\textbf{#1}}}
 
 % One-line "so what" strip, pinned at the bottom of a result slide.
 % Kept deliberately compact: this box sits directly above metropolis' frame
