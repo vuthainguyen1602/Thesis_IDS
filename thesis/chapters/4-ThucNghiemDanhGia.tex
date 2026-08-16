@@ -201,7 +201,7 @@ Decision Tree & 0{,}9835 & 0{,}9948 & +1{,}15 \\ \bottomrule
 Sau khi chọn được bộ đặc trưng tối ưu từ \ac{shap}, bốn mô hình Spark ML gốc (Random Forest, Decision Tree, \ac{gbt}, Logistic Regression) được tinh chỉnh tham số thông qua Grid Search kết hợp Cross-validation trên tập đặc trưng SHAP Top-30; các mô hình còn lại (\ac{xgb}, MLP, \ac{svm}, \ac{nb}) giữ nguyên bộ tham số cố định ở Bảng~\ref{tab:model_parameters} (xem lý do ở đầu mục).
 Việc tinh chỉnh giúp các mô hình cây đạt F1 quanh mức 0,995 (Bảng~\ref{tab:exp2_ml_metrics}); mức cải thiện so với cấu hình cố định là nhỏ do bài toán nhị phân trong-miền đã gần bão hòa, phù hợp với nhận định ở mục kiểm định thống kê.
 
-Kết quả hiệu năng của phương pháp Tối ưu hóa tham số được trình bày trong Bảng~\ref{tab:exp2_ml_metrics}.
+Kết quả hiệu năng của phương pháp Tối ưu hóa siêu tham số được trình bày trong Bảng~\ref{tab:exp2_ml_metrics}.
 \begin{table}[htbp]
 \centering
 \caption{Kết quả hiệu năng phân loại kịch bản Tối ưu hóa siêu tham số}
