@@ -102,7 +102,7 @@ Việc tiền xử lý dữ liệu nhằm loại bỏ nhiễu, giá trị ngoạ
 Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng hiệu năng mô hình, luận văn áp dụng thêm hai bước \emph{loại trừ rò rỉ dữ liệu} (loại cạm bẫy ``data snooping'' được xem là phổ biến nhất của học máy trong an ninh~\cite{arp2022dosdonts}) ngay trong giai đoạn tiền xử lý, trước khi phân chia tập: (i) \textbf{loại đặc trưng rò rỉ nhãn} \texttt{destination\_port} (và \texttt{source\_port} nếu có) — vì trong CICIDS2017, mỗi loại tấn công được sinh nhằm vào những cổng dịch vụ cố định nên cổng đích gần như mã hóa trực tiếp nhãn, khiến mô hình ``ghi nhớ'' ánh xạ cổng--nhãn thay vì học hành vi luồng (cột \texttt{protocol} cũng được loại với lý do tương tự: đây là biến phân loại có ít mức giá trị, tương quan mạnh với cổng dịch vụ nên mang cùng nguy cơ ``lối tắt'' định danh dịch vụ thay vì hành vi) và (ii) \textbf{loại bỏ trùng lặp ở mức đặc trưng theo cơ chế tất định} — các luồng được gom nhóm theo toàn bộ vector đặc trưng; với nhóm có nhãn nhất quán, giữ lại đúng một đại diện; với nhóm trùng đặc trưng nhưng \emph{mâu thuẫn nhãn} (cùng vector đặc trưng, nhãn vừa Benign vừa Attack, một lỗi gán nhãn đã được ghi nhận của CICIDS2017~\cite{lanvin2023errors}), \emph{toàn bộ nhóm bị loại} vì không thể xác định nhãn đúng, thay vì giữ lại một hàng tùy ý theo phân mảnh dữ liệu (vốn không tái lập được giữa các lần chạy); số nhóm và số hàng xung đột nhãn được ghi log tường minh (270 nhóm, 44.260 hàng). Cơ chế này tránh việc cùng một mẫu xuất hiện ở cả tập huấn luyện lẫn kiểm tra khi phân chia ngẫu nhiên. Đối với bộ dữ liệu CICIDS2017, quá trình tiền xử lý dữ liệu được thể hiện chi tiết ở Thuật toán~\ref{data_preparation_ag}. Cần thừa nhận rằng bước loại bỏ trùng lặp ở mức đặc trưng làm \emph{thay đổi phân bố lớp}: do các luồng benign trùng lặp nhiều hơn nên bị loại nhiều hơn, khiến tỷ lệ benign/attack sau khi xử lý khác với tỷ lệ ban đầu; vì vậy phân bố lớp trước và sau khi loại trùng lặp được báo cáo tường minh để bảo đảm minh bạch.
 
 \begin{algorithm}[htbp]
-\caption{Thuật toán Tiền xử lý Dữ liệu CICIDS2017}
+\caption{Tiền xử lý dữ liệu CICIDS2017}
 \label{data_preparation_ag}
 \begin{algorithmic}[1]
 \Require Tập $N$ tệp CSV từ bộ dữ liệu CICIDS2017: $\{F_1, F_2, \dots, F_N\}$
@@ -307,7 +307,7 @@ Mỗi mô hình trong tập được chọn sẽ đưa ra dự đoán độc l�
 Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữa các mô hình học cơ sở, từ đó giảm sai số do thiên lệch của từng mô hình riêng lẻ và cải thiện khả năng tổng quát hóa trên dữ liệu chưa từng thấy. Nhờ cơ chế kết hợp này, hệ thống có thể nâng cao hiệu năng tổng thể trong việc phát hiện và phân loại chính xác các hành vi xâm nhập mạng. Quy trình chi tiết được trình bày trong Thuật toán~\ref{voting_ag}.
 
 \begin{algorithm}[htbp]
-\caption{Thuật toán Soft Voting Ensemble}
+\caption{Soft Voting Ensemble}
 \label{voting_ag}
 \begin{algorithmic}[1]
 \Require Tập dữ liệu huấn luyện $D = \{(x_i, y_i)\}_{i=1}^{n}$ với $x_i \in \mathbb{R}^d$, $y_i \in \{0, 1\}$
@@ -359,7 +359,7 @@ Trong giai đoạn dự đoán, toàn bộ các mô hình trong ensemble đưa r
 Cách tiếp cận này cho phép giảm phương sai của các mô hình cơ sở nhờ cơ chế lấy mẫu bootstrap, đồng thời duy trì khả năng học biểu diễn của từng thuật toán riêng lẻ. Việc kết hợp chọn lọc các mô hình có hiệu năng cao nhất trước khi áp dụng Bagging giúp tối ưu hóa cả độ chính xác và tính ổn định của hệ thống. Chi tiết quy trình được trình bày trong Thuật toán~\ref{bagging_ag}.
 
 \begin{algorithm}[htbp]
-\caption{Thuật toán Hybrid Bagging Ensemble Learning}
+\caption{Hybrid Bagging Ensemble Learning}
 \label{bagging_ag}
 \begin{algorithmic}[1]
 \Require Tập dữ liệu huấn luyện $D = \{(x_i, y_i)\}_{i=1}^{n}$ với $x_i \in \mathbb{R}^d$, $y_i \in \{0, 1\}$ (BENIGN $=0$, Attack $=1$)

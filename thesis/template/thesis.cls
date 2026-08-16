@@ -150,6 +150,8 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
 \captionsetup[figure]{name={Hình},labelsep=period}
 \captionsetup[table]{name={Bảng},labelsep=period}
 \captionsetup[algorithm]{name=Thuật toán, labelsep=period}
+% đánh số thuật toán theo chương (3.1, 4.1...) cho nhất quán với Hình/Bảng
+\numberwithin{algorithm}{chapter}
 
 \renewcommand{\chaptername}{Chương}
 \renewcommand\appendixname{Phụ lục}
