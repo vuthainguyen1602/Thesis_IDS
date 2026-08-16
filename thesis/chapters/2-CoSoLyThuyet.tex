@@ -206,7 +206,7 @@ Trong trường hợp dữ liệu tuyến tính, bài toán tối ưu được b
 với điều kiện:
 
 \begin{equation}
-y_i(w \cdot x_i + b) \ge 1
+y_i(w \cdot x_i + b) \ge 1, \quad \forall i = 1, \dots, N
 \end{equation}
 
 Trong trường hợp dữ liệu không tuyến tính, \ac{svm} sử dụng kỹ thuật \textit{kernel trick} để ánh xạ dữ liệu sang không gian nhiều chiều hơn, cho phép phân tách tuyến tính trong không gian mới. Nhờ cơ chế tối ưu hóa chặt chẽ, \ac{svm} thường đạt hiệu năng cao trong các bài toán phân loại với dữ liệu nhiều chiều.
