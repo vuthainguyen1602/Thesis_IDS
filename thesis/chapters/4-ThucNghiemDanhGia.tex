@@ -26,7 +26,7 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
         store/.style ={draw=accBlue,         thick, rounded corners, fill=accBlue!5,   text width=5.6cm,  minimum height=0.85cm, inner sep=3pt},
         lbl/.style   ={font=\footnotesize, fill=white, inner sep=1.5pt, text=gray!35!black},
         dn/.style    ={-{Stealth[length=2.6mm]}, thick, draw=gray!55!black},
-        up/.style    ={-{Stealth[length=2.6mm]}, thick, draw=accOrange, dashed},
+        up/.style    ={-{Stealth[length=2.6mm]}, thick, draw=accRed, dashed},
     ]
         \node[master] (m) at (0,0) {\textbf{Máy chủ điều phối: MacBook Air (Apple M3, 16\,GB)}\\[2pt]
             Spark \textbf{Master} (điều phối cụm) \;$|$\; Tiền xử lý CSV\,$\rightarrow$\,Parquet \;$|$\; Docker: Kafka / PostgreSQL / InfluxDB / Grafana\\[1pt]
@@ -363,7 +363,7 @@ Do CSE-CIC-IDS2018~\cite{CSECICIDS2018} có quy mô rất lớn ($\sim$16 triệ
 \State \textbf{Bước 3: Tạo nhãn nhị phân (không phân biệt hoa/thường)}
 \State $y_i \gets 0$ nếu \textsc{lower}(label$_i$) $=$ ``benign'', ngược lại $y_i \gets 1$ \Comment{2018 ghi ``Benign''; so khớp không phân biệt hoa/thường}
 
-\Statex \textcolor{accOrange}{\textbf{$\rightarrow$ Loại trừ rò rỉ dữ liệu: Bước 4 và Bước 6}}
+\Statex \textcolor{accRed}{\textbf{$\rightarrow$ Loại trừ rò rỉ dữ liệu: Bước 4 và Bước 6}}
 \State \textbf{Bước 4 [loại rò rỉ~--~I]: Giao đặc trưng chung, đã loại trừ rò rỉ}
 \State $\mathcal{F}_{\text{chung}} \gets (\mathcal{F}_{2017} \cap \mathcal{F}_{2018}) \setminus \mathcal{C}_{\text{exclude}}$ \Comment{$\mathcal{C}_{\text{exclude}}$: destination\_port, source\_port, protocol, IP, timestamp, flow\_id}
 \State Lưu $\mathcal{F}_{\text{chung}}$ vào \texttt{common\_features.txt} \Comment{cố định cho cả hai chiều huấn luyện/kiểm tra}

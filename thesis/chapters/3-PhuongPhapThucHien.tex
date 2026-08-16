@@ -10,9 +10,9 @@ Trong chương này, luận văn sẽ trình bày phương pháp đề xuất đ
         every node/.style={align=center},
         io/.style ={draw=gray!60,        thick, rounded corners, fill=gray!8,   text width=8.6cm, minimum height=1.0cm, inner sep=3pt},
         ml/.style ={draw=accBlue,        thick, rounded corners, fill=accBlue!5,   text width=8.6cm, minimum height=1.0cm, inner sep=3pt},
-        dep/.style={draw=accOrange,thick, rounded corners, fill=accOrange!10,text width=8.6cm, minimum height=1.0cm, inner sep=3pt},
+        dep/.style={draw=accRed,thick, rounded corners, fill=accRed!10,text width=8.6cm, minimum height=1.0cm, inner sep=3pt},
         arr/.style ={-{Stealth[length=2.5mm]}, thick, draw=gray!60!black},
-        loop/.style={-{Stealth[length=2.5mm]}, thick, draw=accOrange, dashed},
+        loop/.style={-{Stealth[length=2.5mm]}, thick, draw=accRed, dashed},
     ]
         \node[io]  (data)  at (0, 0.0)  {\textbf{(1) Thu thập \& Tiền xử lý}: CICIDS2017\\
             loại trừ rò rỉ dữ liệu (bỏ \texttt{destination\_port}, loại bỏ trùng lặp đặc trưng), chia 80/20};
@@ -32,7 +32,7 @@ Trong chương này, luận văn sẽ trình bày phương pháp đề xuất đ
 
         % Vòng lặp (2)--(5) theo từng phương pháp lựa chọn đặc trưng
         \draw[loop] (tune.east) -- ++(0.7,0) |- (feat.east);
-        \node[anchor=west, font=\footnotesize, text width=2.6cm, text=orange!60!black]
+        \node[anchor=west, font=\footnotesize, text width=2.6cm, text=accRed!85!black]
             at (5.1,-4.25) {Lặp lại theo từng phương pháp (RFI / SHAP / PCA)};
         % Điểm ảo cân đối bên trái để cột hộp căn giữa trang (bù nhãn vòng lặp bên phải)
         \path (-7.7,-4.25) rectangle (-7.6,-4.24);
@@ -131,7 +131,7 @@ Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng 
 \State \textbf{Bước 3: Tạo nhãn nhị phân}
 \State $\forall (x_i, \text{label}_i) \in D: \ y_i \gets \begin{cases} 0 & \text{nếu label}_i = \text{``BENIGN''} \\ 1 & \text{ngược lại (Attack)} \end{cases}$
 
-\Statex \textcolor{accOrange}{\textbf{$\rightarrow$ Hai bước loại trừ rò rỉ dữ liệu (data leakage): Bước 4 và Bước 4b}}
+\Statex \textcolor{accRed}{\textbf{$\rightarrow$ Hai bước loại trừ rò rỉ dữ liệu (data leakage): Bước 4 và Bước 4b}}
 \State \textbf{Bước 4 [loại rò rỉ~--~I]: Xác định các đặc trưng số (đã loại trừ rò rỉ)}
 \State $\mathcal{C}_{\text{exclude}} \gets \{\text{label, label\_binary, source\_ip, destination\_ip, flow\_id, timestamp, protocol,}$
 \Statex \qquad\qquad $\text{\textbf{destination\_port, source\_port}}\}$ \Comment{Loại bỏ đặc trưng gây rò rỉ nhãn}
@@ -166,13 +166,13 @@ Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn
         lbl/.style ={font=\footnotesize\itshape, text=gray!40!black, fill=white, inner sep=1.5pt},
     ]
         \node[box, draw=gray!55!black, fill=gray!8,       text width=2.7cm] (raw)   at (0,0)      {CICIDS2017 thô\\(tệp CSV)};
-        \node[box, draw=accOrange,      fill=accOrange!12, text width=3.1cm] (prep)  at (4.2,0)    {Tiền xử lý\\\textbf{+ loại trừ rò rỉ}\\(Thuật toán~\ref{data_preparation_ag})};
+        \node[box, draw=accRed,      fill=accRed!12, text width=3.1cm] (prep)  at (4.2,0)    {Tiền xử lý\\\textbf{+ loại trừ rò rỉ}\\(Thuật toán~\ref{data_preparation_ag})};
         \node[box, draw=gray!55!black,  fill=gray!8,       text width=1.9cm] (clean) at (8.2,0)    {$D$ sạch};
         \draw[arr] (raw)  -- (prep);
         \draw[arr] (prep) -- (clean);
 
         \node[box, draw=accBlue,   fill=accBlue!8,    text width=2.5cm] (train) at (12.4,1.4)  {\textbf{Train} (80\%)};
-        \node[box, draw=accOrange, fill=accOrange!16, text width=3.3cm] (test)  at (12.4,-1.4) {\textbf{Test} (20\%)\\{\footnotesize giữ lại --- chỉ công bố cuối}};
+        \node[box, draw=accRed, fill=accRed!16, text width=3.3cm] (test)  at (12.4,-1.4) {\textbf{Test} (20\%)\\{\footnotesize giữ lại --- chỉ công bố cuối}};
         \draw[arr] (clean.east) -- ++(0.5,0) |- (train.west);
         \draw[arr] (clean.east) -- ++(0.5,0) |- (test.west);
         \node[lbl, rotate=90, font=\scriptsize\itshape] at (9.79,0) {RandomSplit 80/20, seed=42};
