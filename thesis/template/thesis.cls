@@ -382,6 +382,9 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
     \newpage
     \phantomsection
     \addcontentsline{toc}{chapter}{\abbrevname}
+    % acro không tự đặt running mark như \listoffigures, phải đặt tay
+    % để trang tràn của danh mục không mang header của danh mục trước đó
+    \@mkboth{\MakeUppercase{\abbrevname}}{\MakeUppercase{\abbrevname}}
     \printacronyms[name=\abbrevname]
     
     \cleardoublepage
