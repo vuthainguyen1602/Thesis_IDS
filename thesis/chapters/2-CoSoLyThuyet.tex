@@ -254,16 +254,11 @@ Một số phương pháp phổ biến của \ac{el} bao gồm:
 \begin{algorithm}[htbp]
 \caption{Voting: Kết hợp dự đoán từ nhiều mô hình phân loại}
 \label{voting_ag1}
-\textbf{Đầu vào:}
-\begin{itemize}
-  \item Tập huấn luyện $\mathcal{D} = \{(x_i, y_i)\}_{i=1}^N$
-  \item Tập mô hình phân loại cơ sở $M_1, M_2, \dots, M_K$
-  \item Kiểu voting: \texttt{HARD} hoặc \texttt{SOFT}
-\end{itemize}
-
-\textbf{Đầu ra:} Nhãn dự đoán cuối cùng $y_{\text{vote}}$ cho điểm dữ liệu $x$
-
 \begin{algorithmic}[1]
+\Require Tập huấn luyện $\mathcal{D} = \{(x_i, y_i)\}_{i=1}^N$
+\Statex \qquad Tập mô hình phân loại cơ sở $M_1, M_2, \dots, M_K$
+\Statex \qquad Kiểu voting: \texttt{HARD} hoặc \texttt{SOFT}
+\Ensure Nhãn dự đoán cuối cùng $y_{\text{vote}}$ cho điểm dữ liệu $x$
 \State \textbf{Khởi tạo:} danh sách $S = \{\}$ \Comment{Lưu dự đoán hoặc xác suất}
 \If{voting = \texttt{HARD}}
     \For{$j = 1$ to $K$}
@@ -288,15 +283,10 @@ Một số phương pháp phổ biến của \ac{el} bao gồm:
 \begin{algorithm}[htbp]
 \caption{Boosting: Kết hợp tuần tự các mô hình học yếu}
 \label{boosting_ag1}
-\textbf{Đầu vào:}
-\begin{itemize}
-  \item Tập dữ liệu huấn luyện $\mathcal{D} = \{(x_i, y_i)\}_{i=1}^N$
-  \item Số lượng vòng lặp (mô hình yếu): $T$
-\end{itemize}
-
-\textbf{Đầu ra:} Mô hình boosting $F_T(x)$
-
 \begin{algorithmic}[1]
+\Require Tập dữ liệu huấn luyện $\mathcal{D} = \{(x_i, y_i)\}_{i=1}^N$
+\Statex \qquad Số lượng vòng lặp (mô hình yếu): $T$
+\Ensure Mô hình boosting $F_T(x)$
 \State \textbf{Khởi tạo:} $F_0(x) \gets 0$ \Comment{Mô hình khởi đầu có thể là 0 hoặc dự đoán trung bình}
 \For{$t = 1$ to $T$}
     \State Tính giả-phần-dư (pseudo-residuals) theo gradient âm của hàm mất mát: $r_i^{(t)} = -\left[\dfrac{\partial L(y_i, F(x_i))}{\partial F(x_i)}\right]_{F = F_{t-1}}$ \Comment{Với mất mát bình phương (hồi quy), rút gọn thành $y_i - F_{t-1}(x_i)$; với phân loại dùng log-loss}
@@ -310,16 +300,10 @@ Một số phương pháp phổ biến của \ac{el} bao gồm:
 \begin{algorithm}[htbp]
 \caption{Bagging: Bootstrap Aggregating}
 \label{bagging_ag1}
-\textbf{Đầu vào:}
-\begin{itemize}
-  \item Tập huấn luyện $\mathcal{D} = \{(x_i, y_i)\}_{i=1}^N$, với $x_i \in \mathbb{R}^d$, $y_i \in \{0, 1\}$ (tổng quát: $C$ lớp)
-  \item Số lượng mô hình cơ sở: $K$
-\end{itemize}
-
-\textbf{Đầu ra:} Dự đoán cuối cùng $y_{\text{bag}}$ cho một điểm dữ liệu $x$
-
-\noindent
 \begin{algorithmic}[1]
+\Require Tập huấn luyện $\mathcal{D} = \{(x_i, y_i)\}_{i=1}^N$, với $x_i \in \mathbb{R}^d$, $y_i \in \{0, 1\}$ (tổng quát: $C$ lớp)
+\Statex \qquad Số lượng mô hình cơ sở: $K$
+\Ensure Dự đoán cuối cùng $y_{\text{bag}}$ cho một điểm dữ liệu $x$
 \State \textbf{Khởi tạo:} Danh sách mô hình $M_1, M_2, \dots, M_K$
 
 \For{$k = 1$ to $K$}
