@@ -300,7 +300,6 @@ Soft Voting                     & Trung bình xác suất Top-3 mô hình theo F
 \end{table}
 
 \subsection*{a) Áp dụng Voting}
-\addcontentsline{toc}{subsection}{a) Áp dụng Voting}
 Sau khi hoàn tất giai đoạn huấn luyện đơn mô hình, luận văn tiến hành xây dựng mô hình ensemble dựa trên kỹ thuật Voting để nâng cao độ chính xác và tính ổn định của hệ thống phân loại; hai phương pháp tổ hợp được sử dụng được tóm tắt trong Bảng~\ref{tab:ensemble}. Cụ thể, ba mô hình phân loại nhị phân có chỉ số F1-Score cao nhất ở giai đoạn trước sẽ được lựa chọn để tham gia vào quá trình ensemble.
 
 Mỗi mô hình trong tập được chọn sẽ đưa ra dự đoán độc lập cho từng mẫu trong tập kiểm tra. Các dự đoán này sau đó được tổng hợp thông qua cơ chế bầu chọn. Trong trường hợp Soft Voting, xác suất dự đoán lớp \textit{Attack} của các mô hình thành phần được lấy trung bình; mẫu được gán nhãn \textit{Attack} nếu xác suất trung bình đạt từ $0{,}5$ trở lên, ngược lại được gán nhãn \textit{Benign}.
@@ -351,7 +350,6 @@ Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữ
 \pagebreak
  
 \subsection*{b) Áp dụng Bagging}
-\addcontentsline{toc}{subsection}{b) Áp dụng Bagging}
 Để khai thác hiệu quả sức mạnh của kỹ thuật học tổ hợp Bagging, luận văn đề xuất xây dựng một mô hình ensemble lai (Hybrid Bagging Ensemble) dựa trên các mô hình cơ sở có hiệu năng cao nhất (đã huấn luyện và xếp hạng ở bước trước). Cụ thể, thay vì chỉ sử dụng một mô hình đơn lẻ, quy trình bắt đầu bằng việc huấn luyện và đánh giá $K$ thuật toán học cơ sở trên tập dữ liệu huấn luyện $D$. Hiệu năng của từng mô hình được đo lường thông qua chỉ số F1-Score, từ đó lựa chọn ba mô hình có kết quả tốt nhất để đưa vào giai đoạn kết hợp.
 
 Sau khi xác định Top-3 mô hình, phương pháp Bagging được áp dụng theo phân bổ số bản sao $(3,2,2)$. Đối với mỗi mô hình trong ba mô hình được chọn, nhiều tập dữ liệu bootstrap được tạo ra bằng cách lấy mẫu ngẫu nhiên có hoàn lại từ tập huấn luyện ban đầu. Trên mỗi tập bootstrap này, một bản sao của mô hình tương ứng được huấn luyện độc lập, tạo thành các \textit{bộ học cơ sở (base learners)} trong ensemble. Mỗi base learner được gán trọng số tỷ lệ với F1-Score của mô hình gốc nhằm phản ánh mức độ tin cậy tương đối của nó trong quá trình tổng hợp. Việc phân bổ bất đối xứng $(3,2,2)$, tức cấp nhiều bản sao bootstrap hơn cho mô hình hạng cao, là một lựa chọn thiết kế thực nghiệm nhằm thiên ensemble về phía các bộ học mạnh hơn trong khi vẫn giữ tính đa dạng từ ba thuật toán khác loại; đây là một heuristic, không phải kết quả của tối ưu hóa lý thuyết, và các tỷ lệ khác (chẳng hạn $3$-$3$-$3$) có thể được khảo sát trong nghiên cứu tiếp theo.
