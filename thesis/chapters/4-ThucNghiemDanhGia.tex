@@ -15,7 +15,7 @@ Các thuật toán học máy, phương pháp giảm chiều và các bước đ
 
 Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai trò \textit{master} điều phối cụm cùng tiền xử lý và hạ tầng dịch vụ, mà \emph{không} tham gia tính toán huấn luyện (không chạy \textit{executor}). Lựa chọn này là có chủ đích: toàn bộ số liệu hiệu năng được báo cáo nhằm phản ánh trung thực khả năng \emph{huấn luyện phân tán ngay trên phần cứng biên} Jetson, đúng với mục tiêu cốt lõi của luận văn. Nếu đưa MacBook (vi xử lý Apple M3, mạnh hơn đáng kể) vào làm nút tính toán, phần lớn khối lượng công việc sẽ dồn về máy chủ, gây mất cân bằng tải (hiện tượng \textit{straggler}) và làm sai lệch các phép đo thời gian/thông lượng, khiến kết quả không còn phản ánh đúng hiệu năng của cụm biên. Vì vậy, cụm đo đạc được giữ \emph{đồng nhất} gồm hai nút Jetson; máy chủ chỉ được dùng để phát triển và kiểm thử nhanh trong giai đoạn xây dựng pipeline.
 
-\begin{figure}[!ht]
+\begin{figure}[!t]
     \centering
     \resizebox{\textwidth}{!}{%
     \begin{tikzpicture}[
@@ -239,7 +239,7 @@ Tính giải thích (explainability) là một thành phần thiết yếu trong
 
 Hình~\ref{fig:shap_summary} xếp hạng 30 đặc trưng quan trọng nhất theo giá trị trung bình tuyệt đối của SHAP (mean $|\text{SHAP}|$): thanh càng dài, đặc trưng càng ảnh hưởng lớn đến quyết định phân loại xét trên toàn bộ mẫu. Để tránh rò rỉ, giá trị SHAP được tính trên một \emph{mẫu phân tầng theo lớp lấy từ tập huấn luyện} (không phải tập kiểm tra); mẫu này được biến đổi qua đúng bộ chuẩn hóa (StandardScaler) đã fit trên tập huấn luyện trước khi tính SHAP, bảo đảm không gian đầu vào của phép giải thích trùng khớp với không gian đầu vào mà mô hình đã học.
 
-\begin{figure}[ht]
+\begin{figure}[!t]
     \centering
     \IfFileExists{img/shap_summary_beeswarm.png}{\includegraphics[width=0.92\linewidth]{img/shap_summary_beeswarm.png}}{\fbox{\parbox{0.9\linewidth}{\centering\vspace{1.4cm}\ph{Biểu đồ SHAP beeswarm --- chạy ml\_06\_feature\_selection\_shap.py rồi \texttt{thesis/collect\_figures.sh}}\vspace{1.4cm}}}}
     \caption[Biểu đồ SHAP Summary (beeswarm)]{Biểu đồ SHAP Summary (beeswarm): phân bố và hướng tác động của từng đặc trưng}
@@ -425,7 +425,7 @@ Heartbleed                   & 3       & 1{,}0000 & 1{,}0000 & 1{,}0000 \\ \midr
 \end{tabular*}
 \end{table}
 
-\begin{figure}[htbp]
+\begin{figure}[!t]
     \centering
     \IfFileExists{img/confusion_matrix.png}{\includegraphics[width=0.7\textwidth]{img/confusion_matrix.png}}{\fbox{\parbox{0.66\textwidth}{\centering\vspace{1.4cm}\ph{Ma trận nhầm lẫn đa lớp --- chạy ml\_09\_multiclass\_eval.py}\vspace{1.4cm}}}}
     \caption{Ma trận nhầm lẫn đa lớp theo loại tấn công (chuẩn hóa theo hàng)}
@@ -433,8 +433,6 @@ Heartbleed                   & 3       & 1{,}0000 & 1{,}0000 & 1{,}0000 \\ \midr
 \end{figure}
 
 \textbf{Phân tích hướng nhầm lẫn giữa các lớp hiếm.} Đọc ma trận nhầm lẫn theo \emph{đích đến} của các dự đoán sai cho thấy các lớp hiếm suy giảm theo hai kiểu khác nhau. Kiểu thứ nhất là \emph{nhầm loại nhưng vẫn bị phát hiện}: 81/111 mẫu Web Attack~--~XSS bị gán thành Web Attack~--~Brute Force, tức ở bài toán nhị phân triển khai trên biên, các luồng này \emph{vẫn bị gắn cờ tấn công} (76\% XSS vẫn bị chặn), chỉ sai ở khâu định danh loại. Kiểu thứ hai nguy hiểm hơn: \emph{lọt hẳn thành Benign}: toàn bộ 6/6 mẫu SQL Injection, 158/290 mẫu Bot (54\%) và 84/311 mẫu Web Brute Force bị dự đoán là lưu lượng bình thường. Ba cơ chế giải thích hiện tượng này: (i)~\emph{mất cân bằng cực đoan} (6--311 mẫu so với 380.119 mẫu Benign) khiến các lớp hiếm gần như không có vùng quyết định riêng; (ii)~việc \emph{loại \texttt{destination\_port}} ảnh hưởng nặng nhất đến nhóm tấn công web: khi mất ``lối tắt'' cổng 80, các luồng HTTP tấn công (request/response ngắn) có đặc trưng hành vi rất gần lưu lượng duyệt web thường và gần lẫn nhau; giá trị recall 0{,}027 của XSS là con số \emph{trung thực} thay cho con số đẹp nhờ rò rỉ; (iii)~\emph{Bot lẫn Benign do bản chất}: các luồng beaconing C\&C nhỏ, đều đặn, giống lưu lượng nền khi không còn định danh cổng/dịch vụ. Nhận diện này định hướng trực tiếp cho hướng phát triển: xử lý mất cân bằng có chủ đích (tăng cường/oversampling lớp hiếm), bổ sung đặc trưng chuỗi thời gian cho hành vi beaconing, và kiểm chứng liên bộ dữ liệu (Mục~\ref{sec:cross-dataset}).
-
-\pagebreak
 
 \clearpage
 \section{Thực nghiệm và đánh giá hiệu năng mô hình trên Jetson Orin Nano Super}
@@ -727,7 +725,7 @@ Kết quả benchmark cho thấy sự đánh đổi rõ ràng giữa các chỉ 
 
 Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữa các tiêu chí lựa chọn mô hình: Decision Tree chiếm ưu thế về bộ nhớ, còn Random Forest chiếm ưu thế về tốc độ xử lý và tải CPU.
 
-\begin{figure}[htbp]
+\begin{figure}[!t]
     \centering
     \IfFileExists{img/model_tradeoff_radar.png}{\includegraphics[width=0.75\textwidth]{img/model_tradeoff_radar.png}}{\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.4cm}\ph{Biểu đồ radar trade-off --- tạo từ \texttt{benchmark\_comparison.json}}\vspace{1.4cm}}}}
     \caption[Biểu đồ radar đánh đổi giữa các mô hình trên thiết bị biên]{Biểu đồ radar thể hiện sự đánh đổi (trade-off) giữa các mô hình trên thiết bị biên}

@@ -153,6 +153,12 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
 % đánh số thuật toán theo chương (3.1, 4.1...) cho nhất quán với Hình/Bảng
 \numberwithin{algorithm}{chapter}
 
+% Trang chỉ chứa float: dồn hình/bảng lên đầu trang thay vì căn giữa dọc,
+% tránh khoảng trống lớn phía trên hình
+\setlength{\@fptop}{0pt}
+\setlength{\@fpsep}{16pt}
+\setlength{\@fpbot}{0pt plus 1fil}
+
 \renewcommand{\chaptername}{Chương}
 \renewcommand\appendixname{Phụ lục}
 \renewcommand{\contentsname}{Mục lục}
