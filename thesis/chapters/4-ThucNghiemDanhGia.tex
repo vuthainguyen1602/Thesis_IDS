@@ -21,9 +21,9 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
     \begin{tikzpicture}[
         font=\small, >=Stealth,
         every node/.style={align=center},
-        master/.style={draw=gray!65,        thick, rounded corners, fill=gray!8,   text width=12.6cm, minimum height=1.25cm, inner sep=4pt},
-        work/.style  ={draw=accGreen!80!black,  thick, rounded corners, fill=accGreen!8,  text width=5.6cm,  minimum height=2.35cm, inner sep=5pt},
-        store/.style ={draw=accBlue,         thick, rounded corners, fill=accBlue!5,   text width=5.6cm,  minimum height=0.85cm, inner sep=3pt},
+        master/.style={draw=gray!65,        thick, rounded corners, fill=gray!8,   text width=12.6cm, minimum height=1.5cm, inner sep=5pt},
+        work/.style  ={draw=accGreen!80!black,  thick, rounded corners, fill=accGreen!8,  text width=5.6cm,  minimum height=2.8cm, inner sep=6pt},
+        store/.style ={draw=accBlue,         thick, rounded corners, fill=accBlue!5,   text width=5.6cm,  minimum height=1.0cm, inner sep=4pt},
         lbl/.style   ={font=\footnotesize, fill=white, inner sep=1.5pt, text=gray!35!black},
         dn/.style    ={-{Stealth[length=2.6mm]}, thick, draw=gray!55!black},
         up/.style    ={-{Stealth[length=2.6mm]}, thick, draw=accRed, dashed},
@@ -31,24 +31,24 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
         \node[master] (m) at (0,0) {\textbf{Máy chủ điều phối: MacBook Air (Apple M3, 16\,GB)}\\[2pt]
             Spark \textbf{Master} (điều phối cụm) \;$|$\; Tiền xử lý CSV\,$\rightarrow$\,Parquet \;$|$\; Docker: Kafka / PostgreSQL / InfluxDB / Grafana\\[1pt]
             \textit{Không chạy executor, không tham gia tính toán huấn luyện}};
-        \node[work] (w1) at (-3.6,-4.7) {\textbf{Jetson Orin Nano Super \#1}\\[1pt]
+        \node[work] (w1) at (-3.6,-6.8) {\textbf{Jetson Orin Nano Super \#1}\\[1pt]
             Spark \textbf{Worker} + \textbf{Driver}\\[2pt]
             Executor: cores=4, mem=3\,GB\\
             Phân vùng dữ liệu (partitions)\\
             swap 8\,GB (NVMe)};
-        \node[work] (w2) at ( 3.6,-4.7) {\textbf{Jetson Orin Nano Super \#2}\\[1pt]
+        \node[work] (w2) at ( 3.6,-6.8) {\textbf{Jetson Orin Nano Super \#2}\\[1pt]
             Spark \textbf{Worker}\\[2pt]
             Executor: cores=4, mem=3\,GB\\
             Phân vùng dữ liệu (partitions)\\
             swap 8\,GB (NVMe)};
-        \node[store] (s1) at (-3.6,-7.3) {Parquet (đồng bộ)};
-        \node[store] (s2) at ( 3.6,-7.3) {Parquet (đồng bộ)};
+        \node[store] (s1) at (-3.6,-10.6) {Parquet (đồng bộ)};
+        \node[store] (s2) at ( 3.6,-10.6) {Parquet (đồng bộ)};
         \draw[dn] (m.south -| w1) -- node[lbl]{giao tác vụ\\ + partition} (w1.north);
         \draw[dn] (m.south -| w2) -- node[lbl]{giao tác vụ\\ + partition} (w2.north);
         \draw[up] (w1.west) -- ++(-0.75,0) |- (m.west);
         \draw[up] (w2.east) -- ++( 0.75,0) |- (m.east);
         % Nhãn xoay dọc trên đường hồi trái (2 dòng để không lòi lên mũi tên ngang); nền trắng che line
-        \node[lbl, rotate=90] at (-7.3,-2.35) {gom kết quả\\(shuffle/collect)};
+        \node[lbl, rotate=90] at (-7.3,-3.3) {gom kết quả\\(shuffle/collect)};
         \draw[dn] (w1.south) -- (s1.north);
         \draw[dn] (w2.south) -- (s2.north);
     \end{tikzpicture}}
@@ -65,7 +65,7 @@ Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai tr�
 % Giá trị điền vào lấy từ các tệp results/*/...csv tương ứng.
 
 \vspace{1em}
-Bảng~\ref{tab:model_parameters} tóm tắt thiết lập tham số của các mô hình học máy được sử dụng trong nghiên cứu này. Trong đó, \ac{xgb} và MLP được tinh chỉnh bằng Grid Search kết hợp kiểm định chéo (Kịch bản 3); các mô hình còn lại dùng bộ tham số cố định từ trước, lựa chọn dựa trên các nghiên cứu gần đây và thực nghiệm sơ bộ, nhằm bảo đảm khác biệt quan sát được giữa các phương pháp giảm chiều phản ánh đúng phương pháp thay vì mức độ tinh chỉnh riêng từng mô hình.
+Bảng~\ref{tab:model_parameters} tóm tắt thiết lập tham số của các mô hình học máy được sử dụng trong nghiên cứu này. Trong đó, \ac{xgb} và MLP được tinh chỉnh bằng Grid Search kết hợp kiểm định chéo (Kịch bản 3); các mô hình còn lại dùng bộ tham số cố định từ trước, lựa chọn dựa trên các nghiên cứu gần đây và thực nghiệm sơ bộ, nhằm bảo đảm rằng khác biệt quan sát được giữa các phương pháp giảm chiều phản ánh đúng bản thân phương pháp, thay vì mức độ tinh chỉnh riêng từng mô hình.
 
 \begin{table}[htbp]
 \centering
@@ -197,14 +197,14 @@ Decision Tree & 0{,}9835 & 0{,}9948 & +1{,}15 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
-\subsection{Kịch bản 3: Tối ưu hóa tham số}
+\subsection{Kịch bản 3: Tối ưu hóa siêu tham số}
 Sau khi chọn được bộ đặc trưng tối ưu từ \ac{shap}, bốn mô hình Spark ML gốc (Random Forest, Decision Tree, \ac{gbt}, Logistic Regression) được tinh chỉnh tham số thông qua Grid Search kết hợp Cross-validation trên tập đặc trưng SHAP Top-30; các mô hình còn lại (\ac{xgb}, MLP, \ac{svm}, \ac{nb}) giữ nguyên bộ tham số cố định ở Bảng~\ref{tab:model_parameters} (xem lý do ở đầu mục).
 Việc tinh chỉnh giúp các mô hình cây đạt F1 quanh mức 0,995 (Bảng~\ref{tab:exp2_ml_metrics}); mức cải thiện so với cấu hình cố định là nhỏ do bài toán nhị phân trong-miền đã gần bão hòa, phù hợp với nhận định ở mục kiểm định thống kê.
 
 Kết quả hiệu năng của phương pháp Tối ưu hóa tham số được trình bày trong Bảng~\ref{tab:exp2_ml_metrics}.
 \begin{table}[htbp]
 \centering
-\caption{Kết quả hiệu năng phân loại kịch bản Tối ưu hóa tham số}
+\caption{Kết quả hiệu năng phân loại kịch bản Tối ưu hóa siêu tham số}
 \label{tab:exp2_ml_metrics}
 \small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc@{}}
@@ -739,7 +739,7 @@ Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữ
     \item \textbf{Tương thích nền tảng}: Random Forest là estimator gốc của Spark ML nên \texttt{PipelineModel} xuất ra nạp được trực tiếp trên bo mạch ARM64, không cần các thư viện native mà tích hợp \ac{xgb} của Spark đòi hỏi.
 \end{enumerate}
 
-Đánh đổi được chấp nhận là mức tiêu thụ bộ nhớ: Random Forest dùng 27{,}5\% RAM so với 21{,}9\% của Decision Tree và mô hình nặng $\approx$4{,}4\,MB so với 0{,}05\,MB. Trên bo mạch 8\,GB, khoảng chênh này còn dư địa lớn, nên bộ nhớ không phải là ràng buộc quyết định; Decision Tree vẫn là phương án dự phòng hợp lý nếu triển khai xuống các thiết bị \ac{iot} eo hẹp bộ nhớ hơn.
+Đánh đổi được chấp nhận là mức tiêu thụ bộ nhớ: Random Forest dùng 27{,}5\% RAM so với 21{,}9\% của Decision Tree và mô hình nặng $\approx$4{,}4\,MB so với 0{,}05\,MB. Trên bo mạch 8\,GB, khoảng chênh này vẫn còn dư địa lớn, nên bộ nhớ không phải là ràng buộc quyết định; Decision Tree vẫn là phương án dự phòng hợp lý nếu triển khai xuống các thiết bị \ac{iot} eo hẹp bộ nhớ hơn.
 
 \section{Thảo luận và so sánh tổng hợp}
 Kết quả thực nghiệm cho thấy lựa chọn đặc trưng dựa trên \ac{shap} là hướng tiếp cận phù hợp cho hệ thống \ac{ids} trên bộ dữ liệu CICIDS2017: dưới cấu hình đánh giá loại trừ rò rỉ dữ liệu, \ac{shap} Top-30 giữ được hiệu năng gần như nguyên vẹn trong khi cắt khoảng 60\% số đặc trưng. Ngược lại, học tổ hợp \emph{không} mang lại lợi thế trên chính cấu hình này: Hybrid Bagging đạt F1 0{,}9966 và Soft Voting đạt 0{,}9967, đều \emph{thấp hơn} \ac{xgb} đơn lẻ (0{,}9970). Học tổ hợp chỉ vượt mô hình đơn ở những cấu hình mà mô hình đơn yếu hơn (\ac{rf} Top-30: 0{,}9938 so với 0{,}9922; \ac{pca} $k$=40: 0{,}9940 so với 0{,}9939), nghĩa là nó \emph{bù cho bộ đặc trưng kém} chứ không tạo thêm hiệu năng phân loại. Chi phí đi kèm lại lớn: trên \ac{shap} Top-30, Hybrid Bagging cần 4909\,giây huấn luyện (so với 1226\,giây của \ac{xgb}), 46{,}6\,giây dự đoán (so với 7{,}1\,giây) và mô hình nặng 7{,}15\,MB --- lớn nhất trong tất cả các cấu hình đã thử. Vì vậy cấu hình được chọn để triển khai lên thiết bị biên là một \emph{mô hình đơn} trên tập đặc trưng \ac{shap} Top-30, không phải mô hình học tổ hợp.

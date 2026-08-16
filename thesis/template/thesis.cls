@@ -214,6 +214,7 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
 \def\University#1{\gdef\@University{#1}}
 \def\CollegeOrDept#1{\gdef\@CollegeOrDept{#1}}
 \def\Faculty#1{\gdef\@Faculty{#1}}
+\def\@Faculty{}
 \def\Degree#1{\gdef\@Degree{#1}}
 \def\ThesisType#1{\gdef\@ThesisType{#1}}
 \def\ThesisYear#1{\gdef\@ThesisYear{#1}}
@@ -264,7 +265,7 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
     \begin{center}
     	{\par{\textbf{\@University}}\par}
     	{{\textbf{\@CollegeOrDept}}\par}
-    	{{\textbf{\@Faculty}}\par}
+    	\ifx\@Faculty\@empty\else{{\textbf{\@Faculty}}\par}\fi
         \adfflowerleft {\Large\adfast1}\adfflowerright
     	\vspace*{18ex}
      
@@ -294,7 +295,7 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
     \begin{center}
     	{\par{\textbf{\@University}}\par}
     	{{\textbf{\@CollegeOrDept}}\par}
-    	{{\textbf{\@Faculty}}\par}
+    	\ifx\@Faculty\@empty\else{{\textbf{\@Faculty}}\par}\fi
     
     	\vspace*{5ex}
     	\begin{figure}[h]
