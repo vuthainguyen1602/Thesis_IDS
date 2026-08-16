@@ -1,6 +1,6 @@
 \section{Lý do chọn đề tài}
 
-Trong kỷ nguyên của Cách mạng Công nghiệp 4.0, \ac{iot} đang phát triển nhanh và được ứng dụng rộng rãi trong nhiều lĩnh vực như nhà thông minh, y tế, giao thông, công nghiệp thông minh,... Sự bùng nổ về số lượng thiết bị \ac{iot} dẫn đến sự gia tăng đáng kể về lưu lượng và loại hình dữ liệu truyền trong mạng. Tuy nhiên, các thiết bị \ac{iot} thường có khả năng xử lý hạn chế và thiếu các cơ chế bảo mật mạnh, khiến chúng trở thành mục tiêu dễ bị tấn công bởi tin tặc.
+Trong kỷ nguyên của Cách mạng Công nghiệp 4.0, \ac{iot} đang phát triển nhanh và được ứng dụng rộng rãi trong nhiều lĩnh vực như nhà thông minh, y tế, giao thông, công nghiệp thông minh\ldots{} Sự bùng nổ về số lượng thiết bị \ac{iot} dẫn đến sự gia tăng đáng kể về lưu lượng và loại hình dữ liệu truyền trong mạng. Tuy nhiên, các thiết bị \ac{iot} thường có khả năng xử lý hạn chế và thiếu các cơ chế bảo mật mạnh, khiến chúng trở thành mục tiêu dễ bị tấn công bởi tin tặc.
 
 Để đối phó với các mối đe dọa an ninh mạng, các hệ thống phát hiện xâm nhập
 (\ac{ids}) đang được nghiên cứu và phát triển rộng rãi. Đặc biệt, trong những năm gần đây, việc kết hợp học máy (\ac{ml}) với các nền tảng xử lý dữ liệu lớn giúp hệ thống nâng cao độ chính xác phát hiện và thích nghi tốt hơn với môi trường mạng thay đổi liên tục. Cần lưu ý rằng bộ phân loại chính trong luận văn là mô hình học có giám sát trên CICIDS2017 nên chỉ phát hiện được các họ tấn công đã biết; khả năng phát hiện hành vi bất thường chưa từng thấy (nếu có) đến từ cổng phát hiện bất thường (anomaly gate) học không giám sát, chứ không phải từ bộ phân loại.
@@ -31,7 +31,7 @@ Từ tổng quan các công trình nghiên cứu nêu trên, có thể nhận th
 \section{Mục tiêu, đối tượng và phạm vi nghiên cứu}
 \subsection{Mục tiêu nghiên cứu}
 \label{sec:MucTieu}
-Mục tiêu của đề tài “PHÁT HIỆN XÂM NHẬP (\ac{ids}) DỰA TRÊN APACHE SPARK CHO BẢO MẬT MẠNG IoT” là xây dựng một hệ thống phát hiện xâm nhập có khả năng phân tích và phát hiện các hành vi bất thường hoặc tấn công mạng trong môi trường \ac{iot} bằng cách kết hợp các mô hình học máy với nền tảng xử lý dữ liệu lớn Apache Spark nhằm đạt được:
+Mục tiêu của đề tài ``PHÁT HIỆN XÂM NHẬP (\ac{ids}) DỰA TRÊN APACHE SPARK CHO BẢO MẬT MẠNG IoT'' là xây dựng một hệ thống phát hiện xâm nhập có khả năng phân tích và phát hiện các hành vi bất thường hoặc tấn công mạng trong môi trường \ac{iot} bằng cách kết hợp các mô hình học máy với nền tảng xử lý dữ liệu lớn Apache Spark nhằm đạt được:
 \begin{itemize}
   \item Phát hiện hiệu quả các dạng tấn công mạng phổ biến (như DoS, probing, brute-force) trên các tập dữ liệu hiện đại như CICIDS2017.
   \item Thiết kế và triển khai pipeline xử lý dữ liệu phân tán và song song sử dụng Apache Spark, bao gồm các bước: tiền xử lý dữ liệu, trích xuất đặc trưng, huấn luyện mô hình và phát hiện thời gian thực.
@@ -92,7 +92,7 @@ Luận văn được định hướng bởi ba câu hỏi nghiên cứu:
 \end{itemize}
 
 \section{Công trình khoa học đã công bố}
-Một phần kết quả của luận văn đã được công bố thành hai bài báo khoa học (viết chung với ThS. Nguyễn Vũ Thái, TS. Đỗ Trí Nhựt và TS. Nguyễn Văn Dũ), cả hai đều đã được chấp nhận đăng:
+Một phần kết quả của luận văn đã được công bố thành hai bài báo khoa học (viết chung với ThS. Nguyễn Vũ Thái, TS. Đỗ Trí Nhựt và TS. Nguyễn Văn Dũ), cả hai bài đều đã được chấp nhận đăng:
 \begin{enumerate}
   \item Thai Nguyen Vu, Dung Van Bui, Nhut Tri Do, Van Du Nguyen, ``A Comparison of Dimensionality Reduction and Feature Selection for Network Intrusion Detection on Apache Spark ML with a Leakage-Aware Evaluation Pipeline,'' National Conference on Fundamental and Applied Information Technology Research (FAIR), 2026.
   \item Thai Nguyen Vu, Dung Van Bui, Nhut Tri Do, Van Du Nguyen, ``A Distributed Real-Time Intrusion Detection System on a Jetson Orin Nano Super Edge Cluster using Kafka and PySpark,'' Symposium on Information and Communication Technology (SOICT), 2026.

@@ -58,7 +58,7 @@ Dữ liệu sinh ra từ các thiết bị \ac{iot} được xem là một trong
 
 \subsection{Các thành phần của Apache Spark}
 
-Trong những năm gần đây, các nền tảng xử lý dữ liệu lớn như Apache Spark đã thu hút sự quan tâm rộng rãi từ cộng đồng nghiên cứu và công nghiệp. Apache Spark là một hệ thống xử lý dữ liệu phân tán quy mô lớn, có khả năng thực thi nhanh các tác vụ trên các cụm dữ liệu lớn. So với Hadoop MapReduce, Spark có thể đạt tốc độ xử lý nhanh hơn khoảng 100 lần trong một số trường hợp nhờ vào khả năng xử lý trong bộ nhớ (\textit{in-memory processing}) \cite{Zaharia2016,Karau2015}.
+Trong những năm gần đây, các nền tảng xử lý dữ liệu lớn như Apache Spark đã thu hút sự quan tâm rộng rãi từ cộng đồng nghiên cứu và công nghiệp. Apache Spark là một hệ thống xử lý dữ liệu phân tán quy mô lớn, có khả năng thực thi nhanh các tác vụ trên các cụm máy tính. So với Hadoop MapReduce, Spark có thể đạt tốc độ xử lý nhanh hơn khoảng 100 lần trong một số trường hợp nhờ vào khả năng xử lý trong bộ nhớ (\textit{in-memory processing}) \cite{Zaharia2016,Karau2015}.
 
 Bên cạnh đó, Spark cung cấp giao diện lập trình linh hoạt thông qua các API hỗ trợ nhiều ngôn ngữ phổ biến như Java, Scala, Python và R, giúp việc phát triển và triển khai ứng dụng trở nên thuận tiện hơn.
 
@@ -87,7 +87,7 @@ Apache Spark bao gồm nhiều thành phần cốt lõi, mỗi thành phần đ�
 \end{itemize}
 
 \subsection{Kiến trúc của Apache Spark}
-Kiến trúc của Apache Spark được xây dựng theo mô hình master–worker trên nền tảng xử lý phân tán. Thành phần trung tâm là \textbf{Spark Driver}, chịu trách nhiệm điều phối quá trình thực thi ứng dụng, bao gồm việc lên lịch, phân phối tác vụ và giám sát tiến trình. Driver xây dựng một đồ thị phi chu trình có hướng (\textit{DAG} -- Directed Acyclic Graph) để xác định luồng thực thi công việc; tổng quan kiến trúc master--worker được minh họa ở Hình~\ref{fig:spark-structure}.
+Kiến trúc của Apache Spark được xây dựng theo mô hình master--worker trên nền tảng xử lý phân tán. Thành phần trung tâm là \textbf{Spark Driver}, chịu trách nhiệm điều phối quá trình thực thi ứng dụng, bao gồm việc lên lịch, phân phối tác vụ và giám sát tiến trình. Driver xây dựng một đồ thị phi chu trình có hướng (\textit{DAG} -- Directed Acyclic Graph) để xác định luồng thực thi công việc; tổng quan kiến trúc master--worker được minh họa ở Hình~\ref{fig:spark-structure}.
 
 \vspace*{1ex}
     \begin{figure}[ht]
@@ -98,14 +98,14 @@ Kiến trúc của Apache Spark được xây dựng theo mô hình master–wor
     \end{figure}
 \vspace*{1ex}
 
-Các tác vụ được phân phối tới các \textbf{Worker Nodes}, nơi chứa các \textbf{Executor} — tiến trình thực thi thực tế. Mỗi Executor chịu trách nhiệm thực thi các tác vụ (task) và lưu trữ dữ liệu trong bộ nhớ hoặc ổ đĩa nếu cần. Spark sử dụng \textbf{Cluster Manager} (như YARN, Mesos hoặc Standalone) để quản lý tài nguyên trên cụm. Dữ liệu được lưu trữ trên các hệ thống như HDFS, S3, hoặc các cơ sở dữ liệu quan hệ.
+Các tác vụ được phân phối tới các \textbf{Worker Nodes}, nơi chứa các \textbf{Executor} --- tiến trình thực thi thực tế. Mỗi Executor chịu trách nhiệm thực thi các tác vụ (task) và lưu trữ dữ liệu trong bộ nhớ hoặc ổ đĩa nếu cần. Spark sử dụng \textbf{Cluster Manager} (như YARN, Mesos hoặc Standalone) để quản lý tài nguyên trên cụm. Dữ liệu được lưu trữ trên các hệ thống như HDFS, S3, hoặc các cơ sở dữ liệu quan hệ.
 
 \section{Học máy trong phát hiện xâm nhập}
 
 Học máy (\ac{ml}) đã trở thành một công cụ thiết yếu trong việc phát hiện các mẫu tấn công và hành vi bất thường trong lưu lượng mạng \ac{iot}, nhờ khả năng tự động học và thích ứng từ dữ liệu lịch sử \cite{Buczak2016}. Các kỹ thuật học máy phổ biến bao gồm:
 
 \begin{itemize}
-\item \textbf{Học có giám sát (Supervised Learning)}: Sử dụng dữ liệu đã được gán nhãn để huấn luyện mô hình phân loại. Một số thuật toán điển hình gồm \ac{rf}, \ac{svm} và Mạng nơ-ron nhân tạo (Neural Networks).
+\item \textbf{Học có giám sát (Supervised Learning)}: Sử dụng dữ liệu đã được gán nhãn để huấn luyện mô hình phân loại. Một số thuật toán điển hình gồm \ac{rf}, \ac{svm} và mạng nơ-ron nhân tạo (Neural Networks).
 \item \textbf{Học không giám sát (Unsupervised Learning)}: Áp dụng cho các tình huống không có nhãn, tập trung vào việc phát hiện các mẫu bất thường. K-Means là một thuật toán phổ biến trong nhóm này.
 \item \textbf{Học tăng cường (Reinforcement Learning)}: Mô hình học dựa trên phản hồi từ môi trường nhằm tối ưu hóa hành vi hoặc quyết định của hệ thống theo thời gian; hướng này không thuộc phạm vi thực nghiệm của luận văn và chỉ được nêu để hoàn chỉnh bức tranh phân loại.
 \end{itemize}
@@ -211,7 +211,7 @@ y_i(w \cdot x_i + b) \ge 1, \quad \forall i = 1, \dots, N
 
 Trong trường hợp dữ liệu không tuyến tính, \ac{svm} sử dụng kỹ thuật \textit{kernel trick} để ánh xạ dữ liệu sang không gian nhiều chiều hơn, cho phép phân tách tuyến tính trong không gian mới. Nhờ cơ chế tối ưu hóa chặt chẽ, \ac{svm} thường đạt hiệu năng cao trong các bài toán phân loại với dữ liệu nhiều chiều.
 
-\item \textbf{Multilayer Perceptron - MLP} là một mô hình học sâu cơ bản gồm nhiều lớp ẩn, có khả năng mô hình hóa các mối quan hệ phi tuyến giữa các đặc trưng \cite{rumelhart1986learning}. 
+\item \textbf{Multilayer Perceptron -- MLP} là một mô hình học sâu cơ bản gồm nhiều lớp ẩn, có khả năng mô hình hóa các mối quan hệ phi tuyến giữa các đặc trưng \cite{rumelhart1986learning}. 
 
 Mỗi nơ-ron trong mạng thực hiện phép biến đổi tuyến tính:
 

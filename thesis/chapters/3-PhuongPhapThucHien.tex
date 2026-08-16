@@ -57,7 +57,7 @@ Tổ chức phát hành                & Canadian Institute for Cybersecurity (C
 Thời gian phát hành              & 2017 \\
 Giao thức mạng                   & HTTP, HTTPS, FTP, SSH, DNS, ... \\
 Số lượng bản ghi (CSV)           & Hơn 2.8 triệu bản ghi \\
-Thời gian thu thập               & 03/07/2017 – 07/07/2017 \\
+Thời gian thu thập               & 03/07/2017 -- 07/07/2017 \\
 Loại tấn công mô phỏng           & DoS, DDoS, PortScan, Brute-force, Infiltration, Botnet, ... \\
 Số loại nhãn                     & 15 (1 nhãn bình thường + 14 loại tấn công) \\
 Định dạng dữ liệu                & CSV \\
@@ -67,7 +67,7 @@ Nguồn dữ liệu                    & \cite{sharafaldin2018toward} \\
 \end{tabular}
 \end{table}
 
-Bên cạnh CICIDS2017 (bộ dữ liệu chính cho toàn bộ các thí nghiệm), luận văn sử dụng thêm \textbf{CSE-CIC-IDS2018} cho thí nghiệm \emph{tổng quát hóa liên bộ dữ liệu} (Mục~\ref{sec:cross-dataset}): huấn luyện trên một bộ, kiểm tra trên bộ kia và ngược lại. Đây là bộ kế nhiệm của CICIDS2017, do CIC phối hợp với Cơ quan An ninh Truyền thông Canada (CSE) thu thập trên hạ tầng AWS quy mô lớn hơn nhiều; đặc trưng luồng được trích bằng CICFlowMeter phiên bản mới hơn nên tên cột được ánh xạ về danh mục tên cột chuẩn của CICIDS2017 qua bảng bí danh tường minh trong mã nguồn. Thông tin chi tiết ở Bảng~\ref{tab:cicids2018}.
+Bên cạnh CICIDS2017 (bộ dữ liệu chính cho toàn bộ các thí nghiệm), luận văn sử dụng thêm \textbf{CSE-CIC-IDS2018} cho thí nghiệm \emph{tổng quát hóa liên bộ dữ liệu} (Mục~\ref{sec:cross-dataset}): huấn luyện trên một bộ, kiểm tra trên bộ kia và ngược lại. Đây là bộ kế nhiệm của CICIDS2017, do CIC phối hợp với Cơ quan An ninh Truyền thông Canada (CSE) thu thập trên hạ tầng AWS quy mô lớn hơn nhiều; đặc trưng luồng được trích xuất bằng CICFlowMeter phiên bản mới hơn nên tên cột được ánh xạ về danh mục tên cột chuẩn của CICIDS2017 qua bảng bí danh tường minh trong mã nguồn. Thông tin chi tiết ở Bảng~\ref{tab:cicids2018}.
 
 \begin{table}[htbp]
 \centering
@@ -106,7 +106,7 @@ Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng 
 \label{data_preparation_ag}
 \begin{algorithmic}[1]
 \Require Tập $N$ tệp CSV từ bộ dữ liệu CICIDS2017: $\{F_1, F_2, \dots, F_N\}$
-\Statex \qquad Tỷ lệ phân chia huấn luyện/kiểm tra $\alpha = 0.8$
+\Statex \qquad Tỷ lệ phân chia huấn luyện/kiểm tra $\alpha = 0{,}8$
 \Ensure Tập huấn luyện $D_{\text{train}}$ và tập kiểm tra $D_{\text{test}}$ ở định dạng Parquet
 
 \State \textbf{Bước 1: Gộp dữ liệu từ nhiều tệp CSV}
@@ -155,7 +155,7 @@ Bên cạnh đó, để bảo đảm kết quả đánh giá phản ánh đúng 
 
 \textbf{Phân chia tập dữ liệu}
 
-Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn luyện và kiểm tra bằng phép chia ngẫu nhiên (random split) với seed cố định (=42) để đảm bảo tái lập. Các chỉ số hiệu năng được \textbf{công bố trên tập kiểm tra} (tập giữ lại cuối cùng, không tham gia huấn luyện, xếp hạng đặc trưng hay tinh chỉnh siêu tham số); kết quả trên tập huấn luyện chỉ được dùng để chẩn đoán hiện tượng quá khớp (overfitting) hoặc thiếu khớp (underfitting). Đáng lưu ý, \texttt{StandardScaler}, \ac{pca} và việc xếp hạng đặc trưng (RF Importance, \ac{shap}) đều được \emph{fit chỉ trên tập huấn luyện $D_{\text{train}}$} rồi \emph{transform} lên tập kiểm tra, nhằm tránh rò rỉ thông tin từ tập kiểm tra vào quá trình huấn luyện. Riêng việc \textbf{chọn Top-3 mô hình thành phần} cho các ensemble (cũng như việc chọn mô hình đại diện mỗi phương pháp và cặp phương pháp đưa vào kiểm định thống kê, Chương~4) được thực hiện trên một \emph{tập kiểm định (validation)} tách từ tập huấn luyện (theo tỷ lệ 80/20, \texttt{seed}=42, các mô hình cơ sở huấn luyện trên phần còn lại); nhờ vậy tập kiểm tra hoàn toàn không tham gia vào khâu lựa chọn mô hình, khép kín nguy cơ rò rỉ chọn lọc. Tương tự, ngưỡng của cổng phát hiện bất thường (Chương~4) cũng chỉ được chọn trên 10\% lưu lượng benign tách từ tập huấn luyện (\texttt{seed}=42), không đụng đến tập kiểm tra. Toàn bộ quy trình phân chia được minh họa ở Hình~\ref{fig:data_split}.
+Tập dữ liệu CICIDS2017 được phân chia theo tỷ lệ 80/20 cho huấn luyện và kiểm tra bằng phép chia ngẫu nhiên (random split) với seed cố định (=42) để đảm bảo tái lập. Các chỉ số hiệu năng được \textbf{công bố trên tập kiểm tra} (tập giữ lại cuối cùng, không tham gia huấn luyện, xếp hạng đặc trưng hay tinh chỉnh siêu tham số); kết quả trên tập huấn luyện chỉ được dùng để chẩn đoán hiện tượng quá khớp (overfitting) hoặc thiếu khớp (underfitting). Đáng lưu ý, \texttt{StandardScaler}, \ac{pca} và việc xếp hạng đặc trưng (RF Importance, \ac{shap}) đều được \emph{fit chỉ trên tập huấn luyện $D_{\text{train}}$} rồi \emph{transform} lên tập kiểm tra, nhằm tránh rò rỉ thông tin từ tập kiểm tra vào quá trình huấn luyện. Riêng việc \textbf{chọn Top-3 mô hình thành phần} cho các ensemble (cũng như việc chọn mô hình đại diện mỗi phương pháp và cặp phương pháp đưa vào kiểm định thống kê, Chương~4) được thực hiện trên một \emph{tập kiểm định (validation)} tách từ tập huấn luyện (theo tỷ lệ 80/20, \texttt{seed}=42, các mô hình cơ sở huấn luyện trên phần còn lại); nhờ vậy tập kiểm tra hoàn toàn không tham gia vào khâu lựa chọn mô hình, khép kín nguy cơ rò rỉ chọn lọc. Tương tự, ngưỡng của cổng phát hiện bất thường (Chương~4) cũng chỉ được chọn trên 10\% lưu lượng benign tách từ tập huấn luyện (\texttt{seed}=42), không sử dụng tập kiểm tra. Toàn bộ quy trình phân chia được minh họa ở Hình~\ref{fig:data_split}.
 
 \begin{figure}[htbp]
     \centering
@@ -336,7 +336,7 @@ Việc áp dụng kỹ thuật Voting cho phép khai thác sự đa dạng giữ
 \State \textbf{Bước 4: Kết hợp bằng bầu chọn mềm (Soft Voting)}
 \For{mỗi mẫu $x_j \in D_{\text{test}}$}
     \State $\bar{p}_j \gets \frac{1}{3} \displaystyle\sum_{s=1}^{3} p_s^{(j)}$ \Comment{Trung bình xác suất lớp Attack}
-    \If{$\bar{p}_j \geq 0.5$}
+    \If{$\bar{p}_j \geq 0{,}5$}
         \State $y_{\text{vote}}^{(j)} \gets 1$ \Comment{Dự đoán: Attack}
     \Else
         \State $y_{\text{vote}}^{(j)} \gets 0$ \Comment{Dự đoán: Benign}
@@ -417,12 +417,12 @@ Mỗi mô hình (cơ sở và ensemble) được đánh giá toàn diện trên 
 \toprule
 \textbf{Tiêu chí}                & \textbf{Mô tả} \\
 \midrule
-Độ chính xác (Accuracy)         & Tỉ lệ dự đoán đúng trên toàn bộ mẫu kiểm tra \\
-Precision                        & Tỉ lệ cảnh báo đúng trong tổng số cảnh báo được phát ra \\
-Recall                           & Tỉ lệ phát hiện đúng trong tổng số mẫu tấn công thực tế \\
+Độ chính xác (Accuracy)         & Tỷ lệ dự đoán đúng trên toàn bộ mẫu kiểm tra \\
+Precision                        & Tỷ lệ cảnh báo đúng trong tổng số cảnh báo được phát ra \\
+Recall                           & Tỷ lệ phát hiện đúng trong tổng số mẫu tấn công thực tế \\
 F1-Score                         & Trung bình điều hòa của Precision và Recall \\
-\ac{auc} – \ac{roc}             & Diện tích dưới đường cong ROC — đo hiệu năng phân biệt lớp \\
-\ac{auc} – PR                   & Diện tích dưới đường cong Precision-Recall \\
+\ac{auc} -- \ac{roc}             & Diện tích dưới đường cong ROC — đo hiệu năng phân biệt lớp \\
+\ac{auc} -- PR                   & Diện tích dưới đường cong Precision-Recall \\
 Chi phí tính toán                & Thời gian huấn luyện, thời gian dự đoán và kích thước mô hình \\
 Khả năng giải thích (\ac{xai})  & Biểu đồ SHAP: summary plot, bar chart và waterfall plot \\
 \bottomrule
@@ -488,7 +488,7 @@ Quy trình tối ưu hóa được thực hiện như sau:
     \item Sử dụng \texttt{ParamGridBuilder} để định nghĩa tập lưới các siêu tham số cần tìm kiếm.
     \item Khởi tạo \texttt{CrossValidator} với pipeline, lưới các tham số, và bộ đánh giá hiệu năng (ví dụ: \texttt{BinaryClassificationEvaluator}).
     \item Huấn luyện mô hình bằng cách gọi phương thức \texttt{fit()} của \texttt{CrossValidator} trên tập dữ liệu huấn luyện.
-    \item Chọn mô hình tốt nhất dựa trên điểm đánh giá trung bình trên các folds.
+    \item Chọn mô hình tốt nhất dựa trên điểm đánh giá trung bình trên các fold.
 \end{enumerate}
 
 \textbf{Ví dụ đoạn mã sử dụng Spark MLlib}:
