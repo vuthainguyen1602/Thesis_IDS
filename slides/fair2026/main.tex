@@ -8,7 +8,7 @@
 %   Title .......................... 0:20
 %   I   Problem, contributions ..... 1:25   (2 slides)
 %   II  Leakage-aware pipeline ..... 0:55   (1 slide)
-%   III Results, conclusion ........ 3:50   (5 slides)
+%   III Results, conclusion ........ 4:10   (5 slides)
 % Slides 10+ are BACKUP for Q&A and are not part of the 7 minutes.
 % Speaker notes live in \note{} — build them with NOTES=1.
 % =====================================================================
@@ -31,7 +31,7 @@
 \institute{\scriptsize \inst{1}University of Transport and Communications, HCMC Campus \quad
            \inst{2}University of Information Technology, VNU-HCM \\
            \inst{3}Nong Lam University, HCMC}
-\date{FAIR 2026}
+\date{FAIR'2026}
 
 \begin{document}
 
@@ -48,10 +48,10 @@ usually a property of the evaluation pipeline, not of the model.}
 \begin{frame}{A near-perfect F1 on CICIDS2017 is a warning sign}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
-      \textbf{Two problems, usually treated apart}
+      \textbf{Two problems, usually treated separately}
       \begin{itemize}
         \item \key{Cost.} $\approx$80 features per flow.
-        \item \key{Trust.} Near-perfect binary F1 is normally
+        \item \key{Trust.} Near-perfect binary F1 usually signals
               \bad{data leakage}.
       \end{itemize}
       \vspace{0.5em}
@@ -91,8 +91,8 @@ usually a property of the evaluation pipeline, not of the model.}
     \item A \key{per-attack-type multiclass} evaluation --- where the methods
           genuinely differ.
     \item An \key{edge-aware} recommendation: F1 \emph{and} feature count
-          \emph{and} model size, for a Jetson Orin Nano Super (deployed in a
-          companion systems paper).
+          \emph{and} model size, for a Jetson Orin Nano Super (deployment
+          reported in a companion systems paper).
   \end{enumerate}
   \note{Five contributions; three, four and five are the ones nobody else
   does together.}
@@ -165,7 +165,7 @@ usually a property of the evaluation pipeline, not of the model.}
         \midrule
         Baseline           & XGBoost & 0.9971 & 4615.5 & 77 \\
         \textbf{SHAP Top-30} & XGBoost & \num{0.9970} & \num{1226.1} & \num{30} \\
-        PCA $k$=40         & XGBoost & 0.9939 & 1444.8 & 40 \\
+        PCA $k{=}40$         & XGBoost & 0.9939 & 1444.8 & 40 \\
         RF Top-30          & XGBoost & 0.9922 & 1295.1 & 30 \\
         \bottomrule
       \end{tabular}
@@ -192,9 +192,9 @@ usually a property of the evaluation pipeline, not of the model.}
               of features} and \good{$\approx$73\% of training time}.
         \item At \emph{equal} feature count, SHAP beats RF Importance on every
               tree-based algorithm.
-        \item PCA uses $k$=40 because it \emph{extracts} rather than
+        \item PCA uses $k{=}40$ because it \emph{extracts} rather than
               \emph{selects} --- each component carries only part of the
-              variance. Cheaper, but not explainable.
+              variance. Cheaper than the baseline, but not explainable.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -252,7 +252,7 @@ usually a property of the evaluation pipeline, not of the model.}
   duplicates were the dominant leak.}
   {\tiny\textcolor{gray!55!black}{Nadeau \& Bengio, \emph{Inference for the
   Generalization Error}, Machine Learning 52(3), 2003.}}
-  \note{Variance reflects data sampling, not just model initialisation. The
+  \note{Variance reflects data sampling, not just model initialization. The
   test is two-sided, and overlapping resamplings break t-independence.
   Small p, tiny effect in absolute terms: say plainly that we treat them as
   equivalent rather than claiming a winner.}
@@ -291,7 +291,7 @@ usually a property of the evaluation pipeline, not of the model.}
       \raggedright\footnotesize
       Two failure modes, read \emph{by destination}:
       \begin{itemize}\footnotesize
-        \item \textbf{Mislabelled but caught}: 81/111 XSS land on Web Brute
+        \item \textbf{Mislabeled but caught}: 81/111 XSS land on Web Brute
               Force --- \good{76\% still flagged} at the binary level.
         \item \textbf{Leaking into Benign} (dangerous): all 6 SQL Injection,
               \bad{54\% of Bot}, 27\% of Brute Force.
@@ -332,7 +332,7 @@ usually a property of the evaluation pipeline, not of the model.}
         \item In-domain F1 is high in \emph{both} directions --- cross-dataset
               F1 collapses to \bad{0.04--0.05}.
         \item Driven by near-zero \emph{recall} (0.022 / 0.030) while precision
-              stays at 0.596: the model \key{fails to recognise} the other
+              (2017$\to$2018) stays at 0.596: the model \key{fails to recognize} the other
               testbed's attacks rather than alarming indiscriminately.
         \item Causes: different CICFlowMeter version, different network
               configuration, non-overlapping attack tooling.
@@ -409,7 +409,7 @@ usually a property of the evaluation pipeline, not of the model.}
           \hfill{\key{cross-dataset target}}
   \end{itemize}
   \note{Not presented --- shown while taking questions, so sources are on
-  screen if the committee asks. Full list is in the paper.}
+  screen if the audience asks. Full list is in the paper.}
 \end{frame}
 
 % =====================================================================
@@ -441,7 +441,7 @@ usually a property of the evaluation pipeline, not of the model.}
     Naive Bayes         & gaussian, smoothing=1.0 \\
     Random Forest       & numTrees=200, maxDepth=15, featureSubset=sqrt \\
     GBT                 & maxIter=150, maxDepth=6, stepSize=0.05, subsample=0.8 \\
-    XGBoost             & n\_estimators=300, max\_depth=8, lr=0.05, subsample=0.8 \\
+    XGBoost             & n\_estimators=300, max\_depth=8, lr=0.05, subsample=0.8, colsample=0.8 \\
     MLP                 & layers=[$d$,64,32,2], maxIter=150, stepSize=0.01 \\
     \bottomrule
   \end{tabular}

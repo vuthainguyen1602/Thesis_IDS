@@ -169,8 +169,8 @@
 
     \node[jst, below=2.8cm of p1] (e1) {Luồng Kafka};
     \node[jst, right=0.7cm of e1] (e2) {Cổng bất thường\\ (Jetson \#1)};
-    \node[jst, right=0.7cm of e2] (e3) {Phân lớp PySpark\\ (Jetson \#2)};
-    \node[jst, right=0.7cm of e3] (e4) {Thông lượng / độ trễ\\ CPU--RAM--năng lượng};
+    \node[jst, right=0.7cm of e2] (e3) {Bộ phân loại PySpark\\ (Jetson \#2)};
+    \node[jst, right=0.7cm of e3] (e4) {Thông lượng / độ trễ\\ CPU / RAM / năng lượng};
     \draw[arr] (e1)--(e2); \draw[arr] (e2)--(e3); \draw[arr] (e3)--(e4);
     \begin{scope}[on background layer]
       \node[band, fill=accGreen!5, fit=(e1)(e4)] (edgb) {};
@@ -294,7 +294,7 @@
       \fitwidth{%
       \begin{tabular}{lccc}
         \toprule
-        Thuật toán & RF Top-30 & SHAP Top-30 & Chênh lệch t.đối \\
+        Thuật toán & RF Top-30 & SHAP Top-30 & Chênh lệch tương đối \\
         \midrule
         Random Forest & 0,9879 & 0,9955 & \good{$+$0,77\%} \\
         XGBoost       & 0,9922 & 0,9970 & \good{$+$0,48\%} \\
@@ -346,7 +346,7 @@
   nhỏ hơn nhiều.}
   \note{Đây là bằng chứng cho RQ2, và là một kết quả âm tính --- nói thẳng ra
   thay vì né. Hybrid Bagging ghép Top-3 thuật toán có F1 cao nhất trên tập kiểm
-  định, có trọng số. Dung lượng XGBoost trên cụm phân tán báo thiếu (0,003 MB)
+  định, có trọng số. Dung lượng XGBoost trên cụm phân tán báo thiếu (0,003\,MB)
   nên để trống thay vì ghi con số sai. Slide sau sẽ cho thấy ngay cả chênh lệch
   giữa các cấu hình hàng đầu cũng không có ý nghĩa thực tiễn.}
 \end{frame}
@@ -442,7 +442,7 @@
   \end{columns}
   \note{81/111 mẫu XSS bị đoán thành Web Brute Force, 27\% Brute Force lọt
   thành Benign. Ba cơ chế: mất cân bằng cực đoan (6--311 mẫu so với 380 nghìn benign);
-  loại \texttt{destination\_port} tác động mạnh nhất lên web attack — mất lối tắt cổng
+  loại \texttt{destination\_port} tác động mạnh nhất lên web attack --- mất lối tắt cổng
   80, luồng HTTP ngắn trông như duyệt web bình thường, nên recall 0,027 trung
   thực thay thế con số bị rò rỉ thổi phồng; beaconing C\&C của Bot vốn giống
   lưu lượng nền.}
@@ -472,7 +472,7 @@
       \begin{itemize}
         \item Trong-miền cao ở \emph{cả hai} chiều --- liên bộ dữ liệu sụp
               xuống \bad{0,04--0,05}.
-        \item Do recall gần 0, trong khi precision vẫn 0,596: mô hình
+        \item Do recall gần 0, trong khi precision chiều 2017$\rightarrow$2018 vẫn 0,596: mô hình
               \key{không nhận ra} tấn công của môi trường thu thập kia.
         \item Nguyên nhân: khác phiên bản CICFlowMeter, khác cấu hình mạng, khác
               bộ công cụ tấn công.
@@ -483,8 +483,8 @@
   --- \key{không chứng nhận} khả năng triển khai dưới dịch chuyển phân phối.}
   \note{Không làm nhẹ con số này. Recall cụ thể là 0,022 và 0,030; mẫu
   CSE-CIC-IDS2018 khoảng 2,39 triệu luồng, seed cố định. Kết quả thống nhất với
-  các nghiên cứu liên bộ dữ liệu trước đó và là lý do thích ứng miền là điều
-  kiện tiên quyết.}
+  các nghiên cứu liên bộ dữ liệu trước đó và là lý do khiến thích ứng
+  miền trở thành điều kiện tiên quyết.}
 \end{frame}
 
 % =====================================================================
@@ -518,7 +518,7 @@
   \bad{90,8\%} ở nút phân loại $\rightarrow$ tách pipeline là mặc định khuyến nghị.}
   \note{Bảng cốt lõi của pha B. Chỉ rõ chế độ B là bằng chứng phản chứng: thêm
   bo mạch mà không tách vai trò thì gần như không được gì. Chế độ C nhanh nhất về
-  trung bình nhưng lệch ±26 luồng/giây và phụ thuộc Spark master trên máy chủ.
+  trung bình nhưng lệch $\pm$26 luồng/giây và phụ thuộc Spark master trên máy chủ.
   Năng lượng là mức toàn bo mạch trên mỗi luồng: ở tải này phần công suất tích
   cực nằm dưới ngưỡng nhiễu của tegrastats. Ảnh Grafana đỉnh tải ở slide Q11.}
 \end{frame}
@@ -569,7 +569,7 @@
   \note{Slide quan trọng nhất với hội đồng. Trả lời thẳng, kể cả câu trả lời
   ``không'' cho RQ2. RQ1: Random Forest đạt 0,9955; cùng số đặc trưng SHAP vượt
   RF Importance +0,48\% đến +1,15\% trên mọi thuật toán họ cây. RQ2: kiểm định
-  hoán vị ghép cặp cho p ≈ 0,031, chỉ vừa chạm ngưỡng sàn --- bài toán nhị phân
+  hoán vị ghép cặp cho $p \approx 0{,}031$, chỉ vừa chạm ngưỡng sàn --- bài toán nhị phân
   trong-miền đã gần bão hòa, nên tiêu chí phụ mới là căn cứ chọn mô hình. RQ3:
   chỉ thêm bo mạch mà không tách vai trò (chế độ B) hầu như không cải thiện.}
 \end{frame}
@@ -628,7 +628,7 @@
   \end{columns}
   \note{Nêu hạn chế trước khi hội đồng nêu, mỗi hạn chế đi kèm hướng khắc phục
   tương ứng. Chi tiết: bộ phân loại đa lớp thời gian thực chưa hoàn thiện; liên
-  bộ dữ liệu mới thử trên mẫu phân tầng CSE-CIC-IDS2018; cụm 2 nút 8 GB chưa
+  bộ dữ liệu mới thử trên mẫu phân tầng CSE-CIC-IDS2018; cụm 2 nút 8\,GB chưa
   phải quy mô terabyte; GPU khoảng 67 TOPS chưa dùng vì pipeline chỉ chạy CPU.
   Bản hướng phát triển đầy đủ ở slide Q12.}
 \end{frame}
@@ -953,7 +953,7 @@
         PySpark 3.4.1, Kafka 3.5, LAN Wi-Fi.\\[0.3em]
         Tải: phát lại CICIDS2017 ở 100 luồng/giây.\\[0.3em]
         $\geq$3 lần lặp; lưu lượng khởi động \emph{loại khỏi} cửa sổ đo.\\[0.3em]
-        Năng lượng: \texttt{tegrastats}, trừ nền idle.
+        Năng lượng: \texttt{tegrastats}; KQ6 báo mức toàn bo mạch, KQ7 báo phần hoạt động (đã trừ nền idle).
       \end{block}
     \end{column}
   \end{columns}

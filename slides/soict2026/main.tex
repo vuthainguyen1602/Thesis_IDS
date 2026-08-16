@@ -116,7 +116,7 @@ devices. Seven minutes, three results.}
     \node[mtr] (out) at (0,-6.0)   {Performance metrics $\rightarrow$ InfluxDB $\rightarrow$ Grafana \quad$|$\quad
         Alerts: Email (Mailtrap) / Slack};
     \draw[arr] (pc.south -| j1) -- node[lbl]{network-flow topic} (j1.north);
-    \draw[arr] (j1.east) -- node[lbl]{suspicious-flow topic\\ (only 4.2\% of flows)} (j2.west);
+    \draw[arr] (j1.east) -- node[lbl]{suspicious-flow topic\\ ($\approx$4\% of flows, mode A)} (j2.west);
     \draw[arr] (j2.north) -- node[lbl]{results\\ $\rightarrow$ PostgreSQL} (pc.south -| j2);
     \draw[dsh] (j1.south) -- (out.north -| j1);
     \draw[dsh] (j2.south) -- (out.north -| j2);
@@ -153,7 +153,7 @@ devices. Seven minutes, three results.}
     \begin{column}{0.40\textwidth}
       \begin{block}{Setup}
         \footnotesize
-        2$\times$ Jetson Orin Nano Super\\ (6-core A78AE, 8\,GB, $\approx$67 TOPS)\\[0.3em]
+        2$\times$ Jetson Orin Nano Super\\ (6-core A78AE, 8\,GB, $\approx$67\,TOPS)\\[0.3em]
         PySpark 3.4.1, Kafka 3.5, Wi-Fi LAN\\[0.3em]
         CICIDS2017 replay at 100 flows/s\\[0.3em]
         $\geq$3 repetitions, warmup excluded\\[0.3em]
@@ -194,14 +194,14 @@ devices. Seven minutes, three results.}
       \begin{itemize}
         \item \good{A: $24\times$ throughput at unchanged p95} --- the gate
               absorbs 95.8\% of benign traffic.
-        \item \bad{B stays Spark-bound} ($2\times$): every node still classifies.
+        \item \bad{B stays Spark-bound} ($\approx$2.3$\times$): every node still classifies.
       \end{itemize}
     \end{column}
     \begin{column}{0.49\textwidth}
       \begin{itemize}
-        \item C is fastest on average but $\pm$26 flows/s and needs the host master.
-        \item Energy amortised over $24$--$35\times$ more verdicts:
-              \good{2.5 $\rightarrow$ 0.12--0.18\,J}.
+        \item C is fastest on average but swings by $\pm$25.6 flows/s and needs the host master.
+        \item Energy amortized over 24--35$\times$ more verdicts:
+              \good{$\approx$2.5\,J $\rightarrow$ 0.12--0.18\,J}..
       \end{itemize}
     \end{column}
   \end{columns}
@@ -232,9 +232,9 @@ devices. Seven minutes, three results.}
       moving it off the ingest path pays.
     \end{column}
   \end{columns}
-  \note{Live Grafana at peak load. Five percent versus ninety percent. The
+  \note{Live Grafana at peak load. Under five versus ninety-one percent. The
   asymmetry is the whole argument for the split. Add: the gate is a tunable
-  filter, not a fixed point — backup slide has the operating curve.}
+  filter, not a fixed point --- backup slide has the operating curve.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:45
@@ -247,7 +247,7 @@ devices. Seven minutes, three results.}
   \fitwidth{%
   \begin{tabular}{lcccc}
     \toprule
-    Engine & Throughput (flows/s) & p95 (ms) & RAM (\%) & Energy/inf.\ (mJ) \\
+    Engine & Throughput (flows/s) & p95 (ms) & RAM (\%) & Energy/inf.\ (mJ, active) \\
     \midrule
     PySpark (deployed) & 22.6   & 532  & 24.3 & 71.6 \\
     scikit-learn       & 204.4  & 49.8 & 13.3 & 2.91 \\
@@ -257,7 +257,7 @@ devices. Seven minutes, three results.}
   }
   \takeaway{ONNX Runtime sustains \num{$348\times$} the deployed PySpark
   throughput. We report this as a \emph{target for the next iteration} ---
-  export to ONNX/TensorRT for serving, keep Spark for training.}
+  export to ONNX/TensorRT for serving; keep Spark for training.}
   \note{We could have hidden this. Instead: the JVM costs us three orders of
   magnitude, and that sets the roadmap.}
 \end{frame}
@@ -328,7 +328,7 @@ devices. Seven minutes, three results.}
           \hfill{\key{leakage-aware protocol}}
   \end{itemize}
   \note{Not presented --- shown while taking questions, so sources are on
-  screen if the committee asks. Full list is in the paper.}
+  screen if the audience asks. Full list is in the paper.}
 \end{frame}
 
 % =====================================================================
@@ -368,7 +368,7 @@ devices. Seven minutes, three results.}
     Configuration & F1 & Features & Size (MB) & Edge rationale \\
     \midrule
     Baseline $+$ XGBoost      & 0.9971 & 77 & 2.32 & Reference accuracy \\
-    \textbf{SHAP Top-30} $+$ XGBoost & 0.9970 & 30 & 0.003$^{\dagger}$ & Explainable; deployed set \\
+    \textbf{SHAP Top-30} $+$ XGBoost & 0.9970 & 30 & 0.003$^{\dagger}$ & Explainable; deployed feature set \\
     RF Top-30 $+$ XGBoost     & 0.9922 & 30 & 2.52 & Embedded ranking \\
     PCA $k$=40 $+$ XGBoost    & 0.9939 & 40 & 3.82 & Unsupervised reduction \\
     \bottomrule
@@ -402,7 +402,7 @@ devices. Seven minutes, three results.}
     \item Latency percentiles per node over \emph{raw per-flow} samples;
           cluster p95 is conservatively the \emph{worst node's} p95.
     \item End-to-end send-to-verdict latency from producer timestamps under
-          NTP-synchronised clocks (excludes DB-write cost).
+          NTP-synchronized clocks (excludes DB-write cost).
     \item Energy: \texttt{tegrastats}, 30\,s idle baseline then load window;
           two-node modes sum both boards.
   \end{itemize}
