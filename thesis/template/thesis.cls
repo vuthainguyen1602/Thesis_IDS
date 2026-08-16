@@ -153,9 +153,9 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
 % đánh số thuật toán theo chương (3.1, 4.1...) cho nhất quán với Hình/Bảng
 \numberwithin{algorithm}{chapter}
 
-% Trang chỉ chứa float: dồn hình/bảng lên đầu trang thay vì căn giữa dọc,
-% tránh khoảng trống lớn phía trên hình
-\setlength{\@fptop}{0pt}
+% Trang chỉ chứa float: căn giữa dọc (khoảng trống chia đều trên/dưới),
+% đồng bộ với trang sơ đồ cụm Spark căn giữa thủ công
+\setlength{\@fptop}{0pt plus 1fil}
 \setlength{\@fpsep}{16pt}
 \setlength{\@fpbot}{0pt plus 1fil}
 
