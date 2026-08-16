@@ -345,7 +345,7 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
 
     \newpage
     \phantomsection
-    \addcontentsline{toc}{chapter}{Thông tin hội đồng bảo vệ luận văn}
+    \addcontentsline{toc}{chapter}{Thông tin hội đồng bảo vệ luận văn thạc sĩ}
     \input{chapters/council}
 
     \newpage

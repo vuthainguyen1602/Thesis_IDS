@@ -117,7 +117,7 @@
         {{hash=6132de4a82b69e9c9a4b36edd1704420}{%
            family={Vinayakumar},
            familyi={V\bibinitperiod},
-           given={R},
+           given={R.},
            giveni={R\bibinitperiod}}}%
         {{hash=a102edcc6b0d82c41e14761c9a5a8a61}{%
            family={Alazab},
@@ -127,7 +127,7 @@
         {{hash=1cd7ca3537ce0bd980cc06b59795ddf1}{%
            family={Soman},
            familyi={S\bibinitperiod},
-           given={K\bibnamedelima P},
+           given={K.\bibnamedelimi P.},
            giveni={K\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
         {{hash=235d001b6c50af1c7707120fe7b7c3c4}{%
            family={Poornachandran},
@@ -379,9 +379,12 @@
       \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{note}{arXiv:2501.15266}
+      \field{eprinttype}{arXiv}
       \field{title}{Enhanced Intrusion Detection in {IIoT} Networks: A Lightweight Approach with Autoencoder-Based Feature Learning}
       \field{year}{2025}
+      \verb{eprint}
+      \verb 2501.15266
+      \endverb
     \endentry
     \entry{baalaji2025ensemble}{article}{}{}
       \name{author}{2}{}{%
