@@ -54,7 +54,7 @@
   backgroundcolor=\color{gray!10},
   keywordstyle=\color{blue},
   commentstyle=\color{green!60!black},
-  stringstyle=\color{orange},
+  stringstyle=\color[HTML]{C1121F},
   breaklines=true,
   frame=single,
   columns=fullflexible,
