@@ -15,47 +15,6 @@ Các thuật toán học máy, phương pháp giảm chiều và các bước đ
 
 Cần nhấn mạnh rằng máy chủ MacBook \emph{chỉ} đảm nhận vai trò \textit{master} điều phối cụm cùng tiền xử lý và hạ tầng dịch vụ, mà \emph{không} tham gia tính toán huấn luyện (không chạy \textit{executor}). Lựa chọn này là có chủ đích: toàn bộ số liệu hiệu năng được báo cáo nhằm phản ánh trung thực khả năng \emph{huấn luyện phân tán ngay trên phần cứng biên} Jetson, đúng với mục tiêu cốt lõi của luận văn. Nếu đưa MacBook (vi xử lý Apple M3, mạnh hơn đáng kể) vào làm nút tính toán, phần lớn khối lượng công việc sẽ dồn về máy chủ, gây mất cân bằng tải (hiện tượng \textit{straggler}) và làm sai lệch các phép đo thời gian/thông lượng, khiến kết quả không còn phản ánh đúng hiệu năng của cụm biên. Vì vậy, cụm đo đạc được giữ \emph{đồng nhất} gồm hai nút Jetson; máy chủ chỉ được dùng để phát triển và kiểm thử nhanh trong giai đoạn xây dựng pipeline.
 
-\begin{figure}[!t]
-    \centering
-    \resizebox{\textwidth}{!}{%
-    \begin{tikzpicture}[
-        font=\small, >=Stealth,
-        every node/.style={align=center},
-        master/.style={draw=gray!65,        thick, rounded corners, fill=gray!8,   text width=12.6cm, minimum height=1.5cm, inner sep=5pt},
-        work/.style  ={draw=accGreen!80!black,  thick, rounded corners, fill=accGreen!8,  text width=5.6cm,  minimum height=3.1cm, inner sep=7pt},
-        store/.style ={draw=accBlue,         thick, rounded corners, fill=accBlue!5,   text width=5.6cm,  minimum height=1.0cm, inner sep=4pt},
-        lbl/.style   ={font=\footnotesize, fill=white, inner sep=1.5pt, text=gray!35!black},
-        dn/.style    ={-{Stealth[length=2.6mm]}, thick, draw=gray!55!black},
-        up/.style    ={-{Stealth[length=2.6mm]}, thick, draw=accRed, dashed},
-    ]
-        \node[master] (m) at (0,0) {\textbf{Máy chủ điều phối: MacBook Air (Apple M3, 16\,GB)}\\[2pt]
-            Spark \textbf{Master} (điều phối cụm) \;$|$\; Tiền xử lý CSV\,$\rightarrow$\,Parquet \;$|$\; Docker: Kafka / PostgreSQL / InfluxDB / Grafana\\[1pt]
-            \textit{Không chạy executor, không tham gia tính toán huấn luyện}};
-        \node[work] (w1) at (-3.6,-7.8) {\textbf{Jetson Orin Nano Super \#1}\\[1pt]
-            Spark \textbf{Worker} + \textbf{Driver}\\[2pt]
-            Executor: cores=4, mem=3\,GB\\
-            Phân vùng dữ liệu (partitions)\\
-            swap 8\,GB (NVMe)};
-        \node[work] (w2) at ( 3.6,-7.8) {\textbf{Jetson Orin Nano Super \#2}\\[1pt]
-            Spark \textbf{Worker}\\[2pt]
-            Executor: cores=4, mem=3\,GB\\
-            Phân vùng dữ liệu (partitions)\\
-            swap 8\,GB (NVMe)};
-        \node[store] (s1) at (-3.6,-12.2) {Parquet (đồng bộ)};
-        \node[store] (s2) at ( 3.6,-12.2) {Parquet (đồng bộ)};
-        \draw[dn] (m.south -| w1) -- node[lbl]{giao tác vụ\\ + partition} (w1.north);
-        \draw[dn] (m.south -| w2) -- node[lbl]{giao tác vụ\\ + partition} (w2.north);
-        \draw[up] (w1.west) -- ++(-0.75,0) |- (m.west);
-        \draw[up] (w2.east) -- ++( 0.75,0) |- (m.east);
-        % Nhãn xoay dọc trên đường hồi trái (2 dòng để không lòi lên mũi tên ngang); nền trắng che line
-        \node[lbl, rotate=90] at (-7.3,-3.8) {gom kết quả\\(shuffle/collect)};
-        \draw[dn] (w1.south) -- (s1.north);
-        \draw[dn] (w2.south) -- (s2.north);
-    \end{tikzpicture}}
-    \caption[Cụm huấn luyện phân tán Apache Spark Standalone]{Cụm huấn luyện phân tán Apache Spark Standalone: máy chủ điều phối (master) và hai Jetson worker/executor}
-    \label{fig:spark_cluster}
-\end{figure}
-
 \section{Kết quả thực nghiệm}
 
 % Ghi chú: các giá trị trong mục này đã được điền từ loạt chạy leakage-free 2026-07 trên cụm Jetson
@@ -120,6 +79,49 @@ Bảng~\ref{tab:model_parameters} tóm tắt thiết lập tham số của các 
 \end{tabular*}
 \end{table}
 
+\clearpage
+% Trang dành riêng cho sơ đồ cụm: căn giữa dọc thay vì dồn lên đầu trang
+\vspace*{\fill}
+\begin{center}
+    \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        font=\small, >=Stealth,
+        every node/.style={align=center},
+        master/.style={draw=gray!65,        thick, rounded corners, fill=gray!8,   text width=12.6cm, minimum height=1.5cm, inner sep=5pt},
+        work/.style  ={draw=accGreen!80!black,  thick, rounded corners, fill=accGreen!8,  text width=5.6cm,  minimum height=3.1cm, inner sep=7pt},
+        store/.style ={draw=accBlue,         thick, rounded corners, fill=accBlue!5,   text width=5.6cm,  minimum height=1.0cm, inner sep=4pt},
+        lbl/.style   ={font=\footnotesize, fill=white, inner sep=1.5pt, text=gray!35!black},
+        dn/.style    ={-{Stealth[length=2.6mm]}, thick, draw=gray!55!black},
+        up/.style    ={-{Stealth[length=2.6mm]}, thick, draw=accRed, dashed},
+    ]
+        \node[master] (m) at (0,0) {\textbf{Máy chủ điều phối: MacBook Air (Apple M3, 16\,GB)}\\[2pt]
+            Spark \textbf{Master} (điều phối cụm) \;$|$\; Tiền xử lý CSV\,$\rightarrow$\,Parquet \;$|$\; Docker: Kafka / PostgreSQL / InfluxDB / Grafana\\[1pt]
+            \textit{Không chạy executor, không tham gia tính toán huấn luyện}};
+        \node[work] (w1) at (-3.6,-7.8) {\textbf{Jetson Orin Nano Super \#1}\\[1pt]
+            Spark \textbf{Worker} + \textbf{Driver}\\[2pt]
+            Executor: cores=4, mem=3\,GB\\
+            Phân vùng dữ liệu (partitions)\\
+            swap 8\,GB (NVMe)};
+        \node[work] (w2) at ( 3.6,-7.8) {\textbf{Jetson Orin Nano Super \#2}\\[1pt]
+            Spark \textbf{Worker}\\[2pt]
+            Executor: cores=4, mem=3\,GB\\
+            Phân vùng dữ liệu (partitions)\\
+            swap 8\,GB (NVMe)};
+        \node[store] (s1) at (-3.6,-12.2) {Parquet (đồng bộ)};
+        \node[store] (s2) at ( 3.6,-12.2) {Parquet (đồng bộ)};
+        \draw[dn] (m.south -| w1) -- node[lbl]{giao tác vụ\\ + partition} (w1.north);
+        \draw[dn] (m.south -| w2) -- node[lbl]{giao tác vụ\\ + partition} (w2.north);
+        \draw[up] (w1.west) -- ++(-0.75,0) |- (m.west);
+        \draw[up] (w2.east) -- ++( 0.75,0) |- (m.east);
+        % Nhãn xoay dọc trên đường hồi trái (2 dòng để không lòi lên mũi tên ngang); nền trắng che line
+        \node[lbl, rotate=90] at (-7.3,-3.8) {gom kết quả\\(shuffle/collect)};
+        \draw[dn] (w1.south) -- (s1.north);
+        \draw[dn] (w2.south) -- (s2.north);
+    \end{tikzpicture}}
+\captionof{figure}[Cụm huấn luyện phân tán Apache Spark Standalone]{Cụm huấn luyện phân tán Apache Spark Standalone: máy chủ điều phối (master) và hai Jetson worker/executor}
+\label{fig:spark_cluster}
+\end{center}
+\vspace*{\fill}
 \clearpage
 \subsection{Kịch bản 1: Đánh giá hiệu năng cơ sở (Baseline)}
 Trong kịch bản này, toàn bộ tập đặc trưng số (khoảng 78 đặc trưng trước khi loại cổng; số chính xác sau khi loại \texttt{destination\_port}/\texttt{source\_port} là 77) được đưa vào mô hình mà chưa qua bất kỳ bước lựa chọn đặc trưng hay giảm chiều nào. Mục tiêu là thiết lập một mức hiệu năng tham chiếu cho các thử nghiệm tiếp theo.
