@@ -127,7 +127,7 @@ Trong kịch bản này, toàn bộ tập đặc trưng số (khoảng 78 đặc
 Kết quả hiệu năng của các thuật toán \ac{ml} đơn lẻ và phương pháp Ensemble được trình bày trong Bảng \ref{tab:exp0_ml_metrics}.
 \begin{table}[htbp]
 \centering
-\caption[Hiệu năng phân lớp kịch bản Baseline]{Kết quả hiệu năng phân lớp kịch bản Baseline (toàn bộ đặc trưng số, $\approx$78 trước khi loại cổng)}
+\caption[Hiệu năng phân loại kịch bản Baseline]{Kết quả hiệu năng phân loại kịch bản Baseline (toàn bộ đặc trưng số, $\approx$78 trước khi loại cổng)}
 \label{tab:exp0_ml_metrics}
 \small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc@{}}
@@ -204,7 +204,7 @@ Việc tinh chỉnh giúp các mô hình cây đạt F1 quanh mức 0,995 (Bản
 Kết quả hiệu năng của phương pháp Tối ưu hóa tham số được trình bày trong Bảng \ref{tab:exp2_ml_metrics}.
 \begin{table}[htbp]
 \centering
-\caption{Kết quả hiệu năng phân lớp kịch bản Tối ưu hóa tham số}
+\caption{Kết quả hiệu năng phân loại kịch bản Tối ưu hóa tham số}
 \label{tab:exp2_ml_metrics}
 \small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc@{}}
@@ -443,7 +443,7 @@ Trong phần này, luận văn đề xuất xây dựng một hệ thống phát
 
 NVIDIA Jetson Orin Nano Super là một máy tính nhúng (single-board computer) tích hợp CPU kiến trúc ARM 64-bit và GPU NVIDIA, hỗ trợ tăng tốc suy luận học máy ngay tại biên; cấu hình chi tiết đã nêu tại Bảng~\ref{tab:hardware} (Chương~3) và mục Môi trường thực nghiệm. Do hạn chế về tài nguyên tính toán so với máy chủ truyền thống, việc triển khai trên Jetson Orin Nano Super cho phép đánh giá khả năng tối ưu hóa mô hình và hiệu năng suy luận trong điều kiện phần cứng nhúng (edge computing).
 
-Mô hình có hiệu năng tối ưu được xác định ở phần đánh giá hiệu năng phân lớp phía trên sẽ được tích hợp vào pipeline xử lý nhằm thực hiện nhiệm vụ phát hiện và phân loại lưu lượng mạng thành hai nhóm: \textit{Benign} và \textit{Attack}. Các chỉ số đánh giá bao gồm độ chính xác (Accuracy), Precision, Recall, F1-Score, thời gian dự đoán trung bình cho mỗi mẫu, thông lượng xử lý (throughput) và mức tiêu thụ tài nguyên hệ thống (CPU, RAM). Kết quả thực nghiệm cho phép phân tích tính khả thi của việc triển khai hệ thống \ac{ids} dựa trên học máy trong môi trường thiết bị biên có tài nguyên giới hạn.
+Mô hình có hiệu năng tối ưu được xác định ở phần đánh giá hiệu năng phân loại phía trên sẽ được tích hợp vào pipeline xử lý nhằm thực hiện nhiệm vụ phát hiện và phân loại lưu lượng mạng thành hai nhóm: \textit{Benign} và \textit{Attack}. Các chỉ số đánh giá bao gồm độ chính xác (Accuracy), Precision, Recall, F1-Score, thời gian dự đoán trung bình cho mỗi mẫu, thông lượng xử lý (throughput) và mức tiêu thụ tài nguyên hệ thống (CPU, RAM). Kết quả thực nghiệm cho phép phân tích tính khả thi của việc triển khai hệ thống \ac{ids} dựa trên học máy trong môi trường thiết bị biên có tài nguyên giới hạn.
 
 \subsection{Các công cụ sử dụng trong hệ thống}
 
@@ -740,10 +740,10 @@ Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữ
 \begin{enumerate}
     \item \textbf{Hiệu năng xử lý thời gian thực}: thông lượng cao nhất (26{,}8 mẫu/giây) và độ trễ p95 thấp nhất (397\,ms). Với \ac{ids}, độ trễ phán quyết là ràng buộc trực tiếp --- một mô hình nhỏ nhưng chậm hơn 35\% về p95 sẽ kéo dài cửa sổ mà tấn công chưa bị chặn.
     \item \textbf{Chất lượng phát hiện}: cao nhất trong ba mô hình ứng viên ở \emph{cả hai} phép đo --- F1 0{,}9955 trên đánh giá ngoại tuyến đầy đủ (Bảng~\ref{tab:summary_comparison}) và 0{,}9826 ở bản xuất huấn luyện trên mẫu con để vừa bộ nhớ một nút (Bảng~\ref{tab:edge_training}).
-    \item \textbf{Tương thích nền tảng}: Random Forest là estimator gốc của Spark ML nên \texttt{PipelineModel} xuất ra nạp được trực tiếp trên board ARM64, không cần các thư viện native mà tích hợp \ac{xgb} của Spark đòi hỏi.
+    \item \textbf{Tương thích nền tảng}: Random Forest là estimator gốc của Spark ML nên \texttt{PipelineModel} xuất ra nạp được trực tiếp trên bo mạch ARM64, không cần các thư viện native mà tích hợp \ac{xgb} của Spark đòi hỏi.
 \end{enumerate}
 
-Đánh đổi được chấp nhận là mức tiêu thụ bộ nhớ: Random Forest dùng 27{,}5\% RAM so với 21{,}9\% của Decision Tree và mô hình nặng $\approx$4{,}4\,MB so với 0{,}05\,MB. Trên board 8\,GB, khoảng chênh này còn dư địa lớn, nên bộ nhớ không phải là ràng buộc quyết định; Decision Tree vẫn là phương án dự phòng hợp lý nếu triển khai xuống các thiết bị \ac{iot} eo hẹp bộ nhớ hơn.
+Đánh đổi được chấp nhận là mức tiêu thụ bộ nhớ: Random Forest dùng 27{,}5\% RAM so với 21{,}9\% của Decision Tree và mô hình nặng $\approx$4{,}4\,MB so với 0{,}05\,MB. Trên bo mạch 8\,GB, khoảng chênh này còn dư địa lớn, nên bộ nhớ không phải là ràng buộc quyết định; Decision Tree vẫn là phương án dự phòng hợp lý nếu triển khai xuống các thiết bị \ac{iot} eo hẹp bộ nhớ hơn.
 
 \section{Thảo luận và So sánh tổng hợp}
 Kết quả thực nghiệm cho thấy lựa chọn đặc trưng dựa trên \ac{shap} là hướng tiếp cận phù hợp cho hệ thống \ac{ids} trên bộ dữ liệu CICIDS2017: dưới cấu hình đánh giá loại trừ rò rỉ dữ liệu, \ac{shap} Top-30 giữ được hiệu năng gần như nguyên vẹn trong khi cắt khoảng 60\% số đặc trưng. Ngược lại, học tổ hợp \emph{không} mang lại lợi thế trên chính cấu hình này: Hybrid Bagging đạt F1 0{,}9966 và Soft Voting đạt 0{,}9967, đều \emph{thấp hơn} \ac{xgb} đơn lẻ (0{,}9970). Học tổ hợp chỉ vượt mô hình đơn ở những cấu hình mà mô hình đơn yếu hơn (\ac{rf} Top-30: 0{,}9938 so với 0{,}9922; \ac{pca} $k$=40: 0{,}9940 so với 0{,}9939), nghĩa là nó \emph{bù cho bộ đặc trưng kém} chứ không tạo thêm hiệu năng phân loại. Chi phí đi kèm lại lớn: trên \ac{shap} Top-30, Hybrid Bagging cần 4909\,giây huấn luyện (so với 1226\,giây của \ac{xgb}), 46{,}6\,giây dự đoán (so với 7{,}1\,giây) và mô hình nặng 7{,}15\,MB --- lớn nhất trong tất cả các cấu hình đã thử. Vì vậy cấu hình được chọn để triển khai lên thiết bị biên là một \emph{mô hình đơn} trên tập đặc trưng \ac{shap} Top-30, không phải mô hình học tổ hợp.
