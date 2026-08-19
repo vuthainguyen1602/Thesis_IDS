@@ -352,12 +352,13 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
 \def\afterpreface{
     \pagestyle{customfancy}
 
-    \newpage
-    \phantomsection
-    \addcontentsline{toc}{chapter}{Thông tin hội đồng bảo vệ luận văn thạc sĩ}
-    \input{chapters/council}
+    % Trang thông tin hội đồng bảo vệ đã được bỏ khỏi bản in.
+    % Bỏ chú thích 3 dòng dưới (và chuyển \newpage kế tiếp cho phù hợp) để khôi phục.
+    % \newpage
+    % \phantomsection
+    % \addcontentsline{toc}{chapter}{Thông tin hội đồng bảo vệ luận văn thạc sĩ}
+    % \input{chapters/council}
 
-    \newpage
     \phantomsection
     \addcontentsline{toc}{chapter}{Lời cảm ơn}
     \input{chapters/ack.tex}
