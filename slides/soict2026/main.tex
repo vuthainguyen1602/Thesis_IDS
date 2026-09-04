@@ -201,13 +201,13 @@ devices. Seven minutes, three results.}
       \begin{itemize}
         \item C is fastest on average but swings by $\pm$25.6 flows/s and needs the host master.
         \item Energy amortized over 24--35$\times$ more verdicts:
-              \good{$\approx$2.5\,J $\rightarrow$ 0.12--0.18\,J}..
+              \good{$\approx$2.5\,J $\rightarrow$ 0.12--0.18\,J}.
       \end{itemize}
     \end{column}
   \end{columns}
   \takeaway{\textbf{Pipeline split is the recommended default} --- the highest
-  throughput \emph{per unit of variance}; cluster mode is for models that exceed
-  single-node memory.}
+  throughput at the tightest run-to-run spread; cluster mode is for models that
+  exceed single-node memory.}
   \note{This is the core table. Twenty-four times, at the same p95. Mode B
   proves the gain comes from role separation, not from adding a board. Energy
   is total-board per verdict: the active power delta was below the tegrastats
@@ -238,7 +238,7 @@ devices. Seven minutes, three results.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:45
-\begin{frame}{Result 3: the honest price of one unified stack}
+\begin{frame}{Result 3: the price of one unified stack}
   We serve with Spark for \emph{consistency with distributed training}.
   What does that cost? Same forest, same 29 deployed features, same board:
   \vspace{0.5em}
@@ -258,8 +258,8 @@ devices. Seven minutes, three results.}
   \takeaway{ONNX Runtime sustains \num{$348\times$} the deployed PySpark
   throughput. We report this as a \emph{target for the next iteration} ---
   export to ONNX/TensorRT for serving; keep Spark for training.}
-  \note{We could have hidden this. Instead: the JVM costs us three orders of
-  magnitude, and that sets the roadmap.}
+  \note{The JVM costs us three orders of magnitude, and that sets the
+  roadmap.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40

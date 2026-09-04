@@ -94,8 +94,8 @@ usually a property of the evaluation pipeline, not of the model.}
           \emph{and} model size, for a Jetson Orin Nano Super (deployment
           reported in a companion systems paper).
   \end{enumerate}
-  \note{Five contributions; three, four and five are the ones nobody else
-  does together.}
+  \note{Five contributions; three, four and five are the ones rarely done
+  together.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:55
@@ -199,7 +199,7 @@ usually a property of the evaluation pipeline, not of the model.}
     \end{column}
   \end{columns}
   \note{Two tables, one message: SHAP Top-30 is the operating point. Same
-  accuracy, 60 percent fewer features, and it is explainable — which matters
+  accuracy, 60 percent fewer features, and it is explainable, which matters
   for the SOC analyst and for the edge board downstream.}
 \end{frame}
 
@@ -259,7 +259,7 @@ usually a property of the evaluation pipeline, not of the model.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:55
-\begin{frame}{Result 3: binary F1 hides everything that matters}
+\begin{frame}{Result 3: binary F1 hides the rare classes}
   \begin{columns}[c]
     \begin{column}{0.40\textwidth}
       \centering
@@ -298,15 +298,15 @@ usually a property of the evaluation pipeline, not of the model.}
       \end{itemize}
     \end{column}
   \end{columns}
-  \note{This is where the paper earns its keep. Weighted F1 0.998 versus macro
-  F1 0.806. Three causes: extreme imbalance; removing the port hits web
-  attacks hardest — without the port-80 shortcut short HTTP flows look like
-  browsing, so the honest 0.027 recall replaces a leakage-inflated one; and
-  Bot C\&C beaconing resembles background traffic.}
+  \note{Weighted F1 0.998 versus macro F1 0.806. Three causes: extreme
+  imbalance; removing the port hits web attacks hardest, because without the
+  port-80 shortcut short HTTP flows look like browsing, so the 0.027 recall
+  reported here replaces a leakage-inflated one; and Bot C\&C beaconing
+  resembles background traffic.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:55
-\begin{frame}{Result 4: the most honest number in the paper}
+\begin{frame}{Result 4: the scores do not survive a different testbed}
   \begin{columns}[T]
     \begin{column}{0.46\textwidth}
       \centering\small
@@ -360,9 +360,9 @@ usually a property of the evaluation pipeline, not of the model.}
       \end{itemize}
     \end{column}
     \begin{column}{0.45\textwidth}
-      \textbf{The real contribution}
+      \textbf{The contribution}
       \begin{itemize}\small
-        \item Not ``which method is best'' but \key{how to evaluate reliably}.
+        \item \key{How to evaluate reliably}, as much as which method wins.
       \end{itemize}
       \textbf{Next}
       \begin{itemize}\small

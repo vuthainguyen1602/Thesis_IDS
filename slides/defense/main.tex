@@ -184,9 +184,9 @@
   \end{tikzpicture}}
   \\[0.3em]
   \footnotesize
-  Hai pha \emph{không cạnh tranh} nhau: pha offline trả lời ``\emph{mô hình
-  nào, bao nhiêu đặc trưng}''; pha biên trả lời ``\emph{mô hình đó có chạy được
-  theo thời gian thực dưới ràng buộc bộ nhớ, nhiệt và băng thông hay không}''.
+  Hai pha \emph{không cạnh tranh} nhau: pha offline trả lời ``mô hình nào, bao
+  nhiêu đặc trưng''; pha biên trả lời ``mô hình đó có chạy được theo thời gian
+  thực dưới ràng buộc bộ nhớ, nhiệt và băng thông hay không''.
   \note{Đây là slide bản lề của toàn bộ bài trình bày. Chỉ vào mũi tên xanh:
   mô hình được triển khai chính là mô hình đã qua kiểm định offline.}
 \end{frame}
@@ -396,8 +396,7 @@
   \note{Bảng hiện khoảng tin cậy $t$; khoảng Nadeau--Bengio rộng hơn
   (Baseline 0,99722--0,99746; SHAP Top-30 0,99705--0,99735) và mới là căn cứ
   kết luận chính --- luận văn trình bày cả hai cột.
-  Đây là chỗ thể hiện sự cẩn trọng phương pháp: p nhỏ không đồng nghĩa
-  khác biệt có ý nghĩa thực tiễn --- ở đây p = 0,031 chỉ vừa chạm ngưỡng sàn
+  Nhấn mạnh: p nhỏ không đồng nghĩa khác biệt có ý nghĩa thực tiễn --- ở đây p = 0,031 chỉ vừa chạm ngưỡng sàn
   của độ phân giải kiểm định. Lấy mẫu chồng lấn vi phạm giả định độc lập của
   phân phối t, nên Nadeau--Bengio là căn cứ chính.}
 \end{frame}
@@ -443,12 +442,12 @@
   \note{81/111 mẫu XSS bị đoán thành Web Brute Force, 27\% Brute Force lọt
   thành Benign. Ba cơ chế: mất cân bằng cực đoan (6--311 mẫu so với 380 nghìn benign);
   loại \texttt{destination\_port} tác động mạnh nhất lên web attack --- mất lối tắt cổng
-  80, luồng HTTP ngắn trông như duyệt web bình thường, nên recall 0,027 trung
-  thực thay thế con số bị rò rỉ thổi phồng; beaconing C\&C của Bot vốn giống
+  80, luồng HTTP ngắn trông như duyệt web bình thường, nên recall 0,027 báo cáo
+  ở đây thay thế con số bị rò rỉ thổi phồng; beaconing C\&C của Bot vốn giống
   lưu lượng nền.}
 \end{frame}
 
-\begin{frame}{KQ5 --- Tổng quát hóa liên bộ dữ liệu: con số trung thực nhất}
+\begin{frame}{KQ5 --- Tổng quát hóa liên bộ dữ liệu: điểm số không chuyển được}
   \begin{columns}[T]
     \begin{column}{0.46\textwidth}
       \centering\small
@@ -524,7 +523,7 @@
 \end{frame}
 
 
-\begin{frame}{KQ7 --- Cái giá trung thực của việc đồng nhất một stack}
+\begin{frame}{KQ7 --- Cái giá của việc đồng nhất một stack}
   Phục vụ suy luận bằng Spark để \emph{đồng nhất với pha huấn luyện phân tán}.
   Cùng mô hình, cùng 29 đặc trưng, cùng một bo mạch:
   \vspace{0.6em}
@@ -542,10 +541,10 @@
   }
   \takeaway{ONNX Runtime đạt thông lượng gấp \num{$\approx$348 lần} bản PySpark
   đang triển khai. Luận văn báo cáo con số này như một \emph{mục tiêu cho bước
-  tiếp theo} --- xuất mô hình sang ONNX/TensorRT cho pha triển khai biên, giữ Spark cho
-  pha huấn luyện --- chứ không phải lập luận bác bỏ stack đồng nhất.}
-  \note{Chủ động trình bày điểm yếu này. Hội đồng sẽ đánh giá cao việc tự định
-  lượng chi phí của lựa chọn thiết kế thay vì che giấu.}
+  tiếp theo} --- xuất mô hình sang ONNX/TensorRT cho pha triển khai biên, giữ
+  Spark cho pha huấn luyện.}
+  \note{Chủ động trình bày điểm yếu này: tự định lượng chi phí của lựa chọn
+  thiết kế thay vì né tránh.}
 \end{frame}
 
 % =====================================================================
@@ -764,7 +763,7 @@
       \end{itemize}
     \end{column}
     \begin{column}{0.53\textwidth}
-      \begin{alertblock}{Lưu ý trung thực về phạm vi ``IoT''}
+      \begin{alertblock}{Lưu ý về phạm vi ``IoT''}
         \footnotesize
         CICIDS2017 là lưu lượng doanh nghiệp \emph{mô phỏng}, không chứa giao
         thức đặc thù IoT (MQTT, CoAP). Tính chất ``IoT'' nằm ở \key{kịch bản
@@ -804,7 +803,7 @@
         \footnotesize
         \begin{itemize}
           \item Tách \emph{pha thăm dò} (quét $K$) khỏi \emph{pha xác nhận} ---
-                4 cấu hình cố định \emph{trước} khi xem kết quả.
+                4 cấu hình cố định trước khi xem kết quả.
           \item Mô hình đại diện chọn theo F1 trên \key{tập kiểm định} tách từ tập
                 huấn luyện.
           \item Tập kiểm tra \bad{không tham gia} bất kỳ bước lựa chọn nào.
@@ -1077,8 +1076,7 @@
           công mới do cổng tạo ra: giả dạng lưu lượng bình thường để vượt cổng,
           và cố ý tạo sai số tái tạo cao để dồn tải lên nút phân loại.
   \end{itemize}
-  \note{Mỗi hướng phát triển ứng với một hạn chế ở slide trước --- đó là cách
-  thể hiện sự làm chủ đề tài.}
+  \note{Mỗi hướng phát triển ứng với một hạn chế ở slide trước.}
 \end{frame}
 
 \end{document}
