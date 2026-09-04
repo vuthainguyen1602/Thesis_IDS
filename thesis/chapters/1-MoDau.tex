@@ -37,14 +37,14 @@ Mục tiêu của đề tài ``PHÁT HIỆN XÂM NHẬP (\ac{ids}) DỰA TRÊN A
   \item Thiết kế và triển khai pipeline xử lý dữ liệu phân tán và song song sử dụng Apache Spark, bao gồm các bước: tiền xử lý dữ liệu, trích xuất đặc trưng, huấn luyện mô hình và phát hiện thời gian thực.
   \item Khảo sát hiệu năng hệ thống, hướng tới khả năng mở rộng, độ trễ thấp và tính linh hoạt, đồng thời kiểm chứng khả năng xử lý phân tán ở mức minh chứng khái niệm (proof-of-concept) trên cụm thiết bị biên, làm tiền đề cho việc triển khai trên các hệ thống lớn hoặc mạng \ac{iot} nhiều thiết bị.
   \item So sánh và đánh giá các mô hình học máy phổ biến như Decision Tree, Support Vector Machine, Logistic Regression, \ac{nb}, Random Forest, \ac{gbt}, \ac{xgb}, \ac{mlp} và các thuật toán học tổ hợp (ensemble) trong môi trường xử lý phân tán, từ đó chọn ra mô hình phù hợp nhất.
-  \item Áp dụng quy trình đánh giá chặt chẽ, loại trừ rò rỉ dữ liệu (loại đặc trưng rò rỉ nhãn, loại bỏ trùng lặp ở mức đặc trưng, kiểm định ý nghĩa thống kê) nhằm đảm bảo kết quả phản ánh đúng hiệu năng mô hình.
+  \item Áp dụng quy trình đánh giá chặt chẽ, loại trừ rò rỉ dữ liệu (loại đặc trưng rò rỉ nhãn, loại bỏ trùng lặp ở mức đặc trưng, kiểm định ý nghĩa thống kê) nhằm bảo đảm kết quả phản ánh đúng hiệu năng mô hình.
 \item Đề xuất giải pháp thực tiễn giúp phát hiện tấn công nhanh chóng và chính xác trong các hệ thống mạng hiện đại có yêu cầu xử lý dữ liệu lớn và liên tục.
 \end{itemize}
 
 \subsection{Đối tượng nghiên cứu}
 \label{sec:DoiTuong}
 
-Đề tài này tập trung nghiên cứu và triển khai phương pháp phát hiện xâm nhập trong lĩnh vực bảo mật mạng \ac{iot} trên nền tảng xử lý dữ liệu lớn Apache Spark. Với sự phát triển nhanh chóng của các thiết bị \ac{iot}, vấn đề đảm bảo an toàn và bảo mật cho hệ thống ngày càng trở nên cấp thiết, đặc biệt là trong việc phát hiện các hành vi bất thường hoặc tấn công mạng tiềm ẩn.
+Đề tài này tập trung nghiên cứu và triển khai phương pháp phát hiện xâm nhập trong lĩnh vực bảo mật mạng \ac{iot} trên nền tảng xử lý dữ liệu lớn Apache Spark. Với sự phát triển nhanh chóng của các thiết bị \ac{iot}, vấn đề bảo đảm an toàn và bảo mật cho hệ thống ngày càng trở nên cấp thiết, đặc biệt là trong việc phát hiện các hành vi bất thường hoặc tấn công mạng tiềm ẩn.
 
 Apache Spark, với khả năng xử lý dữ liệu phân tán và tốc độ tính toán cao, cho phép xử lý khối lượng lớn dữ liệu sinh ra từ các thiết bị \ac{iot} trong thời gian thực. Trong khuôn khổ nghiên cứu này, luận văn sử dụng các tính năng của Spark như xử lý luồng dữ liệu (streaming), học máy phân tán (MLlib) và phân tích dữ liệu quy mô lớn để xây dựng mô hình phát hiện xâm nhập hiệu quả. Kết quả là một giải pháp kỹ thuật có thể áp dụng cho bài toán bảo mật \ac{iot} trong thực tiễn.
 
@@ -54,7 +54,7 @@ Apache Spark, với khả năng xử lý dữ liệu phân tán và tốc độ 
 \begin{itemize}
   \item \textbf{Dữ liệu đầu vào}: Dữ liệu được sử dụng là tập dữ liệu công khai CICIDS2017.
   \item \textbf{Công nghệ sử dụng}: Sử dụng Apache Spark làm nền tảng xử lý dữ liệu lớn, đặc biệt tập trung vào các thành phần như Spark Core, Spark SQL, Spark Streaming và Spark MLlib để hỗ trợ tiền xử lý dữ liệu, huấn luyện mô hình học máy và phát hiện xâm nhập theo thời gian thực.
-  \item \textbf{Phương pháp phát hiện xâm nhập}: Áp dụng các thuật toán học máy được triển khai và tối ưu hóa trong môi trường Spark để đảm bảo khả năng mở rộng và hiệu năng cao.
+  \item \textbf{Phương pháp phát hiện xâm nhập}: Áp dụng các thuật toán học máy được triển khai và tối ưu hóa trong môi trường Spark để bảo đảm khả năng mở rộng và hiệu năng cao.
   \item \textbf{Môi trường triển khai}: Thử nghiệm hệ thống trên một môi trường giả lập mạng \ac{iot} và bộ dữ liệu mô phỏng công khai (CICIDS2017) nhằm đánh giá khả năng phát hiện xâm nhập.
 \end{itemize}
 
@@ -76,7 +76,7 @@ Luận văn được định hướng bởi ba câu hỏi nghiên cứu:
 
 \begin{itemize}
   \item \textbf{Thu thập, phân tích, xử lý dữ liệu}: Sử dụng bộ dữ liệu CICIDS2017, từ đó tiến hành phân tích, xử lý và trực quan hóa dữ liệu.
-  \item \textbf{Nghiên cứu về phương pháp tối ưu hóa siêu tham số, các phương pháp giảm chiều dữ liệu}: Nghiên cứu các phương pháp giảm chiều dữ liệu như \ac{pca}, \ac{shap} và Random Forest Importance nhằm giảm nhiễu và tăng độ chính xác, đồng thời tối ưu hóa siêu tham số thông qua tìm kiếm lưới (Grid Search) và kiểm định chéo (cross-validation) giúp nâng cao hiệu năng mô hình. Các bước này được triển khai trên nền tảng Apache Spark nhằm đảm bảo khả năng xử lý dữ liệu lớn hiệu quả và mở rộng.
+  \item \textbf{Nghiên cứu về phương pháp tối ưu hóa siêu tham số, các phương pháp giảm chiều dữ liệu}: Nghiên cứu các phương pháp giảm chiều dữ liệu như \ac{pca}, \ac{shap} và Random Forest Importance nhằm giảm nhiễu và tăng độ chính xác, đồng thời tối ưu hóa siêu tham số thông qua tìm kiếm lưới (Grid Search) và kiểm định chéo (cross-validation) giúp nâng cao hiệu năng mô hình. Các bước này được triển khai trên nền tảng Apache Spark nhằm bảo đảm khả năng xử lý dữ liệu lớn hiệu quả và mở rộng.
   \item \textbf{Nghiên cứu và đề xuất mô hình học máy, học sâu (MLP và một autoencoder làm cổng phát hiện bất thường), học tổ hợp phát hiện xâm nhập sử dụng Spark Machine Learning}: Sử dụng nhiều thuật toán khác nhau như Decision Tree, Support Vector Machine, Logistic Regression, \ac{nb}, Random Forest, \ac{gbt}, \ac{xgb}, \ac{mlp} và các thuật toán học tổ hợp (ensemble) để xây dựng mô hình nhằm so sánh, đánh giá mô hình có hiệu năng tốt nhất.
   \item \textbf{Thực nghiệm và đánh giá hiệu năng mô hình trên cụm Jetson Orin Nano Super}: Xây dựng một hệ thống phát hiện xâm nhập mạng \ac{ids} \emph{phân tán} triển khai trên cụm hai thiết bị biên Jetson Orin Nano Super (cổng phát hiện bất thường trên một nút, bộ phân loại PySpark trên nút còn lại) nhằm đánh giá khả năng hoạt động trong môi trường tài nguyên hạn chế. Hệ thống được thiết kế theo kiến trúc xử lý dữ liệu thời gian thực, tận dụng Apache Kafka cho cơ chế truyền tải thông điệp, Spark Streaming cho xử lý luồng dữ liệu, PostgreSQL để quản lý dữ liệu, InfluxDB để lưu trữ chỉ số hiệu năng theo thời gian, Grafana để trực quan hóa và Mailtrap phục vụ kiểm thử cơ chế cảnh báo qua email.
 \end{itemize}

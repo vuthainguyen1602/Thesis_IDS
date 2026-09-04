@@ -42,7 +42,7 @@ Bảng~\ref{tab:model_parameters} tóm tắt thiết lập tham số của các 
 & impurity & entropy & Tiêu chí chia nhánh tối ưu. \\
 & minInstancesPerNode & 5 & Số mẫu tối thiểu tại mỗi nút lá. \\
 \midrule
-\multirow{4}{*}{Logistic Reg.} & maxIter & 200 & Đảm bảo hội tụ trên tập dữ liệu lớn. \\
+\multirow{4}{*}{Logistic Reg.} & maxIter & 200 & Bảo đảm hội tụ trên tập dữ liệu lớn. \\
 & regParam & 0{,}001 & Kiểm soát mức điều chuẩn (regularization). \\
 & elasticNetParam & 0{,}0 & Sử dụng Ridge (L2) ổn định hơn. \\
 & threshold & 0{,}5 & Ngưỡng quyết định nhị phân. \\
@@ -54,7 +54,7 @@ Bảng~\ref{tab:model_parameters} tóm tắt thiết lập tham số của các 
 & smoothing & 1{,}0 & Làm mượt Laplace. \\
 \midrule
 \multirow{3}{*}{Random Forest} 
-& numTrees & 200 & Đảm bảo độ ổn định kết quả. \\
+& numTrees & 200 & Bảo đảm độ ổn định kết quả. \\
 & maxDepth & 15 & Chiều sâu tối đa của cây trong rừng. \\
 & featureSubsetStrategy & sqrt & Chọn đặc trưng ngẫu nhiên mỗi nút. \\
 \midrule
@@ -155,7 +155,7 @@ MLP                    & 0{,}9900 & 0{,}9844 & 0{,}9487 & 0{,}9662 & 0{,}9984 & 
 Với cấu hình đã loại trừ rò rỉ dữ liệu, nhóm mô hình dựa trên cây (Random Forest, \ac{xgb}, GBT) được kỳ vọng dẫn đầu, với F1 thấp hơn mức gần-tuyệt-đối của các cấu hình có rò rỉ và phản ánh đúng độ khó thực của bài toán. Kết luận ``mô hình nào tốt nhất'' chỉ được đưa ra khi chênh lệch vượt khoảng tin cậy (xem mục kiểm định thống kê). Do dữ liệu mất cân bằng mạnh, AUC-PR và recall trên lớp tấn công được ưu tiên hơn Accuracy khi diễn giải, vì Accuracy có thể gây lạc quan giả tạo (một mô hình luôn đoán lớp benign chiếm đa số vẫn đạt Accuracy cao).
 
 \subsection{Kịch bản 2: So sánh chiến lược giảm chiều dữ liệu}
-Luận văn thực hiện so sánh 3 chiến lược chính nhằm giảm số lượng đặc trưng nhưng vẫn đảm bảo hiệu năng:
+Luận văn thực hiện so sánh 3 chiến lược chính nhằm giảm số lượng đặc trưng nhưng vẫn bảo đảm hiệu năng:
 \begin{enumerate}
     \item \textbf{\ac{rf} Feature Importance}: Trích xuất 30 đặc trưng có độ quan trọng cao nhất từ Random Forest.
     \item \textbf{\ac{shap} Importance}: Sử dụng giá trị Shapley từ mô hình \ac{xgb} để chọn ra 30 đặc trưng có ảnh hưởng lớn nhất.
@@ -451,7 +451,7 @@ Trong hệ thống phát hiện xâm nhập mạng \ac{ids} được đề xuấ
 
 \begin{itemize}
 
-    \item \textbf{Apache Kafka}~\cite{Kreps2011} -- Là nền tảng truyền tải thông điệp phân tán (distributed event streaming platform), được sử dụng để tiếp nhận và phân phối dữ liệu luồng theo cơ chế publish-subscribe. Trong hệ thống, Kafka đóng vai trò trung gian giữa nguồn dữ liệu (CICIDS2017 được mô phỏng bằng Python script) và thiết bị Jetson Orin Nano Super, đảm bảo khả năng truyền tải bất đồng bộ, chịu lỗi và mở rộng linh hoạt.
+    \item \textbf{Apache Kafka}~\cite{Kreps2011} -- Là nền tảng truyền tải thông điệp phân tán (distributed event streaming platform), được sử dụng để tiếp nhận và phân phối dữ liệu luồng theo cơ chế publish-subscribe. Trong hệ thống, Kafka đóng vai trò trung gian giữa nguồn dữ liệu (CICIDS2017 được mô phỏng bằng Python script) và thiết bị Jetson Orin Nano Super, bảo đảm khả năng truyền tải bất đồng bộ, chịu lỗi và mở rộng linh hoạt.
 
     \item \textbf{Apache Spark Streaming} -- Là thành phần xử lý dữ liệu luồng thời gian thực. Spark Streaming nhận dữ liệu từ Kafka Consumer, thực hiện các bước tiền xử lý đặc trưng và chuyển dữ liệu đến mô hình học máy đã được huấn luyện để thực hiện suy luận.
 
