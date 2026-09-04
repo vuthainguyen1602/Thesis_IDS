@@ -66,7 +66,7 @@
   \end{enumerate}
   \vfill
   \note{Hai nhánh kết quả (III và IV) mỗi nhánh đã công bố thành một bài báo
-  --- FAIR 2026 cho phần offline, SOICT 2026 cho phần triển khai biên; slide
+  --- FAIR 2026 cho phần offline, SOICT 2026 cho phần triển khai biên. Slide
   Công trình khoa học ở cuối có chi tiết. Nói miệng ở đây, không cần chiếu.}
 \end{frame}
 
@@ -132,7 +132,7 @@
   ICISSP 2018.}, phân loại nhị phân, cụm 2 Jetson Orin Nano
   Super. Bộ dữ liệu \emph{không} có lưu lượng IoT đặc thù --- tính ``IoT'' nằm ở
   \key{kịch bản triển khai biên}.
-  \note{Đọc chậm ba RQ; hội đồng sẽ đối chiếu với phần kết luận. RQ2 được kiểm
+  \note{Đọc chậm ba RQ. Hội đồng sẽ đối chiếu với phần kết luận. RQ2 được kiểm
   chứng bằng kiểm định thống kê chứ không so một lần đo. Nêu chủ động giới hạn
   phạm vi IoT và tấn công đối kháng nằm ngoài phạm vi --- slide Q1 có bản đầy
   đủ kèm mô hình mối đe dọa.}
@@ -185,7 +185,7 @@
   \\[0.3em]
   \footnotesize
   Hai pha \emph{không cạnh tranh} nhau: pha offline trả lời ``mô hình nào, bao
-  nhiêu đặc trưng''; pha biên trả lời ``mô hình đó có chạy được theo thời gian
+  nhiêu đặc trưng'', còn pha biên trả lời ``mô hình đó có chạy được theo thời gian
   thực dưới ràng buộc bộ nhớ, nhiệt và băng thông hay không''.
   \note{Đây là slide bản lề của toàn bộ bài trình bày. Chỉ vào mũi tên xanh:
   mô hình được triển khai chính là mô hình đã qua kiểm định offline.}
@@ -222,7 +222,7 @@
   \emph{Machine Learning} 45(1), 2001; SHAP --- Lundberg \& Lee, NeurIPS 2017.}}
   \note{Đóng góp phương pháp luận quan trọng nhất. Nói rõ vì sao khử trùng lặp
   tất định lại quan trọng: kết quả không phụ thuộc cách Spark phân vùng dữ liệu.
-  Xếp hạng RF/SHAP chỉ dùng tập huấn luyện; chọn mô hình trên tập kiểm định tách
+  Xếp hạng RF/SHAP chỉ dùng tập huấn luyện. Chọn mô hình trên tập kiểm định tách
   từ tập huấn luyện. PCA dùng k=40 vì là phép trích xuất --- slide Q3 có lý do
   đầy đủ, kèm lý do loại LightGBM. Tám thuật toán: DT, LR, SVM, NB, RF, GBT,
   XGBoost, MLP.}
@@ -258,7 +258,7 @@
   \\[0.3em]
   \small
   \textbf{Ba chế độ được đo:} \textbf{A} tách pipeline (đề xuất) $\cdot$
-  \textbf{B} mở rộng ngang $\cdot$ \textbf{C} cụm Spark; mốc tham chiếu là đơn
+  \textbf{B} mở rộng ngang $\cdot$ \textbf{C} cụm Spark. Mốc tham chiếu là đơn
   nút. Thông lượng đếm \key{số luồng xử lý xong mỗi giây} --- mỗi luồng chỉ tính
   \emph{một lần}, tại nơi có kết luận.
   \note{Chế độ B: cả hai nút chạy vai trò đầy đủ. Ngưỡng MSE của cổng hiệu
@@ -316,7 +316,7 @@
   \end{columns}
   \note{Trả lời RQ1 ngay tại đây, nhưng chưa kết luận vội --- còn phải kiểm
   định thống kê ở slide sau. Nói thêm: ít đặc trưng hơn thì chi phí
-  VectorAssembler và bộ nhớ mô hình ở biên cũng nhỏ hơn; SHAP còn cho phép
+  VectorAssembler và bộ nhớ mô hình ở biên cũng nhỏ hơn. SHAP còn cho phép
   giải thích từng quyết định, có giá trị cho vận hành SOC.}
 \end{frame}
 
@@ -392,8 +392,8 @@
     \end{column}
   \end{columns}
   \takeaway{Chênh lệch tuyệt đối chỉ $\approx$0,0001 $\rightarrow$ hai cấu hình
-  \key{tương đương về mặt thực tiễn}; tiêu chí phụ mới quyết định.}
-  \note{Bảng hiện khoảng tin cậy $t$; khoảng Nadeau--Bengio rộng hơn
+  \key{tương đương về mặt thực tiễn}. Tiêu chí phụ mới quyết định.}
+  \note{Bảng hiện khoảng tin cậy $t$, còn khoảng Nadeau--Bengio rộng hơn
   (Baseline 0,99722--0,99746; SHAP Top-30 0,99705--0,99735) và mới là căn cứ
   kết luận chính --- luận văn trình bày cả hai cột.
   Nhấn mạnh: p nhỏ không đồng nghĩa khác biệt có ý nghĩa thực tiễn --- ở đây p = 0,031 chỉ vừa chạm ngưỡng sàn
@@ -465,7 +465,7 @@
       }
       \\[0.5em]
       \small
-      Tập đặc trưng chung đã loại rò rỉ; CSE-CIC-IDS2018 lấy mẫu phân tầng.
+      Tập đặc trưng chung đã loại rò rỉ. CSE-CIC-IDS2018 lấy mẫu phân tầng.
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{itemize}
@@ -480,7 +480,7 @@
   \end{columns}
   \takeaway{Điểm số trong-miền gần hoàn hảo --- \emph{kể cả khi đã loại rò rỉ}
   --- \key{không chứng nhận} khả năng triển khai dưới dịch chuyển phân phối.}
-  \note{Không làm nhẹ con số này. Recall cụ thể là 0,022 và 0,030; mẫu
+  \note{Không làm nhẹ con số này. Recall cụ thể là 0,022 và 0,030. Mẫu
   CSE-CIC-IDS2018 khoảng 2,39 triệu luồng, seed cố định. Kết quả thống nhất với
   các nghiên cứu liên bộ dữ liệu trước đó và là lý do khiến thích ứng
   miền trở thành điều kiện tiên quyết.}
@@ -566,7 +566,7 @@
     0,18\,J} mỗi luồng.
   \end{block}
   \note{Slide quan trọng nhất với hội đồng. Trả lời thẳng, kể cả câu trả lời
-  ``không'' cho RQ2. RQ1: Random Forest đạt 0,9955; cùng số đặc trưng SHAP vượt
+  ``không'' cho RQ2. RQ1: Random Forest đạt 0,9955. Với cùng số đặc trưng, SHAP vượt
   RF Importance +0,48\% đến +1,15\% trên mọi thuật toán họ cây. RQ2: kiểm định
   hoán vị ghép cặp cho $p \approx 0{,}031$, chỉ vừa chạm ngưỡng sàn --- bài toán nhị phân
   trong-miền đã gần bão hòa, nên tiêu chí phụ mới là căn cứ chọn mô hình. RQ3:
@@ -678,7 +678,7 @@
   \end{itemize}
   \vspace{0.3em}
   \footnotesize Danh mục đầy đủ 71 mục nằm trong quyển luận văn.
-  \note{Lướt nhanh, không đọc từng mục; mỗi mục gắn nhãn thành phần tương ứng
+  \note{Lướt nhanh, không đọc từng mục. Mỗi mục gắn nhãn thành phần tương ứng
   của pipeline để trỏ nhanh khi hội đồng hỏi về nguồn.}
 \end{frame}
 
@@ -698,7 +698,7 @@
 
 \begin{frame}{Q\&A}
   \scriptsize
-  Bấm vào tên slide để nhảy thẳng tới; số hiệu Q\emph{n} in ở tiêu đề từng slide.
+  Bấm vào tên slide để nhảy thẳng tới. Số hiệu Q\emph{n} in ở tiêu đề từng slide.
   \vspace{0.3em}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
@@ -752,7 +752,7 @@
     \begin{column}{0.45\textwidth}
       \textbf{Phạm vi}
       \begin{itemize}\small
-        \item \textbf{Dữ liệu}: CICIDS2017; mở rộng sang CSE-CIC-IDS2018 cho
+        \item \textbf{Dữ liệu}: CICIDS2017, mở rộng sang CSE-CIC-IDS2018 cho
               thí nghiệm liên bộ dữ liệu.
         \item \textbf{Công nghệ}: Spark Core/SQL/Streaming/MLlib; Kafka,
               PostgreSQL, InfluxDB, Grafana.
@@ -773,7 +773,7 @@
       \end{alertblock}
       \begin{block}{Mô hình mối đe dọa}
         \footnotesize
-        Kẻ tấn công ở bên trong hoặc ở biên mạng; phạm vi giới hạn ở các tấn
+        Kẻ tấn công ở bên trong hoặc ở biên mạng. Phạm vi giới hạn ở các tấn
         công đã biết kiểu CICIDS2017. Tấn công đối kháng (adversarial/evasion)
         \bad{nằm ngoài phạm vi} đánh giá.
       \end{block}
@@ -827,7 +827,7 @@
     chính là một tổ hợp tuyến tính chỉ mang một phần phương sai, nên cần nhiều
     thành phần hơn để giữ lượng thông tin tương đương tập 30 đặc trưng gốc.
     Trong dải quét chung $\{20,30,40\}$, $k$=40 là mức giữ phương sai cao nhất,
-    nên là điểm vận hành đại diện \emph{công bằng nhất} cho PCA; ép $k$=30 sẽ
+    nên là điểm vận hành đại diện \emph{công bằng nhất} cho PCA. Ép $k$=30 sẽ
     làm PCA mất thêm phương sai và bất lợi khi so sánh.
   \end{block}
   \begin{block}{LightGBM bị loại khỏi so sánh}
@@ -882,7 +882,7 @@
           lại theo từng lần lấy mẫu chặt chẽ hơn nhưng rất tốn kém với SHAP.
           MLP không được gán trọng số lớp (Spark ML không hỗ trợ).
     \item \textbf{Ngoại tại.} CICIDS2017 (2017) có thể không phản ánh lưu lượng
-          hiện tại; các bộ dữ liệu NIDS chuẩn đều có hạn chế chất lượng đã ghi
+          hiện tại. Các bộ dữ liệu NIDS chuẩn đều có hạn chế chất lượng đã ghi
           nhận. Kết luận liên bộ dữ liệu dựa trên \emph{mẫu phân tầng} của
           CSE-CIC-IDS2018. Chưa đánh giá trước lưu lượng đối kháng. Bản thân
           việc khử trùng lặp cũng làm thay đổi phân bố benign/attack.
@@ -951,8 +951,8 @@
         Ampere $\approx$67 TOPS, 8\,GB LPDDR5, SSD NVMe 256\,GB.\\[0.3em]
         PySpark 3.4.1, Kafka 3.5, LAN Wi-Fi.\\[0.3em]
         Tải: phát lại CICIDS2017 ở 100 luồng/giây.\\[0.3em]
-        $\geq$3 lần lặp; lưu lượng khởi động \emph{loại khỏi} cửa sổ đo.\\[0.3em]
-        Năng lượng: \texttt{tegrastats}; KQ6 báo mức toàn bo mạch, KQ7 báo phần hoạt động (đã trừ nền idle).
+        $\geq$3 lần lặp, lưu lượng khởi động \emph{loại khỏi} cửa sổ đo.\\[0.3em]
+        Năng lượng: \texttt{tegrastats}. KQ6 báo mức toàn bo mạch, KQ7 báo phần hoạt động (đã trừ nền idle).
       \end{block}
     \end{column}
   \end{columns}
@@ -1001,7 +1001,7 @@
   \vspace{0.4em}
   \footnotesize MacBook \emph{chỉ} điều phối (master) --- không chạy executor,
   để số liệu thời gian huấn luyện phản ánh đúng hiệu năng \key{cụm biên thuần
-  Jetson}; đưa M3 vào tính toán sẽ gây lệch tải (straggler) và sai lệch phép đo.
+  Jetson}. Đưa M3 vào tính toán sẽ gây lệch tải (straggler) và sai lệch phép đo.
   \note{Cùng cặp Jetson này ở pha huấn luyện là worker/executor của Spark, ở
   pha suy luận là cổng lọc và bộ phân loại. Jetson \#1 kiêm tiến trình driver
   của ứng dụng --- khác vai trò master điều phối cụm nằm trên MacBook. Dữ liệu
@@ -1012,11 +1012,11 @@
   \begin{itemize}\small
     \item Script điều phối phía máy chủ khởi động các vai trò pipeline trên
           Jetson qua SSH, sinh tải, thu thập log từng nút.
-    \item $\geq$3 lần lặp mỗi cấu hình; lưu lượng khởi động \emph{loại khỏi}
+    \item $\geq$3 lần lặp mỗi cấu hình. Lưu lượng khởi động \emph{loại khỏi}
           cửa sổ đo, để JVM/JIT warmup không làm phồng độ trễ batch đầu.
     \item Mọi truy vấn chỉ số canh đúng cửa sổ tải, không dùng khoảng thời gian
           trượt phía sau.
-    \item Phân vị độ trễ tính \emph{theo từng nút} trên mẫu thô từng luồng; p95
+    \item Phân vị độ trễ tính \emph{theo từng nút} trên mẫu thô từng luồng, còn p95
           mức cụm lấy \emph{thận trọng} theo nút tệ nhất.
     \item Độ trễ đầu cuối dựa trên đồng hồ đồng bộ NTP và \emph{không} bao gồm
           chi phí ghi cơ sở dữ liệu.
