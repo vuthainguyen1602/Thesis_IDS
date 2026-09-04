@@ -24,7 +24,7 @@ Hệ thống phát hiện xâm nhập (\ac{ids}) giám sát và phân tích ho�
 \textbf{Dựa trên phương pháp phát hiện:}
 \begin{itemize}
   \item \textbf{Signature-based \ac{ids}}: Sử dụng các mẫu tấn công đã biết, hiệu quả với các mối đe dọa quen thuộc nhưng hạn chế với các tấn công mới.
-  \item \textbf{Anomaly-based \ac{ids}}: Phát hiện hành vi bất thường dựa trên mô hình hoạt động bình thường, phù hợp với các cuộc tấn công chưa biết \cite{chandola2009anomaly,ruff2021unifying}; các bộ phát hiện dựa trên học sâu như autoencoder \cite{lopez2017autoencoder} hay mạng niềm tin sâu (Deep Belief Network) \cite{alrawashdeh2016toward} là một hướng phổ biến của nhóm này.
+  \item \textbf{Anomaly-based \ac{ids}}: Phát hiện hành vi bất thường dựa trên mô hình hoạt động bình thường, phù hợp với các cuộc tấn công chưa biết \cite{chandola2009anomaly,ruff2021unifying}. Các bộ phát hiện dựa trên học sâu như autoencoder \cite{lopez2017autoencoder} hay mạng niềm tin sâu (Deep Belief Network) \cite{alrawashdeh2016toward} là một hướng phổ biến của nhóm này.
   \item \textbf{Hybrid \ac{ids}}: Kết hợp cả hai phương pháp để tăng độ chính xác \cite{Liao2013}.
 \end{itemize}
 
@@ -87,7 +87,7 @@ Apache Spark bao gồm nhiều thành phần cốt lõi, mỗi thành phần đ�
 \end{itemize}
 
 \subsection{Kiến trúc của Apache Spark}
-Kiến trúc của Apache Spark được xây dựng theo mô hình master--worker trên nền tảng xử lý phân tán. Thành phần trung tâm là \textbf{Spark Driver}, chịu trách nhiệm điều phối quá trình thực thi ứng dụng, bao gồm việc lên lịch, phân phối tác vụ và giám sát tiến trình. Driver xây dựng một đồ thị phi chu trình có hướng (\textit{DAG} -- Directed Acyclic Graph) để xác định luồng thực thi công việc; tổng quan kiến trúc master--worker được minh họa ở Hình~\ref{fig:spark-structure}.
+Kiến trúc của Apache Spark được xây dựng theo mô hình master--worker trên nền tảng xử lý phân tán. Thành phần trung tâm là \textbf{Spark Driver}, chịu trách nhiệm điều phối quá trình thực thi ứng dụng, bao gồm việc lên lịch, phân phối tác vụ và giám sát tiến trình. Driver xây dựng một đồ thị phi chu trình có hướng (\textit{DAG} -- Directed Acyclic Graph) để xác định luồng thực thi công việc. Tổng quan kiến trúc master--worker được minh họa ở Hình~\ref{fig:spark-structure}.
 
 \vspace*{1ex}
     \begin{figure}[ht]
@@ -107,7 +107,7 @@ Học máy (\ac{ml}) đã trở thành một công cụ thiết yếu trong vi�
 \begin{itemize}
 \item \textbf{Học có giám sát (Supervised Learning)}: Sử dụng dữ liệu đã được gán nhãn để huấn luyện mô hình phân loại. Một số thuật toán điển hình gồm \ac{rf}, \ac{svm} và mạng nơ-ron nhân tạo (Neural Networks).
 \item \textbf{Học không giám sát (Unsupervised Learning)}: Áp dụng cho các tình huống không có nhãn, tập trung vào việc phát hiện các mẫu bất thường. K-Means là một thuật toán phổ biến trong nhóm này.
-\item \textbf{Học tăng cường (Reinforcement Learning)}: Mô hình học dựa trên phản hồi từ môi trường nhằm tối ưu hóa hành vi hoặc quyết định của hệ thống theo thời gian; hướng này không thuộc phạm vi thực nghiệm của luận văn và chỉ được nêu cho đủ ba nhóm phương pháp.
+\item \textbf{Học tăng cường (Reinforcement Learning)}: Mô hình học dựa trên phản hồi từ môi trường nhằm tối ưu hóa hành vi hoặc quyết định của hệ thống theo thời gian. Hướng này không thuộc phạm vi thực nghiệm của luận văn và chỉ được nêu cho đủ ba nhóm phương pháp.
 \end{itemize}
 
 Trong bối cảnh mạng \ac{iot}, học máy được ứng dụng rộng rãi để phân tích lưu lượng dữ liệu và nhận diện các loại tấn công như DDoS, botnet hay giả mạo gói tin. Chẳng hạn, Koroniotis và cộng sự (2019) xây dựng bộ dữ liệu Bot-IoT và báo cáo các mô hình học máy, học sâu đạt độ chính xác gần tuyệt đối khi phát hiện các tấn công DoS/DDoS trong môi trường \ac{iot} \cite{Koroniotis2019}. Tuy nhiên, các kết quả gần như tuyệt đối (xấp xỉ 100\%) trên các tập dữ liệu công khai cần được xem xét thận trọng, vì chúng thường là dấu hiệu của rò rỉ dữ liệu (data leakage) hơn là hiệu năng thực sự của mô hình. \emph{Rò rỉ dữ liệu} là tình huống trong đó thông tin lẽ ra không sẵn có ở thời điểm triển khai thực tế lại lọt vào quá trình huấn luyện hoặc đánh giá, khiến điểm số bị thổi phồng và không phản ánh đúng khả năng tổng quát hóa của mô hình. Luận văn này nhận diện và xử lý vấn đề đó một cách tường minh ở Chương~\ref{c:thucnghiemdanhgia}.
@@ -151,7 +151,7 @@ P(Y_i = 1 \mid \mathbf{x}_i) = \frac{1}{1 + e^{-z_i}}
 
 Trong quá trình huấn luyện, mô hình tìm các hệ số $\beta_j$ tối ưu sao cho hàm mất mát (cross-entropy loss) được tối thiểu hóa.
 
-\item \textbf{\ac{gbt}} là một phương pháp \textit{boosting} (kết hợp tuần tự các mô hình học yếu; lưu ý phân biệt với ``học tăng cường'' -- reinforcement learning) sử dụng các cây quyết định như mô hình học yếu (weak learners). Ý tưởng chính của boosting là xây dựng một mô hình mạnh bằng cách kết hợp nhiều mô hình học yếu được huấn luyện theo trình tự tuần tự. Ở mỗi bước, thuật toán cố gắng giảm thiểu lỗi của mô hình trước bằng cách học từ phần dư (residual) hoặc gradient của hàm mất mát \cite{friedman2001greedy}. Quá trình huấn luyện \ac{gbt} gồm các bước:
+\item \textbf{\ac{gbt}} là một phương pháp \textit{boosting} (kết hợp tuần tự các mô hình học yếu, cần phân biệt với ``học tăng cường'' -- reinforcement learning) sử dụng các cây quyết định như mô hình học yếu (weak learners). Ý tưởng chính của boosting là xây dựng một mô hình mạnh bằng cách kết hợp nhiều mô hình học yếu được huấn luyện theo trình tự tuần tự. Ở mỗi bước, thuật toán cố gắng giảm thiểu lỗi của mô hình trước bằng cách học từ phần dư (residual) hoặc gradient của hàm mất mát \cite{friedman2001greedy}. Quá trình huấn luyện \ac{gbt} gồm các bước:
 \begin{itemize}
     \item Bắt đầu với một mô hình dự đoán ban đầu (thường là giá trị trung bình với bài toán hồi quy).
     \item Tính toán sai số còn lại giữa nhãn thực và dự đoán.
@@ -171,7 +171,7 @@ Trong đó:
     \item $\eta$ là hệ số học (learning rate), thường $\eta \in (0, 1)$.
 \end{itemize}
 
-\item \textbf{\ac{lgbm}} là một framework triển khai thuật toán \ac{gbt}, được phát triển nhằm tối ưu hóa tốc độ huấn luyện và khả năng mở rộng trên các tập dữ liệu lớn \cite{ke2017lightgbm}, với cùng sơ đồ cập nhật boosting theo gradient đã trình bày ở mục \ac{gbt} phía trên. Khác với \ac{gbt} truyền thống, \ac{lgbm} sử dụng cơ chế phát triển cây theo hướng leaf-wise thay vì level-wise, đồng thời áp dụng thuật toán histogram-based splitting và kỹ thuật Gradient-based One-Side Sampling (GOSS) nhằm giảm chi phí tính toán và tăng tốc độ huấn luyện. Tuy nhiên, \ac{lgbm} \emph{không} được đưa vào bộ thuật toán so sánh thực nghiệm vì lý do tương thích phần cứng trình bày ở Chương~3; XGBoost và GBT đại diện cho họ gradient boosting.
+\item \textbf{\ac{lgbm}} là một framework triển khai thuật toán \ac{gbt}, được phát triển nhằm tối ưu hóa tốc độ huấn luyện và khả năng mở rộng trên các tập dữ liệu lớn \cite{ke2017lightgbm}, với cùng sơ đồ cập nhật boosting theo gradient đã trình bày ở mục \ac{gbt} phía trên. Khác với \ac{gbt} truyền thống, \ac{lgbm} sử dụng cơ chế phát triển cây theo hướng leaf-wise thay vì level-wise, đồng thời áp dụng thuật toán histogram-based splitting và kỹ thuật Gradient-based One-Side Sampling (GOSS) nhằm giảm chi phí tính toán và tăng tốc độ huấn luyện. Tuy nhiên, \ac{lgbm} \emph{không} được đưa vào bộ thuật toán so sánh thực nghiệm vì lý do tương thích phần cứng trình bày ở Chương~3. XGBoost và GBT đại diện cho họ gradient boosting.
 
 \item \textbf{\ac{nb}} là một phương pháp phân loại xác suất dựa trên định lý Bayes với giả định độc lập có điều kiện giữa các đặc trưng \cite{mccallum1998comparison}. Mặc dù giả định này thường không hoàn toàn đúng trong thực tế, mô hình vẫn cho hiệu quả tốt trong nhiều bài toán phân loại dữ liệu nhiều chiều.
 
@@ -193,7 +193,7 @@ Mô hình lựa chọn lớp có xác suất hậu nghiệm lớn nhất:
 \hat{y} = \arg\max_y P(y)\prod_{i=1}^{n} P(x_i|y)
 \end{equation}
 
-Ưu điểm của \ac{nb} là đơn giản, tốc độ huấn luyện nhanh và phù hợp với dữ liệu kích thước lớn; tuy nhiên, hạn chế chính nằm ở giả định độc lập giữa các đặc trưng.
+Ưu điểm của \ac{nb} là đơn giản, tốc độ huấn luyện nhanh và phù hợp với dữ liệu kích thước lớn. Tuy nhiên, hạn chế chính nằm ở giả định độc lập giữa các đặc trưng.
 
 \item \textbf{Support Vector Machine (\ac{svm})} là một thuật toán học có giám sát được đề xuất bởi Cortes và Vapnik \cite{cortes1995support}, nhằm tìm siêu phẳng tối ưu phân tách dữ liệu với khoảng cách biên (margin) lớn nhất. 
 
