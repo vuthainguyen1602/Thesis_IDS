@@ -1,17 +1,17 @@
 Chương này trình bày các nền tảng lý thuyết liên quan đến đề tài, bao gồm tổng quan về Internet vạn vật (\ac{iot}), các mối đe dọa an ninh trong hệ thống \ac{iot}, và vai trò của hệ thống phát hiện xâm nhập (\ac{ids}). Bên cạnh đó, trong chương này, luận văn cũng giới thiệu kiến trúc và khả năng của Apache Spark trong xử lý dữ liệu lớn, các kỹ thuật học máy ứng dụng trong phát hiện xâm nhập và cách Spark MLlib hỗ trợ xây dựng mô hình học máy phân tán. (Các nghiên cứu liên quan và khoảng trống nghiên cứu đã được khảo sát ở Chương~1.)
 
 \section{Tổng quan về \ac{iot}}
-Internet of Things (\ac{iot}) là mạng lưới các thiết bị vật lý được tích hợp cảm biến, phần mềm và khả năng kết nối mạng, cho phép thu thập và trao đổi dữ liệu qua Internet \cite{Atzori2010}. \ac{iot} bao gồm các thiết bị như cảm biến môi trường, thiết bị gia dụng thông minh và phương tiện giao thông tạo ra khối lượng dữ liệu lớn với đặc điểm đa dạng, tốc độ cao và yêu cầu xử lý thời gian thực. Theo báo cáo Cisco Annual Internet Report (2018--2023), tổng số thiết bị nối mạng toàn cầu được dự báo đạt khoảng 29,3 tỷ vào năm 2023, trong đó khoảng một nửa là kết nối máy-với-máy (M2M/\ac{iot}), nhấn mạnh tầm quan trọng của bảo mật trong lĩnh vực này \cite{Cisco2023}. Kiến trúc \ac{iot} thường được chia thành ba tầng:
+Internet of Things (\ac{iot}) là mạng lưới các thiết bị vật lý được tích hợp cảm biến, phần mềm và khả năng kết nối mạng, cho phép thu thập và trao đổi dữ liệu qua Internet \cite{Atzori2010}. \ac{iot} bao gồm các thiết bị như cảm biến môi trường, thiết bị gia dụng thông minh và phương tiện giao thông tạo ra khối lượng dữ liệu lớn với đặc điểm đa dạng, tốc độ cao và yêu cầu xử lý thời gian thực. Theo báo cáo Cisco Annual Internet Report (2018--2023), tổng số thiết bị nối mạng toàn cầu được dự báo đạt khoảng 29,3 tỷ vào năm 2023, trong đó khoảng một nửa là kết nối máy-với-máy (M2M/\ac{iot}) \cite{Cisco2023}. Kiến trúc \ac{iot} thường được chia thành ba tầng:
 \begin{itemize}
   \item \textbf{Tầng cảm biến (Perception Layer)}: Thu thập dữ liệu từ cảm biến và thiết bị.
   \item \textbf{Tầng mạng (Network Layer)}: Truyền tải dữ liệu qua các giao thức như MQTT, CoAP hoặc HTTP.
   \item \textbf{Tầng ứng dụng (Application Layer)}: Phân tích dữ liệu để cung cấp dịch vụ \cite{Khan2012}.
 \end{itemize}
 
-Tuy nhiên, các thiết bị \ac{iot} thường có tài nguyên hạn chế (bộ nhớ, năng lượng, khả năng tính toán), dẫn đến thách thức trong việc triển khai các giải pháp bảo mật truyền thống. Các mối đe dọa như tấn công từ chối dịch vụ (DDoS), tấn công giả mạo và khai thác lỗ hổng giao thức đòi hỏi các giải pháp bảo mật tiên tiến như \ac{ids}~\cite{HaddadPajouh2021}.
+Tuy nhiên, các thiết bị \ac{iot} thường có tài nguyên hạn chế (bộ nhớ, năng lượng, khả năng tính toán), dẫn đến thách thức trong việc triển khai các giải pháp bảo mật truyền thống. Các mối đe dọa như tấn công từ chối dịch vụ (DDoS), tấn công giả mạo và khai thác lỗ hổng giao thức đòi hỏi các giải pháp bảo mật chuyên biệt như \ac{ids}~\cite{HaddadPajouh2021}.
 
 \section{Hệ thống phát hiện xâm nhập (\ac{ids})}
-Hệ thống phát hiện xâm nhập (\ac{ids}) giám sát và phân tích hoạt động mạng hoặc hệ thống để phát hiện các hành vi bất thường hoặc đáng ngờ, nhằm bảo vệ hệ thống khỏi các cuộc tấn công mạng \cite{Liao2013}. \ac{ids} đóng vai trò quan trọng trong việc đảm bảo tính bảo mật, toàn vẹn và sẵn sàng của hệ thống \ac{iot}. \ac{ids} được phân loại như sau:
+Hệ thống phát hiện xâm nhập (\ac{ids}) giám sát và phân tích hoạt động mạng hoặc hệ thống để phát hiện các hành vi bất thường hoặc đáng ngờ, nhằm bảo vệ hệ thống khỏi các cuộc tấn công mạng \cite{Liao2013}. Mục tiêu là duy trì tính bảo mật, toàn vẹn và sẵn sàng của hệ thống \ac{iot}. \ac{ids} được phân loại như sau:
 
 \textbf{Dựa trên vị trí triển khai:}
 \begin{itemize}
@@ -36,7 +36,7 @@ Dữ liệu lớn (\textit{Big Data}) là một thuật ngữ được sử dụ
 
 Ngày nay, kích thước của các tập dữ liệu có thể được coi là dữ liệu lớn dao động từ \textbf{terabyte}, \textbf{petabyte} đến \textbf{exabyte}. Khái niệm về dữ liệu lớn sẽ phụ thuộc vào ngành công nghiệp, cách dữ liệu được sử dụng, lượng dữ liệu lịch sử liên quan và nhiều đặc điểm khác.
 
-Dữ liệu lớn thường được nhận diện thông qua năm đặc điểm cốt lõi: \textbf{Khối lượng} (\textit{Volume}), \textbf{Tốc độ} (\textit{Velocity}), \textbf{Tính đa dạng} (\textit{Variety}), \textbf{Tính xác thực} (\textit{Veracity}) và \textbf{Giá trị} (\textit{Value}) (Hình~\ref{fig:bigdata}). Đây là những yếu tố quan trọng giúp phân biệt dữ liệu lớn với các loại dữ liệu thông thường, phản ánh quy mô, tốc độ phát sinh, sự phong phú về định dạng, độ tin cậy và tiềm năng khai thác thông tin từ dữ liệu.
+Dữ liệu lớn thường được nhận diện thông qua năm đặc điểm cốt lõi: \textbf{Khối lượng} (\textit{Volume}), \textbf{Tốc độ} (\textit{Velocity}), \textbf{Tính đa dạng} (\textit{Variety}), \textbf{Tính xác thực} (\textit{Veracity}) và \textbf{Giá trị} (\textit{Value}) (Hình~\ref{fig:bigdata}). Năm đặc điểm này là cơ sở để phân biệt dữ liệu lớn với các loại dữ liệu thông thường.
 
 \vspace*{1ex}
     \begin{figure}[ht]
@@ -54,7 +54,7 @@ Dữ liệu lớn thường được nhận diện thông qua năm đặc điể
     \item \textbf{Giá trị (Value)}: Tiềm năng khai thác thông tin hữu ích từ dữ liệu.
 \end{itemize}
 
-Dữ liệu sinh ra từ các thiết bị \ac{iot} được xem là một trong những nguồn tạo ra dữ liệu lớn (\ac{bd}) quan trọng và phát triển nhanh chóng hiện nay. Với hàng tỷ thiết bị cảm biến, máy móc, thiết bị đeo tay và phương tiện kết nối Internet, lượng dữ liệu được tạo ra mỗi ngày rất lớn, đa dạng về định dạng và tốc độ phát sinh liên tục theo thời gian thực. Dữ liệu \ac{iot} mang đầy đủ các đặc điểm của dữ liệu lớn như: khối lượng (volume) lớn, tốc độ (velocity) cao, tính đa dạng (variety) về loại dữ liệu, mức độ xác thực (veracity) không đồng đều và tiềm năng mang lại giá trị (value) lớn nếu được khai thác hiệu quả. Chính vì vậy, dữ liệu \ac{iot} không chỉ là một phần của dữ liệu lớn mà còn đóng vai trò quan trọng trong việc thúc đẩy nhu cầu phát triển các nền tảng xử lý dữ liệu lớn hiện đại.
+Dữ liệu sinh ra từ các thiết bị \ac{iot} được xem là một trong những nguồn tạo ra dữ liệu lớn (\ac{bd}) quan trọng và phát triển nhanh chóng hiện nay. Với hàng tỷ thiết bị cảm biến, máy móc, thiết bị đeo tay và phương tiện kết nối Internet, lượng dữ liệu được tạo ra mỗi ngày rất lớn, đa dạng về định dạng và tốc độ phát sinh liên tục theo thời gian thực. Dữ liệu \ac{iot} mang đầy đủ các đặc điểm của dữ liệu lớn như: khối lượng (volume) lớn, tốc độ (velocity) cao, tính đa dạng (variety) về loại dữ liệu, mức độ xác thực (veracity) không đồng đều và tiềm năng mang lại giá trị (value) lớn nếu được khai thác hiệu quả. Dữ liệu \ac{iot} do đó vừa là một phần của dữ liệu lớn, vừa là một trong những nguồn thúc đẩy nhu cầu phát triển các nền tảng xử lý dữ liệu lớn hiện đại.
 
 \subsection{Các thành phần của Apache Spark}
 
@@ -98,7 +98,7 @@ Kiến trúc của Apache Spark được xây dựng theo mô hình master--work
     \end{figure}
 \vspace*{1ex}
 
-Các tác vụ được phân phối tới các \textbf{Worker Nodes}, nơi chứa các \textbf{Executor} --- tiến trình thực thi thực tế. Mỗi Executor chịu trách nhiệm thực thi các tác vụ (task) và lưu trữ dữ liệu trong bộ nhớ hoặc ổ đĩa nếu cần. Spark sử dụng \textbf{Cluster Manager} (như YARN, Mesos hoặc Standalone) để quản lý tài nguyên trên cụm. Dữ liệu được lưu trữ trên các hệ thống như HDFS, S3, hoặc các cơ sở dữ liệu quan hệ.
+Các tác vụ được phân phối tới các \textbf{Worker Nodes}, nơi chứa các \textbf{Executor}, tức các tiến trình thực thi thực tế. Mỗi Executor chịu trách nhiệm thực thi các tác vụ (task) và lưu trữ dữ liệu trong bộ nhớ hoặc ổ đĩa nếu cần. Spark sử dụng \textbf{Cluster Manager} (như YARN, Mesos hoặc Standalone) để quản lý tài nguyên trên cụm. Dữ liệu được lưu trữ trên các hệ thống như HDFS, S3, hoặc các cơ sở dữ liệu quan hệ.
 
 \section{Học máy trong phát hiện xâm nhập}
 
@@ -107,12 +107,12 @@ Học máy (\ac{ml}) đã trở thành một công cụ thiết yếu trong vi�
 \begin{itemize}
 \item \textbf{Học có giám sát (Supervised Learning)}: Sử dụng dữ liệu đã được gán nhãn để huấn luyện mô hình phân loại. Một số thuật toán điển hình gồm \ac{rf}, \ac{svm} và mạng nơ-ron nhân tạo (Neural Networks).
 \item \textbf{Học không giám sát (Unsupervised Learning)}: Áp dụng cho các tình huống không có nhãn, tập trung vào việc phát hiện các mẫu bất thường. K-Means là một thuật toán phổ biến trong nhóm này.
-\item \textbf{Học tăng cường (Reinforcement Learning)}: Mô hình học dựa trên phản hồi từ môi trường nhằm tối ưu hóa hành vi hoặc quyết định của hệ thống theo thời gian; hướng này không thuộc phạm vi thực nghiệm của luận văn và chỉ được nêu để hoàn chỉnh bức tranh phân loại.
+\item \textbf{Học tăng cường (Reinforcement Learning)}: Mô hình học dựa trên phản hồi từ môi trường nhằm tối ưu hóa hành vi hoặc quyết định của hệ thống theo thời gian; hướng này không thuộc phạm vi thực nghiệm của luận văn và chỉ được nêu cho đủ ba nhóm phương pháp.
 \end{itemize}
 
 Trong bối cảnh mạng \ac{iot}, học máy được ứng dụng rộng rãi để phân tích lưu lượng dữ liệu và nhận diện các loại tấn công như DDoS, botnet hay giả mạo gói tin. Chẳng hạn, Koroniotis và cộng sự (2019) xây dựng bộ dữ liệu Bot-IoT và báo cáo các mô hình học máy, học sâu đạt độ chính xác gần tuyệt đối khi phát hiện các tấn công DoS/DDoS trong môi trường \ac{iot} \cite{Koroniotis2019}. Tuy nhiên, các kết quả gần như tuyệt đối (xấp xỉ 100\%) trên các tập dữ liệu công khai cần được xem xét thận trọng, vì chúng thường là dấu hiệu của rò rỉ dữ liệu (data leakage) hơn là hiệu năng thực sự của mô hình. \emph{Rò rỉ dữ liệu} là tình huống trong đó thông tin lẽ ra không sẵn có ở thời điểm triển khai thực tế lại lọt vào quá trình huấn luyện hoặc đánh giá, khiến điểm số bị thổi phồng và không phản ánh đúng khả năng tổng quát hóa của mô hình. Luận văn này nhận diện và xử lý vấn đề đó một cách tường minh ở Chương~\ref{c:thucnghiemdanhgia}.
 
-Tuy nhiên, việc ứng dụng học máy trong hệ thống \ac{iot} vẫn còn gặp nhiều thách thức vì yêu cầu xử lý theo thời gian thực và hạn chế về tài nguyên tính toán. Việc tích hợp học máy với các nền tảng xử lý dữ liệu lớn như Apache Spark mang lại lợi thế đáng kể, giúp xử lý khối lượng dữ liệu lớn với tốc độ cao và hỗ trợ triển khai các thuật toán học máy hiệu quả trong môi trường phân tán.
+Tuy nhiên, việc ứng dụng học máy trong hệ thống \ac{iot} vẫn còn gặp nhiều thách thức vì yêu cầu xử lý theo thời gian thực và hạn chế về tài nguyên tính toán. Việc tích hợp học máy với các nền tảng xử lý dữ liệu lớn như Apache Spark cho phép xử lý khối lượng dữ liệu lớn với tốc độ cao và triển khai các thuật toán học máy trong môi trường phân tán.
 \subsection{Một số thuật toán học máy}
 \begin{itemize}
 \item \textbf{Cây quyết định (\ac{dt})} là một trong những thuật toán học máy có giám sát phổ biến, được áp dụng rộng rãi trong các bài toán phân loại. Cấu trúc cơ bản của một cây quyết định bao gồm ba thành phần chính: \textbf{nút gốc}, \textbf{nút quyết định} và \textbf{nút lá}.
@@ -238,9 +238,9 @@ Trong đó $\sigma(\cdot)$ có thể là các hàm kích hoạt như sigmoid, ta
 Mô hình \ac{xgb} đã được ứng dụng thành công trong nhiều bài toán học máy thực tế như dự báo tài chính, chẩn đoán y tế, phát hiện gian lận và phân tích hành vi khách hàng, nhờ độ chính xác cao và hiệu quả tính toán tốt.
 \end{itemize}
 \subsection{Một số thuật toán học tổ hợp}
-\textbf{Học tổ hợp (Ensemble Learning, \ac{el})} là một kỹ thuật trong học máy nhằm kết hợp nhiều mô hình riêng lẻ để nâng cao độ chính xác và độ ổn định trong dự đoán. Thay vì chỉ dựa vào một mô hình đơn lẻ, phương pháp \ac{el} tận dụng sức mạnh tổng hợp của nhiều mô hình (ví dụ \ac{dt}, \ac{rf}, \ac{lr}) để xây dựng một hệ thống dự đoán chính xác hơn. Nguyên lý cốt lõi của \ac{el} là: mỗi mô hình riêng lẻ có thể chỉ đạt độ chính xác thấp hoặc dự đoán sai ở một số trường hợp, nhưng sự kết hợp hợp lý của chúng có thể giảm thiểu sai số, tăng độ chính xác nhờ tận dụng điểm mạnh và khắc phục điểm yếu của từng mô hình thành phần \cite{zhou2012ensemble}.
+\textbf{Học tổ hợp (Ensemble Learning, \ac{el})} là một kỹ thuật trong học máy nhằm kết hợp nhiều mô hình riêng lẻ để nâng cao độ chính xác và độ ổn định trong dự đoán. Thay vì chỉ dựa vào một mô hình đơn lẻ, phương pháp \ac{el} kết hợp dự đoán của nhiều mô hình (ví dụ \ac{dt}, \ac{rf}, \ac{lr}) để xây dựng một hệ thống dự đoán chính xác hơn. Nguyên lý của \ac{el} là: mỗi mô hình riêng lẻ có thể chỉ đạt độ chính xác thấp hoặc dự đoán sai ở một số trường hợp, nhưng sự kết hợp hợp lý của chúng có thể giảm thiểu sai số, tăng độ chính xác nhờ tận dụng điểm mạnh và khắc phục điểm yếu của từng mô hình thành phần \cite{zhou2012ensemble}.
 
-Kỹ thuật \ac{el} đã chứng minh được tính hiệu quả cao trong nhiều lĩnh vực yêu cầu độ chính xác cao như: phát hiện gian lận, phân tích dữ liệu lớn, nhận diện hình ảnh và xử lý ngôn ngữ tự nhiên. Trong lĩnh vực bảo mật mạng \ac{iot}, \ac{el} cũng được ứng dụng để cải thiện khả năng phát hiện bất thường hoặc xâm nhập dựa trên nhiều mô hình học máy được huấn luyện song song hoặc tuần tự.
+Kỹ thuật \ac{el} được sử dụng rộng rãi trong nhiều lĩnh vực yêu cầu độ chính xác cao như: phát hiện gian lận, phân tích dữ liệu lớn, nhận diện hình ảnh và xử lý ngôn ngữ tự nhiên. Trong lĩnh vực bảo mật mạng \ac{iot}, \ac{el} cũng được ứng dụng để cải thiện khả năng phát hiện bất thường hoặc xâm nhập dựa trên nhiều mô hình học máy được huấn luyện song song hoặc tuần tự.
 
 Một số phương pháp phổ biến của \ac{el} bao gồm:
 \begin{itemize}
