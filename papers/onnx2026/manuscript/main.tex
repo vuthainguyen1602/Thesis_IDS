@@ -189,10 +189,10 @@ The testbed is unchanged from the companion deployment paper: two NVIDIA Jetson 
 
 \subsection{Single-Node Engine Cost (Reused from the Companion Microbenchmark)}
 
-Table~\ref{tab:engines} reproduces the companion paper's single-node microbenchmark of the same Random Forest and the same 29-feature input across three engines, measured on the classifier board at batch size 10; it motivates this paper rather than reports a new measurement, and is included so the two papers can be read independently. ONNX Runtime already reaches $348\times$ the deployed Spark throughput and roughly 2\% of scikit-learn's energy per inference in this single-node setting, before any pipeline integration.
+The companion paper's own single-node microbenchmark already reported the Spark side of this comparison: the deployed PySpark path reached 22.6 flows/s at a p95 of 532\,ms, against 204.4 flows/s / 49.8\,ms for the same forest under scikit-learn and 7{,}870.8 flows/s / 1.1\,ms under ONNX Runtime -- a $9\times$ and $348\times$ gap, respectively. We do not reproduce that Spark row here: Table~\ref{tab:engines} instead isolates the two JVM-free candidates from the same microbenchmark, to show how much of the remaining gap ONNX Runtime closes over the scikit-learn reference alone. ONNX Runtime reaches roughly $38\times$ scikit-learn's throughput and about 2\% of its energy per inference, before any pipeline integration.
 
 \begin{table}[htbp]
-  \caption{Single-node inference cost of the same Random Forest and feature set across engines (companion microbenchmark, reproduced for reference).}
+  \caption{Single-node inference cost of the exported Random Forest under the two JVM-free candidate engines (companion microbenchmark, reproduced for reference).}
   \label{tab:engines}
   \centering
   \small
@@ -200,12 +200,11 @@ Table~\ref{tab:engines} reproduces the companion paper's single-node microbenchm
     \toprule
     Engine & Throughput (flows/s) & p95 latency (ms) & RAM (\%) & Energy/inf.\ (mJ) \\
     \midrule
-    PySpark (deployed) & 22.6 & 532 & 24.3 & 71.6 \\
     scikit-learn       & 204.4 & 49.8 & 13.3 & 2.91 \\
     ONNX Runtime       & 7870.8 & 1.1 & 15.7 & 0.06 \\
     \bottomrule
   \end{tabular}
-  \tabnote{Source: \texttt{papers/soict2026/results/benchmarks/benchmark\_engines\_results.json}, single-node baseline, batch size 10, 5{,}000 samples per engine. The scikit-learn and ONNX Runtime rows are the scikit-learn-exported reference used to validate the conversion path prior to the direct Spark-Parquet export described in Sect.~\ref{sec:export}; the PySpark row is the deployed classifier board's own measured cost from the same study.}
+  \tabnote{Source: \texttt{papers/soict2026/results/benchmarks/benchmark\_engines\_results.json}, single-node baseline, batch size 10, 5{,}000 samples per engine. Both rows use the scikit-learn-exported reference forest, used in the companion paper to validate the conversion path prior to the direct Spark-Parquet export this paper describes (Sect.~\ref{sec:export}). The deployed PySpark path is not included as a row: its measured cost (22.6 flows/s, 532\,ms p95) comes from a different measurement in the same study (the live classifier board, not this single-node JSON) and is cited in prose above instead of mixed into this table.}
 \end{table}
 
 \subsection{Conversion Correctness}
@@ -245,7 +244,7 @@ Table~\ref{tab:engines} reproduces the companion paper's single-node microbenchm
 
 \section{Discussion}
 
-The single-node microbenchmark (Table~\ref{tab:engines}) already establishes that the JVM, not the model, is the dominant edge-serving cost for this system: the same forest is $9\times$ faster under scikit-learn and $348\times$ faster under ONNX Runtime, and neither of those engines was, until this paper, wired into the streaming pipeline at all. Closing that gap required more than pointing a converter at the model: because the deployed forest was selected under a leakage-aware protocol specifically to avoid the optimistic scores that leakage and dataset artifacts produce~\cite{arp2022dosdonts,lanvin2023errors}, any export path that silently retrained or approximated the model would have undermined that selection. Reading Spark's own Parquet node table directly, rather than going through a scikit-learn intermediate, is what lets us claim the ONNX and NumPy backends serve \emph{the same} model rather than a plausible substitute -- a claim Sect.~\ref{sec:results} still needs to close with a measured agreement rate rather than the equivalence argument alone.
+The companion single-node microbenchmark already establishes that the JVM, not the model, is the dominant edge-serving cost for this system: the same forest is $9\times$ faster under scikit-learn and $348\times$ faster under ONNX Runtime than the deployed PySpark path, and neither of those engines was, until this paper, wired into the streaming pipeline at all. Table~\ref{tab:engines} isolates the two JVM-free candidates and shows ONNX Runtime still reaching roughly $38\times$ scikit-learn's own throughput, so compiling the forest to a tree-ensemble graph buys more than simply leaving the JVM behind. Closing that gap required more than pointing a converter at the model: because the deployed forest was selected under a leakage-aware protocol specifically to avoid the optimistic scores that leakage and dataset artifacts produce~\cite{arp2022dosdonts,lanvin2023errors}, any export path that silently retrained or approximated the model would have undermined that selection. Reading Spark's own Parquet node table directly, rather than going through a scikit-learn intermediate, is what lets us claim the ONNX and NumPy backends serve \emph{the same} model rather than a plausible substitute -- a claim Sect.~\ref{sec:results} still needs to close with a measured agreement rate rather than the equivalence argument alone.
 
 \textbf{Limitations.} At the time of writing, the swappable-engine code (branch \texttt{feature/numpy-prediction-engine}) has not yet been benchmarked end-to-end on the Jetson cluster; Table~\ref{tab:pipeline-engines} and the conversion-agreement figures in Sect.~\ref{sec:results} are placeholders pending that run, and the paper should not be treated as submission-ready until they are filled from real hardware. The NumPy backend's vectorized-but-uncompiled tree traversal is expected to sit between scikit-learn and ONNX Runtime on throughput; it is included as a dependency-light fallback, not because it is expected to close the gap to ONNX Runtime on speed. The ONNX backend targets the CPU execution provider only; the Jetson's GPU/Tensor cores, and a TensorRT compilation of the same graph, remain unexploited, consistent with the companion paper's stated future work. Finally, both exports assume the deployed model stays a \texttt{StandardScaler} + \texttt{RandomForestClassifier} \texttt{PipelineModel}; a change of classifier family (e.g.\ to a gradient-boosted tree model) would require extending the Parquet reader, not just re-running the existing exporters.
 
