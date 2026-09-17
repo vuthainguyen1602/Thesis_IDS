@@ -9,9 +9,6 @@ Arp, D., Quiring, E., Pendlebury, F., Warnecke, A., Pierazzi, F., Wressnegger,
   security. In: 31st USENIX Security Symposium (USENIX Security 22). pp.
   3971--3988 (2022)
 
-\bibitem{breiman2001random}
-Breiman, L.: Random forests. Machine Learning  \textbf{45}(1),  5--32 (2001)
-
 \bibitem{baalaji2025ensemble}
 Chithra~Rani, P.R., Baalaji, K.: Deep learning-based ensemble stacking for
   enhanced intrusion detection in {IoT}-edge platforms. Discover Applied
@@ -21,6 +18,11 @@ Chithra~Rani, P.R., Baalaji, K.: Deep learning-based ensemble stacking for
 Diaz-Gorrin, J., Caballero-Gil, C., Brankovic, L.: Enhancing network security
   with generative {AI} on {Jetson Orin Nano}. Applied Sciences  \textbf{16}(3),
   ~1442 (2026). \doi{10.3390/app16031442}
+
+\bibitem{eren2026drdos}
+Eren, S., G{\"u}ltekin, A., {\"O}zkan, {\"O}., {\"O}z{\c{c}}elik, {\.I}.:
+  High-throughput and low-latency {DrDoS} detection using quantized {ONNX}
+  models. Symmetry  \textbf{18}(7), ~1187 (2026). \doi{10.3390/sym18071187}
 
 \bibitem{hamdan2020edge}
 Hamdan, S., Ayyash, M., Almajali, S.: Edge-computing architectures for internet
@@ -32,9 +34,9 @@ Hasan, T., Hossain, A., Ansari, M.Q., Syed, T.H.: Enhanced intrusion detection
   in {IIoT} networks: A lightweight approach with autoencoder-based feature
   learning (2025), arXiv:2501.15266
 
-\bibitem{kreps2011kafka}
-Kreps, J., Narkhede, N., Rao, J.: Kafka: a distributed messaging system for log
-  processing. In: Proceedings of the NetDB Workshop (2011)
+\bibitem{koschel2023arm}
+Koschel, S., Buschj{\"a}ger, S., Lucchese, C., Morik, K.: Fast inference of
+  tree ensembles on {ARM} devices (2023), arXiv:2305.08579
 
 \bibitem{lanvin2023errors}
 Lanvin, M., Gimenez, P.F., Han, Y., Majorczyk, F., M{\'e}, L., Totel, {\'E}.:
@@ -47,12 +49,6 @@ Lanvin, M., Gimenez, P.F., Han, Y., Majorczyk, F., M{\'e}, L., Totel, {\'E}.:
 Lundberg, S.M., Lee, S.I.: A unified approach to interpreting model
   predictions. Advances in Neural Information Processing Systems  \textbf{30}
   (2017)
-
-\bibitem{meng2016mllib}
-Meng, X., Bradley, J., Yavuz, B., Sparks, E., Venkataraman, S., Liu, D.,
-  Freeman, J., Tsai, D., Amde, M., Owen, S., Xin, D., Xin, R., Franklin, M.J.,
-  Zadeh, R., Zaharia, M., Talwalkar, A.: {MLlib}: Machine learning in {Apache
-  Spark}. Journal of Machine Learning Research  \textbf{17}(34), ~1--7 (2016)
 
 \bibitem{nakandala2020hummingbird}
 Nakandala, S., Saur, K., Yu, G.I., Karanasos, K., Curino, C., Weimer, M.,
@@ -84,11 +80,6 @@ Sharafaldin, I., Lashkari, A.H., Ghorbani, A.A.: Toward generating a new
 Shi, W., Cao, J., Zhang, Q., Li, Y., Xu, L.: Edge computing: Vision and
   challenges. IEEE Internet of Things Journal  \textbf{3}(5),  637--646 (2016).
   \doi{10.1109/JIOT.2016.2579198}
-
-\bibitem{zaharia2010spark}
-Zaharia, M., Chowdhury, M., Franklin, M.J., Shenker, S., Stoica, I.: Spark:
-  Cluster computing with working sets. In: Proceedings of the 2nd USENIX
-  Workshop on Hot Topics in Cloud Computing (HotCloud'10) (2010)
 
 \bibitem{zhang2026edgeics}
 Zhang, Z., Zhang, L., Xu, J., Chen, Z., Wang, P.: An edge-deployable

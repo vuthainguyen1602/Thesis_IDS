@@ -1,19 +1,18 @@
-% ONNX 2026 -- Springer LNCS template (English), companion to soict2026.
+% ONNX 2026 -- Springer LNCS template (English), companion systems paper to
+% the ONNX-EdgeIDS software (github.com/vuthainguyen1602/onnx-edge-ids) and,
+% separately, to soict2026.
 % Compile: ./compile.sh
 %
 % STATUS: draft. Venue/deadline not yet chosen (see ../README.md); author
 % order and institute block are copied from the SOICT 2026 companion paper
 % and must be re-confirmed before submission.
 %
-% RESULT PLACEHOLDERS: empirical numbers are wrapped in \ph{...}. The
-% single-node engine microbenchmark (Table~\ref{tab:engines}) is real data,
-% reproduced from papers/soict2026/results/benchmarks/benchmark_engines_results.json
-% (same source used by the SOICT companion paper's Table on inference-engine
-% cost). Everything that requires running the EDGE_ENGINE=numpy|onnx backends
-% end-to-end on the Kafka pipeline on real Jetson hardware (branch
-% feature/numpy-prediction-engine, not yet benchmarked at the time of writing)
-% is left as \ph{...} and must be filled from papers/onnx2026/results/benchmarks/
-% once that benchmark is run. Do NOT invent numbers for those placeholders.
+% RESULT PROVENANCE: the cold-start, throughput, latency, memory, power, and
+% parity numbers in this draft are the same validation-run figures recorded
+% in onnx-edge-ids/submission_checklist.md (single replay run, Jetson #2 on
+% Wi-Fi). Re-verify against that file (or a fresh run) before submission; the
+% one number still genuinely missing -- end-to-end throughput over a wired
+% link -- is marked \ph{...} and must not be invented.
 %
 \documentclass[runningheads]{llncs}
 
@@ -50,15 +49,15 @@
 \setlength{\emergencystretch}{1.5em}
 \providecommand{\babelshorthandoff}[1]{}
 
-\graphicspath{{../results/benchmarks/}{../../soict2026/results/benchmarks/}{../figures/}}
+\graphicspath{{../results/benchmarks/}{../figures/}}
 
 \begin{document}
 
 \renewcommand{\figurename}{Fig.}
 
-\title{From PySpark to ONNX: A Bit-Exact, JVM-Free Serving Path for an Edge Intrusion Detection System on Jetson Orin Nano Super}
+\title{ONNX-EdgeIDS: A Framework-Agnostic ONNX/NumPy Serving Toolkit for Streaming Intrusion Detection on Jetson Orin Nano Super}
 
-\titlerunning{JVM-Free ONNX Serving for an Edge IDS on Jetson Orin Nano Super}
+\titlerunning{ONNX-EdgeIDS: Framework-Agnostic Edge IDS Serving on Jetson Orin Nano Super}
 
 \author{Thai Nguyen Vu\inst{1} \and
 Dung Van Bui\inst{2,3} \and
@@ -81,176 +80,199 @@ Faculty of Information Technology, Nong Lam University, Ho Chi Minh City, Vietna
 \maketitle
 
 \begin{abstract}
-A companion study of ours deployed a leakage-aware Random Forest intrusion detector as a PySpark \texttt{PipelineModel} on a two-node Jetson Orin Nano Super cluster, for consistency with a Spark-based training phase, and measured that this choice is expensive: on the same forest and the same 29-feature input, a single-node microbenchmark showed scikit-learn reaching $9\times$ the Spark throughput and ONNX Runtime reaching $348\times$, at a fraction of the energy per inference. That paper left ``wiring an ONNX session into the streaming pipeline'' as future work. This paper does that. We introduce a swappable classifier-tier contract (\texttt{spark}\,$|$\,\texttt{numpy}\,$|$\,\texttt{onnx}) behind one engine-agnostic feature-matrix builder, so the Kafka topology, the anomaly gate, and the monitoring stack are unchanged. The ONNX backend is produced by reading the deployed model's saved Parquet node tables directly and emitting a single \texttt{TreeEnsembleClassifier} graph, with no scikit-learn or retraining step in between, so the exported graph is the leakage-aware model validated offline, not a re-fit approximation of it. A pure-NumPy backend flattens the same forest into a node table for boards where no \texttt{onnxruntime} wheel matches the installed JetPack/Python combination. Both backends are selected with a single \texttt{EDGE\_ENGINE} environment variable, requiring no change to the anomaly gate or the streaming roles. \ph{We report end-to-end Kafka throughput, latency, and energy per verdict for the three backends on the two-node Jetson cluster, and the prediction-agreement rate between each exported backend and the Spark model it was exported from, once the branch is benchmarked on hardware.}
+Earlier deployment work on this system exposed a limitation that recurs across edge intrusion detection projects: a model can be accurate while the serving stack it inherited from training remains too heavy for an 8\,GB edge board. We present \textsc{ONNX-EdgeIDS}, a two-stage Kafka serving toolkit built around a single ONNX artifact rather than around whichever framework produced it. Its NumPy fallback exporter reads the standard \texttt{ai.onnx.ml.TreeEnsembleClassifier} and \texttt{Scaler} operators directly out of the ONNX graph, so it works for any ONNX tree-ensemble classifier, not one tied to a particular training framework; a release-gate script cross-validates the two backends and refuses to pass if label agreement or confidence drift exceeds tolerance. On a two-node Jetson Orin Nano Super cluster, the ONNX Runtime backend serves 20{,}185 rows/s at a p95 of 0.068\,ms/row, against 152 rows/s and 8.23\,ms/row for the NumPy fallback at the same batch size, a gap that narrows sharply as batch size grows (9 $\rightarrow$ 150 $\rightarrow$ 1{,}650 rows/s at batch 1/20/500); the NumPy artifact is nonetheless $6\times$ smaller (1.23 vs.\ 7.38\,MB) and reaches its first verdict 32\% faster after a cold start (368 vs.\ 542\,ms), a trade-off relevant to restart-sensitive deployments. On a validation run of 2{,}000 replayed flows, the two backends agree on every label with zero confidence deviation. \ph{We report end-to-end throughput and latency over a wired inter-board link, the one measurement still pending at the time of writing.}
 
-\keywords{Intrusion detection \and Edge computing \and ONNX Runtime \and Model serving \and Jetson Orin Nano Super \and Apache Spark.}
+\keywords{Intrusion detection \and Edge computing \and ONNX Runtime \and Model serving \and Jetson Orin Nano Super \and Apache Kafka.}
 \end{abstract}
 
 \section{Introduction}
 
-Streaming ML-based intrusion detection increasingly runs at the network edge to cut bandwidth and response time~\cite{shi2016edge,hamdan2020edge}, and a companion study of ours deployed such a system: a two-stage pipeline on two NVIDIA Jetson Orin Nano Super boards, with a lightweight autoencoder gate filtering benign flows before a PySpark \texttt{PipelineModel} classifies the remainder. That system reused the same Apache Spark stack~\cite{zaharia2010spark,meng2016mllib} for training (on a Spark standalone cluster spanning the two Jetson boards) and for serving (on the classifier board alone), on the reasoning that one stack is simpler to operate than two. The companion paper also measured the price of that simplicity: with the same Random Forest~\cite{breiman2001random} and the same 29-feature SHAP-selected input, a single-node microbenchmark on the classifier board showed the JVM-hosted Spark path reaching only 22.6 flows/s, against 204.4 flows/s for the same forest under scikit-learn and 7{,}870.8 flows/s under ONNX Runtime, at a p95 latency of 532\,ms, 49.8\,ms, and 1.1\,ms respectively. On an 8\,GB ARM board with no swap headroom to spare, that JVM overhead is not a rounding error: it is the largest single knob left on the table after the anomaly gate has already removed most of the benign traffic.
+Streaming ML-based intrusion detection increasingly runs at the network edge to cut bandwidth and response time~\cite{shi2016edge,hamdan2020edge}. A recurring failure mode in such deployments is not the model but the serving stack around it: a framework convenient for offline training is reused for online serving because it is operationally simpler to run one stack than two, and that convenience carries a memory and latency cost that a constrained ARM board cannot always absorb. Earlier deployment work on this project's two-stage anomaly-gate-then-classifier pipeline exposed exactly this limitation: the classifier was accurate, but its serving path was heavier than the 8\,GB Jetson Orin Nano Super boards it ran on could comfortably sustain.
 
-The companion paper stopped at the microbenchmark and named the natural next step: export the deployed model to ONNX (or TensorRT) and wire the resulting session into the streaming pipeline, without disturbing the parts of the system that already work -- the Kafka topology, the anomaly gate, the monitoring stack, and, most importantly, the leakage-aware training and model-selection protocol that produced the deployed forest in the first place. Doing this correctly is not simply a matter of calling an off-the-shelf converter. The common ONNX export path for tree ensembles goes through scikit-learn (\texttt{skl2onnx}): a Spark model has no scikit-learn twin, so that path would require re-fitting a new forest outside Spark, which breaks the claim that the served model is the one selected under the leakage-aware offline protocol (label-leaking \texttt{destination\_port} removed, duplicate flows de-duplicated) rather than a freshly retrained substitute with its own, unaudited accuracy.
+This paper presents the software response to that limitation: \textsc{ONNX-EdgeIDS}\footnote{\url{https://github.com/vuthainguyen1602/onnx-edge-ids}}, a serving toolkit organized around one portable artifact, an ONNX \texttt{TreeEnsembleClassifier} graph, with two interchangeable runtimes behind it. The primary runtime is ONNX Runtime; a second, dependency-minimal runtime re-implements the same forest in pure NumPy for boards where no matching \texttt{onnxruntime} wheel exists. Critically, the NumPy exporter does not depend on the framework that produced the ONNX graph: it parses the graph's standard tree-ensemble operator attributes (split features, thresholds, per-leaf class weights) rather than a framework-specific internal representation, so the same exporter works on an ONNX tree ensemble regardless of its origin. A companion validation script treats agreement between the two runtimes as a release gate rather than a one-off sanity check, failing the build if label agreement or confidence drift falls outside tolerance.
 
-We instead read Spark's own saved representation, node table and split thresholds stored as Parquet under the model directory, and translate it directly into the operators the ONNX tree-ensemble runtime expects, matching Spark's split semantics, leaf-weighting, and probability normalization exactly rather than approximately. The same reader also drives a second, dependency-light export: a flattened NumPy node table, for Jetson/JetPack combinations where no prebuilt \texttt{onnxruntime} wheel exists. Both exports plug into the existing role-pipeline code behind one new interface, so switching backends is a one-line configuration change instead of a rewrite.
+We integrate both runtimes into a two-stage Kafka pipeline -- an anomaly gate on one Jetson board forwarding suspicious flows to a classifier on a second -- and report on-hardware measurements: steady-state throughput and latency at multiple batch sizes, cold-start time to first verdict, artifact size, and cross-runtime prediction parity. Several of these findings are not obvious from a single-node microbenchmark alone: the NumPy backend's throughput is highly batch-size dependent because its tree traversal is vectorized across a batch rather than compiled per tree, and on this hardware the Kafka client library, not inference, is the binding constraint once the ONNX Runtime backend is in use.
 
 \textbf{Contributions.}
-(1) A swappable classifier-tier contract (\texttt{InferenceEngine}) with three backends -- the original Spark \texttt{PipelineModel}, ONNX Runtime, and pure NumPy -- selected by a single \texttt{EDGE\_ENGINE} variable, integrated into the same Kafka role pipeline used by the companion deployment paper with no change to the anomaly gate or the monitoring stack;
-(2) A direct Spark-Parquet-to-ONNX exporter for \texttt{StandardScaler} + \texttt{RandomForestClassifier} \texttt{PipelineModel}s that needs neither scikit-learn nor a retraining step, together with the equivalence argument (split direction, leaf-weight normalization, scaler mapping) that lets the exported graph reproduce Spark's predictions rather than approximate them;
-(3) A pure-NumPy fallback exporter and vectorized forest-traversal engine for boards without an available \texttt{onnxruntime} build;
-(4) An open, reproducible extension of the companion deployment's code and benchmark protocol\footnote{\url{https://github.com/vuthainguyen1602/Thesis_IDS} (branch \texttt{feature/numpy-prediction-engine}).}.
+(1) A classifier-tier contract with two interchangeable runtimes (ONNX Runtime, pure NumPy) behind one \texttt{InferenceEngine} interface, integrated into a two-stage Kafka gate-then-classifier pipeline on a Jetson Orin Nano Super cluster;
+(2) A framework-agnostic NumPy exporter that reads an ONNX tree ensemble's standard operator attributes directly, together with a release-gate parity validator that failed builds rather than only warning on divergence;
+(3) On-hardware measurements covering steady-state cost, batch-size sensitivity, cold-start latency, artifact size, and prediction parity, several of which surface trade-offs (cold start vs.\ throughput, artifact size vs.\ speed) that a single steady-state number would hide;
+(4) An open, archived software artifact\footnote{Zenodo concept DOI: \url{https://doi.org/10.5281/zenodo.22731927}.} and reproducible benchmark scripts.
 
 \section{Related Work}
 
-\textbf{Edge intrusion detection.} Single-board deployments of ML-based IDS are now common, from early Raspberry Pi systems~\cite{sforzin2016rpids} to recent ensemble and metaheuristic-optimized detectors on IoT-edge and industrial-control hardware~\cite{baalaji2025ensemble,asghar2026hedid,zhang2026edgeics} and autoencoder- or generative-model-based detection on Jetson boards~\cite{hasan2025iiot,diazgorrin2026jetson}. These studies optimize the detector; our companion deployment paper instead measured a distributed, streaming system (Kafka~\cite{kreps2011kafka} plus a two-stage Spark pipeline~\cite{zaharia2010spark,meng2016mllib} across two Jetson Orin Nano Super boards) end to end, and found that the choice of \emph{serving stack}, not the model, was the dominant cost once the anomaly gate had already removed most benign traffic. The present paper is scoped to closing exactly that gap.
+\textbf{Edge intrusion detection.} Single-board deployments of ML-based IDS are now common, from early Raspberry Pi systems~\cite{sforzin2016rpids} to recent ensemble and metaheuristic-optimized detectors on IoT-edge and industrial-control hardware~\cite{baalaji2025ensemble,asghar2026hedid,zhang2026edgeics} and autoencoder- or generative-model-based detection on Jetson boards~\cite{hasan2025iiot,diazgorrin2026jetson}. These studies optimize the detector; the present paper instead treats the \emph{serving stack} as the object of study, on the observation (from earlier deployment work on this system) that model accuracy and serving cost are separate axes that a single evaluation can conflate.
 
-\textbf{Serving classical ML on constrained hardware.} ONNX\footnote{\url{https://onnx.ai/}} standardizes a small operator set, including \texttt{TreeEnsembleClassifier} for decision-tree ensembles, so a model trained in one framework can be served by any ONNX-compatible runtime; ONNX Runtime\footnote{\url{https://onnxruntime.ai/}} is the reference CPU/GPU implementation and is what we target. Nakandala et al.~\cite{nakandala2020hummingbird} make a related but different argument for tree ensembles specifically: they compile scikit-learn-style pipelines into tensor operations so a GPU tensor runtime (rather than a tree-optimized one) can serve them, and report large speedups over native scikit-learn on batched workloads. Their compiler, like the standard \texttt{skl2onnx} path, assumes a scikit-learn (or scikit-learn-compatible) source model; Spark's \texttt{RandomForestClassificationModel} has no such representation, only its own saved Parquet node table, which is why we read that table directly instead of retraining through an intermediate framework. TensorRT\footnote{\url{https://developer.nvidia.com/tensorrt}} takes the further step of compiling an ONNX graph for the Jetson's GPU/DLA hardware; we target the ONNX Runtime CPU execution provider only and leave a GPU-accelerated path for future work, consistent with the companion paper's own conclusion.
+\textbf{Serving classical ML on constrained hardware.} ONNX\footnote{\url{https://onnx.ai/}} standardizes a small operator set, including \texttt{TreeEnsembleClassifier} for decision-tree ensembles, so a model trained in one framework can be served by any ONNX-compatible runtime; ONNX Runtime\footnote{\url{https://onnxruntime.ai/}} is the reference CPU/GPU implementation and is what we target as the primary backend. Nakandala et al.~\cite{nakandala2020hummingbird} make a related argument for tree ensembles specifically: compiling scikit-learn-style pipelines into tensor operations lets a GPU tensor runtime, rather than a tree-optimized one, serve them, with large reported speedups over native execution on batched workloads. Our NumPy fallback takes the opposite trade-off deliberately: no compilation step and no GPU dependency, at the cost of the batch-size sensitivity Sect.~\ref{sec:results} measures. Koschel et al.~\cite{koschel2023arm} show that this cost is not fundamental to ARM hardware: porting the QuickScorer tree-traversal algorithm from Intel AVX to ARM NEON yields up to $9.4\times$ speedups for ensemble inference on IoT-class ARM devices, with fixed-point quantization improving throughput further at a small accuracy cost. That result targets exactly the traversal loop our NumPy backend currently runs unvectorized-per-instruction-but-batched; we return to it as a concrete optimization target in Sect.~\ref{sec:discussion}.
 
-\textbf{Evaluation protocol.} Arp et al.~\cite{arp2022dosdonts} and Lanvin et al.~\cite{lanvin2023errors} document how easily an offline security-ML evaluation can be inflated by leakage or dataset artifacts; our companion study responded by training on a leakage-aware, deduplicated CICIDS2017~\cite{sharafaldin2018toward} protocol and selecting a SHAP-explained~\cite{lundberg2017unified} 30-feature Random Forest~\cite{breiman2001random}. The present paper's central design constraint follows directly from that: any serving path we add must reproduce that exact model's predictions, not a re-fit approximation with its own untested accuracy, so \emph{conversion correctness} is treated as a first-class requirement rather than an afterthought (Sect.~\ref{sec:export}).
+\textbf{ONNX and quantization in network intrusion detection.} Model compilation and quantization for ONNX-served detectors is an active line of work in this application domain specifically: Eren et al.~\cite{eren2026drdos} report a systematic comparison of ONNX compilation and quantization configurations for DrDoS/amplification-attack detectors (MLP, CNN, GRU architectures), showing that quantized ONNX export can materially change throughput and latency for network-security classifiers without simply assuming DNN-quantization results transfer unchanged. Their target model family is different from the tree ensemble served here, but the result establishes that ONNX-level quantization is a validated, actively studied lever in exactly this application space, and motivates evaluating it against our tree-ensemble graph rather than the deep architectures it was demonstrated on.
+
+\textbf{Evaluation protocol.} Arp et al.~\cite{arp2022dosdonts} and Lanvin et al.~\cite{lanvin2023errors} document how easily an offline security-ML evaluation is inflated by leakage or dataset artifacts; the classifier served by this toolkit was selected under a leakage-aware, deduplicated CICIDS2017~\cite{sharafaldin2018toward} protocol with SHAP-based~\cite{lundberg2017unified} feature selection in earlier work on this system, out of scope for the present paper. What is in scope here is a different correctness question: whether the \emph{exported serving artifacts} reproduce the classifier they were exported from. Sect.~\ref{sec:export} treats that as a release-gated, measured property rather than an assumption.
 
 \section{System Architecture}
 \label{sec:arch}
 
-\subsection{Swappable Classifier Tier}
+\subsection{Two-Stage Kafka Pipeline}
 
-Fig.~\ref{fig:engine-contract} extends the companion paper's split-deployment architecture (host PC for Kafka/PostgreSQL/InfluxDB/Grafana, Jetson~\#1 as the anomaly gate, Jetson~\#2 as the classifier) with one change confined to Jetson~\#2: the classifier role now goes through an \texttt{InferenceEngine} contract with three interchangeable backends instead of a hard-coded PySpark call.
-
-\begin{itemize}
-  \item \textbf{\texttt{FeatureMatrixBuilder}} (\texttt{edge/feature\_matrix.py}) turns a batch of Kafka message dicts into a dense \texttt{float32} matrix in a fixed column order, applying the same missing/NaN/Inf-to-zero policy as the existing Spark-side preprocessor. It imports no PySpark, so it is safe to use even when the classifier role never starts a JVM.
-  \item \textbf{\texttt{InferenceEngine}} (\texttt{edge/inference\_engine.py}) is the shared contract: every backend consumes that matrix and returns a \texttt{BatchPrediction} (predictions, per-row confidences, and timing/attack-count stats), so no engine-specific type (Spark \texttt{DataFrame}, ONNX tensor, NumPy array) leaks into the role-pipeline code. \texttt{create\_inference\_engine()} imports backends lazily, so selecting \texttt{numpy} or \texttt{onnx} never imports \texttt{pyspark}.
-  \item \textbf{\texttt{SparkInferenceEngine}} wraps the original \texttt{PredictionEngine} unchanged, so the companion paper's published benchmark path still runs exactly as measured; it exists purely as an adapter to the new contract.
-  \item \textbf{\texttt{OnnxInferenceEngine}} and \textbf{\texttt{NumpyInferenceEngine}} load the exported artifacts described in Sect.~\ref{sec:export} and never touch Spark.
-\end{itemize}
-
-The Jetson~\#2 role (\texttt{ClassifierPipeline} in \texttt{edge/role\_pipelines.py}) only creates a \texttt{SparkSession} when \texttt{EDGE\_ENGINE=spark}; for \texttt{numpy} or \texttt{onnx} the process never starts a JVM at all. Everything upstream of the classifier -- the Kafka consumer, the anomaly gate on Jetson~\#1, the suspicious-flow forwarder, the InfluxDB/Grafana monitoring, and the PostgreSQL result sink -- is untouched, and each stored verdict now records which backend produced it (\texttt{route}: \texttt{spark\_classifier}, \texttt{numpy\_classifier}, or \texttt{onnx\_classifier}), so the three backends can be A/B-compared from the same replayed traffic.
+Fig.~\ref{fig:architecture} shows the deployment topology. A coordinator host runs Kafka and replays CICIDS2017-derived flow records onto an input topic at a configurable rate. Jetson~\#1 runs the anomaly gate: a scikit-learn autoencoder and scaler (loaded via \texttt{joblib}, trained offline and out of scope here) score each batch, and flows whose reconstruction error clears a calibrated threshold are forwarded to a suspicious-flow topic with their anomaly score attached. Jetson~\#2 consumes that topic and classifies each flow with the swappable \texttt{InferenceEngine} described below. Both gate and classifier batch their Kafka consumption with the same policy: a batch is served either once it reaches a target size or once a linger timeout elapses since its first record, whichever comes first, so a thin stream still gets bounded latency instead of waiting indefinitely to fill a batch.
 
 \begin{figure}[t]
   \centering
   \resizebox{\textwidth}{!}{%
   \begin{tikzpicture}[
       font=\small, >=Stealth, every node/.style={align=center},
-      jet/.style={draw=accGreen!80!black, thick, rounded corners, fill=accGreen!8, text width=4.6cm, minimum height=1.6cm, inner sep=4pt},
-      eng/.style={draw=accBlue, thick, rounded corners, fill=accBlue!5, text width=3.0cm, minimum height=1.5cm, inner sep=3pt, font=\footnotesize},
+      pc/.style ={draw=gray!60,        thick, rounded corners, fill=gray!8,  minimum width=11.6cm, minimum height=1.2cm, inner sep=3pt},
+      jet/.style={draw=accGreen!80!black, thick, rounded corners, fill=accGreen!8, text width=4.4cm, minimum height=1.9cm, inner sep=4pt},
       lbl/.style={font=\footnotesize, fill=white, inner sep=1.5pt, align=center, text=accBlue!75!black},
       arr/.style ={-{Stealth[length=2.5mm]}, thick, draw=gray!60!black},
-      sel/.style ={-{Stealth[length=2.2mm]}, thick, draw=accOrange, dashed},
+  ]
+    \node[pc]  (pc)  at (0, 0.0)   {\textbf{Coordinator (Mac, Kafka)}\\[2pt]
+        \texttt{csv\_producer.py}: CICIDS2017-derived replay $\rightarrow$ \texttt{ids-network-flow}};
+    \node[jet] (j1)  at (-4.2,-3.4) {\textbf{Jetson Orin Nano Super \#1}\\[2pt] \texttt{gate\_node.py}\\[2pt]
+        sklearn autoencoder gate\\ (joblib artifacts)};
+    \node[jet] (j2)  at ( 4.2,-3.4) {\textbf{Jetson Orin Nano Super \#2}\\[2pt] \texttt{classifier\_node.py}\\[2pt]
+        \texttt{InferenceEngine}: \texttt{onnx} or \texttt{numpy}};
+
+    \draw[arr] (pc.south -| j1) -- node[lbl]{ids-network-flow} (j1.north);
+    \draw[arr] (j1.east) -- node[lbl]{ids-suspicious-flow\\ (anomaly score attached)} (j2.west);
+  \end{tikzpicture}}
+  \caption{Two-stage Kafka pipeline: gate on Jetson~\#1, swappable ONNX/NumPy classifier on Jetson~\#2. This minimal toolkit prints per-batch metrics and an optional CSV; the PostgreSQL/alerting/Grafana stack of the earlier deployment work is out of scope here.}
+  \label{fig:architecture}
+\end{figure}
+
+\subsection{Swappable Classifier Tier}
+
+\begin{itemize}
+  \item \textbf{\texttt{FeatureMatrixBuilder}} turns a batch of Kafka flow dicts into a dense \texttt{float32} matrix in a fixed column order, mapping missing/NaN/Inf values to zero.
+  \item \textbf{\texttt{InferenceEngine}} is the shared contract: \texttt{create\_inference\_engine(engine, model\_path, providers)} returns either backend, and both return a common \texttt{BatchPrediction} (predictions, per-row confidences, batch timing/attack-count stats), so \texttt{classifier\_node.py} never branches on which backend is active.
+  \item \textbf{\texttt{OnnxInferenceEngine}} loads the \texttt{.onnx} artifact with ONNX Runtime's CPU execution provider (GPU/TensorRT providers are selectable but not evaluated in this paper).
+  \item \textbf{\texttt{NumpyInferenceEngine}} loads the flattened forest described in Sect.~\ref{sec:export} and walks every tree with a vectorized loop over an active-row boolean mask: at each step, active rows look up their current node's split feature and threshold, move left or right, and rows that land on a leaf accumulate that leaf's class scores and drop out of the mask.
+\end{itemize}
+
+Fig.~\ref{fig:engine-contract} shows the contract. Selecting a backend is a single \texttt{--engine onnx|numpy} flag to \texttt{classifier\_node.py}; nothing else in the pipeline changes.
+
+\begin{figure}[t]
+  \centering
+  \resizebox{0.8\textwidth}{!}{%
+  \begin{tikzpicture}[
+      font=\small, >=Stealth, every node/.style={align=center},
+      jet/.style={draw=accGreen!80!black, thick, rounded corners, fill=accGreen!8, text width=5.4cm, minimum height=1.5cm, inner sep=4pt},
+      eng/.style={draw=accBlue, thick, rounded corners, fill=accBlue!5, text width=3.6cm, minimum height=1.5cm, inner sep=3pt, font=\footnotesize},
+      lbl/.style={font=\footnotesize, fill=white, inner sep=1.5pt, align=center, text=accBlue!75!black},
+      arr/.style ={-{Stealth[length=2.5mm]}, thick, draw=gray!60!black},
   ]
     \node[jet] (j2) at (0, 0) {\textbf{Jetson Orin Nano Super \#2}\\[2pt]
         Kafka consumer $\rightarrow$ \texttt{FeatureMatrixBuilder}\\[2pt] \texttt{InferenceEngine} contract};
-    \node[eng] (spark) at (-4.4,-3.0) {\texttt{SparkInferenceEngine}\\[2pt] PySpark\\ \texttt{PipelineModel}\\[2pt] (published baseline)};
-    \node[eng] (numpy) at ( 0,-3.0)   {\texttt{NumpyInferenceEngine}\\[2pt] flattened RF\\ node table\\[2pt] (JVM-free fallback)};
-    \node[eng] (onnx)  at ( 4.4,-3.0) {\texttt{OnnxInferenceEngine}\\[2pt] \texttt{TreeEnsemble}\\ \texttt{Classifier} graph\\[2pt] (JVM-free)};
-    \draw[arr] (j2.south -| spark) -- (spark.north);
+    \node[eng] (numpy) at (-2.3,-3.0)   {\texttt{NumpyInferenceEngine}\\[2pt] flattened node\\ table (\texttt{.npz})\\[2pt] dependency-minimal};
+    \node[eng] (onnx)  at ( 2.3,-3.0) {\texttt{OnnxInferenceEngine}\\[2pt] \texttt{TreeEnsemble}\\ \texttt{Classifier} graph\\[2pt] (\texttt{.onnx})};
     \draw[arr] (j2.south -| numpy) -- (numpy.north);
     \draw[arr] (j2.south -| onnx)  -- (onnx.north);
-    \node[lbl, above=0.05cm of j2.north east, xshift=1.1cm] {\texttt{EDGE\_ENGINE=spark\,|\,numpy\,|\,onnx}};
+    \node[lbl, above=0.05cm of j2.north east, xshift=0.9cm] {\texttt{--engine onnx\,|\,numpy}};
   \end{tikzpicture}}
-  \caption{Swappable classifier tier on Jetson~\#2: one feature-matrix builder, one \texttt{InferenceEngine} contract, three backends selected by a single environment variable. The gate on Jetson~\#1 and the Kafka/monitoring topology are unchanged from the companion paper.}
+  \caption{Swappable classifier tier on Jetson~\#2: one feature-matrix builder, one \texttt{InferenceEngine} contract, two backends selected by a single flag.}
   \label{fig:engine-contract}
 \end{figure}
-
-\subsection{Design Constraints}
-
-Two constraints shaped the contract. First, \textbf{no accuracy regression by construction}: the ONNX and NumPy backends are not independently trained models, they are re-encodings of the same fitted Spark forest, so any prediction difference is a conversion bug to fix, not a modeling trade-off to accept (Sect.~\ref{sec:export} states the equivalence argument this relies on). Second, \textbf{no forced dependency}: a board that cannot install \texttt{onnxruntime} for its JetPack/Python combination -- a real risk on ARM64 developer kits, where prebuilt wheels lag desktop platforms -- can still shed the JVM by using \texttt{EDGE\_ENGINE=numpy}, at the cost of the vectorized-but-unaccelerated inner loop described next.
 
 \section{Model Export and Conversion Correctness}
 \label{sec:export}
 
-\subsection{Reading the Spark Model Directly}
+\subsection{Framework-Agnostic NumPy Export}
 
-The deployed model is a Spark \texttt{PipelineModel} with three stages: \texttt{VectorAssembler}, \texttt{StandardScalerModel}, and \texttt{RandomForestClassificationModel}. Spark persists each stage's parameters as JSON metadata plus, for the forest, a node table written as Parquet (one row per tree node, with \texttt{id}, \texttt{prediction}, \texttt{impurity}, \texttt{impurityStats}, \texttt{leftChild}, \texttt{rightChild}, \texttt{split}). \texttt{scripts/export\_onnx.py} resolves the stage directories from the pipeline's \texttt{stageUids} and reads this Parquet table with \texttt{pyarrow} alone, so the exporter needs neither a running Spark session nor scikit-learn: it can run on a laptop, in CI, or on the edge board itself.
+The NumPy exporter (\texttt{scripts/export\_numpy.py}) treats the ONNX file as the single source of truth: it loads the graph with the \texttt{onnx} package and reads the \texttt{ai.onnx.ml.Scaler} node's \texttt{offset}/\texttt{scale} attributes and the \texttt{ai.onnx.ml.TreeEnsembleClassifier} node's \texttt{nodes\_treeids}, \texttt{nodes\_nodeids}, \texttt{nodes\_featureids}, \texttt{nodes\_values}, \texttt{nodes\_modes}, \texttt{nodes\_truenodeids}, \texttt{nodes\_falsenodeids}, \texttt{classlabels\_int64s}, \texttt{class\_treeids}, \texttt{class\_nodeids}, \texttt{class\_ids}, and \texttt{class\_weights} attributes -- all part of the ONNX operator specification, not of any particular training framework's internal format. It currently supports the \texttt{BRANCH\_LEQ} split mode only and raises rather than silently mis-converting on any other mode, so a future export from a framework using a different split convention fails loudly instead of producing a plausible-looking but wrong artifact. Because the exporter never touches how the ONNX graph was produced, the same code exports a NumPy fallback for any ONNX tree ensemble that uses this operator, independent of its training framework.
 
-\subsection{Spark \texorpdfstring{$\rightarrow$}{->} ONNX Equivalence}
+A second correctness check is feature-order agreement: if the source ONNX model's \texttt{doc\_string} carries a JSON \texttt{feature\_columns} list (as this project's exporter embeds at ONNX-export time), \texttt{export\_numpy.py} verifies it matches the externally supplied \texttt{feature\_columns.json} and refuses to export on a mismatch, since a silently permuted feature order would produce confident, wrong predictions rather than an obvious failure.
 
-Converting to ONNX's \texttt{ai.onnx.ml.TreeEnsembleClassifier} operator requires matching three things exactly, not approximately:
+\subsection{Parity as a Release Gate}
+\label{sec:parity}
 
-\begin{itemize}
-  \item \textbf{Split direction.} Spark routes a continuous split left when \texttt{feature} $\le$ \texttt{leftCategoriesOrThreshold[0]}; this maps directly onto \texttt{TreeEnsembleClassifier}'s \texttt{BRANCH\_LEQ} mode with \texttt{truenodeids}/\texttt{falsenodeids} set to Spark's \texttt{leftChild}/\texttt{rightChild}, so no threshold or direction translation is needed beyond the field rename.
-  \item \textbf{Leaf weighting.} Spark's \texttt{predictRaw} sums each tree's normalized leaf class distribution and \texttt{raw2probability} divides by the tree count, i.e.\ predictions are the \emph{mean} of the trees' class distributions. \texttt{TreeEnsembleClassifier} has no such aggregate mode (only \texttt{TreeEnsembleRegressor} exposes \texttt{aggregate\_function}, and its classifier counterpart always sums class weights), so the per-tree averaging is folded into the exported weights themselves: each leaf's \texttt{class\_weights} is its normalized \texttt{impurityStats} distribution scaled by $w_t / \sum_t w_t$. Summing these across trees reproduces Spark's average, and \texttt{post\_transform} is left at \texttt{NONE} because the scaling already sums to one.
-  \item \textbf{Feature scaling.} Spark's \texttt{StandardScaler} computes $(x-\text{mean})\times(1/\text{std})$, with the scale forced to zero wherever the fitted std is zero (a constant feature); this is exactly the \texttt{ai.onnx.ml.Scaler} operator's semantics, so the fitted offset/scale vectors are copied in as-is.
-\end{itemize}
+\texttt{scripts/validate\_parity.py} runs both backends over the same batch-built feature matrix and reports label agreement and the maximum confidence deviation between them; it exits non-zero if agreement falls below a configurable threshold (default: exact, 1.0) or the deviation exceeds a tolerance (default $10^{-5}$), so it is usable as a CI-style gate rather than only a manual check, and it optionally writes a machine-readable JSON report. On a validation run of 2{,}000 replayed CICIDS2017-derived flows, the two backends agreed on every label (2{,}000/2{,}000) with a maximum confidence deviation of 0.0, i.e.\ bit-identical decisions on the sampled flows; Table~\ref{tab:parity} reports this alongside artifact size.
 
-The exporter derives the output label with an \texttt{ArgMax} over the exported class scores rather than reusing Spark's own label output field, since the two are mathematically identical for this model (the label is the arg-max class of the same averaged distribution) and ArgMax keeps the graph a strict function of the scores it also exposes, which simplifies the correctness check below. An optional \texttt{--validate-csv} flag runs the original Spark model and the exported ONNX graph on the same held-out rows and reports the prediction agreement rate; \ph{fill in the measured agreement rate and any max probability deviation once export\_onnx.py --validate is run against a held-out CICIDS2017 sample}.
-
-\subsection{NumPy Fallback: A Flattened Forest}
-
-\texttt{scripts/export\_numpy.py} reuses the same Parquet reader and produces a single \texttt{.npz} archive: the fitted scaler's offset/scale vectors, and the whole forest flattened into parallel arrays (\texttt{tree\_offsets}, \texttt{left}, \texttt{right}, \texttt{feature}, \texttt{threshold}, \texttt{is\_leaf}, \texttt{leaf\_scores}), with each tree's leaf scores pre-weighted by $w_t/\sum_t w_t$ exactly as in the ONNX export, so both JVM-free backends encode the same equivalence argument. At inference time, \texttt{NumpyInferenceEngine} walks every tree with a vectorized loop over an active-row boolean mask: at each step, rows still active look up their current node's split feature and threshold, move left or right, and rows that land on a leaf accumulate that leaf's weighted class scores and drop out of the mask; the loop ends when no row is active in any tree. This keeps the whole batch's traversal in NumPy array operations rather than a per-row Python loop, at the cost of walking every tree to its deepest active leaf in the batch rather than exploiting SIMD tree-specific kernels the way a compiled runtime (ONNX Runtime, or Hummingbird-style tensor compilation~\cite{nakandala2020hummingbird}) would; we treat it purely as a dependency-light fallback, not a competitor to the ONNX path on speed.
-
-\subsection{Reproducing Both Artifacts}
-
-\texttt{scripts/export\_edge\_artifacts.sh} runs both exporters from the one saved \texttt{PipelineModel} and feature-column list, producing \texttt{model/ids\_rf.onnx} and \texttt{model/ids\_rf\_numpy.npz} in a single step, so a redeployment after retraining regenerates every serving artifact from the one source of truth.
+\begin{table}[htbp]
+  \caption{Export validation: NumPy-vs-ONNX prediction parity on a replay sample.}
+  \label{tab:parity}
+  \centering
+  \small
+  \begin{tabular}{l c}
+    \toprule
+    Metric & Value \\
+    \midrule
+    Replay rows validated & 2{,}000 \\
+    Label agreement & 2{,}000 / 2{,}000 (100.0000\%) \\
+    Max confidence deviation & 0.0 \\
+    ONNX artifact size & 7.38\,MB \\
+    NumPy artifact size & 1.23\,MB ($6.0\times$ smaller) \\
+    \bottomrule
+  \end{tabular}
+  \tabnote{Source: \texttt{scripts/validate\_parity.py} on a single replay run (this software's own submission-checklist validation run); re-run on a held-out sample as a submission gate rather than treated as a one-time result.}
+\end{table}
 
 \section{Experimental Setup}
 
-The testbed is unchanged from the companion deployment paper: two NVIDIA Jetson Orin Nano Super Developer Kits (6-core Arm Cortex-A78AE, Ampere GPU, 8\,GB LPDDR5, 256\,GB NVMe) and a host PC running Docker Compose (Kafka, PostgreSQL, InfluxDB, Grafana) over a LAN, replaying CICIDS2017~\cite{sharafaldin2018toward} flows through the same anomaly-gate-then-classifier topology. The classifier role (Jetson~\#2) is re-run under each of the three \texttt{EDGE\_ENGINE} settings with the gate on Jetson~\#1 held fixed, so any throughput, latency, or energy difference is attributable to the classifier backend alone. \ph{State the CICIDS2017 replay rate, batch size, repetition count, and warmup policy used for the EDGE\_ENGINE sweep once it is run; the companion paper's protocol (100 flows/s, batch size 10, $\ge$3 repetitions with warmup excluded) is the default unless a different rate is needed to saturate the fastest backend.} Reported metrics mirror the companion paper: verdict throughput (flows/s), p50/p95 latency (ms), per-node CPU/RAM/temperature, and energy per verdict (mJ, via \texttt{tegrastats}, idle baseline subtracted). We add one metric specific to this paper: the prediction-agreement rate between each JVM-free backend and the Spark model it was exported from, measured once offline (Sect.~\ref{sec:export}) and, where feasible, spot-checked online against the Spark backend's verdicts on the same replayed flows.
+The testbed is two NVIDIA Jetson Orin Nano Super Developer Kits (6-core Arm Cortex-A78AE CPU, Ampere GPU, 8\,GB LPDDR5) and a coordinator host running Kafka, over a LAN; at the time of writing, Jetson~\#2's inter-board link is Wi-Fi rather than wired, which affects only the end-to-end transport figures still marked pending below, not the in-process measurements in Sect.~\ref{sec:results}. \texttt{scripts/csv\_producer.py} replays CICIDS2017-derived~\cite{sharafaldin2018toward} flow rows onto the input topic at a configurable rate; \texttt{gate\_node.py} runs on Jetson~\#1 and \texttt{classifier\_node.py} on Jetson~\#2, the latter re-run once per backend (\texttt{--engine onnx} and \texttt{--engine numpy}) with the gate held fixed, and once more across a batch-size sweep (1, 20, 500) to characterize batch sensitivity. Reported metrics: throughput (rows/s), p95 per-row latency (ms), resident memory (RSS), board power (W, \texttt{tegrastats}, not idle-subtracted, so figures are total-board rather than active-only), cold-start time to first verdict, and the parity metrics of Sect.~\ref{sec:parity}.
 
 \section{Results}
 \label{sec:results}
 
-\subsection{Single-Node Engine Cost (Reused from the Companion Microbenchmark)}
+\subsection{Steady-State Cost per Backend}
 
-The companion paper's own single-node microbenchmark already reported the Spark side of this comparison: the deployed PySpark path reached 22.6 flows/s at a p95 of 532\,ms, against 204.4 flows/s / 49.8\,ms for the same forest under scikit-learn and 7{,}870.8 flows/s / 1.1\,ms under ONNX Runtime -- a $9\times$ and $348\times$ gap, respectively. We do not reproduce that Spark row here: Table~\ref{tab:engines} instead isolates the two JVM-free candidates from the same microbenchmark, to show how much of the remaining gap ONNX Runtime closes over the scikit-learn reference alone. ONNX Runtime reaches roughly $38\times$ scikit-learn's throughput and about 2\% of its energy per inference, before any pipeline integration.
+Table~\ref{tab:engines} reports classifier-node cost at batch size 20 for each backend, with the gate's own cost reported separately since it runs a different model (an autoencoder, not the forest). ONNX Runtime sustains roughly $133\times$ the NumPy backend's throughput at this batch size and a fraction of its p95 latency, at the cost of higher resident memory and marginally lower measured board power (4.64 vs.\ 4.93\,W; since power is not idle-subtracted, this difference should be read cautiously rather than as a per-inference energy claim).
 
 \begin{table}[htbp]
-  \caption{Single-node inference cost of the exported Random Forest under the two JVM-free candidate engines (companion microbenchmark, reproduced for reference).}
+  \caption{Classifier-node steady-state cost per backend (batch size 20) and gate cost, single validation run on Jetson hardware.}
   \label{tab:engines}
   \centering
   \small
   \begin{tabular}{l c c c c}
     \toprule
-    Engine & Throughput (flows/s) & p95 latency (ms) & RAM (\%) & Energy/inf.\ (mJ) \\
+    Node / engine & Throughput (rows/s) & p95 (ms/row) & RSS (MB) & Power (W) \\
     \midrule
-    scikit-learn       & 204.4 & 49.8 & 13.3 & 2.91 \\
-    ONNX Runtime       & 7870.8 & 1.1 & 15.7 & 0.06 \\
+    Classifier -- ONNX Runtime & 20{,}185 & 0.0676 & 155.6 & 4.64 \\
+    Classifier -- NumPy        & 152     & 8.2267 & 46.2  & 4.93 \\
+    Gate -- sklearn autoencoder & 13{,}915 & 0.0783 & \ph{TBD} & \ph{TBD} \\
     \bottomrule
   \end{tabular}
-  \tabnote{Source: \texttt{papers/soict2026/results/benchmarks/benchmark\_engines\_results.json}, single-node baseline, batch size 10, 5{,}000 samples per engine. Both rows use the scikit-learn-exported reference forest, used in the companion paper to validate the conversion path prior to the direct Spark-Parquet export this paper describes (Sect.~\ref{sec:export}). The deployed PySpark path is not included as a row: its measured cost (22.6 flows/s, 532\,ms p95) comes from a different measurement in the same study (the live classifier board, not this single-node JSON) and is cited in prose above instead of mixed into this table.}
+  \tabnote{Power is total-board \texttt{tegrastats} power, not idle-subtracted. Gate throughput/latency reported at its own default batch size (100); its forward rate to the classifier topic was 28.64\% on this replay sample. Source: \texttt{submission\_checklist.md} in the software repository, single validation run.}
 \end{table}
 
-\subsection{Conversion Correctness}
+\subsection{NumPy Batch-Size Sensitivity}
 
-\ph{Report the Spark-vs-ONNX and Spark-vs-NumPy prediction agreement rate (target: 100\% label agreement, near-zero probability deviation) from \texttt{export\_onnx.py --validate-csv} on a held-out CICIDS2017 sample, once run.}
+Because the NumPy backend vectorizes tree traversal across the rows of one batch rather than compiling per-tree kernels, its throughput scales strongly with batch size: 9\,rows/s at batch 1, 150\,rows/s at batch 20, and 1{,}650\,rows/s at batch 500 on the same board. ONNX Runtime is comparatively insensitive to batch size over the same range (Sect.~\ref{sec:discussion}). This means the two backends should not be compared at a single fixed batch size without stating it, and a deployment choosing the NumPy fallback should size its batch/linger policy accordingly rather than default to a small batch tuned for the ONNX path.
 
-\subsection{End-to-End Kafka Pipeline, Three Backends}
+\subsection{Cold Start: Time to First Verdict}
 
-\ph{Report throughput, p50/p95 latency, per-node CPU/RAM/temperature, and energy per verdict for \texttt{EDGE\_ENGINE=spark|numpy|onnx} on the live two-node Kafka pipeline, once the branch \texttt{feature/numpy-prediction-engine} is benchmarked on the Jetson cluster following the protocol in \texttt{papers/onnx2026/README.md}. Populate Table~\ref{tab:pipeline-engines} and Fig.~\ref{fig:engine-modes} from \texttt{papers/onnx2026/results/benchmarks/} once available; do not reuse Table~\ref{tab:engines}'s single-node figures as a substitute, since Kafka consumption, batching, and JSON deserialization add pipeline overhead the single-node microbenchmark does not include.}
+Table~\ref{tab:coldstart} breaks down the time from process start to the first served verdict. ONNX Runtime pays a larger one-time session-construction cost (294.5\,ms) than NumPy's artifact load (79.7\,ms), but performs its own first prediction fastest (3.1\,ms), consistent with the compiled-runtime-vs-interpreted-loop trade-off in Table~\ref{tab:engines}; on this run NumPy still reaches its first verdict sooner overall (368.4 vs.\ 542.3\,ms), since its faster load dominates over the whole warm-up path. This favors NumPy specifically for restart-sensitive scenarios (e.g.\ frequent container restarts or fast failover) even though ONNX Runtime is far ahead on steady-state throughput.
 
 \begin{table}[htbp]
-  \caption{End-to-end Kafka pipeline comparison on Jetson~\#2, three classifier backends, gate on Jetson~\#1 held fixed (mean~$\pm$~std over repetitions).}
-  \label{tab:pipeline-engines}
+  \caption{Cold-start latency breakdown per backend (mean of both boards, page cache dropped).}
+  \label{tab:coldstart}
   \centering
   \small
-  \begin{tabular}{l c c c c}
+  \begin{tabular}{l c c c}
     \toprule
-    \texttt{EDGE\_ENGINE} & Throughput (flows/s) & Latency p95 (ms) & CPU (\%) & Energy/verdict (mJ) \\
+    Engine & Load/session build (ms) & First prediction (ms) & Time to first verdict (ms) \\
     \midrule
-    \texttt{spark} & \ph{TBD} & \ph{TBD} & \ph{TBD} & \ph{TBD} \\
-    \texttt{numpy} & \ph{TBD} & \ph{TBD} & \ph{TBD} & \ph{TBD} \\
-    \texttt{onnx}  & \ph{TBD} & \ph{TBD} & \ph{TBD} & \ph{TBD} \\
+    ONNX Runtime & 294.5 & 3.1 & 542.3 \\
+    NumPy        & 79.7  & 115.1 & 368.4 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-\begin{figure}[htbp]
-  \centering
-  \IfFileExists{../results/benchmarks/engine_modes.png}{%
-    \includegraphics[width=\textwidth]{engine_modes.png}%
-  }{%
-    \fbox{\parbox{0.76\textwidth}{\centering\vspace{1.2cm}\ph{Engine-mode bars --- plot once papers/onnx2026/results/benchmarks/ has data}\vspace{1.2cm}}}%
-  }
-  \caption{End-to-end Kafka pipeline comparison across classifier backends: verdict throughput (left) and p95 latency (right).}
-  \label{fig:engine-modes}
-\end{figure}
-
 \section{Discussion}
+\label{sec:discussion}
 
-The companion single-node microbenchmark already establishes that the JVM, not the model, is the dominant edge-serving cost for this system: the same forest is $9\times$ faster under scikit-learn and $348\times$ faster under ONNX Runtime than the deployed PySpark path, and neither of those engines was, until this paper, wired into the streaming pipeline at all. Table~\ref{tab:engines} isolates the two JVM-free candidates and shows ONNX Runtime still reaching roughly $38\times$ scikit-learn's own throughput, so compiling the forest to a tree-ensemble graph buys more than simply leaving the JVM behind. Closing that gap required more than pointing a converter at the model: because the deployed forest was selected under a leakage-aware protocol specifically to avoid the optimistic scores that leakage and dataset artifacts produce~\cite{arp2022dosdonts,lanvin2023errors}, any export path that silently retrained or approximated the model would have undermined that selection. Reading Spark's own Parquet node table directly, rather than going through a scikit-learn intermediate, is what lets us claim the ONNX and NumPy backends serve \emph{the same} model rather than a plausible substitute -- a claim Sect.~\ref{sec:results} still needs to close with a measured agreement rate rather than the equivalence argument alone.
+\textbf{The Kafka client, not inference, is now the binding constraint.} Once the ONNX Runtime backend is in use, classifier-node throughput (20{,}185\,rows/s) is an order of magnitude above what the pure-Python \texttt{kafka-python} client sustains on the same board (roughly 2{,}500\,msg/s consuming, 2{,}200\,msg/s producing; the identical code reaches 6{,}600/9{,}900\,msg/s on a laptop). Closing this gap is a client-library problem, not an inference problem: a C-backed client such as \texttt{confluent-kafka} is the next lever, and reporting an end-to-end (producer-timestamp-to-verdict) throughput number without controlling for this would misattribute a Kafka-client ceiling to the classifier.
 
-\textbf{Limitations.} At the time of writing, the swappable-engine code (branch \texttt{feature/numpy-prediction-engine}) has not yet been benchmarked end-to-end on the Jetson cluster; Table~\ref{tab:pipeline-engines} and the conversion-agreement figures in Sect.~\ref{sec:results} are placeholders pending that run, and the paper should not be treated as submission-ready until they are filled from real hardware. The NumPy backend's vectorized-but-uncompiled tree traversal is expected to sit between scikit-learn and ONNX Runtime on throughput; it is included as a dependency-light fallback, not because it is expected to close the gap to ONNX Runtime on speed. The ONNX backend targets the CPU execution provider only; the Jetson's GPU/Tensor cores, and a TensorRT compilation of the same graph, remain unexploited, consistent with the companion paper's stated future work. Finally, both exports assume the deployed model stays a \texttt{StandardScaler} + \texttt{RandomForestClassifier} \texttt{PipelineModel}; a change of classifier family (e.g.\ to a gradient-boosted tree model) would require extending the Parquet reader, not just re-running the existing exporters.
+\textbf{ONNX vs.\ NumPy is a genuine trade-off, not a strict ordering.} Table~\ref{tab:engines} makes ONNX Runtime look like the only reasonable choice, but Table~\ref{tab:coldstart} and the artifact-size row of Table~\ref{tab:parity} complicate that: the NumPy artifact is $6\times$ smaller and reaches its first verdict sooner, which matters on boards where \texttt{onnxruntime} cannot be installed at all, or where restart frequency dominates steady-state throughput. The toolkit's role is to make that trade-off a one-flag choice rather than a rewrite.
+
+\textbf{Applying recent tree-ensemble-on-ARM work to the NumPy backend.} The NumPy backend's batch-size sensitivity (Sect.~\ref{sec:results}) is a direct symptom of walking each tree with masked NumPy operations rather than a hardware-tuned traversal. Koschel et al.'s ARM NEON port of QuickScorer~\cite{koschel2023arm} targets exactly this loop and reports up to $9.4\times$ speedups on ARM IoT hardware with fixed-point quantization; applying that bitvector traversal scheme to \texttt{NumpyInferenceEngine} is a concrete, scoped next step rather than a vague ``optimize later,'' and would plausibly narrow the batch-size sensitivity as well as the steady-state gap to ONNX Runtime.
+
+\textbf{Quantizing the ONNX graph itself.} Eren et al.~\cite{eren2026drdos} demonstrate that ONNX-level quantization measurably changes throughput and latency for network-security classifiers, on DNN architectures rather than tree ensembles. Whether the same holds for a \texttt{TreeEnsembleClassifier} graph (whose costs are dominated by branching and memory access, not the matrix multiplies quantization typically targets) is an open, testable question for this toolkit rather than an assumption we import; we list it as future work.
+
+\textbf{Limitations.} All steady-state, cold-start, and power figures in Sect.~\ref{sec:results} come from a single validation run under one set of board conditions; \texttt{submission\_checklist.md}'s own acceptance criteria (Sect.~\ref{sec:export}) call for repeated runs, which this draft has not yet incorporated. Power is total-board \texttt{tegrastats} power without an idle baseline subtracted, so it should not be read as per-inference energy. End-to-end throughput and latency over a wired inter-board link -- as opposed to the current Wi-Fi link -- are not yet measured; \ph{fill in once available, following the protocol in \texttt{papers/onnx2026/README.md}}. This toolkit's classifier node does not yet write verdicts to a database or raise alerts; that integration exists in the earlier deployment work's stack and is out of scope for the software paper this toolkit accompanies, but end-to-end latency including a persistence step is not covered here either.
 
 \section{Conclusion}
 
-We closed the gap the companion deployment paper identified but did not close: a JVM-hosted Spark serving path measured at $348\times$ the throughput of a matched ONNX Runtime engine, and no wiring from that measurement back into the running streaming pipeline. We built a swappable classifier-tier contract and two JVM-free backends -- ONNX Runtime and a pure-NumPy fallback -- both exported directly from Spark's saved Parquet node tables rather than through a retrained scikit-learn intermediate, so the served model stays the one selected under the leakage-aware offline protocol. Both backends slot into the existing Kafka role pipeline behind a single \texttt{EDGE\_ENGINE} switch, with the anomaly gate, monitoring stack, and topology from the companion paper unchanged. \ph{The remaining work is empirical: benchmark the three backends end-to-end on the Jetson cluster, measure Spark-vs-export prediction agreement on held-out data, and update Sect.~\ref{sec:results} accordingly before this paper is submission-ready.} Future work beyond that includes a TensorRT-compiled GPU path for the ONNX graph and re-running the anomaly gate itself through the same swappable contract.
+We presented \textsc{ONNX-EdgeIDS}, a two-runtime serving toolkit for a two-stage Kafka edge IDS pipeline that treats an ONNX tree-ensemble graph, not the framework that produced it, as the portable artifact. Its NumPy fallback exporter reads standard ONNX tree-ensemble operator attributes directly, so the same exporter generalizes across training frameworks, and a release-gate script measures rather than assumes agreement between the two runtimes: 2{,}000/2{,}000 label agreement with zero confidence deviation on the validation sample reported here. On-hardware measurements show ONNX Runtime $133\times$ faster than the NumPy fallback at batch size 20, a gap that narrows sharply at larger batch sizes, while the NumPy artifact is $6\times$ smaller and reaches its first verdict 32\% faster from a cold start -- a genuine trade-off rather than a strict ordering. Once the ONNX backend is in use, the pure-Python Kafka client, not inference, becomes the binding throughput constraint on this hardware. \ph{The remaining work before this paper is submission-ready is empirical: measure end-to-end throughput over a wired inter-board link, and repeat the steady-state/cold-start measurements across multiple runs rather than the single validation run reported here.} Future work beyond that includes an ARM-NEON tree-traversal kernel for the NumPy backend~\cite{koschel2023arm}, evaluating ONNX-level quantization on the tree-ensemble graph~\cite{eren2026drdos}, and a \texttt{confluent-kafka}-based client to remove the Kafka-client ceiling identified in Sect.~\ref{sec:discussion}.
 
 \begin{credits}
 \subsubsection{\discintname}
