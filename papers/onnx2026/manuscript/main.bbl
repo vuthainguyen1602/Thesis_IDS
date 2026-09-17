@@ -1,0 +1,98 @@
+\begin{thebibliography}{10}
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\urlprefix}{URL }
+\providecommand{\doi}[1]{https://doi.org/#1}
+
+\bibitem{arp2022dosdonts}
+Arp, D., Quiring, E., Pendlebury, F., Warnecke, A., Pierazzi, F., Wressnegger,
+  C., Cavallaro, L., Rieck, K.: Dos and don'ts of machine learning in computer
+  security. In: 31st USENIX Security Symposium (USENIX Security 22). pp.
+  3971--3988 (2022)
+
+\bibitem{breiman2001random}
+Breiman, L.: Random forests. Machine Learning  \textbf{45}(1),  5--32 (2001)
+
+\bibitem{baalaji2025ensemble}
+Chithra~Rani, P.R., Baalaji, K.: Deep learning-based ensemble stacking for
+  enhanced intrusion detection in {IoT}-edge platforms. Discover Applied
+  Sciences  \textbf{7}, ~928 (2025). \doi{10.1007/s42452-025-06871-z}
+
+\bibitem{diazgorrin2026jetson}
+Diaz-Gorrin, J., Caballero-Gil, C., Brankovic, L.: Enhancing network security
+  with generative {AI} on {Jetson Orin Nano}. Applied Sciences  \textbf{16}(3),
+  ~1442 (2026). \doi{10.3390/app16031442}
+
+\bibitem{hamdan2020edge}
+Hamdan, S., Ayyash, M., Almajali, S.: Edge-computing architectures for internet
+  of things applications: A survey. Sensors  \textbf{20}(22), ~6441 (2020).
+  \doi{10.3390/s20226441}
+
+\bibitem{hasan2025iiot}
+Hasan, T., Hossain, A., Ansari, M.Q., Syed, T.H.: Enhanced intrusion detection
+  in {IIoT} networks: A lightweight approach with autoencoder-based feature
+  learning (2025), arXiv:2501.15266
+
+\bibitem{kreps2011kafka}
+Kreps, J., Narkhede, N., Rao, J.: Kafka: a distributed messaging system for log
+  processing. In: Proceedings of the NetDB Workshop (2011)
+
+\bibitem{lanvin2023errors}
+Lanvin, M., Gimenez, P.F., Han, Y., Majorczyk, F., M{\'e}, L., Totel, {\'E}.:
+  Errors in the {CICIDS2017} dataset and the significant differences in
+  detection performances it makes. In: Risks and Security of Internet and
+  Systems (CRiSIS 2022), Revised Selected Papers. pp. 18--33. Lecture Notes in
+  Computer Science, Springer (2023). \doi{10.1007/978-3-031-31108-6_2}
+
+\bibitem{lundberg2017unified}
+Lundberg, S.M., Lee, S.I.: A unified approach to interpreting model
+  predictions. Advances in Neural Information Processing Systems  \textbf{30}
+  (2017)
+
+\bibitem{meng2016mllib}
+Meng, X., Bradley, J., Yavuz, B., Sparks, E., Venkataraman, S., Liu, D.,
+  Freeman, J., Tsai, D., Amde, M., Owen, S., Xin, D., Xin, R., Franklin, M.J.,
+  Zadeh, R., Zaharia, M., Talwalkar, A.: {MLlib}: Machine learning in {Apache
+  Spark}. Journal of Machine Learning Research  \textbf{17}(34), ~1--7 (2016)
+
+\bibitem{nakandala2020hummingbird}
+Nakandala, S., Saur, K., Yu, G.I., Karanasos, K., Curino, C., Weimer, M.,
+  Interlandi, M.: A tensor compiler for unified machine learning prediction
+  serving. In: 14th USENIX Symposium on Operating Systems Design and
+  Implementation (OSDI 20). USENIX Association (2020)
+
+\bibitem{asghar2026hedid}
+Nasir, K., Badri, S.K., Alghazzawi, D.M., Alghamdi, M.Y., Alkhozae, M.,
+  Almakky, A., Alhazmi, R.M., Asghar, M.Z.: {HED-ID}: an edge-deployable and
+  explainable intrusion detection system optimized via metaheuristic learning.
+  Scientific Reports  \textbf{16}, ~2313 (2026).
+  \doi{10.1038/s41598-025-32183-8}
+
+\bibitem{sforzin2016rpids}
+Sforzin, A., G{\'o}mez~M{\'a}rmol, F., Conti, M., Bohli, J.M.: {RPiDS}:
+  Raspberry pi {IDS} --- a fruitful intrusion detection system for {IoT}. In:
+  Proc. Int. IEEE Conf. on Ubiquitous Intelligence \& Computing
+  (UIC/ATC/ScalCom). pp. 440--448 (2016).
+  \doi{10.1109/UIC-ATC-ScalCom-CBDCom-IoP-SmartWorld.2016.0080}
+
+\bibitem{sharafaldin2018toward}
+Sharafaldin, I., Lashkari, A.H., Ghorbani, A.A.: Toward generating a new
+  intrusion detection dataset and intrusion traffic characterization. In:
+  Proceedings of the 4th International Conference on Information Systems
+  Security and Privacy (ICISSP). pp. 108--116 (2018)
+
+\bibitem{shi2016edge}
+Shi, W., Cao, J., Zhang, Q., Li, Y., Xu, L.: Edge computing: Vision and
+  challenges. IEEE Internet of Things Journal  \textbf{3}(5),  637--646 (2016).
+  \doi{10.1109/JIOT.2016.2579198}
+
+\bibitem{zaharia2010spark}
+Zaharia, M., Chowdhury, M., Franklin, M.J., Shenker, S., Stoica, I.: Spark:
+  Cluster computing with working sets. In: Proceedings of the 2nd USENIX
+  Workshop on Hot Topics in Cloud Computing (HotCloud'10) (2010)
+
+\bibitem{zhang2026edgeics}
+Zhang, Z., Zhang, L., Xu, J., Chen, Z., Wang, P.: An edge-deployable
+  lightweight intrusion detection system for industrial control. Electronics
+  \textbf{15}(3), ~644 (2026). \doi{10.3390/electronics15030644}
+
+\end{thebibliography}
