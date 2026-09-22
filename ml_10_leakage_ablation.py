@@ -206,7 +206,12 @@ def main():
     # the paper declares (weightCol for the six weight-aware models; XGBoost
     # gets scale_pos_weight; MLP stays unweighted — a Spark ML limitation noted
     # in the paper's threats to validity).
-    train_w = add_class_weights(train_df).cache()
+    #
+    # Deliberately NOT cached. The weight column is one literal-valued
+    # withColumn, so recomputing it per fit is nearly free, while caching 1.8M
+    # rows pins memory on the 8 GB board that also hosts the driver — a measured
+    # RF fit went from ~10 min to >25 min with 4 GB of swap in use.
+    train_w = add_class_weights(train_df)
     counts = {r["label_binary"]: r["count"]
               for r in train_df.groupBy("label_binary").count().collect()}
     spw = (float(counts.get(0, 0)) / float(counts.get(1, 1))) if counts.get(1) else 1.0
@@ -245,8 +250,6 @@ def main():
                 **{k: metrics.get(k) for k in METRIC_KEYS},
             })
         _write_all_models_csv(rows)  # checkpoint after each model
-
-    train_w.unpersist()
 
     df_all, all_path = _write_all_models_csv(rows)
     print(f"\n[INFO] Saved: {all_path}")
