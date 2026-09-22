@@ -43,7 +43,7 @@ MODELS_TO_SAVE = ["Decision Tree", "GBT", "Random Forest"]
 
 def main():
     print("\n" + "=" * 60)
-    print("  SAVE MULTIPLE MODELS FOR RPi BENCHMARK")
+    print("  SAVE MULTIPLE MODELS FOR JETSON BENCHMARK")
     print("=" * 60 + "\n")
 
     spark = create_spark_session("IDS_SaveAllModels")
@@ -141,8 +141,8 @@ def main():
     for r in results:
         print(f"  {r['name']:<20} {r['f1']:>10.4f} {r['model_size_mb']:>8.3f}MB {r['train_time']:>8.1f}s")
 
-    print(f"\n  Copy to RPi:")
-    print(f"    scp -r {MODEL_DIR} pi@<rpi-ip>:~/jetson/model/")
+    print(f"\n  Copy to Jetson:")
+    print(f"    scp -r {MODEL_DIR}/* <user>@<jetson-ip>:~/Thesis_IDS/jetson/model/")
 
     results_path = os.path.join(MODEL_DIR, "models_info.json")
     with open(results_path, "w") as f:
