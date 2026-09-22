@@ -309,7 +309,16 @@ def query_postgres_final_throughput(window_minutes: int,
 def query_postgres_gate_skip(window_minutes: int,
                              start_epoch: float | None = None,
                              end_epoch: float | None = None) -> dict:
-    """Estimate gate skip ratio from stored predictions."""
+    """Gate-skip ratio = flows the gate filtered / all final verdicts.
+
+    The denominator is every row ``predictions`` holds for the load window, i.e.
+    the same rows :func:`query_postgres_final_throughput` counts: one per flow,
+    written at the stage that issued its final verdict. An earlier version
+    filtered the denominator on ``route IS NULL OR prediction = 1``, which kept
+    gate skips and attack verdicts but dropped the classifier's *benign*
+    verdicts on forwarded flows -- the ratio then came out slightly high (95.6
+    instead of 95.47 on the published split run).
+    """
     try:
         import psycopg2
     except ImportError:
@@ -333,11 +342,7 @@ def query_postgres_gate_skip(window_minutes: int,
                     COUNT(*) FILTER (
                         WHERE raw_features->>'route' = 'anomaly_gate_only'
                     ) AS benign_skipped,
-                    COUNT(*) FILTER (
-                        WHERE raw_features->>'route' = 'anomaly_gate_only'
-                           OR raw_features->>'route' IS NULL
-                           OR prediction = 1
-                    ) AS total_gate_events
+                    COUNT(*) AS total_gate_events
                 FROM predictions
                 WHERE timestamp >= %s AND timestamp <= %s
                 """,

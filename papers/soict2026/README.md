@@ -74,6 +74,13 @@ Benchmark CSV/JSON is written to `papers/soict2026/results/benchmarks/` before `
 > reproduces the *architecture* and the throughput comparison, but its latency
 > percentiles sit above the published ones by construction; do not mix the two in
 > one table.
+>
+> The gate-skip denominator was also corrected afterwards: it now counts every
+> final verdict in the load window, whereas the published runs counted gate skips
+> plus attack verdicts only and so dropped the classifier's benign verdicts on
+> forwarded flows. The effect is small — on `run_split_rep0_…153003.json` the
+> stored 95.6 becomes 95.47 — but a re-run will land a fraction of a point below
+> the paper's 95.8 / 97.9.
 
 ## Manuscript
 
