@@ -37,7 +37,8 @@ Spark UI (when cluster is up): http://192.168.1.165:8080 — expect **Alive Work
 | Jetson → Mac | 7077 | Spark Master |
 | Jetson → Mac | 8080 | Spark UI |
 | Jetson → Mac | 9092 | Kafka (edge) |
-| Mac → Jetson #1 | 22 | SSH driver (`run_ml_remote.sh`) |
+| Mac → Jetson #1 | 22 | SSH driver (`run_ml_remote.sh`), `pull_results.sh` |
+| Mac → Jetson #2 | 22 | SSH for `sync_workspace.sh`, `stop_cluster.sh`, executor dep install |
 | Executor ↔ Driver | dynamic | Spark shuffle (driver on Jetson #1) |
 
 **Mac on a different network (home vs lab) will not work** unless VPN bridges the subnets.
@@ -380,8 +381,9 @@ Or run individual scripts:
 
 | Variable | Role |
 |----------|------|
-| `IDS_SPARK_CLUSTER=1` | Enable cluster mode in `shared_utils.py` |
-| `SPARK_MASTER` | `spark://<MAC_IP>:7077` |
+| `SPARK_MASTER` | **The actual switch**: `spark://<MAC_IP>:7077` puts `create_spark_session()` on the cluster (`idslib/core.py:83`) |
+| `IDS_ALLOW_LOCAL_SPARK=1` | Escape hatch for the Mac-only steps; without it `require_distributed_spark()` refuses to run locally |
+| `IDS_SPARK_CLUSTER=1` | Legacy flag — still exported by `load_cluster_env.sh` / `run_ml_remote.sh`, but no code reads it |
 | `SPARK_DRIVER_HOST` | Jetson #1 IP (`192.168.1.50`) |
 | `JETSON2_ENABLED` | `0` = skip SSH/sync/stop for Jetson #2 |
 | `IDS_MAC_ROOT` | Project root on Mac (sync source) |
@@ -391,7 +393,10 @@ Or run individual scripts:
 | `SPARK_DRIVER_MEMORY` | `3g` (driver on Jetson #1) |
 | `SPARK_SHUFFLE_PARTITIONS` | `32` (8 cores cluster) |
 
-**Mac-only** (local Spark OK): `ml_00`, `save_model.py` with `IDS_ALLOW_LOCAL_SPARK=1`.
+**Mac-only** (local Spark OK): `ml_00` and `save_model.py` — both set
+`IDS_ALLOW_LOCAL_SPARK=1` themselves (`ml_00_prepare_cicids2017.py:52`,
+`jetson/scripts/save_model.py:45`), so no cluster is needed for them. `run_all.sh`
+passes the same flag for its `local_mac` steps.
 
 ---
 
