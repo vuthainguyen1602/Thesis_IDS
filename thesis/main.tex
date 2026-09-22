@@ -7,7 +7,6 @@
 
 \University{ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH}
 \CollegeOrDept{{TRƯỜNG ĐẠI HỌC CÔNG NGHỆ THÔNG TIN}}
-\Faculty{KHOA KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH}
 
 
 \Author{BÙI VĂN DŨNG}{220201014}
@@ -56,7 +55,7 @@
 % Okabe-Ito colorblind-safe accents for TikZ diagrams
 \definecolor{accBlue}{HTML}{0072B2}
 \definecolor{accGreen}{HTML}{009E73}
-\definecolor{accOrange}{HTML}{D55E00}
+\definecolor{accRed}{HTML}{C1121F}
 
 \begin{document}
 \firstbeforepreface
@@ -95,9 +94,13 @@
 
 \begingroup
 \setlength{\emergencystretch}{8em}
-\justifying\printbibliography[title=Tài liệu tham khảo]
+\justifying\printbibliography[title=Tài liệu tham khảo, heading=bibintoc]
 \endgroup
-\addcontentsline{toc}{chapter}{Tài liệu tham khảo}
+
+% Bản PDF bài báo FAIR 2026 đính kèm ở cuối luận văn
+\IfFileExists{../output/pdfs/FAIR2026.pdf}{%
+  \includepdf[pages=-,scale=0.9,fitpaper=false,pagecommand={\thispagestyle{empty}}]{../output/pdfs/FAIR2026.pdf}%
+}{}
 
 
 

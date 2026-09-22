@@ -22,9 +22,9 @@ bibtex main || true
 xelatex -interaction=nonstopmode main.tex || true
 xelatex -interaction=nonstopmode main.tex || true
 
-cp main.pdf "$OUT/SOICT2026_draft.pdf"
+cp main.pdf "$OUT/SOICT2026.pdf"
 
 echo ""
 echo "PDF saved:"
 echo "  $DIR/main.pdf"
-echo "  $OUT/SOICT2026_draft.pdf"
+echo "  $OUT/SOICT2026.pdf"

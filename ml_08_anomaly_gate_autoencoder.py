@@ -33,6 +33,45 @@ def _safe_matrix(df: pd.DataFrame, cols: list[str]) -> np.ndarray:
     return x.values.astype(np.float32)
 
 
+def plot_operating_points(sweep_df: pd.DataFrame, results_dir: str) -> str:
+    """Draw the gate operating curve at its final print size.
+
+    The figure is authored at the LNCS text width (4.8 in) so it is included at
+    scale 1:1 in the paper and its labels keep the intended point size instead
+    of shrinking with a \\includegraphics rescale.
+    """
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    # Two side-by-side panels (one axis each) instead of a dual-axis chart.
+    with plt.rc_context({
+        "font.size": 8, "axes.titlesize": 9, "axes.labelsize": 8,
+        "xtick.labelsize": 7.5, "ytick.labelsize": 7.5,
+    }):
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(4.8, 2.6), sharex=True)
+        ax1.plot(sweep_df["gate_skip_ratio"], sweep_df["recall"], "o-",
+                 color="#0072B2", markersize=4)
+        ax1.set_ylabel("Attack recall")
+        ax1.set_ylim(0, 1.05)
+        ax1.set_title("Recall vs. offload")
+        ax2.plot(sweep_df["gate_skip_ratio"], sweep_df["fpr"], "s-",
+                 color="#D55E00", markersize=4)
+        ax2.set_ylabel("False positive rate")
+        ax2.set_ylim(bottom=0)
+        ax2.set_title("FPR vs. offload")
+        for ax in (ax1, ax2):
+            ax.set_xlabel("Gate skip ratio")
+            ax.grid(color="0.9", linewidth=0.8)
+            ax.set_axisbelow(True)
+            for spine in ("top", "right"):
+                ax.spines[spine].set_visible(False)
+        fig.tight_layout(pad=0.4)
+        plot_path = os.path.join(results_dir, "gate_operating_points.png")
+        plt.savefig(plot_path, dpi=300, bbox_inches="tight")
+        plt.close()
+    return plot_path
+
+
 def _compute_mse(x: np.ndarray, x_hat: np.ndarray) -> np.ndarray:
     if x_hat.ndim == 1:
         x_hat = x_hat.reshape(-1, x.shape[1])
@@ -226,29 +265,7 @@ def main():
     print(sweep_df.to_string(index=False))
 
     try:
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-        # Two side-by-side panels (one axis each) instead of a dual-axis chart.
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 3.6), sharex=True)
-        ax1.plot(sweep_df["gate_skip_ratio"], sweep_df["recall"], "o-", color="#0072B2")
-        ax1.set_ylabel("Attack recall")
-        ax1.set_ylim(0, 1.05)
-        ax1.set_title("Recall vs. offload", fontsize=10)
-        ax2.plot(sweep_df["gate_skip_ratio"], sweep_df["fpr"], "s-", color="#D55E00")
-        ax2.set_ylabel("False positive rate")
-        ax2.set_ylim(bottom=0)
-        ax2.set_title("FPR vs. offload", fontsize=10)
-        for ax in (ax1, ax2):
-            ax.set_xlabel("Gate skip ratio (benign offloaded from Spark)")
-            ax.grid(color="0.9", linewidth=0.8)
-            ax.set_axisbelow(True)
-            for spine in ("top", "right"):
-                ax.spines[spine].set_visible(False)
-        fig.tight_layout()
-        plot_path = os.path.join(results_dir, "gate_operating_points.png")
-        plt.savefig(plot_path, dpi=150, bbox_inches="tight")
-        plt.close()
+        plot_path = plot_operating_points(sweep_df, results_dir)
         print(f"[OK] Saved: {plot_path}")
     except Exception as e:
         print(f"[WARN] Operating-point plot skipped: {e}")
@@ -273,5 +290,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--replot" in sys.argv:
+        # Redraw the operating-curve figure from the released sweep CSV, so the
+        # paper figure can be restyled without retraining the autoencoder.
+        _res = os.path.join(BASE_DIR, "results", "ml_08_anomaly_gate")
+        _df = pd.read_csv(os.path.join(_res, "gate_operating_points.csv"))
+        print(f"[OK] Saved: {plot_operating_points(_df, _res)}")
+    else:
+        main()
 

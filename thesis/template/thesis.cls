@@ -54,7 +54,7 @@
   backgroundcolor=\color{gray!10},
   keywordstyle=\color{blue},
   commentstyle=\color{green!60!black},
-  stringstyle=\color{orange},
+  stringstyle=\color[HTML]{C1121F},
   breaklines=true,
   frame=single,
   columns=fullflexible,
@@ -150,6 +150,14 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
 \captionsetup[figure]{name={Hình},labelsep=period}
 \captionsetup[table]{name={Bảng},labelsep=period}
 \captionsetup[algorithm]{name=Thuật toán, labelsep=period}
+% đánh số thuật toán theo chương (3.1, 4.1...) cho nhất quán với Hình/Bảng
+\numberwithin{algorithm}{chapter}
+
+% Trang chỉ chứa float: căn giữa dọc (khoảng trống chia đều trên/dưới),
+% đồng bộ với trang sơ đồ cụm Spark căn giữa thủ công
+\setlength{\@fptop}{0pt plus 1fil}
+\setlength{\@fpsep}{16pt}
+\setlength{\@fpbot}{0pt plus 1fil}
 
 \renewcommand{\chaptername}{Chương}
 \renewcommand\appendixname{Phụ lục}
@@ -206,6 +214,7 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
 \def\University#1{\gdef\@University{#1}}
 \def\CollegeOrDept#1{\gdef\@CollegeOrDept{#1}}
 \def\Faculty#1{\gdef\@Faculty{#1}}
+\def\@Faculty{}
 \def\Degree#1{\gdef\@Degree{#1}}
 \def\ThesisType#1{\gdef\@ThesisType{#1}}
 \def\ThesisYear#1{\gdef\@ThesisYear{#1}}
@@ -256,7 +265,7 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
     \begin{center}
     	{\par{\textbf{\@University}}\par}
     	{{\textbf{\@CollegeOrDept}}\par}
-    	{{\textbf{\@Faculty}}\par}
+    	\ifx\@Faculty\@empty\else{{\textbf{\@Faculty}}\par}\fi
         \adfflowerleft {\Large\adfast1}\adfflowerright
     	\vspace*{18ex}
      
@@ -286,7 +295,7 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
     \begin{center}
     	{\par{\textbf{\@University}}\par}
     	{{\textbf{\@CollegeOrDept}}\par}
-    	{{\textbf{\@Faculty}}\par}
+    	\ifx\@Faculty\@empty\else{{\textbf{\@Faculty}}\par}\fi
     
     	\vspace*{5ex}
     	\begin{figure}[h]
@@ -343,12 +352,13 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
 \def\afterpreface{
     \pagestyle{customfancy}
 
-    \newpage
-    \phantomsection
-    \addcontentsline{toc}{chapter}{Thông tin hội đồng bảo vệ luận văn}
-    \input{chapters/council}
+    % Trang thông tin hội đồng bảo vệ đã được bỏ khỏi bản in.
+    % Bỏ chú thích 3 dòng dưới (và chuyển \newpage kế tiếp cho phù hợp) để khôi phục.
+    % \newpage
+    % \phantomsection
+    % \addcontentsline{toc}{chapter}{Thông tin hội đồng bảo vệ luận văn thạc sĩ}
+    % \input{chapters/council}
 
-    \newpage
     \phantomsection
     \addcontentsline{toc}{chapter}{Lời cảm ơn}
     \input{chapters/ack.tex}
@@ -382,6 +392,9 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
     \newpage
     \phantomsection
     \addcontentsline{toc}{chapter}{\abbrevname}
+    % acro không tự đặt running mark như \listoffigures, phải đặt tay
+    % để trang tràn của danh mục không mang header của danh mục trước đó
+    \@mkboth{\MakeUppercase{\abbrevname}}{\MakeUppercase{\abbrevname}}
     \printacronyms[name=\abbrevname]
     
     \cleardoublepage

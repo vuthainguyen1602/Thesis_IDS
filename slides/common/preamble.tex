@@ -1,0 +1,181 @@
+% =====================================================================
+% Shared Beamer preamble for all decks in slides/
+%   - 16:9, metropolis theme, Okabe-Ito colorblind-safe accents
+%   - XeLaTeX + fontspec with a Vietnamese-capable sans fallback chain
+%   - Speaker notes: compile with \def\shownotes{} to get the notes PDF
+% Input this file right after \documentclass in each deck.
+% =====================================================================
+
+\usetheme{metropolis}
+\metroset{block=fill, numbering=fraction, progressbar=frametitle, sectionpage=progressbar}
+
+\usepackage{fontspec}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric, fit, backgrounds, calc}
+\usepackage{appendixnumberbeamer}
+
+% ---------------------------------------------------------------------
+% Fonts. TeX Gyre Heros is the portable first choice (ships with a full
+% TeX Live and covers Vietnamese); on a BasicTeX/macOS box it is absent,
+% so fall back to system sans fonts that still carry Vietnamese
+% diacritics, and only as a last resort to the serif TeX Gyre Termes
+% (which is always present) rather than silently hitting nullfont.
+% ---------------------------------------------------------------------
+\IfFontExistsTF{TeX Gyre Heros}
+  {\setsansfont{TeX Gyre Heros}[Ligatures=TeX]}
+  {\IfFontExistsTF{Helvetica Neue}
+     {\setsansfont{Helvetica Neue}[Ligatures=TeX]}
+     {\IfFontExistsTF{Arial}
+        {\setsansfont{Arial}[Ligatures=TeX]}
+        {\setsansfont{TeX Gyre Termes}[Ligatures=TeX]}}}
+\IfFontExistsTF{Menlo}
+  {\setmonofont{Menlo}[Scale=0.82]}
+  {\IfFontExistsTF{TeX Gyre Cursor}{\setmonofont{TeX Gyre Cursor}[Scale=0.85]}{}}
+
+% ---------------------------------------------------------------------
+% Palette. Blue and green follow the Okabe-Ito accents used in the
+% manuscript TikZ figures; the emphasis accent is a red rather than
+% Okabe-Ito's vermillion, so highlighted numbers read unambiguously as
+% "look here" from the back of the room.
+% ---------------------------------------------------------------------
+\definecolor{accBlue}{HTML}{0072B2}
+\definecolor{accGreen}{HTML}{009E73}
+\definecolor{accRed}{HTML}{C1121F}
+\definecolor{inkDark}{HTML}{23373B}
+
+\setbeamercolor{frametitle}{bg=accBlue, fg=white}
+\setbeamercolor{progress bar}{fg=accRed, bg=accRed!25}
+\setbeamercolor{progress bar in head/foot}{fg=accRed, bg=accBlue!25}
+\setbeamercolor{progress bar in section page}{fg=accRed, bg=accRed!25}
+\setbeamercolor{alerted text}{fg=accRed}
+\setbeamercolor{example text}{fg=accGreen}
+\setbeamercolor{block title}{bg=accBlue!12, fg=inkDark}
+\setbeamercolor{block body}{bg=accBlue!5}
+\setbeamercolor{block title alerted}{bg=accRed!15, fg=inkDark}
+\setbeamercolor{block body alerted}{bg=accRed!6}
+\setbeamercolor{block title example}{bg=accGreen!15, fg=inkDark}
+\setbeamercolor{block body example}{bg=accGreen!6}
+
+% [standout] frames: metropolis paints them dark teal. Use the same blue as
+% the frame titles so the closing slide reads as part of the same deck, and
+% size the text up — it is meant to be seen from the back of the room.
+\setbeamercolor{palette primary}{bg=accBlue, fg=white}
+\setbeamerfont{standout}{size=\huge, series=\bfseries}
+
+% Metropolis draws no bullet glyph by default; a small square reads better
+% from the back of a conference room than pure indentation.
+\setbeamertemplate{itemize item}{\raisebox{0.12ex}{\tiny$\blacksquare$}}
+\setbeamertemplate{itemize subitem}{\raisebox{0.12ex}{\tiny$\square$}}
+\setbeamercolor{itemize item}{fg=accBlue}
+\setbeamercolor{itemize subitem}{fg=accBlue!70}
+
+% Vietnamese has few hyphenation points, so a long run of words can fail to
+% break and stick out past the text block. Allow looser interword glue as a
+% last resort instead of an overfull line.
+\setlength{\emergencystretch}{2em}
+
+% Tables: booktabs rules look thin on a projector.
+\setlength{\heavyrulewidth}{1.1pt}
+\setlength{\lightrulewidth}{0.6pt}
+\renewcommand{\arraystretch}{1.15}
+
+% ---------------------------------------------------------------------
+% Centre the title page and the section pages. Metropolis left-aligns both
+% (\raggedright inside its templates); all three decks here want them
+% centred, so each calls \centeredtitles right after loading this file.
+% It stays a macro rather than an unconditional override so a future deck
+% can keep the stock metropolis alignment by simply not calling it.
+% ---------------------------------------------------------------------
+\makeatletter
+\newcommand{\centeredtitles}{%
+  % Applied through \AtBeginDocument: metropolis re-applies its own inner
+  % templates at \begin{document}, so overrides installed earlier are
+  % silently reverted.
+  \AtBeginDocument{%
+    % Metropolis' title page puts the title graphic in a \vbox to 0pt at the
+    % very top of a bottom-aligned \paperheight minipage — the image loads but
+    % lands off the top of the page. Rebuild the title page with the graphic
+    % after the opening \vfill, where it is actually visible.
+    \setbeamertemplate{title graphic}{}%
+    \setbeamertemplate{title page}{%
+      \begin{minipage}[b][\paperheight]{\textwidth}
+        \vfill
+        \centering
+        \ifx\inserttitlegraphic\@empty\else
+          \inserttitlegraphic\par\vspace*{1.1em}%
+        \fi
+        \ifx\inserttitle\@empty\else\usebeamertemplate*{title}\fi
+        \ifx\insertsubtitle\@empty\else\usebeamertemplate*{subtitle}\fi
+        \usebeamertemplate*{title separator}
+        \ifx\beamer@shortauthor\@empty\else\usebeamertemplate*{author}\fi
+        \ifx\insertdate\@empty\else\usebeamertemplate*{date}\fi
+        \ifx\insertinstitute\@empty\else\usebeamertemplate*{institute}\fi
+        \vfill
+        \vspace*{1mm}
+      \end{minipage}}%
+    \setbeamertemplate{title}{%
+      \centering\linespread{1.0}\inserttitle\par\vspace*{0.5em}}%
+    \setbeamertemplate{subtitle}{%
+      \centering\insertsubtitle\par\vspace*{0.5em}}%
+    \setbeamertemplate{author}{%
+      \vspace*{2em}\centering\insertauthor\par\vspace*{0.25em}}%
+    \setbeamertemplate{date}{%
+      \centering\insertdate\par}%
+    \setbeamertemplate{institute}{%
+      \vspace*{3mm}\centering\insertinstitute\par}%
+    % Same as metropolis' "progressbar" section page, but centred. No deck
+    % here uses subsections, so that branch of the original is dropped.
+    \setbeamertemplate{section page}{%
+      \centering
+      \begin{minipage}{22em}
+        \centering
+        \usebeamercolor[fg]{section title}%
+        \usebeamerfont{section title}%
+        \insertsectionhead\\[-1ex]
+        \usebeamertemplate*{progress bar in section page}%
+        \par
+      \end{minipage}
+      \par
+      \vspace{\baselineskip}}%
+  }%
+}
+\makeatother
+
+% Shrink a box to the available width, but only when it would otherwise
+% overflow. A tabular that is wider than its beamer column is NOT clipped —
+% it silently overprints the neighbouring column — so every table that sits
+% inside \begin{columns} goes through this.
+\newcommand{\fitwidth}[1]{%
+  \resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{#1}}
+
+% ---------------------------------------------------------------------
+% Emphasis macros used throughout the decks.
+% ---------------------------------------------------------------------
+\newcommand{\key}[1]{\textcolor{accBlue}{\textbf{#1}}}
+\newcommand{\good}[1]{\textcolor{accGreen}{\textbf{#1}}}
+\newcommand{\bad}[1]{\textcolor{accRed}{\textbf{#1}}}
+\newcommand{\num}[1]{\textcolor{accRed}{\textbf{#1}}}
+
+% One-line "so what" strip, pinned at the bottom of a result slide.
+% Kept deliberately compact: this box sits directly above metropolis' frame
+% number, so any extra height here pushes text into the footer and the page
+% number ends up printed on top of the last line.
+\newcommand{\takeaway}[1]{%
+  \vfill
+  \begin{beamercolorbox}[wd=\textwidth, sep=4pt, rounded=true]{block body example}%
+    \footnotesize #1%
+  \end{beamercolorbox}}
+
+% ---------------------------------------------------------------------
+% Speaker notes. Build the plain deck normally; build the notes version
+% with:  xelatex "\def\shownotes{}\input{main.tex}"
+% ---------------------------------------------------------------------
+\ifdefined\shownotes
+  \usepackage{pgfpages}
+  \setbeameroption{show notes on second screen=right}
+\fi

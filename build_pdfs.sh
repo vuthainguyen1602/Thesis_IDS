@@ -12,7 +12,7 @@ cp "$ROOT/papers/fair2026/manuscript/main_en.pdf" "$OUT/FAIR2026.pdf"
 
 echo "Building SOICT 2026..."
 "$ROOT/papers/soict2026/manuscript/compile.sh" || true
-cp "$ROOT/papers/soict2026/manuscript/main.pdf" "$OUT/SOICT2026_draft.pdf"
+cp "$ROOT/papers/soict2026/manuscript/main.pdf" "$OUT/SOICT2026.pdf"
 
 echo "Building thesis..."
 (cd "$ROOT/thesis" && latexmk -pdf -interaction=nonstopmode main.tex) || true
