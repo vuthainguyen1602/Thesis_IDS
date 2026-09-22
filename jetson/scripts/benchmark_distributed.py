@@ -726,8 +726,10 @@ def cmd_node_power(args: argparse.Namespace) -> None:
     Start this on EACH Jetson before the orchestrator sends load, with
     --duration >= warmup + load duration. It measures the idle baseline first,
     then samples tegrastats for the window and reports raw + idle-subtracted
-    (active) energy. In pipeline-split mode the paper figure is the SUM of both
-    nodes' active energy divided by the number of classified flows.
+    (active) energy. The paper's per-mode figure is the SUM of the participating
+    boards' average total-board power divided by verdict throughput; at 100
+    flows/s the active delta is below the tegrastats noise floor, so it is the
+    raw figure that is comparable across modes.
     """
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from edge.power_monitor import PowerMonitor, measure_idle_power

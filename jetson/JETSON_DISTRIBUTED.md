@@ -48,7 +48,9 @@ The system supports **3 distributed modes** (all on Mac + 2 Jetson):
 - 2× Jetson Orin Nano Super Developer Kit (**8 GB RAM**, **256 GB NVMe** recommended)
 - Mac/PC on the **same LAN** as both Jetsons (`192.168.1.x`)
 - Stable 5 V / 4 A supply per Jetson
-- 4 GB swap (optional on 8 GB — configured by `setup_jetson.sh`)
+- 4 GB swap (optional on 8 GB — configured by `setup_jetson.sh`). For Spark
+  *training* on the same boards use `cluster/setup_swap_jetson.sh` instead: 8 GB on
+  the NVMe, zram disabled.
 
 ---
 
@@ -222,7 +224,10 @@ Configuration variables in `config.py`:
 ## Notes for the thesis
 
 - **Mode A** clearly demonstrates the distributed pipeline-split architecture (edge computing).
-- Compare 1-node vs 2-node latency/throughput with `scripts/benchmark.py`.
+- Compare 1-node vs 2-node latency/throughput with
+  `scripts/benchmark_distributed.py run --mode single|split|horizontal|spark_cluster`
+  (then `merge`), or `./papers/soict2026/run_benchmarks.sh run`. `scripts/benchmark.py`
+  is a single-node micro-benchmark and cannot compare modes.
 - Filter Grafana panels by the `host` tag to visualize each Jetson.
 - Use the PostgreSQL `node_id` column to analyze load distribution across nodes.
 
@@ -246,8 +251,12 @@ Configuration variables in `config.py`:
   `DO_NOT_PUBLISH`.
 - **Per-node energy during a distributed run:** on each Jetson run
   `./papers/soict2026/run_benchmarks.sh node-power` (measures a 30 s idle
-  baseline first, then samples tegrastats through the load window). Mode A's
-  paper figure is the **sum of both nodes' active energy** ÷ classified flows.
+  baseline first, then samples tegrastats through the load window). The paper's
+  per-mode figure is the **sum of the participating boards' average total-board
+  power ÷ verdict throughput** — Mode A: (4.61 W gate + 6.54 W classifier) /
+  62.5 verdicts/s ≈ 178 mJ. Active (idle-subtracted) power is *not* usable at
+  this load: it came out at 0.00–0.07 W per node, below the tegrastats noise
+  floor.
 - **Repetitions & warmup:** `run` defaults to 5 repeats with real warmup
   traffic excluded from the measured window; `merge` writes
   `summary_mean_std.csv` per mode. Do a load sweep (`BENCHMARK_RATE=50|100|200`)
@@ -256,9 +265,12 @@ Configuration variables in `config.py`:
   within the load window — never the sum of per-node rates, which double-counts
   forwarded flows in Mode A.
 - **Energy** is reported both raw and **idle-subtracted (active)** per node via
-  `tegrastats`. For pipeline-split (Mode A) the comparable figure is the **sum
-  of both nodes'** active energy (gate on Jetson #1 + classifier on Jetson #2),
-  divided by the number of classified flows.
+  `tegrastats`. Which one is comparable depends on the load: the single-node
+  engine benchmark saturates the board, so it publishes **active** energy per
+  inference (71.6 mJ for PySpark). The distributed modes run at 100 flows/s,
+  where the active delta sinks below the sampling noise, so the mode table
+  publishes **total-board** energy per verdict instead — a measure of how well a
+  mode amortizes board idle power, not the model's own cost.
 - **Inference-engine baseline:** `scripts/benchmark_engines.py` runs the same
   RandomForest / SHAP Top-30 model through scikit-learn and ONNX Runtime
   (`pip install skl2onnx onnxruntime` to enable ONNX) and reports the same
