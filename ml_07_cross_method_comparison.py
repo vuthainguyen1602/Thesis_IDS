@@ -22,6 +22,7 @@ from shared_utils import (
     summarize_metric_runs,
     permutation_pvalue,
     paired_cohens_d,
+    tost_equivalence,
     plot_comparison,
     plot_training_time,
     print_summary_table,
@@ -59,6 +60,12 @@ METHODS = {
 STAT_N_SPLITS = int(os.environ.get("IDS_STAT_SPLITS", "6"))
 STAT_SPLIT_SEED_BASE = 1000
 STAT_CLF_SEED = 42
+# Equivalence margin for the TOST: the largest F1 gap still operationally
+# irrelevant for this detector. 0.001 is an order of magnitude above the gap
+# these methods actually show and well inside run-to-run noise, so rejecting it
+# from both sides is a meaningful "they are interchangeable" claim, unlike a
+# non-significant NHST p-value. Declared before looking at the result.
+STAT_TOST_MARGIN = float(os.environ.get("IDS_TOST_MARGIN", "0.001"))
 
 _META_ENSEMBLE_MARKERS = ("Bagging", "Ensemble", "Voting")
 
@@ -219,6 +226,7 @@ def _run_statistical_validity_track(
 
     pvalue = 1.0
     effect_size = 0.0
+    tost = None
     if len(top_methods) == 2:
         # Paired permutation test on the per-split F1 differences. With N=6 the
         # 2^6=64 sign patterns are enumerated exactly inside permutation_pvalue.
@@ -239,10 +247,31 @@ def _run_statistical_validity_track(
         print(f"[INFO] Paired Cohen's d (effect size): {effect_size:.3f} — report "
               "alongside the p-value; with N=6 a non-significant p is weak "
               "evidence of equivalence on its own.")
+        # TOST: positive evidence FOR equivalence, which the permutation test
+        # cannot give. Same NB factor as the CI, so overlapping resamples do not
+        # make the equivalence claim look stronger than the data supports.
+        tost = tost_equivalence(
+            method_split_f1[top_methods[0]],
+            method_split_f1[top_methods[1]],
+            margin=STAT_TOST_MARGIN,
+            nb_test_train_ratio=0.25,
+        )
+        if tost["p_tost"] is not None:
+            print(f"[INFO] TOST equivalence (margin ±{tost['margin']:.4f} F1, "
+                  f"NB-corrected): p={tost['p_tost']:.5f} — "
+                  f"{'equivalent' if tost['equivalent'] else 'not established'}; "
+                  f"tightest margin this data supports at alpha=0.05: "
+                  f"±{tost['min_margin']:.5f} F1")
+        else:
+            print("[WARN] TOST skipped (SciPy unavailable).")
 
     stats_df = pd.DataFrame(stats_records)
     stats_df["pvalue_vs_other_top_method"] = pvalue
     stats_df["paired_cohens_d"] = effect_size
+    stats_df["tost_margin"] = tost["margin"] if tost else None
+    stats_df["tost_pvalue"] = tost["p_tost"] if tost else None
+    stats_df["tost_equivalent"] = tost["equivalent"] if tost else None
+    stats_df["tost_min_margin"] = tost["min_margin"] if tost else None
     stats_csv = os.path.join(output_dir, "statistical_validity_multiseed.csv")
     stats_df.to_csv(stats_csv, index=False)
     print(f"[INFO] Saved: {stats_csv}")
