@@ -56,10 +56,16 @@ case "$TRACK" in
     run_remote ml_05_shap_explainability.py
     run_remote ml_06_feature_selection_shap.py
     run_remote ml_07_cross_method_comparison.py
+    run_remote ml_09_multiclass_eval.py
+    run_remote ml_10_leakage_ablation.py
     echo ""
     echo "Done FAIR track. Run: ./papers/fair2026/collect_results.sh"
+    echo "Cross-dataset (ml_11, paper Sect. VI) needs CSE-CIC-IDS2018:"
+    echo "  ./cluster/run_cross_dataset.sh"
     ;;
   soict)
+    # Assumes the fair/thesis track already produced results/ml_07_* — the
+    # paper's Spark-to-edge bridge table is read from cross_method_summary.csv.
     run_remote ml_08_anomaly_gate_autoencoder.py
     run_local_mac jetson/scripts/save_model.py
     "$CLUSTER_DIR/sync_workspace.sh"
@@ -74,11 +80,15 @@ case "$TRACK" in
     run_remote ml_06_feature_selection_shap.py
     run_remote ml_07_cross_method_comparison.py
     run_remote ml_03_hyperparameter_tuning.py
+    run_remote ml_09_multiclass_eval.py
+    run_remote ml_10_leakage_ablation.py
     run_remote ml_08_anomaly_gate_autoencoder.py
     run_local_mac jetson/scripts/save_model.py
     "$CLUSTER_DIR/sync_workspace.sh"
     echo ""
     echo "Done thesis track. Model synced to Jetsons."
+    echo "Cross-dataset (ml_11, Sect. 4.2.9) needs CSE-CIC-IDS2018:"
+    echo "  ./cluster/run_cross_dataset.sh"
     ;;
   *)
     echo "Usage: $0 {fair|soict|thesis}"
