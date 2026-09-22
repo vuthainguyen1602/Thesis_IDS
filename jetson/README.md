@@ -144,6 +144,14 @@ EDGE_NODE_ROLE=anomaly_gate
 ALERT_ENABLED=0
 ```
 
+> **Measurement note.** The latency a backend reports (`avg_time_ms`, and therefore
+> the p95 in InfluxDB/Grafana) is now timed around the whole `_infer` call — for
+> `spark` that includes building the DataFrame and the `collect()` that forces the
+> job. The pre-`EDGE_ENGINE` pipeline timed `model.transform` alone, which is lazy,
+> so its numbers largely excluded the scoring itself. Spark figures measured here
+> are consistently comparable with `onnx`/`numpy`, but **not** with the SOICT paper's
+> table — re-run every engine on this boundary instead of mixing the two.
+
 The Jetsons **do not run Docker** — they connect to the Mac's services over the LAN.
 
 ---
