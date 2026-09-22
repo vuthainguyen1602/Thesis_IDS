@@ -3,9 +3,22 @@
 """
 Spark backend behind the common engine contract.
 
-Wraps the original ``PredictionEngine`` (left untouched, so the SOICT benchmark
-path keeps running exactly as measured) and adapts its DataFrame in / DataFrame
-out shape to the matrix in / verdicts out contract of ``InferenceEngine``.
+Wraps the original ``PredictionEngine`` (left untouched) and adapts its
+DataFrame in / DataFrame out shape to the matrix in / verdicts out contract of
+``InferenceEngine``.
+
+The model and its inputs are unchanged -- ``dtype_for_engine`` keeps this path
+on float64 -- but the *timing boundary* is not the one the SOICT runs used, so
+latency from this engine is not comparable with the published numbers:
+
+  * before, the timer wrapped ``model.transform`` alone, which is lazy in
+    Spark, and the ``count()`` that forced the job ran after the timer stopped,
+    so the recorded time largely excluded the actual scoring;
+  * here ``InferenceEngine.predict_batch`` times ``_infer``, which builds the
+    DataFrame and ends in a ``collect()``, i.e. it covers real execution.
+
+Re-measuring Spark against ONNX/NumPy therefore means re-running every engine
+on this boundary rather than reusing the SOICT table.
 """
 
 import os

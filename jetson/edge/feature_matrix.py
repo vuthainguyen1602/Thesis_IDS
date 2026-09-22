@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Engine-agnostic feature assembly: Kafka message dicts -> float32 matrix.
+Engine-agnostic feature assembly: Kafka message dicts -> float matrix.
 
 Deliberately free of any PySpark import so the classifier tier can run without
 a JVM on the board. ``FeaturePreprocessor`` (the Spark path) keeps its own
@@ -43,6 +43,23 @@ def clean_value(value):
         return v
     except (ValueError, TypeError):
         return 0.0
+
+
+def dtype_for_engine(engine):
+    """Matrix precision per backend.
+
+    The Spark path gets float64 so the classifier sees the same values the
+    pre-refactor pipeline fed it (it built Python floats straight into a
+    ``DoubleType`` schema); float32 there would round every feature before the
+    forest compares it against its thresholds. The JVM-free engines cast to
+    their own working type anyway (ONNX to float32, NumPy to float64), so
+    float32 keeps the assembled batch half the size for them.
+
+    Unknown names resolve to float64, mirroring ``create_inference_engine``,
+    which falls back to the Spark backend.
+    """
+    return (np.float32 if str(engine).strip().lower() in ("numpy", "onnx")
+            else np.float64)
 
 
 class FeatureMatrixBuilder:

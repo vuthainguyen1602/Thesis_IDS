@@ -30,7 +30,7 @@ from config import (
 )
 from edge.pipeline_base import PipelineBase
 from edge.anomaly_scorer import AnomalyScorer
-from edge.feature_matrix import FeatureMatrixBuilder
+from edge.feature_matrix import FeatureMatrixBuilder, dtype_for_engine
 from edge.inference_engine import create_inference_engine
 from edge.kafka_forwarder import SuspiciousFlowForwarder
 
@@ -76,7 +76,8 @@ class FullPipeline(PipelineBase):
         super().__init__()
 
         self.spark = create_spark_session() if EDGE_ENGINE == "spark" else None
-        self.matrix_builder = FeatureMatrixBuilder(features_path=FEATURES_PATH)
+        self.matrix_builder = FeatureMatrixBuilder(
+            features_path=FEATURES_PATH, dtype=dtype_for_engine(EDGE_ENGINE))
         self.anomaly = None
         if ANOMALY_ENABLED:
             try:
@@ -393,7 +394,8 @@ class ClassifierPipeline(PipelineBase):
         super().__init__()
 
         self.spark = create_spark_session() if EDGE_ENGINE == "spark" else None
-        self.matrix_builder = FeatureMatrixBuilder(features_path=FEATURES_PATH)
+        self.matrix_builder = FeatureMatrixBuilder(
+            features_path=FEATURES_PATH, dtype=dtype_for_engine(EDGE_ENGINE))
         self.engine = create_inference_engine(spark=self.spark)
 
         self.consumer = KafkaConsumer(
