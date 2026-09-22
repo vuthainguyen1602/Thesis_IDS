@@ -328,7 +328,7 @@
     Trên SHAP Top-30 (cấu hình triển khai) & F1 & Huấn luyện (s) & Dung lượng (MB) \\
     \midrule
     \textbf{XGBoost} (mô hình đơn) & \num{0,9970} & \num{1226} & --- \\
-    Soft Voting                    & 0,9967 & --- & 0,02 \\
+    Soft Voting                    & 0,9967 & --- & 0,01 \\
     Hybrid Bagging                 & 0,9966 & \bad{4909} & \bad{7,15} \\
     \bottomrule
   \end{tabular}
@@ -1033,6 +1033,13 @@
   \\[0.2em]\footnotesize
   Recall tấn công (trái) và tỷ lệ báo động giả (phải) theo tỷ lệ bỏ qua tại
   cổng. Nâng tỷ lệ bỏ qua giúp giảm tải Spark nhưng đánh đổi bằng recall.
+  \note{Nếu được hỏi vì sao tỷ lệ bỏ qua thực đo (95,8\% ở chế độ A, 97,9\% ở
+  chế độ C) cao hơn mọi điểm trên đường cong này: hai con số khác phạm vi tính.
+  Đường cong tính trên tập kiểm tra đã loại trùng lặp mức đặc trưng (khoảng 85\%
+  benign), còn số thực đo tính trên luồng phát lại tuần tự từ CSV gốc CICIDS2017,
+  vốn còn nguyên các luồng trùng lặp (phần lớn là benign) nên tỷ lệ benign trong
+  cửa sổ đo cao hơn. Cùng ngưỡng nhưng khác thành phần lưu lượng thì tỷ lệ bỏ qua
+  khác nhau, nên số thực đo không phải một điểm nằm trên đường cong.}
 \end{frame}
 
 \begin{frame}[label=bk-grafana]{Q11 --- Bất đối xứng tải lúc đỉnh tải (Grafana)}
