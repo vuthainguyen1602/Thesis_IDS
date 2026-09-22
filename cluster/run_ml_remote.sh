@@ -54,7 +54,6 @@ python -c "import pandas, matplotlib, seaborn, pyarrow, xgboost, shap; print('[O
 export JAVA_HOME="\${JAVA_HOME:-\$(dirname "\$(dirname "\$(readlink -f "\$(which java)")")")}"
 export PATH="\$JAVA_HOME/bin:\$PATH"
 echo "[INFO] JAVA_HOME=\$JAVA_HOME"
-export IDS_SPARK_CLUSTER=1
 export IDS_ROOT="$REMOTE_ROOT"
 export IDS_CLUSTER_DATA_DIR="${IDS_CLUSTER_DATA_DIR:-$REMOTE_ROOT/data}"
 export SPARK_MASTER="${SPARK_MASTER}"

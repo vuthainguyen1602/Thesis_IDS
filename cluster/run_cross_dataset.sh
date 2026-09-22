@@ -50,7 +50,7 @@ df -h . | tail -1
 if [ -d jetson/venv/bin ]; then source jetson/venv/bin/activate; elif [ -d venv/bin ]; then source venv/bin/activate; fi
 export JAVA_HOME="\${JAVA_HOME:-\$(dirname "\$(dirname "\$(readlink -f "\$(which java)")")")}"
 export PATH="\$JAVA_HOME/bin:\$PATH"
-unset IDS_SPARK_CLUSTER SPARK_MASTER SPARK_DRIVER_HOST || true
+unset SPARK_MASTER SPARK_DRIVER_HOST || true
 export SPARK_DRIVER_MEMORY=6g
 IDS_DATASET=cicids2018 \
 IDS_RAW_DATA_DIR="/home/$JETSON_SSH_USER/ids-2018-raw" \
@@ -89,7 +89,6 @@ cd "$REMOTE_ROOT"
 if [ -d jetson/venv/bin ]; then source jetson/venv/bin/activate; elif [ -d venv/bin ]; then source venv/bin/activate; fi
 export JAVA_HOME="\${JAVA_HOME:-\$(dirname "\$(dirname "\$(readlink -f "\$(which java)")")")}"
 export PATH="\$JAVA_HOME/bin:\$PATH"
-export IDS_SPARK_CLUSTER=1
 export IDS_ROOT="$REMOTE_ROOT"
 export SPARK_MASTER="$SPARK_MASTER"
 export SPARK_DRIVER_HOST="$JETSON1_IP"

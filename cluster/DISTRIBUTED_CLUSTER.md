@@ -383,7 +383,6 @@ Or run individual scripts:
 |----------|------|
 | `SPARK_MASTER` | **The actual switch**: `spark://<MAC_IP>:7077` puts `create_spark_session()` on the cluster (`idslib/core.py:83`) |
 | `IDS_ALLOW_LOCAL_SPARK=1` | Escape hatch for the Mac-only steps; without it `require_distributed_spark()` refuses to run locally |
-| `IDS_SPARK_CLUSTER=1` | Legacy flag — still exported by `load_cluster_env.sh` / `run_ml_remote.sh`, but no code reads it |
 | `SPARK_DRIVER_HOST` | Jetson #1 IP (`192.168.1.50`) |
 | `JETSON2_ENABLED` | `0` = skip SSH/sync/stop for Jetson #2 |
 | `IDS_MAC_ROOT` | Project root on Mac (sync source) |
