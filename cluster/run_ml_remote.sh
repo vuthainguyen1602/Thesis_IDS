@@ -30,7 +30,9 @@ echo "  Master:  ${SPARK_MASTER:?}"
 echo "  Script:  $SCRIPT_BASE"
 echo "================================================================"
 
-SSH_OPTS="${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10}"
+# Keepalives matter here: a training run can hold the connection for hours,
+# and a silent NAT/Wi-Fi timeout would SIGHUP the remote driver mid-run.
+SSH_OPTS="${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -o TCPKeepAlive=yes}"
 INSTALL_SCRIPT="$CLUSTER_DIR/install_ml_deps.sh"
 
 install_ml_deps_remote() {
@@ -74,7 +76,7 @@ export IDS_STAT_SPLITS="${IDS_STAT_SPLITS:-6}"
 export IDS_TOST_MARGIN="${IDS_TOST_MARGIN:-0.001}"
 export IDS_ABLATION_MODELS="${IDS_ABLATION_MODELS:-all}"
 export IDS_ABLATION_HEADLINE="${IDS_ABLATION_HEADLINE:-Random Forest}"
-python "$SCRIPT" "$@"
+python -u "$SCRIPT" "$@"
 EOF
 
 echo ""
