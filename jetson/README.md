@@ -69,7 +69,8 @@ python scripts/init_kafka_topics.py --partitions 2 --bootstrap localhost:9092
 # Classifier (PySpark PipelineModel) → jetson/model/
 python scripts/save_model.py
 #   → model/ids_pipeline_model/      (PySpark PipelineModel)
-#   → model/feature_columns.json     (SHAP Top-30 feature list)
+#   → model/feature_columns.json     (the 29 deployed features: SHAP Top-30
+#                                     minus destination_port, dropped as leakage)
 
 # Lightweight classifier artifacts for EDGE_ENGINE=onnx|numpy
 ./scripts/export_edge_artifacts.sh
@@ -101,7 +102,7 @@ chmod +x scripts/*.sh
 ./scripts/setup_jetson.sh
 ```
 
-`setup_jetson.sh` installs Python + Java (`default-jdk`), creates the venv (pyspark, kafka-python, scikit-learn, …), adds a 4 GB safety swap, and writes a `.env` template.
+`setup_jetson.sh` installs Python + Java (`default-jdk`), creates the venv (pyspark, kafka-python, scikit-learn, …), adds a 4 GB safety swap, and copies `.env.jetson1.example` to `.env` — so on Jetson #2 overwrite it with `.env.jetson2.example` (next section). For Spark *training* on these boards use `cluster/setup_swap_jetson.sh` instead: 8 GB on the NVMe, zram off.
 
 ### Configure `.env` (point to the Mac)
 
@@ -209,6 +210,7 @@ SMTP_PORT=2525
 SMTP_USER=<username>
 SMTP_PASSWORD=<password>
 ALERT_EMAIL_TO=you@example.com
+ALERT_EMAIL_FROM=ids@example.com   # optional; defaults to SMTP_USER
 ```
 
 **Slack** — create an Incoming Webhook and add to `.env`:
