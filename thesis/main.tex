@@ -97,6 +97,11 @@
 \justifying\printbibliography[title=Tài liệu tham khảo, heading=bibintoc]
 \endgroup
 
+% Bản PDF bài báo FAIR 2026 đính kèm ở cuối luận văn
+\IfFileExists{../output/pdfs/FAIR2026.pdf}{%
+  \includepdf[pages=-,scale=0.9,fitpaper=false,pagecommand={\thispagestyle{empty}}]{../output/pdfs/FAIR2026.pdf}%
+}{}
+
 
 
 \end{document}
