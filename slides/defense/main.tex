@@ -4,7 +4,7 @@
 %        papers/soict2026 (triển khai biên phân tán)
 % Biên dịch: ./compile.sh   (XeLaTeX; bản có ghi chú: NOTES=1 ./compile.sh)
 %
-% KẾ HOẠCH THỜI GIAN — 15 phút trình bày + hỏi đáp (17 slide nội dung)
+% KẾ HOẠCH THỜI GIAN — 15 phút trình bày + hỏi đáp (16 slide nội dung)
 %   I    Đặt vấn đề, mục tiêu, 3 RQ ......... 2,5 phút  (2 slide)
 %   II   Phương pháp ....................... 3   phút  (3 slide)
 %   III  Kết quả offline (FAIR) ............ 4,5 phút  (5 slide)
@@ -463,18 +463,18 @@
         \bottomrule
       \end{tabular}
       }
-      \\[0.5em]
+      \\[0.25em]
       \small
       Tập đặc trưng chung đã loại rò rỉ. CSE-CIC-IDS2018 lấy mẫu phân tầng.
     \end{column}
     \begin{column}{0.48\textwidth}
-      \begin{itemize}
+      \begin{itemize}\small
         \item Trong-miền cao ở \emph{cả hai} chiều --- liên bộ dữ liệu sụp
               xuống \bad{0,04--0,05}.
-        \item Do recall gần 0, trong khi precision chiều 2017$\rightarrow$2018 vẫn 0,596: mô hình
-              \key{không nhận ra} tấn công của môi trường thu thập kia.
-        \item Nguyên nhân: khác phiên bản CICFlowMeter, khác cấu hình mạng, khác
-              bộ công cụ tấn công.
+        \item Recall gần 0 trong khi precision 2017$\rightarrow$2018 vẫn 0,596: mô hình
+              \key{không nhận ra} tấn công của testbed kia.
+        \item Nguyên nhân: khác phiên bản CICFlowMeter, khác cấu hình mạng và bộ
+              công cụ tấn công.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -812,11 +812,10 @@
       \end{exampleblock}
     \end{column}
   \end{columns}
-  \vspace{0.2em}
   \footnotesize
-  Nhóm luồng giống hệt nhau trên mọi cột đặc trưng nhưng \emph{nhãn xung đột}
-  (lỗi đã ghi nhận của CICIDS2017) bị loại \bad{cả nhóm}, thay vì giữ lại một
-  dòng tùy cách Spark phân vùng --- nhờ vậy kết quả là tất định, tái lập được.
+  Nhóm trùng đặc trưng nhưng \emph{nhãn xung đột} (lỗi đã ghi nhận của
+  CICIDS2017) bị loại \bad{cả nhóm}, thay vì giữ một dòng tùy cách Spark phân
+  vùng --- nhờ vậy kết quả tất định, tái lập được.
 \end{frame}
 
 \begin{frame}[label=bk-pca]{Q3 --- Vì sao PCA dùng $k$=40, và vì sao loại LightGBM?}
@@ -930,7 +929,7 @@
 \begin{frame}[label=bk-modes]{Q8 --- Ba chế độ triển khai và môi trường đo}
   \begin{columns}[T]
     \begin{column}{0.55\textwidth}
-      \begin{description}
+      \begin{description}\small
         \item[Đơn nút] toàn bộ pipeline trong một tiến trình --- mốc tham chiếu.
         \item[A: Tách pipeline] cổng trên \#1, phân loại trên \#2
               (\key{thiết kế đề xuất}).
@@ -938,11 +937,10 @@
               qua Kafka consumer group.
         \item[C: Cụm Spark] máy chủ làm master, hai Jetson làm worker.
       \end{description}
-      \vspace{0.3em}
-      \footnotesize Thông lượng đếm \key{số luồng xử lý xong mỗi giây}. Mỗi
-      luồng chỉ tính \emph{một lần}, tại nơi có kết luận: ở cổng nếu bị bỏ qua,
-      ở bộ phân loại nếu được chuyển tiếp --- nhờ vậy luồng đi qua cả hai nút
-      không bị đếm hai lần.
+      \vspace{0.2em}
+      \footnotesize Thông lượng đếm \key{số luồng xử lý xong mỗi giây}: mỗi luồng
+      tính \emph{một lần}, ở cổng nếu bị bỏ qua, ở bộ phân loại nếu được chuyển
+      tiếp --- luồng qua cả hai nút không bị đếm hai lần.
     \end{column}
     \begin{column}{0.43\textwidth}
       \begin{block}{Môi trường thực nghiệm}
@@ -952,7 +950,7 @@
         PySpark 3.4.1, Kafka 3.5, LAN Wi-Fi.\\[0.3em]
         Tải: phát lại CICIDS2017 ở 100 luồng/giây.\\[0.3em]
         $\geq$3 lần lặp, lưu lượng khởi động \emph{loại khỏi} cửa sổ đo.\\[0.3em]
-        Năng lượng: \texttt{tegrastats}. KQ6 báo mức toàn bo mạch, KQ7 báo phần hoạt động (đã trừ nền idle).
+        Năng lượng: \texttt{tegrastats} --- KQ6 toàn bo mạch, KQ7 phần hoạt động.
       \end{block}
     \end{column}
   \end{columns}
@@ -963,7 +961,7 @@
 
 \begin{frame}[label=bk-cluster]{Q8 (tiếp) --- Kiến trúc cụm huấn luyện phân tán Spark Standalone}
   \centering
-  \resizebox{0.78\textwidth}{!}{%
+  \resizebox{0.62\textwidth}{!}{%
   \begin{tikzpicture}[
       font=\small, >=Stealth,
       every node/.style={align=center},
@@ -998,10 +996,10 @@
       \draw[dn] (w2.south) -- (s2.north);
   \end{tikzpicture}}
 
-  \vspace{0.4em}
-  \footnotesize MacBook \emph{chỉ} điều phối (master) --- không chạy executor,
-  để số liệu thời gian huấn luyện phản ánh đúng hiệu năng \key{cụm biên thuần
-  Jetson}. Đưa M3 vào tính toán sẽ gây lệch tải (straggler) và sai lệch phép đo.
+  \vspace{0.2em}
+  \footnotesize MacBook \emph{chỉ} điều phối (master), không chạy executor, để
+  thời gian huấn luyện phản ánh đúng \key{cụm biên thuần Jetson}; đưa M3 vào
+  tính toán sẽ gây lệch tải (straggler).
   \note{Cùng cặp Jetson này ở pha huấn luyện là worker/executor của Spark, ở
   pha suy luận là cổng lọc và bộ phân loại. Jetson \#1 kiêm tiến trình driver
   của ứng dụng --- khác vai trò master điều phối cụm nằm trên MacBook. Dữ liệu
