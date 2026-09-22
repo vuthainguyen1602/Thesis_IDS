@@ -19,13 +19,13 @@ Real-time intrusion detection on **two NVIDIA Jetson Orin Nano Super Developer K
      │  Jetson #1           │  Kafka  │  Jetson #2            │
      │  EDGE_NODE_ROLE=     │ ──────▶ │  EDGE_NODE_ROLE=      │
      │   anomaly_gate       │  ids-   │   classifier          │
-     │  sklearn AE filter   │ suspic- │  PySpark PipelineModel│
+     │  sklearn AE filter   │ suspic- │  EDGE_ENGINE=onnx    │
      │  forwards suspicious │ ious-   │  Benign / Attack +    │
      │  flows only          │ flow    │  store + alert        │
      └──────────────────────┘         └───────────────────────┘
 ```
 
-**Flow:** Mac streams network flows to `ids-network-flow` → Jetson #1 scores each flow with a lightweight autoencoder and forwards only *suspicious* flows to `ids-suspicious-flow` → Jetson #2 classifies them with the exported PySpark model, writes results to PostgreSQL, and raises alerts.
+**Flow:** Mac streams network flows to `ids-network-flow` → Jetson #1 scores each flow with a lightweight autoencoder and forwards only *suspicious* flows to `ids-suspicious-flow` → Jetson #2 classifies them with a swappable backend (`spark`, `onnx`, or `numpy`), writes results to PostgreSQL, and raises alerts.
 
 ---
 
@@ -34,7 +34,7 @@ Real-time intrusion detection on **two NVIDIA Jetson Orin Nano Super Developer K
 | Node | `EDGE_NODE_ID` | `EDGE_NODE_ROLE` | `ALERT_ENABLED` | Function |
 |------|----------------|------------------|-----------------|----------|
 | Jetson #1 | `jetson-nano-1` | `anomaly_gate` | `0` | Autoencoder gate; forwards suspicious flows |
-| Jetson #2 | `jetson-nano-2` | `classifier` | `1` | PySpark classifier on suspicious flows |
+| Jetson #2 | `jetson-nano-2` | `classifier` | `1` | ONNX/PySpark classifier on suspicious flows |
 
 `EDGE_NODE_ROLE=full` (single node running the whole pipeline) is also supported by the code and is used by **Mode B – horizontal scaling** (both Jetsons in one Kafka consumer group). See [JETSON_DISTRIBUTED.md](JETSON_DISTRIBUTED.md).
 
@@ -70,6 +70,11 @@ python scripts/init_kafka_topics.py --partitions 2 --bootstrap localhost:9092
 python scripts/save_model.py
 #   → model/ids_pipeline_model/      (PySpark PipelineModel)
 #   → model/feature_columns.json     (SHAP Top-30 feature list)
+
+# Lightweight classifier artifacts for EDGE_ENGINE=onnx|numpy
+./scripts/export_edge_artifacts.sh
+#   → model/ids_rf.onnx
+#   → model/ids_rf_numpy.npz
 
 # Anomaly gate (sklearn autoencoder) → jetson/model/
 cd .. && python ml_08_anomaly_gate_autoencoder.py
@@ -110,6 +115,33 @@ nano .env   # set the Mac IP in:
 #   KAFKA_BOOTSTRAP_SERVERS=<mac-ip>:9092
 #   POSTGRES_HOST=<mac-ip>
 #   INFLUXDB_URL=http://<mac-ip>:8086
+```
+
+For the two-stage ONNX test, set this only on **Jetson #2**:
+
+```bash
+source venv/bin/activate
+pip install -r requirements_onnx.txt
+
+EDGE_NODE_ROLE=classifier
+EDGE_ENGINE=onnx
+ONNX_MODEL_PATH=/home/<user>/Thesis_IDS/jetson/model/ids_rf.onnx
+ONNX_PROVIDERS=CPUExecutionProvider
+```
+
+If `onnxruntime` is not available for the Jetson Python/JetPack combination,
+switch Jetson #2 to the dependency-light fallback:
+
+```bash
+EDGE_ENGINE=numpy
+NUMPY_MODEL_PATH=/home/<user>/Thesis_IDS/jetson/model/ids_rf_numpy.npz
+```
+
+Jetson #1 stays as the gate:
+
+```bash
+EDGE_NODE_ROLE=anomaly_gate
+ALERT_ENABLED=0
 ```
 
 The Jetsons **do not run Docker** — they connect to the Mac's services over the LAN.
@@ -215,11 +247,16 @@ jetson/
 │   ├── kafka_forwarder.py      # forward suspicious flows (gate → classifier)
 │   ├── anomaly_scorer.py       # sklearn autoencoder gate
 │   ├── prediction_engine.py    # PySpark PipelineModel inference
+│   ├── inference_engine.py     # swappable spark | numpy | onnx contract
+│   ├── numpy_engine.py         # pure-NumPy RF artifact inference
+│   ├── onnx_engine.py          # ONNX Runtime RF artifact inference
 │   ├── performance_monitor.py  # CPU/RAM/temp/throughput → InfluxDB
 │   └── power_monitor.py        # tegrastats energy sampling
 ├── scripts/
 │   ├── setup_jetson.sh         # one-time Jetson provisioning
 │   ├── save_model.py           # export PySpark model
+│   ├── export_numpy.py         # Spark PipelineModel → .npz NumPy artifact
+│   ├── export_onnx.py          # Spark PipelineModel → .onnx artifact
 │   ├── init_kafka_topics.py    # create topics (≥ 2 partitions)
 │   └── benchmark.py            # edge latency/throughput/energy benchmark
 └── model/                      # exported models (copied to each Jetson)
@@ -231,6 +268,7 @@ Key `config.py` variables:
 |----------|---------|-------------|
 | `EDGE_NODE_ID` | `edge-node-1` | Unique ID per Jetson (metric/DB tag) |
 | `EDGE_NODE_ROLE` | `full` | `full` / `anomaly_gate` / `classifier` |
+| `EDGE_ENGINE` | `spark` | Classifier backend: `spark`, experimental `numpy`, or `onnx` |
 | `KAFKA_SUSPICIOUS_TOPIC` | `ids-suspicious-flow` | Topic between gate and classifier |
 | `ALERT_ENABLED` | `1` | Set `0` on the gate node to avoid duplicate alerts |
 | `ANOMALY_ENABLED` | `0` | Enable the autoencoder gate inside a `full` pipeline |
