@@ -24,6 +24,21 @@ ALERT_ENABLED = os.getenv("ALERT_ENABLED", "1").strip() in ("1", "true", "True",
 MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(os.path.dirname(__file__), "model", "ids_pipeline_model"))
 FEATURES_PATH = os.getenv("FEATURES_PATH", os.path.join(os.path.dirname(__file__), "model", "feature_columns.json"))
 
+# Classifier-tier backend: "spark" reproduces the published deployment;
+# "numpy" and "onnx" serve exported artifacts without a JVM on the board.
+EDGE_ENGINE = os.getenv("EDGE_ENGINE", "spark").strip().lower()
+NUMPY_MODEL_PATH = os.getenv(
+    "NUMPY_MODEL_PATH",
+    os.path.join(os.path.dirname(__file__), "model", "ids_rf_numpy.npz"),
+)
+ONNX_MODEL_PATH = os.getenv(
+    "ONNX_MODEL_PATH",
+    os.path.join(os.path.dirname(__file__), "model", "ids_rf.onnx"),
+)
+ONNX_PROVIDERS = [p.strip() for p in os.getenv(
+    "ONNX_PROVIDERS", "CPUExecutionProvider").split(",") if p.strip()]
+ONNX_INTRA_THREADS = int(os.getenv("ONNX_INTRA_THREADS", "0"))  # 0 = onnxruntime default
+
 ANOMALY_ENABLED = os.getenv("ANOMALY_ENABLED", "0").strip() in ("1", "true", "True", "yes", "YES")
 ANOMALY_MODEL_PATH = os.getenv(
     "ANOMALY_MODEL_PATH",

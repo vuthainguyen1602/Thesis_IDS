@@ -272,6 +272,7 @@ def shap_explain_model(
 ) -> dict:
     import shap
     import numpy as np
+    from pyspark.ml.functions import vector_to_array
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
@@ -289,11 +290,33 @@ def shap_explain_model(
     sample_df = stratified_sample(df_to_explain, select_cols, label_col, sample_size)
     pdf = sample_df.toPandas()
     
-    X_explain = pdf[feature_cols].values
     y_explain = pdf[label_col].values
-    
+
+    fitted_assembler = None
+    fitted_scaler = None
+    for stage in spark_model.stages:
+        stage_class = type(stage).__name__
+        if "VectorAssembler" in stage_class:
+            fitted_assembler = stage
+        elif "StandardScaler" in stage_class:
+            fitted_scaler = stage
+
+    if fitted_assembler is None or fitted_scaler is None:
+        print("  [ERROR] Fitted assembler/scaler not found in pipeline.")
+        print("  SHAP inputs must match the feature space used by the XGBoost stage.")
+        print("  Available stages:", [type(s).__name__ for s in spark_model.stages])
+        return saved_plots
+
+    scaled_sample = fitted_scaler.transform(fitted_assembler.transform(sample_df))
+    X_explain = np.array(
+        scaled_sample.select(vector_to_array("features_scaled").alias("x"))
+        .toPandas()["x"].tolist(),
+        dtype=np.float64,
+    )
+
     print(f"        Collected: {X_explain.shape[0]} samples, {X_explain.shape[1]} features")
     print(f"        Attack ratio: {y_explain.mean():.2%}")
+    print("        Inputs transformed through fitted scaler before SHAP computation")
     
     print("  [2/5] Extracting XGBoost model from PipelineModel...")
     

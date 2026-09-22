@@ -64,6 +64,17 @@ python papers/soict2026/plot_edge_modes.py   # → edge_modes.png
 
 Benchmark CSV/JSON is written to `papers/soict2026/results/benchmarks/` before `collect_results.sh`.
 
+> **Published numbers vs. the current tree.** The paper's latency/throughput were
+> measured before `jetson/edge/role_pipelines.py` gained the swappable
+> `EDGE_ENGINE` backend. Back then the per-batch timer wrapped `model.transform`
+> only — lazy in Spark, with the `count()` that forced the job outside the timer —
+> whereas `edge/inference_engine.py` now times DataFrame construction through
+> `collect()`, i.e. real execution. Feature values are unaffected (the Spark path
+> stays float64 via `dtype_for_engine`). So re-running Modes A/B/C from this tree
+> reproduces the *architecture* and the throughput comparison, but its latency
+> percentiles sit above the published ones by construction; do not mix the two in
+> one table.
+
 ## Manuscript
 
 The English paper is in `manuscript/` (Springer LNCS template, XeLaTeX).

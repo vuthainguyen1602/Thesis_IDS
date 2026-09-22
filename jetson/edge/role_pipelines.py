@@ -5,7 +5,6 @@ import json
 import time
 
 from kafka import KafkaConsumer
-from pyspark.sql import SparkSession
 
 from config import (
     KAFKA_BOOTSTRAP_SERVERS,
@@ -21,6 +20,7 @@ from config import (
     EDGE_BATCH_SIZE,
     EDGE_NODE_ID,
     EDGE_NODE_ROLE,
+    EDGE_ENGINE,
     SPARK_MASTER,
     SPARK_DRIVER_HOST,
     SPARK_EXECUTOR_MEMORY,
@@ -29,13 +29,15 @@ from config import (
     SPARK_APP_NAME,
 )
 from edge.pipeline_base import PipelineBase
-from edge.feature_preprocessor import FeaturePreprocessor
 from edge.anomaly_scorer import AnomalyScorer
-from edge.prediction_engine import PredictionEngine
+from edge.feature_matrix import FeatureMatrixBuilder, dtype_for_engine
+from edge.inference_engine import create_inference_engine
 from edge.kafka_forwarder import SuspiciousFlowForwarder
 
 
 def create_spark_session():
+    from pyspark.sql import SparkSession
+
     # Edge Mode A (pipeline split): each node runs inference on its own local
     # Spark — no training cluster required. Set SPARK_MASTER=spark://<MAC_IP>:7077
     # only for the distributed Spark-cluster benchmark (Mode C).
@@ -73,8 +75,9 @@ class FullPipeline(PipelineBase):
         print("=" * 60)
         super().__init__()
 
-        self.spark = create_spark_session()
-        self.preprocessor = FeaturePreprocessor(self.spark)
+        self.spark = create_spark_session() if EDGE_ENGINE == "spark" else None
+        self.matrix_builder = FeatureMatrixBuilder(
+            features_path=FEATURES_PATH, dtype=dtype_for_engine(EDGE_ENGINE))
         self.anomaly = None
         if ANOMALY_ENABLED:
             try:
@@ -86,7 +89,7 @@ class FullPipeline(PipelineBase):
                 )
             except Exception as e:
                 print(f"[WARN] AnomalyScorer disabled: {e}")
-        self.engine = PredictionEngine(self.spark)
+        self.engine = create_inference_engine(spark=self.spark)
 
         self.consumer = KafkaConsumer(
             KAFKA_TOPIC,
@@ -97,6 +100,7 @@ class FullPipeline(PipelineBase):
             value_deserializer=lambda m: json.loads(m.decode("utf-8")),
         )
         print(f"[OK] Kafka Consumer subscribed to '{KAFKA_TOPIC}' (group: {KAFKA_GROUP_ID})")
+        print(f"[OK] Classifier backend: {EDGE_ENGINE}")
         print("\n" + "=" * 60)
         print("  PIPELINE READY - Waiting for messages...")
         print("=" * 60 + "\n")
@@ -126,7 +130,7 @@ class FullPipeline(PipelineBase):
             messages_to_classify = [t[0] for t in suspicious_items]
             skipped_benign = len(messages) - len(messages_to_classify)
 
-        predictions_df = None
+        prediction_result = None
         stats = {
             "batch_size": len(messages),
             "attacks_found": 0,
@@ -138,8 +142,9 @@ class FullPipeline(PipelineBase):
         }
 
         if messages_to_classify:
-            spark_df = self.preprocessor.preprocess_batch(messages_to_classify)
-            predictions_df, clf_stats = self.engine.predict(spark_df)
+            matrix = self.matrix_builder.build(messages_to_classify)
+            prediction_result = self.engine.predict_batch(matrix)
+            clf_stats = prediction_result.stats
             stats["attacks_found"] = clf_stats["attacks_found"]
             stats["inference_time_ms"] = clf_stats["inference_time_ms"]
             stats["avg_time_ms"] = clf_stats["avg_time_ms"]
@@ -183,13 +188,15 @@ class FullPipeline(PipelineBase):
 
         if self.postgres:
             try:
-                if predictions_df is not None:
-                    results = predictions_df.select("prediction", "probability").collect()
-                    for (msg, idx, score), row in zip(suspicious_items, results):
-                        pred = int(row["prediction"])
-                        prob = row["probability"]
-                        confidence = float(prob[int(pred)]) if prob else 0.0
-                        raw_features = {"route": "spark_classifier"}
+                if prediction_result is not None:
+                    for (msg, idx, score), pred, confidence in zip(
+                        suspicious_items,
+                        prediction_result.predictions,
+                        prediction_result.confidences,
+                    ):
+                        pred = int(pred)
+                        confidence = float(confidence)
+                        raw_features = {"route": f"{EDGE_ENGINE}_classifier"}
                         if self.anomaly is not None and anomaly_scores is not None and anomaly_flags is not None:
                             raw_features.update({
                                 "anomaly_score": float(score),
@@ -376,7 +383,7 @@ class AnomalyGatePipeline(PipelineBase):
 
 
 class ClassifierPipeline(PipelineBase):
-    """Jetson #2 role: Spark classifier on suspicious flows from the gate topic."""
+    """Jetson #2 role: classifier on suspicious flows from the gate topic."""
 
     BATCH_SIZE = EDGE_BATCH_SIZE
 
@@ -386,9 +393,10 @@ class ClassifierPipeline(PipelineBase):
         print("=" * 60)
         super().__init__()
 
-        self.spark = create_spark_session()
-        self.preprocessor = FeaturePreprocessor(self.spark)
-        self.engine = PredictionEngine(self.spark)
+        self.spark = create_spark_session() if EDGE_ENGINE == "spark" else None
+        self.matrix_builder = FeatureMatrixBuilder(
+            features_path=FEATURES_PATH, dtype=dtype_for_engine(EDGE_ENGINE))
+        self.engine = create_inference_engine(spark=self.spark)
 
         self.consumer = KafkaConsumer(
             KAFKA_SUSPICIOUS_TOPIC,
@@ -399,14 +407,16 @@ class ClassifierPipeline(PipelineBase):
             value_deserializer=lambda m: json.loads(m.decode("utf-8")),
         )
         print(f"[OK] Kafka Consumer subscribed to '{KAFKA_SUSPICIOUS_TOPIC}' (group: {KAFKA_CLASSIFIER_GROUP_ID})")
+        print(f"[OK] Classifier backend: {EDGE_ENGINE}")
         print("\n" + "=" * 60)
         print("  CLASSIFIER READY - Waiting for suspicious flows...")
         print("=" * 60 + "\n")
 
     def process_batch(self, messages: list):
         timestamp = time.time()
-        spark_df = self.preprocessor.preprocess_batch(messages)
-        predictions_df, clf_stats = self.engine.predict(spark_df)
+        matrix = self.matrix_builder.build(messages)
+        prediction_result = self.engine.predict_batch(matrix)
+        clf_stats = prediction_result.stats
 
         avg_time = float(clf_stats["avg_time_ms"])
         for _ in range(clf_stats["batch_size"]):
@@ -427,15 +437,17 @@ class ClassifierPipeline(PipelineBase):
                 float(clf_stats["attacks_found"]) / clf_stats["batch_size"],
             )
 
-        if self.postgres and predictions_df is not None:
+        if self.postgres and prediction_result is not None:
             try:
-                results = predictions_df.select("prediction", "probability").collect()
-                for i, (msg, row) in enumerate(zip(messages, results)):
-                    pred = int(row["prediction"])
-                    prob = row["probability"]
-                    confidence = float(prob[int(pred)]) if prob else 0.0
+                for i, (msg, pred, confidence) in enumerate(zip(
+                    messages,
+                    prediction_result.predictions,
+                    prediction_result.confidences,
+                )):
+                    pred = int(pred)
+                    confidence = float(confidence)
                     raw_features = {
-                        "route": "spark_classifier",
+                        "route": f"{EDGE_ENGINE}_classifier",
                         "anomaly_score": msg.get("_anomaly_score"),
                         "source_node": msg.get("_source_node"),
                     }

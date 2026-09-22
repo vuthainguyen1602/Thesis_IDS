@@ -1,0 +1,9 @@
+# Optional lightweight classifier backend for Jetson #2.
+#
+# Install inside jetson/venv when testing:
+#   pip install -r requirements_onnx.txt
+#
+# If onnxruntime is unavailable for the Jetson Python/JetPack combination,
+# keep the exported .npz artifact and use EDGE_ENGINE=numpy as a fallback.
+
+onnxruntime>=1.16
