@@ -187,7 +187,7 @@ python sender/data_sender.py --csv /path/to/CICIDS2017.csv --rate 100
 
 ## Part 4 — Monitoring
 
-- **Grafana:** `http://<mac-ip>:3000` (admin / admin). Import `dashboard/grafana_dashboard.json`. Panels: throughput, detected attacks, latency, per-node CPU/RAM/temperature (tagged by `EDGE_NODE_ID`), prediction routes (`anomaly_gate_only` vs `spark_classifier`), recent alerts.
+- **Grafana:** `http://<mac-ip>:3000` (admin / admin). Import `dashboard/grafana_dashboard.json`. Panels: throughput, detected attacks, latency, per-node CPU/RAM (tagged by `EDGE_NODE_ID`), prediction routes (`anomaly_gate_only` vs `<engine>_classifier`, grouped dynamically), attack vs benign, recent predictions, recent alerts. Board temperature is collected by `edge/performance_monitor.py` into InfluxDB but has no panel in the shipped dashboard.
 - **PostgreSQL:** `predictions` and `alerts` tables carry a `node_id` column for per-node load analysis.
 - **InfluxDB:** metrics tagged with `host = EDGE_NODE_ID`.
 
