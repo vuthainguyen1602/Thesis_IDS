@@ -49,7 +49,7 @@ results, trained_models = run_all_classifiers(
     num_features=len(feature_cols),
 )
 
-print("\n--- Running Ensemble Voting (Majority Voting) ---")
+print("\n--- Running Ensemble Voting (Soft Voting) ---")
 ens_metrics = ensemble_voting(trained_models, test_df, results=results)
 if ens_metrics:
     results["Ensemble Voting"] = ens_metrics

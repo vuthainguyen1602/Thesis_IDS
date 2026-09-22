@@ -28,7 +28,7 @@ This project evaluates **8 classification algorithms** combined with **2 Ensembl
 | Type | Algorithms |
 |------|-----------|
 | **Standalone (8)** | Decision Tree, Logistic Regression, SVM (LinearSVC), Naive Bayes, Random Forest, GBT, XGBoost, MLP |
-| **Ensemble (2)** | Hybrid Bagging (Top-3, 3-2-2 Weighted), Majority Voting (Top-3 by F1) |
+| **Ensemble (2)** | Hybrid Bagging (Top-3, 3-2-2 Weighted), Soft Voting (Top-3 by F1; `Ensemble Voting` in the results) |
 
 > **LightGBM is intentionally excluded:** its native SynapseML libraries are x86_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. Gradient boosting is represented by **XGBoost** and **GBT**.
 
@@ -480,7 +480,7 @@ python papers/soict2026/plot_edge_modes.py   # → edge_modes.png (plain Python,
 ## Experiment Descriptions
 
 ### Experiment 0: Baseline (All Features)
-- Evaluates 8 algorithms + Hybrid Bagging + Majority Voting on **all features**
+- Evaluates 8 algorithms + Hybrid Bagging + Soft Voting on **all features**
 - Establishes performance baseline for comparison with dimensionality reduction methods
 
 ### Experiment 1: RF Feature Importance
@@ -586,7 +586,7 @@ See:
 | **Spark Configuration** | SparkSession initialization, JVM configuration |
 | **Data Processing** | Load parquet, clean data, feature engineering |
 | **Classifiers** | 8 ML algorithms with optimized hyperparameters |
-| **Ensemble Learning** | Hybrid Bagging (3-2-2), Majority Voting (Top-3 F1) |
+| **Ensemble Learning** | Hybrid Bagging (3-2-2), Soft Voting (Top-3 F1) |
 | **Evaluation** | Accuracy, Precision, Recall, F1, AUC-ROC, AUC-PR |
 | **Visualization** | Charts, Confusion Matrices, ROC Curves |
 | **Reporting** | HTML report export |
@@ -600,15 +600,15 @@ See:
 
 **Hybrid Bagging:**
 1. Train K base models
-2. Select Top-3 by F1-Score
+2. Select Top-3 by F1-Score (validation F1 when a validation split exists)
 3. Create 3-2-2 ensemble (3 replicas of Rank 1, 2 of Rank 2, 2 of Rank 3)
 4. Soft Voting with F1-weighted probabilities
 
-**Majority Voting:**
+**Soft Voting** (keyed as `Ensemble Voting` in the result CSVs):
 1. Train K base models
-2. Select Top-3 by F1-Score
-3. Collect predictions from 3 models
-4. Hard Voting: `prediction = 1 if sum > K/2, else 0`
+2. Select Top-3 by F1-Score (validation F1 when a validation split exists)
+3. Collect each model's attack probability
+4. Average them unweighted and threshold: `prediction = 1 if mean(p_attack) >= 0.5, else 0`
 
 ---
 
