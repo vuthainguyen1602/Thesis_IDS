@@ -16,7 +16,7 @@ which only the Mode C benchmark does (`jetson/edge/role_pipelines.py:44`).
 |------|-----|------|
 | **Mac** | `192.168.1.165` | Spark Master `:7077`, Web UI `:8080`, Docker (Kafka `:9092`, PostgreSQL, InfluxDB) |
 | **Jetson #1** | `192.168.1.50` | Spark Worker + **PySpark driver**, `anomaly_gate` edge |
-| **Jetson #2** | `192.168.1.205` | Spark Worker, `classifier` edge |
+| **Jetson #2** | `192.168.1.204` | Spark Worker, `classifier` edge |
 
 Verify Mac IP before editing config:
 
@@ -76,7 +76,7 @@ nc -zv <MAC_IP> 7077
                 │ spark:// + rsync              │
      ┌──────────┴──────────┐         ┌───────────┴──────────┐
      │  Jetson #1           │         │  Jetson #2           │
-     │  192.168.1.50        │         │  192.168.1.205       │
+     │  192.168.1.50        │         │  192.168.1.204       │
      │  Worker + Driver     │         │  Worker only         │
      │  results/ + model/   │         │  edge classifier     │
      │  anomaly_gate        │         │                      │
@@ -103,7 +103,7 @@ Edit the following:
 |----------|---------|-------|
 | `MAC_IP` | `192.168.1.165` | Mac: `ipconfig getifaddr en0` |
 | `JETSON1_IP` | `192.168.1.50` | Jetson #1: `hostname -I` |
-| `JETSON2_IP` | `192.168.1.205` | Jetson #2 |
+| `JETSON2_IP` | `192.168.1.204` | Jetson #2 |
 | `JETSON_SSH_USER` | `bvdung` | Not always `jetson` |
 | `JETSON2_ENABLED` | `1` | `0` = single-Jetson trial |
 | `IDS_MAC_ROOT` | `/Users/you/Desktop/Thesis_IDS` | Project path on **Mac** |
@@ -171,18 +171,18 @@ python ml_00_prepare_cicids2017.py   # Mac-only, one-time
 
 ```bash
 # cluster/spark_cluster.env
-export JETSON2_IP=192.168.1.205
+export JETSON2_IP=192.168.1.204
 export JETSON2_ENABLED=1
 ```
 
 ### 2. Setup Jetson #2
 
 ```bash
-ssh-copy-id bvdung@192.168.1.205
-ssh bvdung@192.168.1.205 "mkdir -p ~/Thesis_IDS/cluster"
-scp cluster/spark_cluster.env bvdung@192.168.1.205:~/Thesis_IDS/cluster/
+ssh-copy-id bvdung@192.168.1.204
+ssh bvdung@192.168.1.204 "mkdir -p ~/Thesis_IDS/cluster"
+scp cluster/spark_cluster.env bvdung@192.168.1.204:~/Thesis_IDS/cluster/
 
-ssh bvdung@192.168.1.205
+ssh bvdung@192.168.1.204
 cd ~/Thesis_IDS/jetson && ./scripts/setup_jetson.sh
 cd ~/Thesis_IDS && source cluster/load_cluster_env.sh && ./cluster/start_worker.sh
 ```
@@ -205,7 +205,7 @@ source cluster/load_cluster_env.sh
 | Jetson | IP | `.env` template | Role |
 |--------|-----|-----------------|------|
 | #1 | `192.168.1.50` | `.env.jetson1.example` | `EDGE_NODE_ROLE=anomaly_gate` |
-| #2 | `192.168.1.205` | `.env.jetson2.example` | `EDGE_NODE_ROLE=classifier` |
+| #2 | `192.168.1.204` | `.env.jetson2.example` | `EDGE_NODE_ROLE=classifier` |
 
 Both point Kafka/DB to `MAC_IP` (`192.168.1.165`). Details: [jetson/JETSON_DISTRIBUTED.md](../jetson/JETSON_DISTRIBUTED.md)
 
@@ -251,9 +251,9 @@ Expected:
 [OK] Worker started
 ```
 
-### 3. Jetson #2 (`192.168.1.205`) — worker only
+### 3. Jetson #2 (`192.168.1.204`) — worker only
 
-SSH: `ssh bvdung@192.168.1.205` — **same commands as Jetson #1** (stop old worker, `start_worker.sh`).
+SSH: `ssh bvdung@192.168.1.204` — **same commands as Jetson #1** (stop old worker, `start_worker.sh`).
 
 Jetson #2 does not run the ML driver; no `pkill SparkSubmit` usually needed unless a stale process exists.
 

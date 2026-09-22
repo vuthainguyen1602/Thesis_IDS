@@ -19,7 +19,7 @@ set -uo pipefail
 # ---- cluster config (from cluster/spark_cluster.env) ----
 MAC_IP=192.168.1.68
 J1=192.168.1.50            # jetson-nano-1
-J2=192.168.1.205           # jetson-nano-2
+J2=192.168.1.204           # jetson-nano-2
 U=bvdung
 JROOT=/home/$U/Thesis_IDS/jetson
 SSH="ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o ServerAliveInterval=30 -o ServerAliveCountMax=10"

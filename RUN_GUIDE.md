@@ -21,7 +21,7 @@ Step-by-step for **distributed cluster mode** (Mac + 2× Jetson Orin Nano Super 
 |------|-----|------|
 | Mac | `192.168.1.165` | Spark Master, Docker, sync/pull |
 | Jetson #1 | `192.168.1.50` | Worker + ML driver, `results/` |
-| Jetson #2 | `192.168.1.205` | Worker, edge classifier |
+| Jetson #2 | `192.168.1.204` | Worker, edge classifier |
 
 ---
 
@@ -102,7 +102,7 @@ Expected output:
 
 ### Step 3 — Jetson #2: start worker
 
-Same commands as Step 2, but SSH to `192.168.1.205`.
+Same commands as Step 2, but SSH to `192.168.1.204`.
 
 ### Step 4 — Mac: verify cluster
 

@@ -164,7 +164,7 @@ source cluster/load_cluster_env.sh
 # Expect: [OK] Worker started  →  spark://<MAC_IP>:7077 (4 cores, 5g)
 ```
 
-Repeat the same block on **Jetson #2** (`192.168.1.205`). Commands are identical; only the SSH target differs.
+Repeat the same block on **Jetson #2** (`192.168.1.204`). Commands are identical; only the SSH target differs.
 
 **Step 3 — Mac: health check**
 
@@ -566,7 +566,7 @@ Then collect paper/thesis artifacts:
 **Split deployment (lab IPs):**
 - **Mac** (`192.168.1.165`): Spark master, Docker (Kafka, PostgreSQL, InfluxDB, Grafana), `ml_00`, `save_model.py`
 - **Jetson #1** (`192.168.1.50`): Spark worker, PySpark ML driver, `results/`, edge `anomaly_gate`
-- **Jetson #2** (`192.168.1.205`): Spark worker, edge `classifier`
+- **Jetson #2** (`192.168.1.204`): Spark worker, edge `classifier`
 
 Jetson **does not need Docker** — set `.env` `KAFKA_BOOTSTRAP_SERVERS`, `POSTGRES_HOST`, `INFLUXDB_URL` to **MAC_IP**.
 

@@ -12,7 +12,7 @@ Guide for running the edge IDS on **two Jetson Orin Nano Super Developer Kits (8
 |------|-----|-------|
 | Mac | `192.168.1.165` | Spark Master, Docker — `MAC_IP` |
 | Jetson #1 | `192.168.1.50` | Driver + Worker, `anomaly_gate` |
-| Jetson #2 | `192.168.1.205` | Worker, `classifier` |
+| Jetson #2 | `192.168.1.204` | Worker, `classifier` |
 
 Check the Mac IP with `ipconfig getifaddr en0` — it must match `MAC_IP` in `cluster/spark_cluster.env` and `KAFKA_ADVERTISED_LISTENERS` in `docker-compose.yml`.
 
