@@ -20,7 +20,9 @@ Architecture and performance evaluation of a real-time distributed IDS on 2× NV
 | Jetson guide | `jetson/JETSON_DISTRIBUTED.md` |
 | Anomaly gate | `ml_08_anomaly_gate_autoencoder.py` |
 | Model export | `jetson/scripts/save_model.py` |
-| Benchmark | `jetson/scripts/benchmark.py` |
+| Benchmark (single node) | `jetson/scripts/benchmark.py` |
+| Benchmark (modes A/B/C, Table 3) | `jetson/scripts/benchmark_distributed.py` |
+| Benchmark (engines, Table 4) | `jetson/scripts/benchmark_engines.py` |
 | Env templates | `jetson/.env.jetson1.example`, `.env.jetson2.example` |
 
 ## Reproduce
@@ -31,6 +33,10 @@ Architecture and performance evaluation of a real-time distributed IDS on 2× NV
 export IDS_ROOT="$(pwd)"
 ./cluster/reproduce_cluster.sh soict
 ```
+
+This track trains the gate and exports the classifier. The paper's Spark-to-edge
+bridge table is read from `results/ml_07_cross_method_comparison/`, so run the
+`fair` or `thesis` track first if that folder is empty.
 
 **Step 2 — 2× Jetson Orin Nano Super (edge benchmark):**
 
