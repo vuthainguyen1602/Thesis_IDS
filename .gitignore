@@ -59,6 +59,8 @@ best_config.json
 # Edge runtime / models
 jetson/model/ids_pipeline*/
 jetson/model/*.pkl
+jetson/model/*.npz
+jetson/model/*.onnx
 jetson/.env
 cluster/spark_cluster.env
 
