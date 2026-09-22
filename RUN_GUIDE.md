@@ -149,10 +149,12 @@ To debug a single step instead:
 ./cluster/run_ml_remote.sh ml_01_baseline_all_features.py
 ```
 
-On first run, Jetson driver auto-installs: `xgboost`, `shap`, `scipy`. Log should show:
+On first run, `run_ml_remote.sh` installs `cluster/requirements_ml_driver.txt`
+(pandas, matplotlib, seaborn, pyarrow, xgboost, shap, scipy) on **both** Jetsons —
+executors run Python as well, not just the driver. Log should show:
 
 ```
-[OK] Core ML deps ready
+[OK] Core ML deps ready on driver
 [INFO] XGBoost backend available
 ```
 
@@ -180,16 +182,23 @@ Results live on Jetson #1 at `~/Thesis_IDS/results/` until pulled.
 
 ### ML script order (cluster)
 
+This is the order `run_all.sh` dispatches (`phase_offline`); the only hard
+constraints are ml_02/ml_06 before ml_07, and ml_07 before ml_03.
+
 | Order | Script | Notes |
 |-------|--------|-------|
-| 0 | `ml_00_prepare_cicids2017.py` | Mac only |
-| 1 | `ml_01_baseline_all_features.py` | 8 models (incl. XGBoost if deps OK) |
-| 2 | `ml_02_feature_selection_rf.py` | |
-| 3 | `ml_04_dimensionality_reduction_pca.py` | |
-| 4 | `ml_05_shap_explainability.py` | Needs xgboost + shap |
-| 5 | `ml_06_feature_selection_shap.py` | |
-| 6 | `ml_07_cross_method_comparison.py` | Run before ml_03 |
+| 0 | `ml_00_prepare_cicids2017.py` | Mac only, then `sync_workspace.sh` |
+| 1 | `ml_02_feature_selection_rf.py` | RF ranking — feeds ml_07 |
+| 2 | `ml_05_shap_explainability.py` | Needs xgboost + shap |
+| 3 | `ml_06_feature_selection_shap.py` | SHAP ranking — feeds ml_07 |
+| 4 | `ml_01_baseline_all_features.py` | 8 models (incl. XGBoost if deps OK) |
+| 5 | `ml_04_dimensionality_reduction_pca.py` | |
+| 6 | `ml_07_cross_method_comparison.py` | Writes `best_config.json`; run before ml_03 |
 | 7 | `ml_03_hyperparameter_tuning.py` | Reads `best_config.json` from ml_07 |
+| 8 | `ml_09_multiclass_eval.py` | Per-attack metrics + confusion matrix |
+| 9 | `ml_10_leakage_ablation.py` | `destination_port` keep/remove ablation |
+| 10 | `ml_11_cross_dataset_eval.py` | CICIDS2017 ↔ CSE-CIC-IDS2018 |
+| 11 | `ml_08_anomaly_gate_autoencoder.py` | Gate + operating curve; exports `jetson/model/anomaly_*.pkl` |
 
 ---
 

@@ -1,6 +1,8 @@
 # Distributed deployment: 1× Mac + 2× Jetson Orin Nano Super Developer Kit (8GB)
 
-All ML pipelines (`ml_01`–`ml_07`) and edge inference use a **Spark standalone cluster**.
+All ML pipelines (`ml_01`–`ml_11`) train on a **Spark standalone cluster**. Edge inference does
+*not*: each node builds a `local[*]` session unless `SPARK_MASTER=spark://<MAC_IP>:7077` is set,
+which only the Mode C benchmark does (`jetson/edge/role_pipelines.py:44`).
 
 **Mac = Spark Master + Docker (no training).**  
 **2× Jetson = Spark Workers (executors).**  
@@ -322,7 +324,10 @@ rsync -avz bvdung@192.168.1.50:~/Thesis_IDS/results/ ~/Desktop/Thesis_IDS/result
 
 ## ML dependencies on Jetson
 
-`setup_jetson.sh` installs edge deps. **`run_ml_remote.sh` auto-installs** the full driver set on first run:
+`setup_jetson.sh` installs edge deps. **`run_ml_remote.sh` auto-installs** the pinned set in
+`cluster/requirements_ml_driver.txt` (pandas, matplotlib, seaborn, pyarrow, xgboost, shap, scipy)
+on **both** Jetsons on first run — executors run Python too, not just the driver. The four that
+usually break a run:
 
 | Package | Purpose |
 |---------|---------|
@@ -426,7 +431,7 @@ exit
 | No XGBoost in ml_01 | `pip install pyarrow xgboost` on Jetson driver, or re-run `run_ml_remote.sh` after sync |
 | XGBoost `PyArrow >= 1.0.0 must be installed` | `pip install pyarrow` on Jetson driver |
 | No LightGBM anywhere | **By design** — LightGBM removed (x86_64-only, not deployable on ARM64 Jetson); use XGBoost/GBT |
-| MLP very slow | Expected; uses `[64,32,2]` + 80 iterations; prefer RF/GBT/XGBoost for speed |
+| MLP very slow | Expected; uses layers `[d,64,32,2]` + `maxIter=150`; prefer RF/GBT/XGBoost for speed |
 | pip `IncompleteRead` on Jetson | Install packages one-by-one |
 | `Missing parquet on Jetson` | `./cluster/sync_workspace.sh`; verify `IDS_MAC_ROOT` on Mac |
 | Kafka `NoBrokersAvailable` | Wait 30s after `docker compose up`; use `--bootstrap localhost:9092` on Mac |
