@@ -68,6 +68,12 @@ export IDS_EXP7_START_STEP="${IDS_EXP7_START_STEP:-1}"
 export IDS_EXP7_AGGREGATE_ONLY="${IDS_EXP7_AGGREGATE_ONLY:-0}"
 export IDS_EXP2_FULL="${IDS_EXP2_FULL:-0}"
 export IDS_EXP2_GBT="${IDS_EXP2_GBT:-0}"
+# ml_07 statistical track / ml_10 ablation knobs — without these the driver
+# silently falls back to defaults when they are set on the Mac.
+export IDS_STAT_SPLITS="${IDS_STAT_SPLITS:-6}"
+export IDS_TOST_MARGIN="${IDS_TOST_MARGIN:-0.001}"
+export IDS_ABLATION_MODELS="${IDS_ABLATION_MODELS:-all}"
+export IDS_ABLATION_HEADLINE="${IDS_ABLATION_HEADLINE:-Random Forest}"
 python "$SCRIPT" "$@"
 EOF
 
