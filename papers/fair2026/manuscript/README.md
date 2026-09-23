@@ -33,5 +33,5 @@ cd papers/fair2026/manuscript
 
 - [x] Author names, affiliations, emails
 - [x] Related work
-- [ ] Fill the `\ph{...}` placeholders with real values after running the pipeline on the Jetson cluster
+- [x] Fill the `\ph{...}` placeholders with real values — every empirical number now comes from `results/*.csv`; the `\ph{...}` left in the file are `\IfFileExists` fallbacks that only render when a figure has not been generated yet
 - [ ] Final format check against the [FAIR'2026](https://fair.conf.vn/) instructions

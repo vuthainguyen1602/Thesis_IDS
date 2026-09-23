@@ -4,9 +4,9 @@ Three Beamer decks built from the same results as the manuscripts and the thesis
 
 | Deck | Language | Length | Output PDF |
 |---|---|---|---|
-| `soict2026/` | English | 7 min (8 slides + 3 section pages + 5 backup) | `output/pdfs/SOICT2026_slides.pdf` |
-| `fair2026/` | English | 7 min (8 slides + 3 section pages + 5 backup) | `output/pdfs/FAIR2026_slides.pdf` |
-| `defense/` | Vietnamese | 15 min (16 slides + 5 section pages + 12 dự phòng) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
+| `soict2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/SOICT2026_slides.pdf` |
+| `fair2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/FAIR2026_slides.pdf` |
+| `defense/` | Vietnamese | 15 min (16 talk slides + 5 section pages + outline/refs/thanks + 13 backup frames for 12 questions = 39 pages) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
 
 ## Building
 
@@ -46,9 +46,11 @@ show up in the rendered PDF:
   otherwise overflow. Keep new tables wrapped the same way.
 - **Content that overruns the text area runs into the footer**, so the frame
   number gets printed on top of the last line. After editing, check the log:
-  `grep "Overfull \\\\vbox" <deck>/main.log` should show only the `\maketitle`
-  entry (~15.6 pt, metropolis' own title block, harmless). Anything above
-  ~11 pt on a content frame needs a line or two cut.
+  `grep "Overfull \\\\vbox" <deck>/main.log`. A few points of overrun stay
+  invisible; past ~11 pt the footer starts colliding with the last line and that
+  frame needs a line or two cut. All three decks are currently under that bar —
+  the worst entries are ~10.6 pt on the two *Key references* frames — so treat a
+  new entry above ~11 pt as something you introduced.
 
 - **An image constrained only by `height` can still be wider than the text
   block** and stick out sideways. Every `\includegraphics` here passes both
@@ -62,10 +64,11 @@ overflows the line.
 
 ## Slide numbering and backup navigation
 
-Backup slides sit after `\appendix` and section pages are `noframenumbering`,
-so the footer fraction counts only the talk itself (e.g. `5/8`) — neither
-inflates the denominator. Section titles are Roman-numbered and upper-case in
-all three decks.
+Backup slides sit after `\appendix`, where `appendixnumberbeamer` restarts the
+count, and metropolis' section page carries no footline at all, so neither
+inflates the denominator: the fraction runs `1/9 … 9/9` in the paper decks
+(8 talk slides + references) and `1/18 … 18/18` in the defense deck. Section
+titles are Roman-numbered and upper-case in all three decks.
 
 The defense deck opens its backup section with a **clickable index** keyed by
 the question a committee member is likely to ask, so the right slide is one

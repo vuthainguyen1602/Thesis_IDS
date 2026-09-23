@@ -22,8 +22,6 @@ fi
 
 source "$ENV_FILE"
 
-export IDS_SPARK_CLUSTER=1
-
 if [[ "${SPARK_MASTER:-}" != spark://* ]]; then
     echo "[ERR] SPARK_MASTER must be spark://<MAC_IP>:7077 in cluster/spark_cluster.env"
     exit 1

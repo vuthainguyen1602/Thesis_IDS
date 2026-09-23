@@ -13,8 +13,9 @@ cd papers/soict2026/manuscript
 ## TODO before submission
 
 - [x] Author names and affiliations
-- [ ] Architecture figure (`../figures/architecture.pdf`)
-- [ ] Table~\ref{tab:benchmark} from Jetson benchmarks
+- [x] Architecture figure — drawn inline with TikZ (Fig. 1), no `architecture.pdf` needed
+- [x] Table~\ref{tab:benchmark} filled from the Jetson benchmark JSONs in `../results/benchmarks/`
+- [ ] Flatten the submission package: `main.tex` still pulls `\input{../../../papers/latex/...}` (lines 17, 116) and `\bibliographystyle{../../latex/splncs04}` from outside `manuscript/`
 - [x] Verify SOICT page limit and formatting at [soict.org](https://soict.org/) — **verified 2026-07-02**:
   - SOICT 2026 proceedings: **Springer CCIS series**; papers must follow **LNCS/CCIS format** → current `llncs.cls` + `splncs04.bst` is correct.
   - Page limit: **max 12 pages excluding references**; PDF, **no page numbers**; single-blind (keep author names); language: English.

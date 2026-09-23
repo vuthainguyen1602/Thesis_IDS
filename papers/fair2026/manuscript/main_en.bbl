@@ -120,6 +120,12 @@ D.~Arp, E.~Quiring, F.~Pendlebury, A.~Warnecke, F.~Pierazzi, C.~Wressnegger,
 C.~Nadeau and Y.~Bengio, ``Inference for the generalization error,'' {\em
   Machine Learning}, vol.~52, no.~3, pp.~239--281, 2003.
 
+\bibitem{schuirmann1987tost}
+D.~J. Schuirmann, ``A comparison of the two one-sided tests procedure and the
+  power approach for assessing the equivalence of average bioavailability,''
+  {\em Journal of Pharmacokinetics and Biopharmaceutics}, vol.~15, no.~6,
+  pp.~657--680, 1987.
+
 \bibitem{csecicids2018}
 {Canadian Institute for Cybersecurity and Communications Security
   Establishment}, ``{CSE-CIC-IDS2018} dataset: A collaborative project between

@@ -110,8 +110,8 @@ def main():
     print("  SAVE COMPLETE")
     print("=" * 60)
     print(f"\n  Copy to Jetson:")
-    print(f"    scp -r {MODEL_DIR} pi@<rpi-ip>:~/jetson/model/")
-    print(f"\n  Model path on RPi: ./model/ids_pipeline_model")
+    print(f"    scp -r {MODEL_DIR}/* <user>@<jetson-ip>:~/Thesis_IDS/jetson/model/")
+    print(f"\n  Model path on the Jetson: ~/Thesis_IDS/jetson/model/ids_pipeline_model")
 
 
 if __name__ == "__main__":

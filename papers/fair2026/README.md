@@ -25,14 +25,16 @@ A systematic comparison of dimensionality-reduction and feature-selection method
 | `ml_07_cross_method_comparison.py` | 4-method comparison + drift/robustness |
 | `ml_09_multiclass_eval.py` | Per-attack multiclass + confusion matrix |
 | `ml_10_leakage_ablation.py` | `destination_port` leakage ablation |
+| `ml_11_cross_dataset_eval.py` | Cross-dataset generalization — needs CSE-CIC-IDS2018, run via `cluster/run_cross_dataset.sh` |
 
 ## Reproduce
 
-All experiments run on the distributed cluster (Mac + 2× Jetson). See [../../cluster/DISTRIBUTED_CLUSTER.md](../../cluster/DISTRIBUTED_CLUSTER.md).
+The distributed cluster (Mac + 2× Jetson) is how the reported numbers were produced — see [../../cluster/DISTRIBUTED_CLUSTER.md](../../cluster/DISTRIBUTED_CLUSTER.md). A single machine also works with `IDS_ALLOW_LOCAL_SPARK=1`, as the manuscript states.
 
 ```bash
 export IDS_ROOT="$(pwd)"
-./cluster/reproduce_cluster.sh fair     # dispatches ml_01..ml_10 to the Jetson workers
+./cluster/reproduce_cluster.sh fair     # ml_01, ml_02, ml_04-ml_07, ml_09, ml_10 on the Jetson workers
+./cluster/run_cross_dataset.sh          # ml_11 — only if CSE-CIC-IDS2018 is available
 ./cluster/pull_results.sh
 ./papers/fair2026/collect_results.sh
 ```

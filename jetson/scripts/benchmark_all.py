@@ -107,7 +107,7 @@ def main():
     from pyspark.sql import SparkSession
 
     print("\n" + "=" * 60)
-    print("  MULTI-MODEL RPi BENCHMARK")
+    print("  MULTI-MODEL JETSON BENCHMARK")
     print(f"  Samples: {args.samples} | Batch: {args.batch_size}")
     print("=" * 60)
 

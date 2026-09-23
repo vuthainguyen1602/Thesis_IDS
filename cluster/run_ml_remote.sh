@@ -30,7 +30,9 @@ echo "  Master:  ${SPARK_MASTER:?}"
 echo "  Script:  $SCRIPT_BASE"
 echo "================================================================"
 
-SSH_OPTS="${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10}"
+# Keepalives matter here: a training run can hold the connection for hours,
+# and a silent NAT/Wi-Fi timeout would SIGHUP the remote driver mid-run.
+SSH_OPTS="${CLUSTER_SSH_OPTS:--o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -o TCPKeepAlive=yes}"
 INSTALL_SCRIPT="$CLUSTER_DIR/install_ml_deps.sh"
 
 install_ml_deps_remote() {
@@ -54,7 +56,6 @@ python -c "import pandas, matplotlib, seaborn, pyarrow, xgboost, shap; print('[O
 export JAVA_HOME="\${JAVA_HOME:-\$(dirname "\$(dirname "\$(readlink -f "\$(which java)")")")}"
 export PATH="\$JAVA_HOME/bin:\$PATH"
 echo "[INFO] JAVA_HOME=\$JAVA_HOME"
-export IDS_SPARK_CLUSTER=1
 export IDS_ROOT="$REMOTE_ROOT"
 export IDS_CLUSTER_DATA_DIR="${IDS_CLUSTER_DATA_DIR:-$REMOTE_ROOT/data}"
 export SPARK_MASTER="${SPARK_MASTER}"
@@ -69,7 +70,14 @@ export IDS_EXP7_START_STEP="${IDS_EXP7_START_STEP:-1}"
 export IDS_EXP7_AGGREGATE_ONLY="${IDS_EXP7_AGGREGATE_ONLY:-0}"
 export IDS_EXP2_FULL="${IDS_EXP2_FULL:-0}"
 export IDS_EXP2_GBT="${IDS_EXP2_GBT:-0}"
-python "$SCRIPT" "$@"
+# ml_07 statistical track / ml_10 ablation knobs — without these the driver
+# silently falls back to defaults when they are set on the Mac.
+export IDS_STAT_SPLITS="${IDS_STAT_SPLITS:-6}"
+export IDS_TOST_MARGIN="${IDS_TOST_MARGIN:-0.001}"
+export IDS_STAT_RERANK_SPLITS="${IDS_STAT_RERANK_SPLITS:-0}"
+export IDS_ABLATION_MODELS="${IDS_ABLATION_MODELS:-all}"
+export IDS_ABLATION_HEADLINE="${IDS_ABLATION_HEADLINE:-Random Forest}"
+python -u "$SCRIPT" "$@"
 EOF
 
 echo ""

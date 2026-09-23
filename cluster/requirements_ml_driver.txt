@@ -1,4 +1,4 @@
-# ML driver dependencies on Jetson — full set (ml_01–ml_09, XGBoost, SHAP)
+# ML driver dependencies on Jetson — full set (ml_01–ml_11, XGBoost, SHAP)
 # run_ml_remote.sh auto-installs this file on first run.
 # NOTE: synapseml/LightGBM removed — x86_64-only native libs, not runnable on
 # the ARM64 Jetson Orin Nano Super target. Gradient boosting is covered by XGBoost / GBT.

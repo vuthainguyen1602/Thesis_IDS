@@ -91,6 +91,124 @@ def _eval(model, test_df) -> dict:
     return m
 
 
+# ── Unsupervised domain adaptation baselines ─────────────────────────────────
+# The cross-dataset rows above measure the gap. These two measure whether the
+# cheapest treatments close any of it, WITHOUT touching the trained classifier
+# and WITHOUT any label from the target domain — the only setting that is
+# honest for a detector already deployed on a new network.
+#
+#   scaler-refit : the source pipeline standardises the target with the SOURCE
+#                  mean/std. Since the two testbeds ran different CICFlowMeter
+#                  versions, part of the collapse may be scale mismatch rather
+#                  than a genuine shift. Refit only the StandardScaler on the
+#                  target's (unlabelled) training features.
+#   coral        : also align second-order statistics — whiten the target with
+#                  its own covariance, then recolour it with the source's, so
+#                  the classifier sees inputs shaped like what it was fitted on
+#                  (Sun et al., "Return of Frustratingly Easy Domain
+#                  Adaptation", AAAI 2016).
+ADAPT_ENABLED = os.environ.get("IDS_XD_ADAPT", "1") == "1"
+
+
+def _assembled(df, feature_cols):
+    return VectorAssembler(inputCols=feature_cols, outputCol="features_raw",
+                           handleInvalid="keep").transform(df)
+
+
+def _mean_cov(df_assembled):
+    """Mean vector and covariance matrix of the assembled feature column."""
+    import numpy as np
+    from pyspark.mllib.linalg import Vectors as MLlibVectors
+    from pyspark.mllib.linalg.distributed import RowMatrix
+
+    rdd = df_assembled.select("features_raw").rdd.map(
+        lambda r: MLlibVectors.dense(r[0].toArray()))
+    rm = RowMatrix(rdd)
+    mean = np.array(rm.computeColumnSummaryStatistics().mean())
+    cov = np.array(rm.computeCovariance().toArray())
+    return mean, cov
+
+
+def _sqrt_psd(mat, inverse=False, eps=1e-6):
+    """Symmetric PSD (inverse) square root via eigendecomposition."""
+    import numpy as np
+    vals, vecs = np.linalg.eigh(mat)
+    vals = np.clip(vals, eps, None)
+    vals = 1.0 / np.sqrt(vals) if inverse else np.sqrt(vals)
+    return (vecs * vals) @ vecs.T
+
+
+def _coral_map(src_stats, tgt_stats):
+    """Linear map sending TARGET features into the SOURCE feature space."""
+    mu_s, cov_s = src_stats
+    mu_t, cov_t = tgt_stats
+    W = _sqrt_psd(cov_t, inverse=True) @ _sqrt_psd(cov_s)
+    return mu_s, mu_t, W
+
+
+def _apply_linear_map(df_assembled, mu_s, mu_t, W):
+    import numpy as np
+    from pyspark.sql.functions import udf
+    from pyspark.ml.linalg import Vectors, VectorUDT
+
+    # Bind the arrays once: rebuilding them per row would dominate the cost of
+    # what is otherwise a 60x60 mat-vec.
+    a_mu_s = np.asarray(mu_s, dtype=float)
+    a_mu_t = np.asarray(mu_t, dtype=float)
+    a_W = np.asarray(W, dtype=float)
+
+    def _map(v):
+        return Vectors.dense((np.asarray(v.toArray(), dtype=float) - a_mu_t) @ a_W + a_mu_s)
+
+    return df_assembled.withColumn("features_raw", udf(_map, VectorUDT())("features_raw"))
+
+
+def _eval_adapted(model, test_assembled):
+    """Run the fitted scaler + classifier over an already-assembled frame."""
+    from pyspark.ml import PipelineModel
+
+    tail = PipelineModel(stages=[st for st in model.stages
+                                 if "VectorAssembler" not in type(st).__name__])
+    preds = tail.transform(test_assembled).cache()
+    preds.count()
+    m = compute_metrics(preds)
+    preds.unpersist()
+    return m
+
+
+def _eval_scaler_refit(model, target_train, target_test, feature_cols):
+    """Keep the classifier, restandardise with the target's own statistics."""
+    from pyspark.ml import PipelineModel
+
+    scaler_fit = StandardScaler(inputCol="features_raw", outputCol="features",
+                                withMean=True, withStd=True).fit(
+        _assembled(target_train, feature_cols))
+    clf = [st for st in model.stages if "Classification" in type(st).__name__][0]
+    preds = PipelineModel(stages=[scaler_fit, clf]).transform(
+        _assembled(target_test, feature_cols)).cache()
+    preds.count()
+    m = compute_metrics(preds)
+    preds.unpersist()
+    return m
+
+
+def _run_adaptation(model, source_train, target_train, target_test, feature_cols, tag):
+    """Both baselines for one direction; returns rows ready for the CSV."""
+    rows = []
+    m = _eval_scaler_refit(model, target_train, target_test, feature_cols)
+    rows.append({"adaptation": "scaler-refit (target statistics)", **m})
+    print(f"  {tag} | scaler-refit : F1={m.get('f1')}")
+
+    src_stats = _mean_cov(_assembled(source_train, feature_cols))
+    tgt_stats = _mean_cov(_assembled(target_train, feature_cols))
+    mu_s, mu_t, W = _coral_map(src_stats, tgt_stats)
+    mapped = _apply_linear_map(_assembled(target_test, feature_cols), mu_s, mu_t, W)
+    m = _eval_adapted(model, mapped)
+    rows.append({"adaptation": "CORAL (target -> source)", **m})
+    print(f"  {tag} | CORAL        : F1={m.get('f1')}")
+    return rows
+
+
 def main():
     spark = create_spark_session("IDS_Exp11_CrossDataset")
 
@@ -162,6 +280,33 @@ def main():
             "recall": m.get("recall"), "auc_pr": m.get("auc_pr"),
         })
         print(f"  {tr:>16} -> {te:<16} [{kind:9}] F1={m.get('f1')}")
+
+    # ── Domain adaptation (separate artefact; the rows above stay as published)
+    if ADAPT_ENABLED:
+        print("\n  Unsupervised domain adaptation (classifier untouched, no target labels):")
+        adapt_rows = []
+        for src, tgt, model, src_train, tgt_train, tgt_test in (
+            (NAME_A, NAME_B, model_A, trainA, trainB, testB),
+            (NAME_B, NAME_A, model_B, trainB, trainA, testA),
+        ):
+            baseline = next((r for r in rows if r["train"] == src and r["test"] == tgt), {})
+            for r in _run_adaptation(model, src_train, tgt_train, tgt_test, common,
+                                     f"{src} -> {tgt}"):
+                adapt_rows.append({
+                    "train": src, "test": tgt,
+                    "adaptation": r["adaptation"],
+                    "f1": r.get("f1"), "precision": r.get("precision"),
+                    "recall": r.get("recall"), "auc_pr": r.get("auc_pr"),
+                    "f1_no_adaptation": baseline.get("f1"),
+                    "delta_f1": (r.get("f1") or 0.0) - (baseline.get("f1") or 0.0),
+                })
+        if adapt_rows:
+            import pandas as _pd
+            adapt_df = _pd.DataFrame(adapt_rows)
+            adapt_path = os.path.join(OUT_DIR, "cross_dataset_adaptation.csv")
+            adapt_df.to_csv(adapt_path, index=False)
+            print(f"\n[INFO] Saved: {adapt_path}")
+            print(adapt_df.to_string(index=False))
 
     import pandas as pd
     df = pd.DataFrame(rows)

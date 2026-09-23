@@ -1,6 +1,8 @@
 # Distributed deployment: 1× Mac + 2× Jetson Orin Nano Super Developer Kit (8GB)
 
-All ML pipelines (`ml_01`–`ml_07`) and edge inference use a **Spark standalone cluster**.
+All ML pipelines (`ml_01`–`ml_11`) train on a **Spark standalone cluster**. Edge inference does
+*not*: each node builds a `local[*]` session unless `SPARK_MASTER=spark://<MAC_IP>:7077` is set,
+which only the Mode C benchmark does (`jetson/edge/role_pipelines.py:44`).
 
 **Mac = Spark Master + Docker (no training).**  
 **2× Jetson = Spark Workers (executors).**  
@@ -14,7 +16,7 @@ All ML pipelines (`ml_01`–`ml_07`) and edge inference use a **Spark standalone
 |------|-----|------|
 | **Mac** | `192.168.1.165` | Spark Master `:7077`, Web UI `:8080`, Docker (Kafka `:9092`, PostgreSQL, InfluxDB) |
 | **Jetson #1** | `192.168.1.50` | Spark Worker + **PySpark driver**, `anomaly_gate` edge |
-| **Jetson #2** | `192.168.1.205` | Spark Worker, `classifier` edge |
+| **Jetson #2** | `192.168.1.204` | Spark Worker, `classifier` edge |
 
 Verify Mac IP before editing config:
 
@@ -35,7 +37,8 @@ Spark UI (when cluster is up): http://192.168.1.165:8080 — expect **Alive Work
 | Jetson → Mac | 7077 | Spark Master |
 | Jetson → Mac | 8080 | Spark UI |
 | Jetson → Mac | 9092 | Kafka (edge) |
-| Mac → Jetson #1 | 22 | SSH driver (`run_ml_remote.sh`) |
+| Mac → Jetson #1 | 22 | SSH driver (`run_ml_remote.sh`), `pull_results.sh` |
+| Mac → Jetson #2 | 22 | SSH for `sync_workspace.sh`, `stop_cluster.sh`, executor dep install |
 | Executor ↔ Driver | dynamic | Spark shuffle (driver on Jetson #1) |
 
 **Mac on a different network (home vs lab) will not work** unless VPN bridges the subnets.
@@ -73,7 +76,7 @@ nc -zv <MAC_IP> 7077
                 │ spark:// + rsync              │
      ┌──────────┴──────────┐         ┌───────────┴──────────┐
      │  Jetson #1           │         │  Jetson #2           │
-     │  192.168.1.50        │         │  192.168.1.205       │
+     │  192.168.1.50        │         │  192.168.1.204       │
      │  Worker + Driver     │         │  Worker only         │
      │  results/ + model/   │         │  edge classifier     │
      │  anomaly_gate        │         │                      │
@@ -100,7 +103,7 @@ Edit the following:
 |----------|---------|-------|
 | `MAC_IP` | `192.168.1.165` | Mac: `ipconfig getifaddr en0` |
 | `JETSON1_IP` | `192.168.1.50` | Jetson #1: `hostname -I` |
-| `JETSON2_IP` | `192.168.1.205` | Jetson #2 |
+| `JETSON2_IP` | `192.168.1.204` | Jetson #2 |
 | `JETSON_SSH_USER` | `bvdung` | Not always `jetson` |
 | `JETSON2_ENABLED` | `1` | `0` = single-Jetson trial |
 | `IDS_MAC_ROOT` | `/Users/you/Desktop/Thesis_IDS` | Project path on **Mac** |
@@ -168,18 +171,18 @@ python ml_00_prepare_cicids2017.py   # Mac-only, one-time
 
 ```bash
 # cluster/spark_cluster.env
-export JETSON2_IP=192.168.1.205
+export JETSON2_IP=192.168.1.204
 export JETSON2_ENABLED=1
 ```
 
 ### 2. Setup Jetson #2
 
 ```bash
-ssh-copy-id bvdung@192.168.1.205
-ssh bvdung@192.168.1.205 "mkdir -p ~/Thesis_IDS/cluster"
-scp cluster/spark_cluster.env bvdung@192.168.1.205:~/Thesis_IDS/cluster/
+ssh-copy-id bvdung@192.168.1.204
+ssh bvdung@192.168.1.204 "mkdir -p ~/Thesis_IDS/cluster"
+scp cluster/spark_cluster.env bvdung@192.168.1.204:~/Thesis_IDS/cluster/
 
-ssh bvdung@192.168.1.205
+ssh bvdung@192.168.1.204
 cd ~/Thesis_IDS/jetson && ./scripts/setup_jetson.sh
 cd ~/Thesis_IDS && source cluster/load_cluster_env.sh && ./cluster/start_worker.sh
 ```
@@ -202,7 +205,7 @@ source cluster/load_cluster_env.sh
 | Jetson | IP | `.env` template | Role |
 |--------|-----|-----------------|------|
 | #1 | `192.168.1.50` | `.env.jetson1.example` | `EDGE_NODE_ROLE=anomaly_gate` |
-| #2 | `192.168.1.205` | `.env.jetson2.example` | `EDGE_NODE_ROLE=classifier` |
+| #2 | `192.168.1.204` | `.env.jetson2.example` | `EDGE_NODE_ROLE=classifier` |
 
 Both point Kafka/DB to `MAC_IP` (`192.168.1.165`). Details: [jetson/JETSON_DISTRIBUTED.md](../jetson/JETSON_DISTRIBUTED.md)
 
@@ -248,9 +251,9 @@ Expected:
 [OK] Worker started
 ```
 
-### 3. Jetson #2 (`192.168.1.205`) — worker only
+### 3. Jetson #2 (`192.168.1.204`) — worker only
 
-SSH: `ssh bvdung@192.168.1.205` — **same commands as Jetson #1** (stop old worker, `start_worker.sh`).
+SSH: `ssh bvdung@192.168.1.204` — **same commands as Jetson #1** (stop old worker, `start_worker.sh`).
 
 Jetson #2 does not run the ML driver; no `pkill SparkSubmit` usually needed unless a stale process exists.
 
@@ -322,7 +325,10 @@ rsync -avz bvdung@192.168.1.50:~/Thesis_IDS/results/ ~/Desktop/Thesis_IDS/result
 
 ## ML dependencies on Jetson
 
-`setup_jetson.sh` installs edge deps. **`run_ml_remote.sh` auto-installs** the full driver set on first run:
+`setup_jetson.sh` installs edge deps. **`run_ml_remote.sh` auto-installs** the pinned set in
+`cluster/requirements_ml_driver.txt` (pandas, matplotlib, seaborn, pyarrow, xgboost, shap, scipy)
+on **both** Jetsons on first run — executors run Python too, not just the driver. The four that
+usually break a run:
 
 | Package | Purpose |
 |---------|---------|
@@ -375,8 +381,8 @@ Or run individual scripts:
 
 | Variable | Role |
 |----------|------|
-| `IDS_SPARK_CLUSTER=1` | Enable cluster mode in `shared_utils.py` |
-| `SPARK_MASTER` | `spark://<MAC_IP>:7077` |
+| `SPARK_MASTER` | **The actual switch**: `spark://<MAC_IP>:7077` puts `create_spark_session()` on the cluster (`idslib/core.py:83`) |
+| `IDS_ALLOW_LOCAL_SPARK=1` | Escape hatch for the Mac-only steps; without it `require_distributed_spark()` refuses to run locally |
 | `SPARK_DRIVER_HOST` | Jetson #1 IP (`192.168.1.50`) |
 | `JETSON2_ENABLED` | `0` = skip SSH/sync/stop for Jetson #2 |
 | `IDS_MAC_ROOT` | Project root on Mac (sync source) |
@@ -386,7 +392,10 @@ Or run individual scripts:
 | `SPARK_DRIVER_MEMORY` | `3g` (driver on Jetson #1) |
 | `SPARK_SHUFFLE_PARTITIONS` | `32` (8 cores cluster) |
 
-**Mac-only** (local Spark OK): `ml_00`, `save_model.py` with `IDS_ALLOW_LOCAL_SPARK=1`.
+**Mac-only** (local Spark OK): `ml_00` and `save_model.py` — both set
+`IDS_ALLOW_LOCAL_SPARK=1` themselves (`ml_00_prepare_cicids2017.py:52`,
+`jetson/scripts/save_model.py:45`), so no cluster is needed for them. `run_all.sh`
+passes the same flag for its `local_mac` steps.
 
 ---
 
@@ -426,7 +435,7 @@ exit
 | No XGBoost in ml_01 | `pip install pyarrow xgboost` on Jetson driver, or re-run `run_ml_remote.sh` after sync |
 | XGBoost `PyArrow >= 1.0.0 must be installed` | `pip install pyarrow` on Jetson driver |
 | No LightGBM anywhere | **By design** — LightGBM removed (x86_64-only, not deployable on ARM64 Jetson); use XGBoost/GBT |
-| MLP very slow | Expected; uses `[64,32,2]` + 80 iterations; prefer RF/GBT/XGBoost for speed |
+| MLP very slow | Expected; uses layers `[d,64,32,2]` + `maxIter=150`; prefer RF/GBT/XGBoost for speed |
 | pip `IncompleteRead` on Jetson | Install packages one-by-one |
 | `Missing parquet on Jetson` | `./cluster/sync_workspace.sh`; verify `IDS_MAC_ROOT` on Mac |
 | Kafka `NoBrokersAvailable` | Wait 30s after `docker compose up`; use `--bootstrap localhost:9092` on Mac |
