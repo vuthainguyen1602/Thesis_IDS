@@ -74,6 +74,7 @@ export IDS_EXP2_GBT="${IDS_EXP2_GBT:-0}"
 # silently falls back to defaults when they are set on the Mac.
 export IDS_STAT_SPLITS="${IDS_STAT_SPLITS:-6}"
 export IDS_TOST_MARGIN="${IDS_TOST_MARGIN:-0.001}"
+export IDS_STAT_RERANK_SPLITS="${IDS_STAT_RERANK_SPLITS:-0}"
 export IDS_ABLATION_MODELS="${IDS_ABLATION_MODELS:-all}"
 export IDS_ABLATION_HEADLINE="${IDS_ABLATION_HEADLINE:-Random Forest}"
 python -u "$SCRIPT" "$@"

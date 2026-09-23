@@ -66,6 +66,10 @@ STAT_CLF_SEED = 42
 # from both sides is a meaningful "they are interchangeable" claim, unlike a
 # non-significant NHST p-value. Declared before looking at the result.
 STAT_TOST_MARGIN = float(os.environ.get("IDS_TOST_MARGIN", "0.001"))
+# Re-rank SHAP inside the first k resamplings to measure what the fixed,
+# once-computed ranking borrows from the test side. Off by default: each such
+# split costs an extra full-feature XGBoost fit plus the selected-feature one.
+STAT_RERANK_SPLITS = int(os.environ.get("IDS_STAT_RERANK_SPLITS", "0"))
 
 _META_ENSEMBLE_MARKERS = ("Bagging", "Ensemble", "Voting")
 
@@ -177,6 +181,12 @@ def _run_statistical_validity_track(
     # method -> list of F1 across splits (index-aligned => paired across methods).
     method_split_f1 = {m: [] for m in top_methods}
     method_split_metrics = {m: [] for m in top_methods}
+    rerank_rows = []
+    rerank_target = next((m for m in top_methods if METHODS[m]["type"] == "feature_selection"
+                          and "SHAP" in m), None)
+    if STAT_RERANK_SPLITS and rerank_target is None:
+        print("  [WARN] IDS_STAT_RERANK_SPLITS set but no SHAP-selected method is in the "
+              "tested pair — nothing to re-rank.")
 
     df = df.cache()  # scanned once per split below; materialise the union once
     df.count()
@@ -197,6 +207,35 @@ def _run_statistical_validity_track(
             )
             method_split_f1[method_name].append(float(m.get("f1", 0.0)))
             method_split_metrics[method_name].append(m)
+
+        if rerank_target is not None and i < STAT_RERANK_SPLITS:
+            # Same split, same model — the only change is that the feature
+            # ranking is refitted here instead of being carried in from the
+            # ranking computed once on the original training set.
+            top_k = METHODS[rerank_target]["top_k"]
+            try:
+                feats = _shap_topk_on(train_s, feature_cols, top_k, STAT_CLF_SEED)
+                _, _, m_rr = _train_single_named_model(
+                    {"type": "explicit", "features": feats}, method_model[rerank_target],
+                    feature_cols, train_s, test_s, seed=STAT_CLF_SEED,
+                )
+                fixed_f1 = method_split_f1[rerank_target][-1]
+                rr_f1 = float(m_rr.get("f1", 0.0))
+                fixed_feats = pd.read_csv(METHODS[rerank_target]["csv"]).head(top_k)[
+                    METHODS[rerank_target]["col"]].tolist()
+                overlap = len(set(feats) & set(fixed_feats))
+                rerank_rows.append({
+                    "split": i + 1, "seed": split_seed, "method": rerank_target,
+                    "f1_fixed_ranking": fixed_f1, "f1_reranked": rr_f1,
+                    "delta_f1": fixed_f1 - rr_f1,
+                    "feature_overlap": overlap, "top_k": top_k,
+                })
+                print(f"  [RERANK] split {i + 1}: fixed {fixed_f1:.6f} vs re-ranked "
+                      f"{rr_f1:.6f} (delta {fixed_f1 - rr_f1:+.6f}); "
+                      f"{overlap}/{top_k} features shared with the fixed ranking")
+            except Exception as e:
+                print(f"  [WARN] Re-ranking on split {i + 1} failed: {e}")
+
         train_s.unpersist(); test_s.unpersist()
 
     df.unpersist()
@@ -264,6 +303,16 @@ def _run_statistical_validity_track(
                   f"±{tost['min_margin']:.5f} F1")
         else:
             print("[WARN] TOST skipped (SciPy unavailable).")
+
+    if rerank_rows:
+        rr_df = pd.DataFrame(rerank_rows)
+        rr_path = os.path.join(output_dir, "statistical_validity_rerank.csv")
+        rr_df.to_csv(rr_path, index=False)
+        mean_delta = float(rr_df["delta_f1"].mean())
+        print(f"\n[INFO] Ranking-step leakage over {len(rr_df)} split(s): mean F1 "
+              f"advantage of the fixed ranking = {mean_delta:+.6f} "
+              f"(positive = the carried-over ranking flatters the method) -> {rr_path}")
+        print(rr_df.to_string(index=False))
 
     stats_df = pd.DataFrame(stats_records)
     stats_df["pvalue_vs_other_top_method"] = pvalue
@@ -348,6 +397,12 @@ def _build_method_transform(config, feature_cols):
         scaler = StandardScaler(inputCol="features_raw", outputCol="features_scaled", withStd=True, withMean=True)
         return assembler, scaler, extra_stages, "features_scaled", top_k
 
+    if config["type"] == "explicit":
+        selected_features = config["features"]
+        assembler = VectorAssembler(inputCols=selected_features, outputCol="features_raw", handleInvalid="keep")
+        scaler = StandardScaler(inputCol="features_raw", outputCol="features_scaled", withStd=True, withMean=True)
+        return assembler, scaler, extra_stages, "features_scaled", len(selected_features)
+
     if config["type"] == "pca":
         k = config["k"]
         assembler = VectorAssembler(inputCols=feature_cols, outputCol="features_raw", handleInvalid="keep")
@@ -357,6 +412,51 @@ def _build_method_transform(config, feature_cols):
         return assembler, scaler, extra_stages, "pca_features", k
 
     raise ValueError(f"Unknown method type: {config['type']}")
+
+
+def _shap_topk_on(train_df, feature_cols, top_k: int, seed: int, sample_size: int = 2000):
+    """Rank features by mean |SHAP| on THIS split's training data only.
+
+    Same recipe as ml_06 (XGBoost over all features, class-stratified sample,
+    attributions taken in the fitted scaler's space), but refitted per split so
+    the ranking never sees the rows it will later be evaluated on. Used to
+    measure how much the fixed, once-computed ranking borrows from the test
+    side of a resampling.
+    """
+    import shap
+    from pyspark.ml.functions import vector_to_array
+    from idslib.data import stratified_sample
+
+    class_counts = train_df.groupBy("label_binary").count().collect()
+    count_map = {row["label_binary"]: row["count"] for row in class_counts}
+    benign, attack = count_map.get(0, 0), count_map.get(1, 0)
+    spw = float(benign) / float(attack) if attack > 0 else 1.0
+
+    assembler = VectorAssembler(inputCols=feature_cols, outputCol="features_raw", handleInvalid="keep")
+    scaler = StandardScaler(inputCol="features_raw", outputCol="features_scaled", withStd=True, withMean=True)
+    clf = get_classifiers(features_col="features_scaled", label_col="label_binary",
+                          num_features=len(feature_cols), scale_pos_weight=spw, seed=seed)["XGBoost"]
+    model = Pipeline(stages=[assembler, scaler, clf]).fit(add_class_weights(train_df, spw))
+
+    fitted_assembler = fitted_scaler = xgb_stage = None
+    for stage in model.stages:
+        name = type(stage).__name__
+        if "VectorAssembler" in name:
+            fitted_assembler = stage
+        elif "StandardScaler" in name:
+            fitted_scaler = stage
+        elif "XGB" in name:
+            xgb_stage = stage
+    if fitted_assembler is None or fitted_scaler is None or xgb_stage is None:
+        raise RuntimeError("Re-ranking pipeline is missing a stage needed for SHAP")
+
+    sample_df = stratified_sample(train_df, feature_cols + ["label_binary"], "label_binary", sample_size)
+    scaled = fitted_scaler.transform(fitted_assembler.transform(sample_df))
+    X = np.array(scaled.select(vector_to_array("features_scaled").alias("x"))
+                 .toPandas()["x"].tolist(), dtype=np.float64)
+    values = shap.TreeExplainer(xgb_stage.get_booster())(X).values
+    order = np.argsort(np.abs(values).mean(axis=0))[::-1]
+    return [feature_cols[i] for i in order[:top_k]]
 
 
 def _train_single_named_model(method_cfg, model_name, feature_cols, train_df, test_df, seed: int):
