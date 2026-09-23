@@ -277,6 +277,34 @@ Loại \texttt{destination\_port} (đề xuất) & 0{,}9955 & 0{,}9961 & 0{,}999
 % và lượt đề xuất mặc định — rồi điền Delta F1 vào bảng.)
 Cả hai lượt dùng cùng một cấu hình Random Forest cố định từ trước (200 cây, độ sâu 15, trọng số lớp, khớp Bảng~\ref{tab:model_parameters}) để cô lập đúng ảnh hưởng của đặc trưng rò rỉ. Mức chênh lệch F1 giữa hai hàng phản ánh phần hiệu năng bị thổi phồng do đặc trưng rò rỉ. Ở đây mức chênh nhỏ vì đã loại trùng lặp trước và tác vụ nhị phân gần bão hòa, nhưng chiều hướng (giữ cổng cho F1/recall cao hơn) vẫn nhất quán với hiện tượng rò rỉ. Mọi kết quả khác trong luận văn dùng cấu hình đã loại cổng.
 
+\textbf{Ảnh hưởng của cổng đích thay đổi theo họ mô hình.} Con số $\approx$0{,}001 ở trên là đặc tính của họ cây chứ không phải của bộ dữ liệu. Khi lặp lại đúng hai lượt đó trên cùng một phép chia cho cả tám thuật toán (Bảng~\ref{tab:leakage_by_model}, Hình~\ref{fig:leakage_by_model}), mức thổi phồng trải trên gần hai bậc độ lớn: các mô hình cây chỉ được lợi $+0{,}0007$ đến $+0{,}0017$ điểm F1, trong khi \ac{svm} và Logistic Regression được lợi tới $+0{,}0415$ và $+0{,}0395$, tức gấp khoảng 40 lần. Thứ tự này bám theo năng lực biểu diễn của mô hình: các ensemble cây dựng lại được cùng một biên quyết định từ các thống kê hành vi của luồng nên gần như không cần đến cổng, còn mô hình tuyến tính không đủ năng lực làm vậy nên bám vào cổng như một chỉ báo định danh dịch vụ. Hệ quả về phương pháp luận: \emph{không thể suy ra mức rò rỉ của một lớp mô hình từ phép đo trên một mô hình đại diện khác}, và con số nhỏ báo cáo ở Bảng~\ref{tab:leakage_ablation} là con số trung thực cho cấu hình được triển khai, không phải bằng chứng rằng đặc trưng này vô hại nói chung.
+
+\begin{table}[htbp]
+\centering
+\caption[Ảnh hưởng của \texttt{destination\_port} theo từng thuật toán]{Mức thổi phồng F1 do \texttt{destination\_port} theo từng thuật toán; hai lượt huấn luyện trên cùng một phép chia}
+\label{tab:leakage_by_model}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
+\toprule
+\textbf{Thuật toán} & \textbf{F1 (loại cổng)} & \textbf{F1 (giữ cổng)} & \textbf{$\Delta$F1} \\ \midrule
+\ac{svm} (LinearSVC)   & 0{,}7859 & 0{,}8274 & $+0{,}0415$ \\
+Logistic Regression    & 0{,}7986 & 0{,}8381 & $+0{,}0395$ \\
+\ac{nb}                & 0{,}2985 & 0{,}3093 & $+0{,}0108$ \\
+MLP                    & 0{,}9660 & 0{,}9711 & $+0{,}0052$ \\
+\ac{gbt}               & 0{,}9924 & 0{,}9941 & $+0{,}0017$ \\
+Decision Tree          & 0{,}9953 & 0{,}9966 & $+0{,}0014$ \\
+Random Forest          & 0{,}9954 & 0{,}9964 & $+0{,}0010$ \\
+\ac{xgb}               & 0{,}9972 & 0{,}9979 & $+0{,}0007$ \\ \bottomrule
+\end{tabular*}
+\tabnote{Đây là một lượt chạy độc lập với Bảng~\ref{tab:leakage_ablation}: hàng Random Forest lệch khoảng $1\times10^{-4}$ so với bảng đó do dao động giữa các lần chạy Spark (phân vùng dữ liệu và thứ tự cộng dồn số thực), không phải do khác phương pháp; kết luận về mức chênh $\approx$0{,}001 không đổi.}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \IfFileExists{img/leakage_ablation_by_model.png}{\includegraphics[width=0.9\textwidth]{img/leakage_ablation_by_model.png}}{\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.2cm}\ph{Biểu đồ ảnh hưởng cổng đích theo mô hình --- chạy ml\_10\_leakage\_ablation.py}\vspace{1.2cm}}}}
+    \caption[Mức thổi phồng F1 do \texttt{destination\_port} theo từng thuật toán]{Mức thổi phồng F1 do \texttt{destination\_port} theo từng thuật toán: mô hình tuyến tính phụ thuộc cổng nặng hơn hẳn các ensemble cây}
+    \label{fig:leakage_by_model}
+\end{figure}
+
 \subsection{Phân tích hiệu năng hệ thống}
 Bên cạnh độ chính xác, hiệu năng hệ thống về thời gian và tài nguyên là yếu tố quyết định khả năng triển khai thực tế.
 Kết quả trong Bảng~\ref{tab:exp0_system_performance} cho thấy:

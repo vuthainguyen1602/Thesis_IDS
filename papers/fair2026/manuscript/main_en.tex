@@ -235,33 +235,31 @@ CICIDS2017; an 80/20 training/test split after leakage removal (Section~\ref{sec
 
 \subsection{Port-feature ablation}
 
-Table~\ref{tab:port-ablation} and Figure~\ref{fig:leakage-ablation} quantify the impact of \texttt{destination\_port}, using a Random Forest fixed a priori per the Table~\ref{tab:hparams} configuration (class-weighted; binary task). After feature-level deduplication, the port's isolated effect is small: binary F1 is 0.9965 with the port and 0.9955 without it (a $\approx$0.001 gap): the in-domain binary task is near saturation and the dominant leakage source (duplicate flows) is already handled; the direction (keeping the port yields slightly higher F1/recall) is nonetheless consistent with leakage. All subsequent results use the port-removed configuration.
+Table~\ref{tab:port-ablation} quantifies the impact of \texttt{destination\_port}, using a Random Forest fixed a priori per the Table~\ref{tab:hparams} configuration (class-weighted; binary task). After feature-level deduplication, the port's isolated effect is small: binary F1 is 0.9965 with the port and 0.9955 without it (a $\approx$0.001 gap; recall 0.9988 vs.\ 0.9961, AUC-PR 0.9999 vs.\ 0.9997): the in-domain binary task is near saturation and the dominant leakage source (duplicate flows) is already handled; the direction (keeping the port yields slightly higher F1/recall) is nonetheless consistent with leakage. All subsequent results use the port-removed configuration.
+
+That $\approx$0.001 gap belongs to the tree family, not to the dataset: across all eight classifiers (Table~\ref{tab:port-ablation}) the inflation spans $+0.0007$ (XGBoost) to $+0.0415$ (SVM), because the linear models lean on the port as a service identifier where the tree ensembles recover the same boundary from behavioural statistics. An ablation on one model does not bound the leak for another model class.
+
 
 \begin{table}[htbp]
-  \caption{Impact of the leaking feature \texttt{destination\_port} (Random Forest, binary task).}
+  \caption{F1 inflation from \texttt{destination\_port} per classifier; both arms trained on the same split (binary task).}
   \label{tab:port-ablation}
   \centering
   \footnotesize
   \begin{tabular}{lccc}
     \toprule
-    Configuration & F1 & Recall (Attack) & AUC-PR \\
+    Model & F1 (no port) & F1 (port) & $\Delta$F1 \\
     \midrule
-    Keep port & 0.9965 & 0.9988 & 0.9999 \\
-    Remove port (proposed) & 0.9955 & 0.9961 & 0.9997 \\
+    SVM (LinearSVC)     & 0.7859 & 0.8274 & $+0.0415$ \\
+    Logistic Regression & 0.7986 & 0.8381 & $+0.0395$ \\
+    Naive Bayes         & 0.2985 & 0.3093 & $+0.0108$ \\
+    MLP                 & 0.9660 & 0.9711 & $+0.0052$ \\
+    GBT                 & 0.9924 & 0.9941 & $+0.0017$ \\
+    Decision Tree       & 0.9953 & 0.9966 & $+0.0014$ \\
+    Random Forest       & 0.9954 & 0.9964 & $+0.0010$ \\
+    XGBoost             & 0.9972 & 0.9979 & $+0.0007$ \\
     \bottomrule
   \end{tabular}
 \end{table}
-
-\begin{figure}[htbp]
-  \centering
-  \IfFileExists{../../../results/ml_10_leakage_ablation/leakage_ablation.png}{%
-    \includegraphics[width=0.74\columnwidth]{leakage_ablation.png}%
-  }{%
-    \fbox{\parbox{0.9\columnwidth}{\centering\vspace{1.2cm}\ph{Leakage ablation chart --- run ml\_10\_leakage\_ablation.py}\vspace{1.2cm}}}%
-  }
-  \caption{Impact of the leaking feature \texttt{destination\_port} (Random Forest, binary).}
-  \label{fig:leakage-ablation}
-\end{figure}
 
 \subsection{Comparison of the four dimensionality-reduction methods}
 
@@ -416,6 +414,7 @@ This paper compares four dimensionality-reduction strategies for IDS on Spark ML
 The authors declare no conflict of interest.
 
 {\footnotesize
+\setlength{\IEEEbibitemsep}{0pt}
 \bibliographystyle{ieeetr}
 \bibliography{references,../../latex/related_work}}
 
