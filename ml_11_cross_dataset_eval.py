@@ -129,20 +129,43 @@ def _mean_cov(df_assembled):
     return mean, cov
 
 
-def _sqrt_psd(mat, inverse=False, eps=1e-6):
-    """Symmetric PSD (inverse) square root via eigendecomposition."""
+def _sqrt_psd(mat, inverse=False, rel_eps=1e-8):
+    """Symmetric PSD (inverse) square root, with a RELATIVE eigenvalue floor.
+
+    An absolute floor is useless here: these features span fourteen orders of
+    magnitude (byte counts against ratios), so a 1e-6 cut leaves near-null
+    directions in place and the inverse root amplifies them by 1e8. Flooring at
+    a fraction of the largest eigenvalue keeps the map conditioned.
+    """
     import numpy as np
     vals, vecs = np.linalg.eigh(mat)
-    vals = np.clip(vals, eps, None)
+    floor = max(float(vals.max()), 0.0) * rel_eps
+    vals = np.clip(vals, floor if floor > 0 else 1e-12, None)
     vals = 1.0 / np.sqrt(vals) if inverse else np.sqrt(vals)
     return (vecs * vals) @ vecs.T
 
 
 def _coral_map(src_stats, tgt_stats):
-    """Linear map sending TARGET features into the SOURCE feature space."""
+    """Linear map sending TARGET features into the SOURCE feature space.
+
+    The alignment runs on CORRELATION matrices rather than raw covariances:
+    whitening a covariance whose diagonal spans 1e14 is numerically hopeless,
+    while correlations have a unit diagonal and are well conditioned. Scale is
+    restored afterwards with each domain's own standard deviations, so the
+    result is still the CORAL map — second-order alignment plus mean shift.
+    """
+    import numpy as np
     mu_s, cov_s = src_stats
     mu_t, cov_t = tgt_stats
-    W = _sqrt_psd(cov_t, inverse=True) @ _sqrt_psd(cov_s)
+    sd_s = np.sqrt(np.clip(np.diag(cov_s), 0, None))
+    sd_t = np.sqrt(np.clip(np.diag(cov_t), 0, None))
+    # Constant features carry no information to align; map them through as-is.
+    sd_s_safe = np.where(sd_s > 0, sd_s, 1.0)
+    sd_t_safe = np.where(sd_t > 0, sd_t, 1.0)
+    corr_s = cov_s / np.outer(sd_s_safe, sd_s_safe)
+    corr_t = cov_t / np.outer(sd_t_safe, sd_t_safe)
+    align = _sqrt_psd(corr_t, inverse=True) @ _sqrt_psd(corr_s)
+    W = (align / sd_t_safe[:, None]) * sd_s_safe[None, :]
     return mu_s, mu_t, W
 
 

@@ -77,6 +77,13 @@ export IDS_TOST_MARGIN="${IDS_TOST_MARGIN:-0.001}"
 export IDS_STAT_RERANK_SPLITS="${IDS_STAT_RERANK_SPLITS:-0}"
 export IDS_ABLATION_MODELS="${IDS_ABLATION_MODELS:-all}"
 export IDS_ABLATION_HEADLINE="${IDS_ABLATION_HEADLINE:-Random Forest}"
+# ml_11 reads its two dataset roots from these; without them it looks for a
+# data_2017/ that does not exist (the 2017 parquet lives in data/).
+export IDS_XD_DIR_A="${IDS_XD_DIR_A:-$REMOTE_ROOT/data}"
+export IDS_XD_DIR_B="${IDS_XD_DIR_B:-$REMOTE_ROOT/data_2018}"
+export IDS_XD_NAME_A="${IDS_XD_NAME_A:-CICIDS2017}"
+export IDS_XD_NAME_B="${IDS_XD_NAME_B:-CSE-CIC-IDS2018}"
+export IDS_XD_MAX_MEMORY_MB="${IDS_XD_MAX_MEMORY_MB:-128}"
 python -u "$SCRIPT" "$@"
 EOF
 
