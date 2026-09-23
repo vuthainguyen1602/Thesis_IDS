@@ -309,7 +309,16 @@ def query_postgres_final_throughput(window_minutes: int,
 def query_postgres_gate_skip(window_minutes: int,
                              start_epoch: float | None = None,
                              end_epoch: float | None = None) -> dict:
-    """Estimate gate skip ratio from stored predictions."""
+    """Gate-skip ratio = flows the gate filtered / all final verdicts.
+
+    The denominator is every row ``predictions`` holds for the load window, i.e.
+    the same rows :func:`query_postgres_final_throughput` counts: one per flow,
+    written at the stage that issued its final verdict. An earlier version
+    filtered the denominator on ``route IS NULL OR prediction = 1``, which kept
+    gate skips and attack verdicts but dropped the classifier's *benign*
+    verdicts on forwarded flows -- the ratio then came out slightly high (95.6
+    instead of 95.47 on the published split run).
+    """
     try:
         import psycopg2
     except ImportError:
@@ -333,11 +342,7 @@ def query_postgres_gate_skip(window_minutes: int,
                     COUNT(*) FILTER (
                         WHERE raw_features->>'route' = 'anomaly_gate_only'
                     ) AS benign_skipped,
-                    COUNT(*) FILTER (
-                        WHERE raw_features->>'route' = 'anomaly_gate_only'
-                           OR raw_features->>'route' IS NULL
-                           OR prediction = 1
-                    ) AS total_gate_events
+                    COUNT(*) AS total_gate_events
                 FROM predictions
                 WHERE timestamp >= %s AND timestamp <= %s
                 """,
@@ -721,8 +726,10 @@ def cmd_node_power(args: argparse.Namespace) -> None:
     Start this on EACH Jetson before the orchestrator sends load, with
     --duration >= warmup + load duration. It measures the idle baseline first,
     then samples tegrastats for the window and reports raw + idle-subtracted
-    (active) energy. In pipeline-split mode the paper figure is the SUM of both
-    nodes' active energy divided by the number of classified flows.
+    (active) energy. The paper's per-mode figure is the SUM of the participating
+    boards' average total-board power divided by verdict throughput; at 100
+    flows/s the active delta is below the tegrastats noise floor, so it is the
+    raw figure that is comparable across modes.
     """
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from edge.power_monitor import PowerMonitor, measure_idle_power

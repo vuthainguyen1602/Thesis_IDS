@@ -816,6 +816,59 @@ def paired_cohens_d(scores_a: list, scores_b: list) -> float:
     return float(np.mean(diffs)) / sd
 
 
+def tost_equivalence(scores_a: list, scores_b: list, margin: float = 0.001,
+                     nb_test_train_ratio: float = None, alpha: float = 0.05) -> dict:
+    """Two one-sided tests (TOST) for *practical equivalence* of paired scores.
+
+    A non-significant NHST p-value never establishes equivalence — it only fails
+    to establish a difference. TOST turns the question around: it rejects
+    "the true difference is at least ``margin``" from both sides, so a small
+    p-value is positive evidence that the two configurations are interchangeable
+    within that margin. This is the right test when the point of the comparison
+    is that a cheaper configuration loses nothing that matters.
+
+    ``margin`` is the largest F1 difference still considered operationally
+    irrelevant; it is a decision, not an estimate, so it is stated up front.
+    With ``nb_test_train_ratio`` the standard error carries the Nadeau-Bengio
+    correction for overlapping resamples (same factor as the CI in
+    :func:`summarize_metric_runs`), which makes the test more conservative.
+
+    Returns mean_diff, se, p_tost (max of the two one-sided p-values),
+    equivalent (p_tost < alpha) and min_margin — the tightest margin this data
+    could have established at ``alpha``, i.e. the one-sided upper bound on
+    |mean_diff|.
+    """
+    out = {"margin": float(margin), "mean_diff": 0.0, "se": 0.0,
+           "p_tost": None, "equivalent": False, "min_margin": None}
+    if len(scores_a) != len(scores_b) or len(scores_a) < 2:
+        return out
+
+    diffs = np.array(scores_a, dtype=float) - np.array(scores_b, dtype=float)
+    n = len(diffs)
+    mean = float(np.mean(diffs))
+    sd = float(np.std(diffs, ddof=1))
+    se = sd * float(np.sqrt(1.0 / n + nb_test_train_ratio)) if nb_test_train_ratio \
+        else sd / float(np.sqrt(n))
+    out.update({"mean_diff": mean, "se": se})
+    if se == 0.0:
+        out.update({"p_tost": 0.0, "equivalent": abs(mean) < margin, "min_margin": abs(mean)})
+        return out
+
+    try:
+        from scipy import stats as _scipy_stats
+        df = n - 1
+        p_lower = float(_scipy_stats.t.sf((mean + margin) / se, df))   # H0: diff <= -margin
+        p_upper = float(_scipy_stats.t.cdf((mean - margin) / se, df))  # H0: diff >= +margin
+        p_tost = max(p_lower, p_upper)
+        t_one_sided = float(_scipy_stats.t.ppf(1.0 - alpha, df))
+        out.update({"p_tost": p_tost, "equivalent": p_tost < alpha,
+                    "min_margin": abs(mean) + t_one_sided * se})
+    except Exception:
+        # scipy missing: skip the p-value rather than approximate it
+        pass
+    return out
+
+
 def permutation_pvalue(scores_a: list, scores_b: list, n_permutations: int = 2000, seed: int = 42) -> float:
     """Two-sided paired sign-permutation p-value.
 

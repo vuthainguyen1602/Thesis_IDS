@@ -2694,6 +2694,37 @@
       \field{pages}{239\bibrangedash 281}
       \range{pages}{43}
     \endentry
+    \entry{schuirmann1987tost}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=5e0d2a24ac217d400b55711d59470ec5}{%
+           family={Schuirmann},
+           familyi={S\bibinitperiod},
+           given={Donald\bibnamedelima J.},
+           giveni={D\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \strng{namehash}{5e0d2a24ac217d400b55711d59470ec5}
+      \strng{fullhash}{5e0d2a24ac217d400b55711d59470ec5}
+      \strng{fullhashraw}{5e0d2a24ac217d400b55711d59470ec5}
+      \strng{bibnamehash}{5e0d2a24ac217d400b55711d59470ec5}
+      \strng{authorbibnamehash}{5e0d2a24ac217d400b55711d59470ec5}
+      \strng{authornamehash}{5e0d2a24ac217d400b55711d59470ec5}
+      \strng{authorfullhash}{5e0d2a24ac217d400b55711d59470ec5}
+      \strng{authorfullhashraw}{5e0d2a24ac217d400b55711d59470ec5}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Pharmacokinetics and Biopharmaceutics}
+      \field{number}{6}
+      \field{title}{A comparison of the two one-sided tests procedure and the power approach for assessing the equivalence of average bioavailability}
+      \field{volume}{15}
+      \field{year}{1987}
+      \field{pages}{657\bibrangedash 680}
+      \range{pages}{24}
+      \verb{doi}
+      \verb 10.1007/BF01068419
+      \endverb
+    \endentry
     \entry{dhooge2020interdataset}{article}{}{}
       \name{author}{4}{}{%
         {{hash=bebef7327217a9e8beeec0b90415e0f9}{%
@@ -2833,8 +2864,8 @@
       \strng{authornamehash}{9ad14fae09b617d96cb4af76c555b394}
       \strng{authorfullhash}{9ad14fae09b617d96cb4af76c555b394}
       \strng{authorfullhashraw}{9ad14fae09b617d96cb4af76c555b394}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{note}{\url{https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/}}
