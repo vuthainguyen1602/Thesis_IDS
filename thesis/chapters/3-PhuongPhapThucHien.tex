@@ -89,7 +89,7 @@ Số loại nhãn                     & 15 (1 nhãn bình thường + 14 loại 
 Phân bố nhị phân (sau làm sạch)  & $\sim$13{,}35 triệu Benign / $\sim$2{,}35 triệu Attack \\
 Phần dùng trong luận văn          & Mẫu phân tầng theo nhãn 20\% (\texttt{seed}=42), còn $\sim$2{,}39 triệu luồng sau khử trùng lặp mức đặc trưng \\
 Định dạng dữ liệu                & CSV (CICFlowMeter v3, tên cột ánh xạ về chuẩn CICIDS2017) \\
-Nguồn dữ liệu                    & \cite{CSECICIDS2018} \\
+Nguồn dữ liệu                    & \cite{csecicids2018} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -206,7 +206,7 @@ Trong quá trình tiền xử lý dữ liệu cho bài toán phát hiện xâm n
         \item $\lambda$ là giá trị riêng, biểu thị lượng phương sai được giải thích.
     \end{itemize}
 
-    Các thành phần chính có giá trị riêng lớn nhất sẽ được lựa chọn để tạo thành không gian đặc trưng mới với số chiều thấp hơn nhưng vẫn giữ được phần lớn thông tin của dữ liệu. Đây là phương pháp được sử dụng phổ biến trong phân tích dữ liệu đa biến và học máy để giảm chiều, loại bỏ nhiễu và trực quan hóa dữ liệu \cite{Jolliffe2002}.
+    Các thành phần chính có giá trị riêng lớn nhất sẽ được lựa chọn để tạo thành không gian đặc trưng mới với số chiều thấp hơn nhưng vẫn giữ được phần lớn thông tin của dữ liệu. Đây là phương pháp được sử dụng phổ biến trong phân tích dữ liệu đa biến và học máy để giảm chiều, loại bỏ nhiễu và trực quan hóa dữ liệu \cite{jolliffe2002pca}.
 
     \item \textbf{SHapley Additive exPlanations (\ac{shap})}: Là phương pháp giải thích mô hình dựa trên lý thuyết trò chơi, dùng để đo lường mức độ đóng góp của từng đặc trưng vào dự đoán của mô hình. \ac{shap} tính giá trị Shapley cho mỗi đặc trưng bằng cách xét trung bình đóng góp biên của đặc trưng đó trên tất cả các tập con có thể:
 
@@ -224,7 +224,7 @@ Trong quá trình tiền xử lý dữ liệu cho bài toán phát hiện xâm n
         \item $\phi_i$ là mức độ đóng góp của đặc trưng $i$ vào kết quả dự đoán.
     \end{itemize}
 
-    Các đặc trưng có giá trị \ac{shap} lớn (theo độ lớn tuyệt đối) được xem là có ảnh hưởng quan trọng hơn đến quyết định của mô hình. Phương pháp này được ứng dụng rộng rãi trong giải thích mô hình phức tạp như XGBoost, Random Forest, và mạng nơ-ron \cite{Lundberg2017}. 
+    Các đặc trưng có giá trị \ac{shap} lớn (theo độ lớn tuyệt đối) được xem là có ảnh hưởng quan trọng hơn đến quyết định của mô hình. Phương pháp này được ứng dụng rộng rãi trong giải thích mô hình phức tạp như XGBoost, Random Forest, và mạng nơ-ron \cite{lundberg2017unified}. 
 
 
     \item \textbf{Random Forest Feature Importance}: Thuật toán \ac{rf} có khả năng đánh giá tầm quan trọng của từng đặc trưng dựa trên mức độ đóng góp vào việc giảm độ bất thuần (impurity) tại các nút phân chia của cây quyết định. Độ quan trọng $I(f_j)$ của đặc trưng $f_j$ được tính như sau:

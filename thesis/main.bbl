@@ -66,7 +66,7 @@
       \range{pages}{22}
     \endentry
     \entry{ferrag2020deep}{article}{}{}
-      \name{author}{5}{}{%
+      \name{author}{4}{}{%
         {{hash=7dbd9685449b6f3ab794aa0705d9e743}{%
            family={Ferrag},
            familyi={F\bibinitperiod},
@@ -77,30 +77,25 @@
            familyi={M\bibinitperiod},
            given={Leandros},
            giveni={L\bibinitperiod}}}%
+        {{hash=5117894bcb32c92c37597ca21aafe3e6}{%
+           family={Moschoyiannis},
+           familyi={M\bibinitperiod},
+           given={Sotiris},
+           giveni={S\bibinitperiod}}}%
         {{hash=a21888b04086be611234eea6ad6b3e35}{%
            family={Janicke},
            familyi={J\bibinitperiod},
            given={Helge},
            giveni={H\bibinitperiod}}}%
-        {{hash=ffa47530aae2090f2dc514718c56edc2}{%
-           family={Jiang},
-           familyi={J\bibinitperiod},
-           given={Jianhua},
-           giveni={J\bibinitperiod}}}%
-        {{hash=4c0680f90ff1fc49345832d1f5ca90a8}{%
-           family={Shu},
-           familyi={S\bibinitperiod},
-           given={Lei},
-           giveni={L\bibinitperiod}}}%
       }
       \strng{namehash}{2269d84c1e9ed86aa06afcc75f81bf87}
-      \strng{fullhash}{1878f943ed59084cc8ac8317987de593}
-      \strng{fullhashraw}{1878f943ed59084cc8ac8317987de593}
-      \strng{bibnamehash}{1878f943ed59084cc8ac8317987de593}
-      \strng{authorbibnamehash}{1878f943ed59084cc8ac8317987de593}
+      \strng{fullhash}{984c0a094e4ebc01bfdc8281031fd8b1}
+      \strng{fullhashraw}{984c0a094e4ebc01bfdc8281031fd8b1}
+      \strng{bibnamehash}{984c0a094e4ebc01bfdc8281031fd8b1}
+      \strng{authorbibnamehash}{984c0a094e4ebc01bfdc8281031fd8b1}
       \strng{authornamehash}{2269d84c1e9ed86aa06afcc75f81bf87}
-      \strng{authorfullhash}{1878f943ed59084cc8ac8317987de593}
-      \strng{authorfullhashraw}{1878f943ed59084cc8ac8317987de593}
+      \strng{authorfullhash}{984c0a094e4ebc01bfdc8281031fd8b1}
+      \strng{authorfullhashraw}{984c0a094e4ebc01bfdc8281031fd8b1}
       \field{sortinit}{1}
       \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
@@ -2388,7 +2383,7 @@
       \field{pages}{108\bibrangedash 116}
       \range{pages}{9}
     \endentry
-    \entry{CSECICIDS2018}{misc}{}{}
+    \entry{csecicids2018}{misc}{}{}
       \name{author}{1}{}{%
         {{hash=1058d40895315e7134410bc6965459e5}{%
            family={{Canadian Institute for Cybersecurity and Communications Security Establishment}},
@@ -2560,7 +2555,7 @@
       \field{pages}{1157\bibrangedash 1182}
       \range{pages}{26}
     \endentry
-    \entry{Jolliffe2002}{book}{}{}
+    \entry{jolliffe2002pca}{book}{}{}
       \name{author}{1}{}{%
         {{hash=2d87c65d6bc93daaaf4c9f1e98b5e53a}{%
            family={Jolliffe},
@@ -2591,7 +2586,7 @@
       \verb 10.1007/b98835
       \endverb
     \endentry
-    \entry{Lundberg2017}{inproceedings}{}{}
+    \entry{lundberg2017unified}{inproceedings}{}{}
       \name{author}{2}{}{%
         {{hash=2a1075150e1e1dad8127b019f7ca9031}{%
            family={Lundberg},
@@ -3011,7 +3006,7 @@
       \verb 10.1109/UIC-ATC-ScalCom-CBDCom-IoP-SmartWorld.2016.0080
       \endverb
     \endentry
-    \entry{Kreps2011}{inproceedings}{}{}
+    \entry{kreps2011kafka}{inproceedings}{}{}
       \name{author}{3}{}{%
         {{hash=1eb7552c6ea712a30e5b05e6f943e688}{%
            family={Kreps},

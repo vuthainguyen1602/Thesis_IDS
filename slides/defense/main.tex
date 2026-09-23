@@ -364,12 +364,13 @@
         SHAP Top-30 & XGBoost & 0,99720 $\pm$ 0,00009 \\
         \midrule
         \multicolumn{3}{c}{\footnotesize hoán vị ghép cặp $p = 0{,}031$;\ $d \approx 1{,}94$} \\
+        \multicolumn{3}{c}{\footnotesize \key{TOST}: $p = 3{,}9\times10^{-6}$ (biên $\pm$0,001)} \\
         \bottomrule
       \end{tabular}
       }
-      \vspace{0.7em}
+      \vspace{0.3em}
 
-      \small
+      \footnotesize
       \fitwidth{%
       \begin{tabular}{lcc}
         \toprule
@@ -388,17 +389,23 @@
               $2/2^6$ $\rightarrow$ \key{bắt buộc $N \geq 6$}.
         \item Lấy mẫu \emph{chồng lấn} $\rightarrow$ kết luận theo khoảng tin
               cậy \key{Nadeau--Bengio}.
+        \item \key{TOST}: chênh lệch thật $<\pm2{,}3\times10^{-4}$ F1.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Chênh lệch tuyệt đối chỉ $\approx$0,0001 $\rightarrow$ hai cấu hình
-  \key{tương đương về mặt thực tiễn}. Tiêu chí phụ mới quyết định.}
+  \takeaway{TOST bác bỏ được khác biệt $\geq$0,001 F1 $\rightarrow$ hai cấu hình
+  \key{tương đương} theo nghĩa khẳng định. Tiêu chí phụ mới quyết định.}
   \note{Bảng hiện khoảng tin cậy $t$, còn khoảng Nadeau--Bengio rộng hơn
   (Baseline 0,99722--0,99746; SHAP Top-30 0,99705--0,99735) và mới là căn cứ
   kết luận chính --- luận văn trình bày cả hai cột.
   Nhấn mạnh: p nhỏ không đồng nghĩa khác biệt có ý nghĩa thực tiễn --- ở đây p = 0,031 chỉ vừa chạm ngưỡng sàn
   của độ phân giải kiểm định. Lấy mẫu chồng lấn vi phạm giả định độc lập của
-  phân phối t, nên Nadeau--Bengio là căn cứ chính.}
+  phân phối t, nên Nadeau--Bengio là căn cứ chính.
+  Nếu hội đồng hỏi ``sao dám nói tương đương'': đó chính là lý do có TOST ---
+  hai kiểm định một phía với biên 0,001 F1 khai báo TRƯỚC, dùng sai số
+  Nadeau--Bengio, cho p = 3,9e-6; biên chặt nhất dữ liệu chứng minh được ở
+  alpha = 0,05 là 2,3e-4 F1. Kiểm định ý nghĩa chỉ bác bỏ ``không khác biệt'',
+  còn TOST mới là bằng chứng khẳng định cho tương đương.}
 \end{frame}
 
 \begin{frame}{KQ4 --- Đánh giá đa lớp: F1 nhị phân che giấu điều quan trọng}
@@ -736,6 +743,8 @@
               $\rightarrow$ \hyperlink{bk-gate}{\key{Đường cong vận hành}}
         \item[\key{Q11}] Bằng chứng chạy thực tế
               $\rightarrow$ \hyperlink{bk-grafana}{\key{Grafana đỉnh tải}}
+        \item[\key{Q13}] Rò rỉ cổng theo từng mô hình
+              $\rightarrow$ \hyperlink{bk-portmodels}{\key{Ablation 8 thuật toán}}
       \end{itemize}
       \vspace{0.2em}
       \textbf{Kết luận}
@@ -1038,6 +1047,33 @@
   vốn còn nguyên các luồng trùng lặp (phần lớn là benign) nên tỷ lệ benign trong
   cửa sổ đo cao hơn. Cùng ngưỡng nhưng khác thành phần lưu lượng thì tỷ lệ bỏ qua
   khác nhau, nên số thực đo không phải một điểm nằm trên đường cong.}
+\end{frame}
+
+\begin{frame}[label=bk-portmodels]{Q13 --- Rò rỉ cổng đích phụ thuộc họ mô hình}
+  \centering\footnotesize
+  \fitwidth{%
+  \begin{tabular}{lccc}
+    \toprule
+    Thuật toán & F1 (loại cổng) & F1 (giữ cổng) & $\Delta$F1 \\
+    \midrule
+    SVM (LinearSVC)        & 0,7859 & 0,8274 & \bad{$+$0,0415} \\
+    Logistic Regression    & 0,7986 & 0,8381 & \bad{$+$0,0395} \\
+    Naive Bayes            & 0,2985 & 0,3093 & $+$0,0108 \\
+    MLP                    & 0,9660 & 0,9711 & $+$0,0052 \\
+    GBT                    & 0,9924 & 0,9941 & \good{$+$0,0017} \\
+    Decision Tree          & 0,9953 & 0,9966 & \good{$+$0,0014} \\
+    Random Forest          & 0,9954 & 0,9964 & \good{$+$0,0010} \\
+    XGBoost                & 0,9972 & 0,9979 & \good{$+$0,0007} \\
+    \bottomrule
+  \end{tabular}}
+  \par\vspace{0.2em}
+  \takeaway{Hai lượt trên cùng một phép chia. Mức thổi phồng trải gần hai bậc độ lớn
+  $\rightarrow$ \key{không suy được mức rò rỉ của lớp mô hình này từ mô hình khác}.}
+  \note{Đây là phần bổ sung theo góp ý phản biện FAIR. Con số 0,001 trong bảng
+  chính (Bảng ablation) là của Random Forest --- đúng nhưng chỉ đúng cho họ cây.
+  Trên SVM và Logistic Regression, cùng một đặc trưng rò rỉ đó thổi F1 lên gấp
+  khoảng 40 lần. Lý giải: cây dựng lại được biên quyết định từ thống kê hành vi
+  luồng nên không cần lối tắt cổng; mô hình tuyến tính thiếu năng lực đó.}
 \end{frame}
 
 \begin{frame}[label=bk-grafana]{Q11 --- Bất đối xứng tải lúc đỉnh tải (Grafana)}
