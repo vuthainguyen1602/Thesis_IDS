@@ -2383,7 +2383,7 @@
       \field{pages}{108\bibrangedash 116}
       \range{pages}{9}
     \endentry
-    \entry{CSECICIDS2018}{misc}{}{}
+    \entry{csecicids2018}{misc}{}{}
       \name{author}{1}{}{%
         {{hash=1058d40895315e7134410bc6965459e5}{%
            family={{Canadian Institute for Cybersecurity and Communications Security Establishment}},
@@ -2555,7 +2555,7 @@
       \field{pages}{1157\bibrangedash 1182}
       \range{pages}{26}
     \endentry
-    \entry{Jolliffe2002}{book}{}{}
+    \entry{jolliffe2002pca}{book}{}{}
       \name{author}{1}{}{%
         {{hash=2d87c65d6bc93daaaf4c9f1e98b5e53a}{%
            family={Jolliffe},
@@ -2586,7 +2586,7 @@
       \verb 10.1007/b98835
       \endverb
     \endentry
-    \entry{Lundberg2017}{inproceedings}{}{}
+    \entry{lundberg2017unified}{inproceedings}{}{}
       \name{author}{2}{}{%
         {{hash=2a1075150e1e1dad8127b019f7ca9031}{%
            family={Lundberg},
@@ -3006,7 +3006,7 @@
       \verb 10.1109/UIC-ATC-ScalCom-CBDCom-IoP-SmartWorld.2016.0080
       \endverb
     \endentry
-    \entry{Kreps2011}{inproceedings}{}{}
+    \entry{kreps2011kafka}{inproceedings}{}{}
       \name{author}{3}{}{%
         {{hash=1eb7552c6ea712a30e5b05e6f943e688}{%
            family={Kreps},
