@@ -67,11 +67,18 @@ fi
 if step sync_data; then
   # J1 has no SSH key for J2 — relay through the Mac (parquet is only a few
   # hundred MB, and we get a local copy of data_2018 as a bonus).
+  #
+  # --delete is not optional here. Spark names every part file with a fresh
+  # UUID, so re-preparing writes part-00000-<new-uuid>.parquet beside the old
+  # one instead of replacing it. Without --delete the destination accumulates
+  # BOTH generations: the directory silently holds each row twice, and because
+  # only the relayed copies grow, executors on different nodes end up reading
+  # different data from the same file:// path.
   echo "[sync] data_2018 J1 -> Mac"
-  rsync -az --progress -e "ssh $SSH_OPTS" \
+  rsync -az --delete --progress -e "ssh $SSH_OPTS" \
     "$CLUSTER_DRIVER:$REMOTE_ROOT/data_2018" "$ROOT/"
   echo "[sync] data_2018 Mac -> J2"
-  rsync -az --progress -e "ssh $SSH_OPTS" \
+  rsync -az --delete --progress -e "ssh $SSH_OPTS" \
     "$ROOT/data_2018" "$JETSON_SSH_USER@$JETSON2_IP:$REMOTE_ROOT/"
   mark sync_data
 fi
