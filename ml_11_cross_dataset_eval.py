@@ -47,6 +47,11 @@ NAME_A = os.environ.get("IDS_XD_NAME_A", "Dataset-A")
 NAME_B = os.environ.get("IDS_XD_NAME_B", "Dataset-B")
 RF_NUM_TREES = int(os.environ.get("IDS_XD_NUM_TREES", "200"))
 RF_MAX_DEPTH = int(os.environ.get("IDS_XD_MAX_DEPTH", "15"))
+# Classifier seed. Exposed so the same configuration can be re-run under
+# different seeds — and, just as usefully, twice under the SAME seed, which is
+# the only way to tell a seed-sensitive result apart from a pipeline that is
+# not deterministic at all.
+RF_SEED = int(os.environ.get("IDS_XD_SEED", "42"))
 
 
 def _with_class_weights(train_df):
@@ -74,7 +79,7 @@ def _fit(train_df, feature_cols):
                        withMean=True, withStd=True),
         RandomForestClassifier(featuresCol="features", labelCol="label_binary",
                                weightCol="class_weight",
-                               numTrees=RF_NUM_TREES, maxDepth=RF_MAX_DEPTH, seed=42,
+                               numTrees=RF_NUM_TREES, maxDepth=RF_MAX_DEPTH, seed=RF_SEED,
                                # Cap the per-iteration node-stats aggregation buffer:
                                # the default 256MB OOMs 4GB Jetson executors in
                                # findBestSplits on the ~1.9M-row IDS2018 fit.
@@ -254,7 +259,7 @@ def _labelled_target_rows(source_train, target_train, target_test, feature_cols,
         # of what arrives on the new network", so the slice should carry the
         # target's own attack ratio rather than a curated 50/50 split.
         slice_df = target_train.select(feature_cols + ["label_binary"]).sample(
-            withReplacement=False, fraction=frac, seed=42).cache()
+            withReplacement=False, fraction=frac, seed=42).cache()  # fixed: vary the forest, not the slice
         n_slice = slice_df.count()
         n_attack = slice_df.filter("label_binary = 1").count()
         print(f"  {tag} | labelled target {frac:.1%}: {n_slice:,} flows "
@@ -340,7 +345,7 @@ def main():
     for tr, te, kind, model, test_df in pairs:
         m = _eval(model, test_df)
         rows.append({
-            "train": tr, "test": te, "kind": kind,
+            "train": tr, "test": te, "kind": kind, "seed": RF_SEED,
             "f1": m.get("f1"), "precision": m.get("precision"),
             "recall": m.get("recall"), "auc_pr": m.get("auc_pr"),
         })
