@@ -238,6 +238,7 @@
       \strng{authornamehash}{1fd5b86f2d2d423b6ab6ae192edbe3b0}
       \strng{authorfullhash}{833a9a38016874568c88b63f1d6aaafa}
       \strng{authorfullhashraw}{833a9a38016874568c88b63f1d6aaafa}
+      \field{extraname}{1}
       \field{sortinit}{2}
       \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
@@ -2843,6 +2844,44 @@
       \range{pages}{1}
       \verb{doi}
       \verb 10.1016/j.bdr.2022.100359
+      \endverb
+    \endentry
+    \entry{sun2016coral}{inproceedings}{}{}
+      \name{author}{3}{}{%
+        {{hash=42b4adc0348faf8eb90a193ad3ef852f}{%
+           family={Sun},
+           familyi={S\bibinitperiod},
+           given={Baochen},
+           giveni={B\bibinitperiod}}}%
+        {{hash=ee4de6563d3aa74999c7a69f8f345e56}{%
+           family={Feng},
+           familyi={F\bibinitperiod},
+           given={Jiashi},
+           giveni={J\bibinitperiod}}}%
+        {{hash=df6dd5c482f41a42e672eecaa779020c}{%
+           family={Saenko},
+           familyi={S\bibinitperiod},
+           given={Kate},
+           giveni={K\bibinitperiod}}}%
+      }
+      \strng{namehash}{961350e2fd6860ce3694a5aefd579984}
+      \strng{fullhash}{cc5e7b91e6d7d6755b98fa45c0ac9de5}
+      \strng{fullhashraw}{cc5e7b91e6d7d6755b98fa45c0ac9de5}
+      \strng{bibnamehash}{cc5e7b91e6d7d6755b98fa45c0ac9de5}
+      \strng{authorbibnamehash}{cc5e7b91e6d7d6755b98fa45c0ac9de5}
+      \strng{authornamehash}{961350e2fd6860ce3694a5aefd579984}
+      \strng{authorfullhash}{cc5e7b91e6d7d6755b98fa45c0ac9de5}
+      \strng{authorfullhashraw}{cc5e7b91e6d7d6755b98fa45c0ac9de5}
+      \field{extraname}{2}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 30th AAAI Conference on Artificial Intelligence (AAAI)}
+      \field{title}{Return of Frustratingly Easy Domain Adaptation}
+      \field{year}{2016}
+      \verb{doi}
+      \verb 10.1609/aaai.v30i1.10306
       \endverb
     \endentry
     \entry{nvidia2019jetson}{misc}{}{}

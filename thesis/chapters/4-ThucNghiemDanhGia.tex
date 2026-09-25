@@ -426,6 +426,27 @@ CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & 0{,}0535 \\ \bottomrule
 
 \textbf{Diễn giải.} Kết quả cho thấy một tương phản rõ rệt: F1 cùng bộ rất cao ở cả hai chiều (0{,}9952 và 0{,}9245) nhưng F1 khác bộ giảm mạnh xuống 0{,}04--0{,}05, chủ yếu do recall gần bằng không (0{,}022 và 0{,}030) trong khi precision chiều 2017 sang 2018 vẫn đạt 0{,}596, tức mô hình gần như không nhận ra tấn công của bộ dữ liệu kia, chứ không tạo ra cảnh báo sai tràn lan. Nguyên nhân là dịch chuyển phân phối đặc trưng giữa hai testbed: khác phiên bản CICFlowMeter (thang đo và cách tính một số đặc trưng thay đổi), khác hạ tầng mạng và cấu hình dịch vụ, khác tổ hợp loại tấn công (HOIC/LOIC-HTTP của 2018 không có trong 2017). Sự sụt giảm này nhất quán với các nghiên cứu cross-dataset trên IDS dựa trên đặc trưng luồng~\cite{dhooge2020interdataset,cantone2024crossdataset,sarhan2022explainable}, và củng cố luận điểm trung tâm của luận văn: con số trong-miền gần hoàn hảo, kể cả khi đã loại rò rỉ, không bảo đảm khả năng triển khai sang môi trường khác. Đánh giá liên bộ dữ liệu phải là một phần bắt buộc của quy trình kiểm định IDS~\cite{goldschmidt2025datasets}, và các hướng thích ứng miền (chuẩn hóa theo miền, huấn luyện liên bộ, cập nhật theo drift) là điều kiện tiên quyết cho triển khai thực tế.
 
+\textbf{Thử hai kỹ thuật thích ứng miền không giám sát.} Câu hỏi tự nhiên tiếp theo là phần sụt giảm đó có phải chỉ do lệch thang đo giữa hai testbed hay không --- nếu đúng vậy thì một phép căn chỉnh tuyến tính là đủ để khắc phục. Luận văn kiểm chứng bằng hai kỹ thuật kinh điển, cả hai đều \emph{không dùng bất kỳ nhãn nào của miền đích} và \emph{không huấn luyện lại bộ phân loại}, tức đúng tình huống của một hệ đã triển khai gặp mạng mới: (i)~\emph{chuẩn hóa theo miền} --- giữ nguyên rừng cây, chỉ fit lại \texttt{StandardScaler} trên phần đặc trưng (không nhãn) của tập huấn luyện miền đích; (ii)~\emph{CORAL}~\cite{sun2016coral} --- làm trắng miền đích bằng hiệp phương sai của chính nó rồi ``tô'' lại bằng hiệp phương sai miền nguồn, tức căn khớp cả moment bậc hai. Kết quả ở Bảng~\ref{tab:cross_adapt}.
+
+\begin{table}[htbp]
+\centering
+\caption[Thích ứng miền không giám sát trên tác vụ liên bộ dữ liệu]{Hai kỹ thuật thích ứng miền không giám sát trên tác vụ liên bộ dữ liệu (bộ phân loại giữ nguyên, không dùng nhãn miền đích)}
+\label{tab:cross_adapt}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
+\toprule
+\textbf{Chiều} & \textbf{Cấu hình} & \textbf{F1} & \textbf{AUC-\ac{pr}} \\ \midrule
+\multirow{3}{*}{2017 $\rightarrow$ 2018} & Không thích ứng & 0{,}0423 & 0{,}4720 \\
+ & Chuẩn hóa theo miền & 0{,}0000 & 0{,}1742 \\
+ & CORAL & 0{,}0000 & 0{,}2130 \\ \midrule
+\multirow{3}{*}{2018 $\rightarrow$ 2017} & Không thích ứng & 0{,}0561 & 0{,}1994 \\
+ & Chuẩn hóa theo miền & 0{,}0000 & 0{,}0880 \\
+ & CORAL & 0{,}0000 & \textbf{0{,}2576} \\ \bottomrule
+\end{tabular*}
+\tabnote{Cùng một lượt chạy nên các dòng so sánh được với nhau; dòng ``không thích ứng'' chiều 2017$\rightarrow$2018 trùng khít Bảng~\ref{tab:cross_dataset} tới chữ số cuối, còn chiều 2018$\rightarrow$2017 lệch $2{,}6\times10^{-3}$ do dao động giữa các lần chạy. Ánh xạ CORAL được kiểm chứng giải tích: sau khi ánh xạ, trung bình và hiệp phương sai của miền đích khớp miền nguồn với sai số tương đối $4\times10^{-12}$.}
+\end{table}
+
+Cả hai kỹ thuật đều \emph{không} khôi phục được F1: sau khi căn chỉnh, mô hình gần như ngừng báo tấn công nên F1 về 0. Điều này bác bỏ giả thuyết ``chỉ lệch thang đo'': nếu dịch chuyển nằm ở moment bậc một và bậc hai thì hai phép căn chỉnh này đã đủ, nhưng thực tế phần khác biệt nằm ở \emph{phân phối có điều kiện} --- cái gì làm một luồng trở thành độc hại --- cùng với việc hai testbed dùng bộ công cụ tấn công không trùng nhau. Tuy vậy có một chi tiết đáng chú ý: ở chiều 2018$\rightarrow$2017, CORAL \emph{cải thiện} AUC-\ac{pr} từ 0{,}1994 lên 0{,}2576 trong khi F1 vẫn bằng 0. Nghĩa là phép căn chỉnh có làm \emph{thứ tự xếp hạng} tốt lên, nhưng ngưỡng quyết định 0{,}5 học từ miền nguồn không còn hiệu lực trong không gian đặc trưng đã đổi. Bài học rút ra cho triển khai thực tế: thích ứng miền cho \ac{ids} không thể dừng ở căn chỉnh đặc trưng mà phải kèm \emph{hiệu chỉnh lại ngưỡng} trên miền đích.
+
 \subsection{Đánh giá đa lớp theo loại tấn công}
 \label{sec:multiclass}
 Phân loại nhị phân (Benign/Attack) trên CICIDS2017 vốn dễ tách. Để bộc lộ điểm yếu thực sự, luận văn bổ sung đánh giá đa lớp theo từng loại tấn công gốc (precision/recall/F1 từng lớp, macro-F1, weighted-F1 và ma trận nhầm lẫn), gồm lớp Benign và 14 loại tấn công của CICIDS2017. Kết quả cho thấy tương phản rất rõ giữa hai chỉ số tổng hợp: weighted-F1 $\approx 0{,}998$ (bị chi phối bởi các lớp đa số) nhưng macro-F1 chỉ $\approx 0{,}806$. Đây là bằng chứng cho thấy độ chính xác nhị phân gần hoàn hảo đã che giấu hiệu năng phát hiện kém ở các lớp hiếm. Cụ thể, các lớp đa số (Benign, DoS Hulk, DDoS, PortScan) đạt F1 rất cao ($\geq 0{,}97$), trong khi các lớp cực hiếm suy giảm nghiêm trọng: Web Attack~-- XSS recall chỉ $0{,}027$, Web Attack~-- SQL Injection F1~$=0$ (chỉ 6 mẫu), Bot recall $0{,}46$. Đây là nơi khác biệt giữa các phương pháp lựa chọn đặc trưng thể hiện rõ nhất và cũng là hướng cần cải thiện (xử lý mất cân bằng, tăng cường dữ liệu lớp hiếm). Kết quả chi tiết theo từng lớp được trình bày trong Bảng~\ref{tab:per_class}, và ma trận nhầm lẫn đa lớp tương ứng được minh họa ở Hình~\ref{fig:confusion_matrix}.
