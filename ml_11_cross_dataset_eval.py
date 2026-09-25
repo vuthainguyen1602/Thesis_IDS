@@ -232,6 +232,48 @@ def _run_adaptation(model, source_train, target_train, target_test, feature_cols
     return rows
 
 
+# ── Supervised adaptation on a limited target-label budget ───────────────────
+# The two baselines above answer "can we transfer with no target label at all".
+# This one answers the question an operator actually asks: how much labelling
+# of the new network buys a usable detector. For each budget k we train from
+# scratch on the source plus a k-fraction of the TARGET's TRAINING split (never
+# the test split), and evaluate on the untouched target test split. The
+# target-only row is the control: if it matches the pooled row, the source data
+# is contributing nothing.
+#
+# Deliberately not called few-shot: at k=1% this is ~19k labelled flows, three
+# orders of magnitude past what that term means.
+TARGET_LABEL_FRACTIONS = [float(x) for x in
+                          os.environ.get("IDS_XD_TARGET_LABEL_FRAC", "").replace(" ", "").split(",") if x]
+
+
+def _labelled_target_rows(source_train, target_train, target_test, feature_cols, tag, baseline_f1):
+    rows = []
+    for frac in TARGET_LABEL_FRACTIONS:
+        # A plain k% draw, not a class-balanced one: the scenario is "label k%
+        # of what arrives on the new network", so the slice should carry the
+        # target's own attack ratio rather than a curated 50/50 split.
+        slice_df = target_train.select(feature_cols + ["label_binary"]).sample(
+            withReplacement=False, fraction=frac, seed=42).cache()
+        n_slice = slice_df.count()
+        n_attack = slice_df.filter("label_binary = 1").count()
+        print(f"  {tag} | labelled target {frac:.1%}: {n_slice:,} flows "
+              f"({n_attack:,} attacks)")
+
+        for name, train_df in (("source + target k%", source_train.unionByName(slice_df)),
+                               ("target k% only", slice_df)):
+            m = _eval(_fit(train_df, feature_cols), target_test)
+            rows.append({
+                "adaptation": f"{name} (k={frac:.3f})",
+                "labelled_target_flows": n_slice,
+                **{key: m.get(key) for key in ("f1", "precision", "recall", "auc_pr")},
+            })
+            print(f"  {tag} | {name:20s} k={frac:.1%} : F1={m.get('f1'):.4f} "
+                  f"(no adaptation {baseline_f1:.4f})")
+        slice_df.unpersist()
+    return rows
+
+
 def main():
     spark = create_spark_session("IDS_Exp11_CrossDataset")
 
@@ -323,6 +365,21 @@ def main():
                     "f1_no_adaptation": baseline.get("f1"),
                     "delta_f1": (r.get("f1") or 0.0) - (baseline.get("f1") or 0.0),
                 })
+        if TARGET_LABEL_FRACTIONS:
+            print("\n  Supervised adaptation on a labelled slice of the target's TRAIN split:")
+            for src, tgt, src_train, tgt_train, tgt_test in (
+                (NAME_A, NAME_B, trainA, trainB, testB),
+                (NAME_B, NAME_A, trainB, trainA, testA),
+            ):
+                base = next((r for r in rows if r["train"] == src and r["test"] == tgt), {})
+                for r in _labelled_target_rows(src_train, tgt_train, tgt_test, common,
+                                       f"{src} -> {tgt}", float(base.get("f1") or 0.0)):
+                    adapt_rows.append({
+                        "train": src, "test": tgt, **r,
+                        "f1_no_adaptation": base.get("f1"),
+                        "delta_f1": (r.get("f1") or 0.0) - (base.get("f1") or 0.0),
+                    })
+
         if adapt_rows:
             import pandas as _pd
             adapt_df = _pd.DataFrame(adapt_rows)
