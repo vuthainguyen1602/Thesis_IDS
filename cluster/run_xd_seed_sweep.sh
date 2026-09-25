@@ -36,6 +36,30 @@ mkdir -p "$OUT" "$LOGS"
 SEEDS="${SEEDS:-42 42 7 13}"
 REMOTE_CSV="${CLUSTER_DRIVER_IDS_ROOT}/results/ml_11_cross_dataset/cross_dataset_results.csv"
 
+# The worker JVMs on the 8GB boards have not survived every heavy run — they
+# were gone after three of the last four. An unattended sweep that does not
+# notice loses the rest of the night, so bring them back between runs.
+ensure_workers() {
+    local want="${1:-2}" ui="${SPARK_MASTER_WEBUI:-http://${MAC_IP:?}:8080}" n
+    n=$(curl -s -m 5 "${ui%/}/json/" 2>/dev/null \
+        | python3 -c 'import sys,json;print(json.load(sys.stdin).get("aliveworkers",0))' 2>/dev/null || echo 0)
+    [ "${n:-0}" -ge "$want" ] && { echo "[OK] ${n} worker(s) ALIVE"; return 0; }
+
+    echo "[WARN] only ${n:-0} worker(s) ALIVE — restarting"
+    for host in "${JETSON1_SSH:?}" ${JETSON2_ENABLED:+${JETSON2_SSH:-}}; do
+        ssh -o BatchMode=yes -o ConnectTimeout=10 "$host" \
+            'cd ~/Thesis_IDS && unset SPARK_HOME && setsid nohup ./cluster/start_worker.sh \
+             > /tmp/start_worker.log 2>&1 < /dev/null & disown' 2>/dev/null || true
+    done
+    for _ in $(seq 1 12); do
+        sleep 5
+        n=$(curl -s -m 5 "${ui%/}/json/" 2>/dev/null \
+            | python3 -c 'import sys,json;print(json.load(sys.stdin).get("aliveworkers",0))' 2>/dev/null || echo 0)
+        [ "${n:-0}" -ge "$want" ] && { echo "[OK] ${n} worker(s) ALIVE"; return 0; }
+    done
+    echo "[ERR] workers did not come back (${n:-0} alive)"; return 1
+}
+
 i=0
 for seed in $SEEDS; do
     i=$((i + 1))
@@ -44,6 +68,8 @@ for seed in $SEEDS; do
     echo "================================================================"
     echo "  Sweep $i/$(echo $SEEDS | wc -w | tr -d ' ')  —  seed=$seed  —  $label"
     echo "================================================================"
+
+    ensure_workers 2 || { echo "[SKIP] $label — no workers"; continue; }
 
     IDS_XD_SEED="$seed" IDS_XD_ADAPT=0 IDS_XD_TARGET_LABEL_FRAC="" \
         "$HERE/run_ml_remote.sh" ml_11_cross_dataset_eval.py \
