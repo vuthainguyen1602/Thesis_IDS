@@ -31,6 +31,23 @@ REMOTE_ROOT="${CLUSTER_DRIVER_IDS_ROOT:?}"
 step() { [ -f "$STATE/$1.done" ] && { echo "[skip] $1 (done)"; return 1; } || { echo ""; echo "===== STEP: $1 ====="; return 0; }; }
 mark() { touch "$STATE/$1.done"; }
 
+# Fail fast if the cluster has no workers. A submit against an empty master does
+# not error: the application simply sits in WAITING with 0 cores until someone
+# notices, which has cost a full hour here.
+check_workers() {
+  local ui="${SPARK_MASTER_WEBUI:-http://${MAC_IP:-127.0.0.1}:8080}"
+  local n
+  n=$(curl -s -m 5 "${ui%/}/json/" 2>/dev/null \
+      | python3 -c 'import sys,json;print(json.load(sys.stdin).get("aliveworkers",0))' 2>/dev/null)
+  if [ "${n:-0}" -lt 1 ]; then
+    echo "[ERR] Spark master at $ui reports ${n:-0} ALIVE workers."
+    echo "      Start them first: ssh <user>@<jetson> 'cd ~/Thesis_IDS && ./cluster/start_worker.sh'"
+    exit 1
+  fi
+  echo "[OK] ${n} Spark worker(s) ALIVE"
+}
+check_workers
+
 # ── 1a. raw 2018 CSVs -> Jetson#1 (NVMe has plenty of room; the full-data
 #        exact-dedup shuffle would exhaust the Mac's remaining disk) ────────
 if step sync_raw_2018; then

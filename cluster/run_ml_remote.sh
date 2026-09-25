@@ -23,6 +23,23 @@ if [ ! -f "$ROOT/$SCRIPT" ] && [ ! -f "$ROOT/$SCRIPT_BASE" ]; then
     exit 1
 fi
 
+# Fail fast if the cluster has no workers. A submit against an empty master does
+# not error: the application simply sits in WAITING with 0 cores until someone
+# notices, which has cost a full hour here.
+check_workers() {
+  local ui="${SPARK_MASTER_WEBUI:-http://${MAC_IP:-127.0.0.1}:8080}"
+  local n
+  n=$(curl -s -m 5 "${ui%/}/json/" 2>/dev/null \
+      | python3 -c 'import sys,json;print(json.load(sys.stdin).get("aliveworkers",0))' 2>/dev/null)
+  if [ "${n:-0}" -lt 1 ]; then
+    echo "[ERR] Spark master at $ui reports ${n:-0} ALIVE workers."
+    echo "      Start them first: ssh <user>@<jetson> 'cd ~/Thesis_IDS && ./cluster/start_worker.sh'"
+    exit 1
+  fi
+  echo "[OK] ${n} Spark worker(s) ALIVE"
+}
+check_workers
+
 echo "================================================================"
 echo "  Distributed ML run"
 echo "  Driver:  $DRIVER"
