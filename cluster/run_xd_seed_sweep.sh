@@ -46,10 +46,14 @@ ensure_workers() {
     [ "${n:-0}" -ge "$want" ] && { echo "[OK] ${n} worker(s) ALIVE"; return 0; }
 
     echo "[WARN] only ${n:-0} worker(s) ALIVE — restarting"
+    # The ssh session itself is backgrounded: start_worker.sh has a habit of
+    # holding the channel open even with nohup, and a blocked ssh would stall
+    # the sweep indefinitely. The daemon is detached remotely with setsid, so
+    # the master's own worker list is the thing to poll, not ssh's exit code.
     for host in "${JETSON1_SSH:?}" ${JETSON2_ENABLED:+${JETSON2_SSH:-}}; do
-        ssh -o BatchMode=yes -o ConnectTimeout=10 "$host" \
+        ssh -n -o BatchMode=yes -o ConnectTimeout=10 "$host" \
             'cd ~/Thesis_IDS && unset SPARK_HOME && setsid nohup ./cluster/start_worker.sh \
-             > /tmp/start_worker.log 2>&1 < /dev/null & disown' 2>/dev/null || true
+             > /tmp/start_worker.log 2>&1 < /dev/null & disown' >/dev/null 2>&1 &
     done
     for _ in $(seq 1 12); do
         sleep 5
