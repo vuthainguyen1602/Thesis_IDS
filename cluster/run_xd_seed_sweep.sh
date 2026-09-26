@@ -2,17 +2,20 @@
 # ---------------------------------------------------------------------------
 # Cross-dataset stability sweep.
 #
-# The cross-dataset F1 for CICIDS2017 -> CSE-CIC-IDS2018 has landed on two very
-# different values across runs of the same code on the same parquet: 0.042270
-# twice (bit-identical, and matching the published table) and 0.29-0.30 three
-# times. No configuration difference found so far explains the split.
+# What 12 runs of this sweep established, and what it is now kept for:
 #
-# This sweep is built to tell the two candidate explanations apart:
+# The cross-dataset F1 for CICIDS2017 -> CSE-CIC-IDS2018 is bimodal. Seven runs
+# landed at 0.029-0.084 (recall 0.015-0.045) and five at 0.185-0.301 (recall
+# 0.104-0.178), with nothing in between, so its mean sits in an empty gap. The
+# seed does not decide which: of five seeds run twice, three returned to their
+# own regime within 0.007 and two crossed over. AUC-PR is the same in both
+# regimes (0.453-0.536), so the model ranks flows identically every time; what
+# moves is where the 0.5 threshold falls against a cluster of near-identical
+# target flows that crosses it as a block.
 #
-#   runs 1 and 2   same seed (42)      -> if they disagree, the pipeline is not
-#                                         deterministic; partitioning decides
-#   runs 3 and 4   seeds 7 and 13      -> if 1 == 2 but 3, 4 differ, the result
-#                                         is seed-sensitive, not noisy
+# Repeat a seed to measure the spread within one configuration; vary seeds to
+# sample the distribution. Both are needed, which is why the default list
+# repeats 42 and the replicate passes repeat the others.
 #
 # Only the two base fits run: the adaptation and label-budget blocks are off,
 # since the question is about the baseline number alone.

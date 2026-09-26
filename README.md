@@ -479,10 +479,12 @@ the two base fits:
 Both write into `results/ml_11_cross_dataset/cross_dataset_adaptation.csv`
 (one `adaptation` column distinguishes the configurations).
 
-**The cross-dataset F1 is not reproducible run to run** — with recall that low,
-nearly every target attack flow sits just below the 0.5 threshold, so runs of
-identical code span F1 0.045–0.30 while AUC-PR moves by 6%. Report it over
-repetitions:
+**The cross-dataset F1 is not reproducible run to run, and it is bimodal.**
+Over 12 runs of identical code, 2017→2018 F1 landed either at 0.029–0.084 or at
+0.185–0.301 with nothing in between, while AUC-PR stayed at 0.453–0.536
+throughout: a cluster of near-identical target flows sits on the 0.5 threshold
+and crosses it as a block. Repeating a seed does not pin the outcome — two of
+five repeated seeds switched regime. Report it over repetitions:
 
 ```bash
 ./cluster/run_xd_seed_sweep.sh                     # 4 repetitions (~3-4h), seeds 42 42 7 13
