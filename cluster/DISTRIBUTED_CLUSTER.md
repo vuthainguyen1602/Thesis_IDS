@@ -375,6 +375,16 @@ Or run individual scripts:
 ./cluster/pull_results.sh
 ```
 
+Cross-dataset (`ml_11`) has its own entry points, because it needs a second
+parquet on both boards:
+
+```bash
+./cluster/run_cross_dataset.sh                     # prepare 2018, relay, run both directions
+./cluster/run_xd_seed_sweep.sh                     # 4 repetitions, ~3-4h — stability of the cross F1
+SEEDS="5 11 23 31" ./cluster/run_xd_seed_sweep.sh  # add 4 more draws to the same directory
+python3 cluster/xd_sweep_summary.py                # re-summarise everything collected so far
+```
+
 ---
 
 ## Key environment variables
@@ -391,6 +401,26 @@ Or run individual scripts:
 | `SPARK_WORKER_MEMORY` | `5g` per worker |
 | `SPARK_DRIVER_MEMORY` | `3g` (driver on Jetson #1) |
 | `SPARK_SHUFFLE_PARTITIONS` | `32` (8 cores cluster) |
+
+### Experiment knobs forwarded to the driver
+
+`run_ml_remote.sh` passes these through to the Jetson driver, so they are set on
+the Mac in front of the command. Everything is optional; defaults are in the
+scripts.
+
+| Variable | Used by | Role |
+|----------|---------|------|
+| `IDS_XD_DIR_A` / `IDS_XD_DIR_B` | `ml_11` | Parquet directories of the two datasets (**required** for `ml_11`) |
+| `IDS_XD_NAME_A` / `IDS_XD_NAME_B` | `ml_11` | Names written to the result CSV |
+| `IDS_XD_SEED` | `ml_11` | Random-forest seed; the sweep varies it (default `42`) |
+| `IDS_XD_ADAPT` | `ml_11` | `0` skips **both** extra blocks (unsupervised adaptation *and* the label budget), leaving the two base fits |
+| `IDS_XD_TARGET_LABEL_FRAC` | `ml_11` | Target-label budget, e.g. `0.01`; empty string skips the block |
+| `IDS_XD_MAX_MEMORY_MB` | `ml_11` | Spark ML `maxMemoryInMB` cap (128 on the 8GB boards) |
+| `IDS_STAT_SPLITS` | `ml_07` | Number of paired resamplings `N` (default 6) |
+| `IDS_TOST_MARGIN` | `ml_07` | Equivalence margin for the TOST (default `0.001` F1) |
+| `IDS_STAT_RERANK_SPLITS` | `ml_07` | Re-rank SHAP features inside each resampling for this many splits (`0` = off) |
+| `IDS_ABLATION_MODELS` | `ml_10` | Restrict the port ablation to a subset, e.g. `"Random Forest,Decision Tree"` |
+| `IDS_ABLATION_HEADLINE` | `ml_10` | Model kept in the legacy `leakage_ablation.csv` (default Random Forest) |
 
 **Mac-only** (local Spark OK): `ml_00` and `save_model.py` — both set
 `IDS_ALLOW_LOCAL_SPARK=1` themselves (`ml_00_prepare_cicids2017.py:52`,
@@ -458,3 +488,9 @@ exit
 | `cluster/start_worker.sh` | Spark worker on Jetson |
 | `cluster/stop_cluster.sh` | Stop master + workers |
 | `cluster/check_cluster.sh` | Health check |
+| `cluster/reproduce_cluster.sh` | Run every experiment a deliverable needs (`fair` / `soict` / `thesis`) |
+| `cluster/run_cross_dataset.sh` | Prepare CSE-CIC-IDS2018 on the Mac, relay both parquets to the Jetsons, run `ml_11` |
+| `cluster/run_xd_seed_sweep.sh` | Repeat `ml_11` N times to measure how unstable the cross-dataset F1 is |
+| `cluster/xd_sweep_summary.py` | Summarise `results/ml_11_cross_dataset/sweep/` (mean, sd, CV, 95% CI, LaTeX rows) |
+| `cluster/install_ml_deps.sh` | Install the pinned driver requirements on Jetson #1 |
+| `cluster/resolve_spark_home.sh` | Find a usable `SPARK_HOME` on either platform |

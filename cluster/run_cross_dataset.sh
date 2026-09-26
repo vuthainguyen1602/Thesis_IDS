@@ -31,6 +31,23 @@ REMOTE_ROOT="${CLUSTER_DRIVER_IDS_ROOT:?}"
 step() { [ -f "$STATE/$1.done" ] && { echo "[skip] $1 (done)"; return 1; } || { echo ""; echo "===== STEP: $1 ====="; return 0; }; }
 mark() { touch "$STATE/$1.done"; }
 
+# Fail fast if the cluster has no workers. A submit against an empty master does
+# not error: the application simply sits in WAITING with 0 cores until someone
+# notices, which has cost a full hour here.
+check_workers() {
+  local ui="${SPARK_MASTER_WEBUI:-http://${MAC_IP:-127.0.0.1}:8080}"
+  local n
+  n=$(curl -s -m 5 "${ui%/}/json/" 2>/dev/null \
+      | python3 -c 'import sys,json;print(json.load(sys.stdin).get("aliveworkers",0))' 2>/dev/null)
+  if [ "${n:-0}" -lt 1 ]; then
+    echo "[ERR] Spark master at $ui reports ${n:-0} ALIVE workers."
+    echo "      Start them first: ssh <user>@<jetson> 'cd ~/Thesis_IDS && ./cluster/start_worker.sh'"
+    exit 1
+  fi
+  echo "[OK] ${n} Spark worker(s) ALIVE"
+}
+check_workers
+
 # ── 1a. raw 2018 CSVs -> Jetson#1 (NVMe has plenty of room; the full-data
 #        exact-dedup shuffle would exhaust the Mac's remaining disk) ────────
 if step sync_raw_2018; then
@@ -67,11 +84,18 @@ fi
 if step sync_data; then
   # J1 has no SSH key for J2 — relay through the Mac (parquet is only a few
   # hundred MB, and we get a local copy of data_2018 as a bonus).
+  #
+  # --delete is not optional here. Spark names every part file with a fresh
+  # UUID, so re-preparing writes part-00000-<new-uuid>.parquet beside the old
+  # one instead of replacing it. Without --delete the destination accumulates
+  # BOTH generations: the directory silently holds each row twice, and because
+  # only the relayed copies grow, executors on different nodes end up reading
+  # different data from the same file:// path.
   echo "[sync] data_2018 J1 -> Mac"
-  rsync -az --progress -e "ssh $SSH_OPTS" \
+  rsync -az --delete --progress -e "ssh $SSH_OPTS" \
     "$CLUSTER_DRIVER:$REMOTE_ROOT/data_2018" "$ROOT/"
   echo "[sync] data_2018 Mac -> J2"
-  rsync -az --progress -e "ssh $SSH_OPTS" \
+  rsync -az --delete --progress -e "ssh $SSH_OPTS" \
     "$ROOT/data_2018" "$JETSON_SSH_USER@$JETSON2_IP:$REMOTE_ROOT/"
   mark sync_data
 fi
@@ -103,6 +127,8 @@ export IDS_XD_MAX_MEMORY_MB="${XD_MAXMEM_MB:-128}"
 export IDS_XD_NUM_TREES="${XD_TREES:-200}"  IDS_XD_MAX_DEPTH="${XD_DEPTH:-15}"
 export IDS_XD_DIR_A="$REMOTE_ROOT/data"       IDS_XD_NAME_A=CICIDS2017
 export IDS_XD_DIR_B="$REMOTE_ROOT/data_2018"  IDS_XD_NAME_B=CSE-CIC-IDS2018
+export IDS_XD_TARGET_LABEL_FRAC="${IDS_XD_TARGET_LABEL_FRAC:-}"
+export IDS_XD_SEED="${IDS_XD_SEED:-42}"
 python ml_11_cross_dataset_eval.py
 EOF
   mark train_ml11

@@ -466,6 +466,30 @@ IDS_XD_DIR_B=$PWD/data_2018 IDS_XD_NAME_B=CSE-CIC-IDS2018 \
   ./cluster/run_ml_remote.sh ml_11_cross_dataset_eval.py   # → cross_dataset_results.csv + .png
 ```
 
+`./cluster/run_cross_dataset.sh` does the same end to end (prepare, relay both
+parquets to the Jetsons, run both directions). Two optional blocks run on top of
+the two base fits:
+
+- unsupervised adaptation (per-domain scaler refit and CORAL), on by default;
+  `IDS_XD_ADAPT=0` turns off **both** extra blocks and leaves only the two base fits
+- `IDS_XD_TARGET_LABEL_FRAC=0.01` retrains with a labelled fraction of the
+  target's *training* split, pooled with the source and alone; an empty value
+  skips just this block
+
+Both write into `results/ml_11_cross_dataset/cross_dataset_adaptation.csv`
+(one `adaptation` column distinguishes the configurations).
+
+**The cross-dataset F1 is not reproducible run to run** — with recall that low,
+nearly every target attack flow sits just below the 0.5 threshold, so runs of
+identical code span F1 0.045–0.30 while AUC-PR moves by 6%. Report it over
+repetitions:
+
+```bash
+./cluster/run_xd_seed_sweep.sh                     # 4 repetitions (~3-4h), seeds 42 42 7 13
+SEEDS="5 11 23 31" ./cluster/run_xd_seed_sweep.sh  # more draws into the same directory
+python3 cluster/xd_sweep_summary.py                # mean, sd, CV, 95% CI + LaTeX rows
+```
+
 ### SOICT edge benchmark
 
 Energy-per-inference is auto-captured via `tegrastats` when run on a Jetson:

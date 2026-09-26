@@ -23,6 +23,23 @@ if [ ! -f "$ROOT/$SCRIPT" ] && [ ! -f "$ROOT/$SCRIPT_BASE" ]; then
     exit 1
 fi
 
+# Fail fast if the cluster has no workers. A submit against an empty master does
+# not error: the application simply sits in WAITING with 0 cores until someone
+# notices, which has cost a full hour here.
+check_workers() {
+  local ui="${SPARK_MASTER_WEBUI:-http://${MAC_IP:-127.0.0.1}:8080}"
+  local n
+  n=$(curl -s -m 5 "${ui%/}/json/" 2>/dev/null \
+      | python3 -c 'import sys,json;print(json.load(sys.stdin).get("aliveworkers",0))' 2>/dev/null)
+  if [ "${n:-0}" -lt 1 ]; then
+    echo "[ERR] Spark master at $ui reports ${n:-0} ALIVE workers."
+    echo "      Start them first: ssh <user>@<jetson> 'cd ~/Thesis_IDS && ./cluster/start_worker.sh'"
+    exit 1
+  fi
+  echo "[OK] ${n} Spark worker(s) ALIVE"
+}
+check_workers
+
 echo "================================================================"
 echo "  Distributed ML run"
 echo "  Driver:  $DRIVER"
@@ -77,6 +94,15 @@ export IDS_TOST_MARGIN="${IDS_TOST_MARGIN:-0.001}"
 export IDS_STAT_RERANK_SPLITS="${IDS_STAT_RERANK_SPLITS:-0}"
 export IDS_ABLATION_MODELS="${IDS_ABLATION_MODELS:-all}"
 export IDS_ABLATION_HEADLINE="${IDS_ABLATION_HEADLINE:-Random Forest}"
+# ml_11 reads its two dataset roots from these; without them it looks for a
+# data_2017/ that does not exist (the 2017 parquet lives in data/).
+export IDS_XD_DIR_A="${IDS_XD_DIR_A:-$REMOTE_ROOT/data}"
+export IDS_XD_DIR_B="${IDS_XD_DIR_B:-$REMOTE_ROOT/data_2018}"
+export IDS_XD_NAME_A="${IDS_XD_NAME_A:-CICIDS2017}"
+export IDS_XD_NAME_B="${IDS_XD_NAME_B:-CSE-CIC-IDS2018}"
+export IDS_XD_MAX_MEMORY_MB="${IDS_XD_MAX_MEMORY_MB:-128}"
+export IDS_XD_TARGET_LABEL_FRAC="${IDS_XD_TARGET_LABEL_FRAC:-}"
+export IDS_XD_SEED="${IDS_XD_SEED:-42}"
 python -u "$SCRIPT" "$@"
 EOF
 

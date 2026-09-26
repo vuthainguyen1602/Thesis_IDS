@@ -6,7 +6,7 @@ Three Beamer decks built from the same results as the manuscripts and the thesis
 |---|---|---|---|
 | `soict2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/SOICT2026_slides.pdf` |
 | `fair2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/FAIR2026_slides.pdf` |
-| `defense/` | Vietnamese | 15 min (16 talk slides + 5 section pages + outline/refs/thanks + 13 backup frames for 12 questions = 39 pages) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
+| `defense/` | Vietnamese | 15 min (16 talk slides + 5 section pages + title/outline/refs/thanks + backup index + 14 backup frames for 14 questions = 40 pages) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
 
 ## Building
 

@@ -47,6 +47,11 @@ NAME_A = os.environ.get("IDS_XD_NAME_A", "Dataset-A")
 NAME_B = os.environ.get("IDS_XD_NAME_B", "Dataset-B")
 RF_NUM_TREES = int(os.environ.get("IDS_XD_NUM_TREES", "200"))
 RF_MAX_DEPTH = int(os.environ.get("IDS_XD_MAX_DEPTH", "15"))
+# Classifier seed. Exposed so the same configuration can be re-run under
+# different seeds — and, just as usefully, twice under the SAME seed, which is
+# the only way to tell a seed-sensitive result apart from a pipeline that is
+# not deterministic at all.
+RF_SEED = int(os.environ.get("IDS_XD_SEED", "42"))
 
 
 def _with_class_weights(train_df):
@@ -74,7 +79,7 @@ def _fit(train_df, feature_cols):
                        withMean=True, withStd=True),
         RandomForestClassifier(featuresCol="features", labelCol="label_binary",
                                weightCol="class_weight",
-                               numTrees=RF_NUM_TREES, maxDepth=RF_MAX_DEPTH, seed=42,
+                               numTrees=RF_NUM_TREES, maxDepth=RF_MAX_DEPTH, seed=RF_SEED,
                                # Cap the per-iteration node-stats aggregation buffer:
                                # the default 256MB OOMs 4GB Jetson executors in
                                # findBestSplits on the ~1.9M-row IDS2018 fit.
@@ -129,20 +134,43 @@ def _mean_cov(df_assembled):
     return mean, cov
 
 
-def _sqrt_psd(mat, inverse=False, eps=1e-6):
-    """Symmetric PSD (inverse) square root via eigendecomposition."""
+def _sqrt_psd(mat, inverse=False, rel_eps=1e-8):
+    """Symmetric PSD (inverse) square root, with a RELATIVE eigenvalue floor.
+
+    An absolute floor is useless here: these features span fourteen orders of
+    magnitude (byte counts against ratios), so a 1e-6 cut leaves near-null
+    directions in place and the inverse root amplifies them by 1e8. Flooring at
+    a fraction of the largest eigenvalue keeps the map conditioned.
+    """
     import numpy as np
     vals, vecs = np.linalg.eigh(mat)
-    vals = np.clip(vals, eps, None)
+    floor = max(float(vals.max()), 0.0) * rel_eps
+    vals = np.clip(vals, floor if floor > 0 else 1e-12, None)
     vals = 1.0 / np.sqrt(vals) if inverse else np.sqrt(vals)
     return (vecs * vals) @ vecs.T
 
 
 def _coral_map(src_stats, tgt_stats):
-    """Linear map sending TARGET features into the SOURCE feature space."""
+    """Linear map sending TARGET features into the SOURCE feature space.
+
+    The alignment runs on CORRELATION matrices rather than raw covariances:
+    whitening a covariance whose diagonal spans 1e14 is numerically hopeless,
+    while correlations have a unit diagonal and are well conditioned. Scale is
+    restored afterwards with each domain's own standard deviations, so the
+    result is still the CORAL map — second-order alignment plus mean shift.
+    """
+    import numpy as np
     mu_s, cov_s = src_stats
     mu_t, cov_t = tgt_stats
-    W = _sqrt_psd(cov_t, inverse=True) @ _sqrt_psd(cov_s)
+    sd_s = np.sqrt(np.clip(np.diag(cov_s), 0, None))
+    sd_t = np.sqrt(np.clip(np.diag(cov_t), 0, None))
+    # Constant features carry no information to align; map them through as-is.
+    sd_s_safe = np.where(sd_s > 0, sd_s, 1.0)
+    sd_t_safe = np.where(sd_t > 0, sd_t, 1.0)
+    corr_s = cov_s / np.outer(sd_s_safe, sd_s_safe)
+    corr_t = cov_t / np.outer(sd_t_safe, sd_t_safe)
+    align = _sqrt_psd(corr_t, inverse=True) @ _sqrt_psd(corr_s)
+    W = (align / sd_t_safe[:, None]) * sd_s_safe[None, :]
     return mu_s, mu_t, W
 
 
@@ -206,6 +234,48 @@ def _run_adaptation(model, source_train, target_train, target_test, feature_cols
     m = _eval_adapted(model, mapped)
     rows.append({"adaptation": "CORAL (target -> source)", **m})
     print(f"  {tag} | CORAL        : F1={m.get('f1')}")
+    return rows
+
+
+# ── Supervised adaptation on a limited target-label budget ───────────────────
+# The two baselines above answer "can we transfer with no target label at all".
+# This one answers the question an operator actually asks: how much labelling
+# of the new network buys a usable detector. For each budget k we train from
+# scratch on the source plus a k-fraction of the TARGET's TRAINING split (never
+# the test split), and evaluate on the untouched target test split. The
+# target-only row is the control: if it matches the pooled row, the source data
+# is contributing nothing.
+#
+# Deliberately not called few-shot: at k=1% this is ~19k labelled flows, three
+# orders of magnitude past what that term means.
+TARGET_LABEL_FRACTIONS = [float(x) for x in
+                          os.environ.get("IDS_XD_TARGET_LABEL_FRAC", "").replace(" ", "").split(",") if x]
+
+
+def _labelled_target_rows(source_train, target_train, target_test, feature_cols, tag, baseline_f1):
+    rows = []
+    for frac in TARGET_LABEL_FRACTIONS:
+        # A plain k% draw, not a class-balanced one: the scenario is "label k%
+        # of what arrives on the new network", so the slice should carry the
+        # target's own attack ratio rather than a curated 50/50 split.
+        slice_df = target_train.select(feature_cols + ["label_binary"]).sample(
+            withReplacement=False, fraction=frac, seed=42).cache()  # fixed: vary the forest, not the slice
+        n_slice = slice_df.count()
+        n_attack = slice_df.filter("label_binary = 1").count()
+        print(f"  {tag} | labelled target {frac:.1%}: {n_slice:,} flows "
+              f"({n_attack:,} attacks)")
+
+        for name, train_df in (("source + target k%", source_train.unionByName(slice_df)),
+                               ("target k% only", slice_df)):
+            m = _eval(_fit(train_df, feature_cols), target_test)
+            rows.append({
+                "adaptation": f"{name} (k={frac:.3f})",
+                "labelled_target_flows": n_slice,
+                **{key: m.get(key) for key in ("f1", "precision", "recall", "auc_pr")},
+            })
+            print(f"  {tag} | {name:20s} k={frac:.1%} : F1={m.get('f1'):.4f} "
+                  f"(no adaptation {baseline_f1:.4f})")
+        slice_df.unpersist()
     return rows
 
 
@@ -275,7 +345,7 @@ def main():
     for tr, te, kind, model, test_df in pairs:
         m = _eval(model, test_df)
         rows.append({
-            "train": tr, "test": te, "kind": kind,
+            "train": tr, "test": te, "kind": kind, "seed": RF_SEED,
             "f1": m.get("f1"), "precision": m.get("precision"),
             "recall": m.get("recall"), "auc_pr": m.get("auc_pr"),
         })
@@ -300,6 +370,21 @@ def main():
                     "f1_no_adaptation": baseline.get("f1"),
                     "delta_f1": (r.get("f1") or 0.0) - (baseline.get("f1") or 0.0),
                 })
+        if TARGET_LABEL_FRACTIONS:
+            print("\n  Supervised adaptation on a labelled slice of the target's TRAIN split:")
+            for src, tgt, src_train, tgt_train, tgt_test in (
+                (NAME_A, NAME_B, trainA, trainB, testB),
+                (NAME_B, NAME_A, trainB, trainA, testA),
+            ):
+                base = next((r for r in rows if r["train"] == src and r["test"] == tgt), {})
+                for r in _labelled_target_rows(src_train, tgt_train, tgt_test, common,
+                                       f"{src} -> {tgt}", float(base.get("f1") or 0.0)):
+                    adapt_rows.append({
+                        "train": src, "test": tgt, **r,
+                        "f1_no_adaptation": base.get("f1"),
+                        "delta_f1": (r.get("f1") or 0.0) - (base.get("f1") or 0.0),
+                    })
+
         if adapt_rows:
             import pandas as _pd
             adapt_df = _pd.DataFrame(adapt_rows)

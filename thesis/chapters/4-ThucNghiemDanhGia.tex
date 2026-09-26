@@ -412,19 +412,72 @@ Do CSE-CIC-IDS2018~\cite{csecicids2018} có quy mô rất lớn ($\sim$16 triệ
 
 \begin{table}[htbp]
 \centering
-\caption[Tổng quát hóa liên bộ dữ liệu CICIDS2017 và CSE-CIC-IDS2018]{Tổng quát hóa liên bộ dữ liệu giữa CICIDS2017 và CSE-CIC-IDS2018}
+\caption[Tổng quát hóa liên bộ dữ liệu CICIDS2017 và CSE-CIC-IDS2018]{Tổng quát hóa liên bộ dữ liệu giữa CICIDS2017 và CSE-CIC-IDS2018 (trung bình qua bốn lượt chạy độc lập)}
 \label{tab:cross_dataset}
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llccc@{}}
 \toprule
-\textbf{Huấn luyện} & \textbf{Kiểm tra} & \textbf{Loại} & \textbf{F1} \\ \midrule
-CICIDS2017 & CICIDS2017 & cùng bộ & 0{,}9952 \\
-CICIDS2017 & CSE-CIC-IDS2018 & khác bộ & 0{,}0423 \\
-CSE-CIC-IDS2018 & CSE-CIC-IDS2018 & cùng bộ & 0{,}9245 \\
-CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & 0{,}0535 \\ \bottomrule
+\textbf{Huấn luyện} & \textbf{Kiểm tra} & \textbf{Loại} & \textbf{F1} & \textbf{AUC-\ac{pr}} \\ \midrule
+CICIDS2017 & CICIDS2017 & cùng bộ & 0{,}9954 & 0{,}9997 \\
+CICIDS2017 & CSE-CIC-IDS2018 & khác bộ & 0{,}2154 $\pm$ 0{,}2562 & 0{,}4989 \\
+CSE-CIC-IDS2018 & CSE-CIC-IDS2018 & cùng bộ & 0{,}9243 & 0{,}9675 \\
+CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & 0{,}0536 $\pm$ 0{,}0116 & 0{,}1862 \\ \bottomrule
 \end{tabular*}
+\tabnote{Bốn lượt chạy trên cùng mã nguồn và cùng dữ liệu, chỉ khác hạt giống của rừng ngẫu nhiên (42, 42, 7, 13). F1 khác bộ ghi kèm khoảng tin cậy 95\% (Student-$t$, $n=4$) vì đại lượng này \emph{không} tái lập được giữa các lượt chạy; khoảng giá trị quan sát được là 0{,}0449--0{,}3009 ở chiều 2017$\rightarrow$2018 và 0{,}0484--0{,}0587 ở chiều ngược lại. Các đại lượng cùng bộ (hệ số biến thiên $\le$ 0{,}1\%) và AUC-\ac{pr} (hệ số biến thiên $\le$ 6\%) ổn định nên chỉ ghi trung bình.}
 \end{table}
 
-\textbf{Diễn giải.} Kết quả cho thấy một tương phản rõ rệt: F1 cùng bộ rất cao ở cả hai chiều (0{,}9952 và 0{,}9245) nhưng F1 khác bộ giảm mạnh xuống 0{,}04--0{,}05, chủ yếu do recall gần bằng không (0{,}022 và 0{,}030) trong khi precision chiều 2017 sang 2018 vẫn đạt 0{,}596, tức mô hình gần như không nhận ra tấn công của bộ dữ liệu kia, chứ không tạo ra cảnh báo sai tràn lan. Nguyên nhân là dịch chuyển phân phối đặc trưng giữa hai testbed: khác phiên bản CICFlowMeter (thang đo và cách tính một số đặc trưng thay đổi), khác hạ tầng mạng và cấu hình dịch vụ, khác tổ hợp loại tấn công (HOIC/LOIC-HTTP của 2018 không có trong 2017). Sự sụt giảm này nhất quán với các nghiên cứu cross-dataset trên IDS dựa trên đặc trưng luồng~\cite{dhooge2020interdataset,cantone2024crossdataset,sarhan2022explainable}, và củng cố luận điểm trung tâm của luận văn: con số trong-miền gần hoàn hảo, kể cả khi đã loại rò rỉ, không bảo đảm khả năng triển khai sang môi trường khác. Đánh giá liên bộ dữ liệu phải là một phần bắt buộc của quy trình kiểm định IDS~\cite{goldschmidt2025datasets}, và các hướng thích ứng miền (chuẩn hóa theo miền, huấn luyện liên bộ, cập nhật theo drift) là điều kiện tiên quyết cho triển khai thực tế.
+\textbf{Diễn giải.} Kết quả cho thấy một tương phản rõ rệt: hiệu năng cùng bộ cao và ổn định ở cả hai chiều (F1 0{,}9954 và 0{,}9243, hệ số biến thiên dưới 0{,}1\% qua bốn lượt chạy), còn hiệu năng khác bộ rơi xuống mức không dùng được. AUC-\ac{pr} cho thấy mức rơi này rõ nhất, vì nó không phụ thuộc ngưỡng quyết định và ổn định giữa các lượt chạy: từ 0{,}9997 xuống 0{,}4989 ở chiều 2017$\rightarrow$2018 và từ 0{,}9675 xuống 0{,}1862 ở chiều ngược lại, tức mất một nửa đến bốn phần năm khả năng xếp hạng luồng độc hại. F1 khác bộ trung bình 0{,}2154 (khoảng 0{,}0449--0{,}3009) và 0{,}0536 (khoảng 0{,}0484--0{,}0587); mức thấp này đến từ recall rất nhỏ (trung bình 0{,}126 và 0{,}030) trong khi precision vẫn còn khá (0{,}850 và 0{,}248), tức mô hình gần như không nhận ra tấn công của bộ dữ liệu kia, chứ không tạo ra cảnh báo sai tràn lan. Nguyên nhân là dịch chuyển phân phối đặc trưng giữa hai testbed: khác phiên bản CICFlowMeter (thang đo và cách tính một số đặc trưng thay đổi), khác hạ tầng mạng và cấu hình dịch vụ, khác tổ hợp loại tấn công (HOIC/LOIC-HTTP của 2018 không có trong 2017). Sự sụt giảm này nhất quán với các nghiên cứu cross-dataset trên IDS dựa trên đặc trưng luồng~\cite{dhooge2020interdataset,cantone2024crossdataset,sarhan2022explainable}, và củng cố luận điểm trung tâm của luận văn: con số trong-miền gần hoàn hảo, kể cả khi đã loại rò rỉ, không bảo đảm khả năng triển khai sang môi trường khác. Đánh giá liên bộ dữ liệu phải là một phần bắt buộc của quy trình kiểm định IDS~\cite{goldschmidt2025datasets}, và các hướng thích ứng miền (chuẩn hóa theo miền, huấn luyện liên bộ, cập nhật theo drift) là điều kiện tiên quyết cho triển khai thực tế.
+
+\textbf{F1 khác bộ không phải một con số tái lập được.} Bốn lượt chạy ở Bảng~\ref{tab:cross_dataset} được thực hiện trên cùng mã nguồn, cùng tệp parquet và cùng danh sách đặc trưng; chỉ hạt giống của rừng ngẫu nhiên thay đổi. Vậy mà F1 chiều 2017$\rightarrow$2018 trải từ 0{,}0449 đến 0{,}3009, và \emph{hai lượt dùng chung hạt giống 42 cũng không trùng nhau} (0{,}3009 so với 0{,}2936). Nghĩa là nguồn dao động không nằm ở hạt giống mà ở chính quá trình huấn luyện phân tán: thứ tự các phân vùng được gộp lại khi Spark tính biểu đồ tần suất chia nút không cố định giữa các lượt, nên phép cộng số thực dấu phẩy động cho tổng lệch nhau ở những chữ số cuối và một vài ngưỡng chia nút được chọn khác đi.
+
+Recall khác bộ quá thấp là thứ biến sai lệch nhỏ đó thành nhảy bậc ở F1: với recall chỉ 0{,}02--0{,}18, xác suất dự đoán của gần như toàn bộ luồng tấn công miền đích nằm \emph{sát dưới} ngưỡng 0{,}5. Các luồng này lại rất giống nhau (cùng vài họ tấn công, cùng bộ công cụ sinh ra), nên khi vài cây trong rừng đổi ngưỡng chia, cả một cụm lớn luồng cùng dạng vượt ngưỡng hoặc tụt xuống dưới ngưỡng \emph{cùng lúc}, kéo recall và F1 nhảy bậc. AUC-\ac{pr} xác nhận cách giải thích này: không dùng ngưỡng, nó chỉ dao động khoảng 6\% giữa các lượt, trong khi F1 dao động 55\% --- thứ tự xếp hạng gần như không đổi, chỉ vị trí của ngưỡng 0{,}5 so với cụm đó là đổi.
+
+Hệ quả về phương pháp đánh giá: một con số F1 khác bộ từ một lượt chạy duy nhất không phải kết quả báo cáo được. Mẫu 0{,}0423 --- con số từng được ghi trong các bản thảo trước của luận văn và của bài báo, và vẫn xuất hiện ở Bảng~\ref{tab:cross_adapt} với tư cách mức cơ sở của lượt chạy đó --- chỉ là một điểm của phân phối vừa mô tả. Trong luận văn, kết quả khác bộ vì vậy được báo cáo dưới dạng trung bình kèm khoảng tin cậy qua nhiều lượt chạy, và AUC-\ac{pr} được dùng làm đại lượng chính khi so sánh. Kết luận định tính --- hiệu năng gần hoàn hảo trong miền không chuyển sang được miền khác --- không đổi: ngay ở lượt chạy tốt nhất, F1 khác bộ 0{,}30 vẫn cách F1 cùng bộ 0{,}99 một khoảng mà không cấu hình nào lấp được.
+
+\textbf{Thử hai kỹ thuật thích ứng miền không giám sát.} Câu hỏi tự nhiên tiếp theo là phần sụt giảm đó có phải chỉ do lệch thang đo giữa hai testbed hay không --- nếu đúng vậy thì một phép căn chỉnh tuyến tính là đủ để khắc phục. Luận văn kiểm chứng bằng hai kỹ thuật kinh điển, cả hai đều \emph{không dùng bất kỳ nhãn nào của miền đích} và \emph{không huấn luyện lại bộ phân loại}, tức đúng tình huống của một hệ đã triển khai gặp mạng mới: (i)~\emph{chuẩn hóa theo miền} --- giữ nguyên rừng cây, chỉ fit lại \texttt{StandardScaler} trên phần đặc trưng (không nhãn) của tập huấn luyện miền đích; (ii)~\emph{CORAL}~\cite{sun2016coral} --- làm trắng miền đích bằng hiệp phương sai của chính nó rồi ``tô'' lại bằng hiệp phương sai miền nguồn, tức căn khớp cả moment bậc hai. Kết quả ở Bảng~\ref{tab:cross_adapt}.
+
+\begin{table}[htbp]
+\centering
+\caption[Thích ứng miền không giám sát trên tác vụ liên bộ dữ liệu]{Hai kỹ thuật thích ứng miền không giám sát trên tác vụ liên bộ dữ liệu (bộ phân loại giữ nguyên, không dùng nhãn miền đích)}
+\label{tab:cross_adapt}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
+\toprule
+\textbf{Chiều} & \textbf{Cấu hình} & \textbf{F1} & \textbf{AUC-\ac{pr}} \\ \midrule
+\multirow{3}{*}{2017 $\rightarrow$ 2018} & Không thích ứng & 0{,}0423 & 0{,}4720 \\
+ & Chuẩn hóa theo miền & 0{,}0000 & 0{,}1742 \\
+ & CORAL & 0{,}0000 & 0{,}2130 \\ \midrule
+\multirow{3}{*}{2018 $\rightarrow$ 2017} & Không thích ứng & 0{,}0561 & 0{,}1994 \\
+ & Chuẩn hóa theo miền & 0{,}0000 & 0{,}0880 \\
+ & CORAL & 0{,}0000 & \textbf{0{,}2576} \\ \bottomrule
+\end{tabular*}
+\tabnote{Ba dòng của mỗi chiều đến từ \emph{cùng một lượt chạy} nên so sánh được với nhau. Mức cơ sở của lượt chạy này (0{,}0423 và 0{,}0561) là một mẫu của phân phối F1 khác bộ đã mô tả ở trên, nên khác mức cơ sở ghi ở Bảng~\ref{tab:label_budget} vốn thuộc một lượt chạy khác; điều đó không ảnh hưởng tới kết luận rút ra ở đây, vì cả hai kỹ thuật đều đưa F1 về đúng 0 bất kể mức cơ sở. Ánh xạ CORAL được kiểm chứng giải tích: sau khi ánh xạ, trung bình và hiệp phương sai của miền đích khớp miền nguồn với sai số tương đối $4\times10^{-12}$.}
+\end{table}
+
+Cả hai kỹ thuật đều \emph{không} khôi phục được F1: sau khi căn chỉnh, mô hình gần như ngừng báo tấn công nên F1 về 0. Điều này bác bỏ giả thuyết ``chỉ lệch thang đo'': nếu dịch chuyển nằm ở moment bậc một và bậc hai thì hai phép căn chỉnh này đã đủ, nhưng thực tế phần khác biệt nằm ở \emph{phân phối có điều kiện} --- cái gì làm một luồng trở thành độc hại --- cùng với việc hai testbed dùng bộ công cụ tấn công không trùng nhau. Tuy vậy có một chi tiết đáng chú ý: ở chiều 2018$\rightarrow$2017, CORAL \emph{cải thiện} AUC-\ac{pr} từ 0{,}1994 lên 0{,}2576 trong khi F1 vẫn bằng 0. Nghĩa là phép căn chỉnh có làm \emph{thứ tự xếp hạng} tốt lên, nhưng ngưỡng quyết định 0{,}5 học từ miền nguồn không còn hiệu lực trong không gian đặc trưng đã đổi. Bài học rút ra cho triển khai thực tế: thích ứng miền cho \ac{ids} không thể dừng ở căn chỉnh đặc trưng mà phải kèm \emph{hiệu chỉnh lại ngưỡng} trên miền đích.
+
+\textbf{Cái giá của việc gán nhãn: 1\% dữ liệu miền đích.} Nếu không kỹ thuật không giám sát nào hiệu quả, câu hỏi thực tế tiếp theo là \emph{phải gán nhãn bao nhiêu} lưu lượng của mạng mới để có bộ phát hiện dùng được. Luận văn đo trực tiếp: lấy ngẫu nhiên 1\% tập huấn luyện của miền đích \emph{kèm nhãn} (giữ tỷ lệ tấn công tự nhiên, không phải mẫu cân bằng 50/50, vì kịch bản là gán nhãn những gì đi qua mạng), huấn luyện lại mô hình từ đầu, rồi đánh giá trên tập kiểm tra miền đích chưa hề đụng tới. Hai cấu hình được so sánh: (i)~\emph{gộp} dữ liệu nguồn với 1\% nhãn đích và (ii)~\emph{chỉ dùng} 1\% nhãn đích, bỏ hẳn dữ liệu nguồn --- cấu hình thứ hai đóng vai trò đối chứng để trả lời câu hỏi dữ liệu nguồn có đóng góp gì không. Kết quả ở Bảng~\ref{tab:label_budget}.
+
+\begin{table}[htbp]
+\centering
+\caption[Ngân sách nhãn miền đích: 1\% đủ để phục hồi hiệu năng]{Ngân sách nhãn miền đích: huấn luyện lại với 1\% dữ liệu có nhãn của miền đích}
+\label{tab:label_budget}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llrcc@{}}
+\toprule
+\textbf{Chiều} & \textbf{Cấu hình} & \textbf{Nhãn đích} & \textbf{F1} & \textbf{Recall} \\ \midrule
+\multirow{3}{*}{2017 $\rightarrow$ 2018}
+ & Không thích ứng & 0 & 0{,}2939 & 0{,}1749 \\
+ & Nguồn $+$ 1\% nhãn đích & 19.276 & 0{,}8034 & 0{,}6750 \\
+ & \textbf{Chỉ 1\% nhãn đích} & 19.276 & \textbf{0{,}9223} & 0{,}9198 \\ \midrule
+\multirow{3}{*}{2018 $\rightarrow$ 2017}
+ & Không thích ứng & 0 & 0{,}0574 & 0{,}0322 \\
+ & Nguồn $+$ 1\% nhãn đích & 18.011 & 0{,}9607 & 0{,}9853 \\
+ & \textbf{Chỉ 1\% nhãn đích} & 18.011 & \textbf{0{,}9897} & 0{,}9849 \\ \bottomrule
+\end{tabular*}
+\tabnote{1\% được lấy từ \emph{tập huấn luyện} của miền đích, không bao giờ từ tập kiểm tra. Dòng ``không thích ứng'' lấy từ chính lượt chạy này để ba dòng so sánh được với nhau; mức cơ sở 0{,}2939 vì vậy là một mẫu khác của phân phối F1 khác bộ nói trên (Bảng~\ref{tab:cross_adapt} rơi vào mẫu 0{,}0423 của cùng phân phối đó). Kết luận rút ra dưới đây không phụ thuộc vào mức cơ sở cụ thể: kể cả khi so với mẫu cao nhất quan sát được (0{,}3009), mức tăng do 1\% nhãn vẫn là hơn một bậc độ lớn ở cả hai chiều.}
+\end{table}
+
+Hai điều rút ra, điều thứ hai là bất ngờ. Thứ nhất, \textbf{khoảng 19 nghìn luồng có nhãn là đủ}: F1 chiều 2017$\rightarrow$2018 tăng từ 0{,}29 lên 0{,}92 và chiều ngược lại từ 0{,}06 lên 0{,}99. Nghĩa là mạng mới \emph{không} khó phát hiện --- cái không chuyển được là kiến thức của mô hình cũ. Thứ hai, \textbf{dữ liệu miền nguồn không những vô ích mà còn có hại}: chỉ dùng 19 nghìn dòng nhãn đích cho F1 0{,}9223, trong khi gộp thêm 1,79 triệu dòng có nhãn của miền nguồn lại kéo xuống 0{,}8034 (recall rơi từ 0{,}92 xuống 0{,}68); chiều ngược lại cũng cùng xu hướng (0{,}9897 so với 0{,}9607). Khối lượng áp đảo của dữ liệu nguồn kéo mô hình về những mẫu hình đặc thù của testbed cũ, lấn át tín hiệu từ phần dữ liệu đích ít ỏi nhưng đúng phân phối.
+
+Khuyến nghị triển khai rút ra từ đây rất cụ thể: khi đưa hệ thống sang một mạng mới, \emph{đừng} tái sử dụng mô hình cũ hay gộp dữ liệu cũ vào; hãy gán nhãn một lượng nhỏ lưu lượng tại chỗ (cỡ 1\%, tương đương vài giờ công của một phân tích viên) rồi huấn luyện lại từ đầu. Đây cũng là lời giải thích vì sao các kỹ thuật thích ứng không giám sát ở trên thất bại: khoảng cách giữa hai miền không nằm ở phép biến đổi tuyến tính của không gian đặc trưng mà ở chính ranh giới quyết định, và ranh giới đó chỉ học được từ nhãn của miền đích.
 
 \subsection{Đánh giá đa lớp theo loại tấn công}
 \label{sec:multiclass}
