@@ -311,39 +311,41 @@ usually a property of the evaluation pipeline, not of the model.}
     \begin{column}{0.46\textwidth}
       \centering\small
       \fitwidth{%
-      \begin{tabular}{llc}
+      \begin{tabular}{lcc}
         \toprule
-        Train & Test & F1 \\
+        Train $\to$ Test & F1 & AUC-PR \\
         \midrule
-        CICIDS2017 & CICIDS2017      & \good{0.9952} \\
-        CICIDS2017 & CSE-CIC-IDS2018 & \bad{0.0423} \\
-        CSE-CIC-IDS2018 & CSE-CIC-IDS2018 & \good{0.9245} \\
-        CSE-CIC-IDS2018 & CICIDS2017 & \bad{0.0535} \\
+        2017 $\to$ 2017 & \good{0.9954} & \good{0.9997} \\
+        2017 $\to$ 2018 & \bad{0.2154} \tiny$\pm$0.2562 & \bad{0.4989} \\
+        2018 $\to$ 2018 & \good{0.9243} & \good{0.9675} \\
+        2018 $\to$ 2017 & \bad{0.0536} \tiny$\pm$0.0116 & \bad{0.1862} \\
         \bottomrule
       \end{tabular}
       }
       \\[0.4em]
       \footnotesize
-      Shared leakage-free feature set; CSE-CIC-IDS2018 label-stratified sample
-      ($\sim$2.39M flows after dedup, fixed seed).
+      Mean of 4 runs; shared leakage-free features, $\sim$2.39M flows.
     \end{column}
     \begin{column}{0.50\textwidth}
       \begin{itemize}\small
-        \item In-domain F1 is high in \emph{both} directions --- cross-dataset
-              F1 collapses to \bad{0.04--0.05}.
-        \item Driven by near-zero \emph{recall} (0.022 / 0.030) while precision
-              (2017$\to$2018) stays at 0.596: the model \key{fails to recognize} the other
-              testbed's attacks rather than alarming indiscriminately.
-        \item Causes: different CICFlowMeter version, different network
-              configuration, non-overlapping attack tooling.
+        \item In-domain stable \emph{both} ways --- cross-dataset AUC-PR
+              \bad{1.00$\to$0.50} and \bad{0.97$\to$0.19}.
+        \item Recall 0.126 / 0.030 at precision 0.850 / 0.248: the model
+              \key{fails to recognize} the other testbed's attacks.
+        \item Cross-dataset F1 \key{not reproducible} (0.045--0.30) --- report
+              means over runs, judge on AUC-PR.
+        \item Causes: CICFlowMeter version, network configuration, attack
+              tooling.
       \end{itemize}
     \end{column}
   \end{columns}
   \takeaway{Near-perfect in-domain scores --- \emph{even leakage-free ones} ---
   do not certify deployability under distribution shift.}
-  \note{Do not soften this. In-domain 0.99, cross-dataset 0.04. Consistent
-  with prior cross-dataset IDS studies, and the reason domain adaptation is a
-  prerequisite rather than a nice-to-have.}
+  \note{Do not soften this. In-domain 0.99, cross-dataset AUC-PR 0.50 / 0.19.
+  If asked about the wide F1 interval: at this recall the metric is fragile to
+  where the threshold falls, so we average F1 over runs and judge the gap on
+  AUC-PR. Consistent with prior cross-dataset IDS studies, and the reason domain
+  adaptation is a prerequisite rather than a nice-to-have.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -356,7 +358,7 @@ usually a property of the evaluation pipeline, not of the model.}
               features}.
         \item Baseline vs.\ SHAP Top-30 are \key{practically equivalent}.
         \item \bad{macro-F1 0.806} against weighted-F1 0.998.
-        \item Cross-dataset F1 \bad{collapses to 0.04--0.05}.
+        \item Cross-dataset AUC-PR \bad{collapses to 0.50 / 0.19}.
       \end{itemize}
     \end{column}
     \begin{column}{0.45\textwidth}

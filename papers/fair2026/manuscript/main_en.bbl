@@ -133,6 +133,11 @@ D.~J. Schuirmann, ``A comparison of the two one-sided tests procedure and the
   for Cybersecurity (CIC)}.''
   \url{https://www.unb.ca/cic/datasets/ids-2018.html}, 2018.
 
+\bibitem{sun2016coral}
+B.~Sun, J.~Feng, and K.~Saenko, ``Return of frustratingly easy domain
+  adaptation,'' in {\em Proceedings of the 30th AAAI Conference on Artificial
+  Intelligence (AAAI)}, 2016.
+
 \bibitem{dhooge2020interdataset}
 L.~D'hooge, T.~Wauters, B.~Volckaert, and F.~De~Turck, ``Inter-dataset
   generalization strength of supervised machine learning methods for intrusion
