@@ -887,7 +887,8 @@
     \item \textbf{Nội tại.} Xếp hạng RF/SHAP lấy từ tập huấn luyện gốc và giữ
           cố định qua các lần lấy mẫu lại --- nhất quán với thiết kế ``cấu hình
           cố định trước'', nhưng có thể gây rò rỉ nhẹ ở phần xếp hạng. Xếp hạng
-          lại theo từng lần lấy mẫu chặt chẽ hơn nhưng rất tốn kém với SHAP.
+          lại trong hai trong sáu lần lấy mẫu chỉ làm F1 lệch
+          $\le 7{,}4\times10^{-5}$, và 25--26/30 đặc trưng vẫn được chọn lại.
           MLP không được gán trọng số lớp (Spark ML không hỗ trợ).
     \item \textbf{Ngoại tại.} CICIDS2017 (2017) có thể không phản ánh lưu lượng
           hiện tại. Các bộ dữ liệu NIDS chuẩn đều có hạn chế chất lượng đã ghi

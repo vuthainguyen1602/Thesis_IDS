@@ -472,8 +472,9 @@ usually a property of the evaluation pipeline, not of the model.}
   \begin{itemize}\small
     \item \textbf{Internal.} RF/SHAP rankings come from the original training
           set and stay fixed across resamplings --- consistent with the
-          a-priori design, but a slight leak in the ranking step. Re-ranking
-          per resampling is more rigorous, but costly for SHAP. MLP carries the
+          a-priori design, but a possible leak in the ranking step. Re-ranking
+          inside two of the six resamplings moved F1 by $\le 7.4\times10^{-5}$,
+          and 25--26 of 30 features were reselected. MLP carries the
           unweighted-training caveat.
     \item \textbf{External.} CICIDS2017 may not reflect current traffic, and
           benchmark NIDS datasets have documented quality limitations. The

@@ -68,6 +68,11 @@ cluster/spark_cluster.env
 # Keep the cross-dataset results (source of tab:cross_dataset; generated on the Jetson cluster)
 !results/ml_11_cross_dataset/
 !results/ml_11_cross_dataset/**
+# Keep the re-ranking check: the paper's internal-validity claim rests on it, and
+# re-measuring it means recomputing SHAP per resampling.
+!results/ml_07_cross_method_comparison/
+results/ml_07_cross_method_comparison/*
+!results/ml_07_cross_method_comparison/statistical_validity_rerank.csv
 papers/fair2026/tables/
 papers/fair2026/results/
 papers/soict2026/results/benchmarks/
