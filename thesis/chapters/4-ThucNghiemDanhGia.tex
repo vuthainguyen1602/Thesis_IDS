@@ -418,7 +418,7 @@ Do CSE-CIC-IDS2018~\cite{csecicids2018} có quy mô rất lớn ($\sim$16 triệ
 \toprule
 \textbf{Huấn luyện} & \textbf{Kiểm tra} & \textbf{Loại} & \textbf{F1} & \textbf{AUC-\ac{pr}} \\ \midrule
 CICIDS2017 & CICIDS2017 & cùng bộ & 0{,}9952 & 0{,}9997 \\
-CICIDS2017 & CSE-CIC-IDS2018 & khác bộ & 0{,}1321 $\pm$ 0{,}0715 & 0{,}4862 \\
+CICIDS2017 & CSE-CIC-IDS2018 & khác bộ & 0{,}1321 $\pm$ 0{,}0706 & 0{,}4862 \\
 CSE-CIC-IDS2018 & CSE-CIC-IDS2018 & cùng bộ & 0{,}9246 & 0{,}9676 \\
 CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & 0{,}0539 $\pm$ 0{,}0022 & 0{,}2072 \\ \bottomrule
 \end{tabular*}
@@ -429,7 +429,7 @@ CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & 0{,}0539 $\pm$ 0{,}0022 & 0{,}2072 \
 
 \textbf{F1 khác bộ không phải một con số tái lập được.} Mười hai lượt chạy ở Bảng~\ref{tab:cross_dataset} dùng cùng mã nguồn, cùng tệp parquet và cùng danh sách đặc trưng; chỉ hạt giống của rừng ngẫu nhiên thay đổi, và năm hạt giống được chạy hai lượt để đo riêng phần dao động \emph{trong cùng một cấu hình}. Kết quả ở chiều 2017$\rightarrow$2018 không phải nhiễu quanh một giá trị trung tâm mà là \emph{hai chế độ rời nhau}: bảy lượt cho F1 0{,}0291--0{,}0843 với recall 0{,}0148--0{,}0447, năm lượt cho F1 0{,}1853--0{,}3009 với recall 0{,}1036--0{,}1778, và không một lượt nào rơi vào khoảng giữa 0{,}0843 và 0{,}1853.
 
-Điều quyết định một lượt thuộc chế độ nào \emph{không phải} hạt giống. Trong năm hạt giống được lặp, ba hạt giống cho hai lượt cùng chế độ và lệch nhau rất ít (seed 42: 0{,}3009 và 0{,}2936; seed 23: 0{,}0411 và 0{,}0434; seed 31: 0{,}0291 và 0{,}0303), nhưng \emph{hai hạt giống đổi hẳn chế độ giữa hai lượt}: seed 5 cho 0{,}0495 rồi 0{,}1854, seed 11 cho 0{,}0843 rồi 0{,}2606. Nghĩa là cùng một hạt giống, cùng một tệp dữ liệu vẫn có thể cho hai kết quả cách nhau gấp bốn lần; nguồn dao động nằm ở chính quá trình huấn luyện phân tán, nơi thứ tự gộp các phân vùng khi Spark tính biểu đồ tần suất chia nút không cố định giữa các lượt, nên một vài ngưỡng chia nút được chọn khác đi.
+Điều quyết định một lượt thuộc chế độ nào \emph{không phải} hạt giống. Trong năm hạt giống được lặp, ba hạt giống cho hai lượt cùng chế độ và lệch nhau rất ít (seed 42: 0{,}3009 và 0{,}2936; seed 23: 0{,}0411 và 0{,}0434; seed 31: 0{,}0291 và 0{,}0303), nhưng \emph{hai hạt giống đổi hẳn chế độ giữa hai lượt}: seed 5 cho 0{,}0495 rồi 0{,}1854, seed 11 cho 0{,}0843 rồi 0{,}2606. Nghĩa là cùng một hạt giống, cùng một tệp dữ liệu vẫn có thể cho hai kết quả cách nhau hơn ba lần (3{,}1 lần ở seed 11 và 3{,}8 lần ở seed 5); nguồn dao động nằm ở chính quá trình huấn luyện phân tán, nơi thứ tự gộp các phân vùng khi Spark tính biểu đồ tần suất chia nút không cố định giữa các lượt, nên một vài ngưỡng chia nút được chọn khác đi.
 
 Cơ chế khuếch đại sai lệch nhỏ đó thành hai chế độ là vị trí của ngưỡng quyết định 0{,}5. Xác suất dự đoán của gần như toàn bộ luồng tấn công miền đích nằm \emph{sát ngay} ngưỡng này, mà các luồng đó lại rất giống nhau (cùng vài họ tấn công, cùng bộ công cụ sinh ra), nên chúng không vượt ngưỡng một cách rời rạc: cả một cụm lớn cùng lật qua hoặc cùng tụt xuống dưới ngưỡng, đưa recall nhảy thẳng từ $\approx$0{,}03 lên $\approx$0{,}15 mà không đi qua các giá trị trung gian. Bằng chứng quyết định cho lời giải thích này là AUC-\ac{pr}: đại lượng không dùng ngưỡng ấy \emph{như nhau ở cả hai chế độ} (0{,}4590--0{,}5163 ở chế độ thấp so với 0{,}4532--0{,}5357 ở chế độ cao, hai khoảng trùm lên nhau hoàn toàn). Khả năng xếp hạng của mô hình không hề đổi giữa các lượt; chỉ vị trí của ngưỡng 0{,}5 so với cụm luồng đó là đổi.
 
