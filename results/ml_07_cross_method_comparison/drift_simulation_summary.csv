@@ -1,0 +1,4 @@
+Scenario,f1,auc_pr,drift_mode,drift_valid
+Early->Mid,0.997250676244956,0.9999618673341831,random_split_fallback,False
+Early->Late (No Update),0.9973066621159398,0.9999508157045626,random_split_fallback,False
+Early+Mid->Late (Retrained),0.9974105758315464,0.9999563003441433,random_split_fallback,False

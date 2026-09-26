@@ -1,0 +1,18 @@
+{
+  "model": "Random Forest (ids_pipeline_random_forest)",
+  "samples": 500,
+  "batch_size": 10,
+  "throughput_rps": 22.6,
+  "latency_mean_ms": 442.5,
+  "latency_p50_ms": 428.9,
+  "latency_p95_ms": 531.8,
+  "cpu_avg": 47.3,
+  "ram_avg": 24.3,
+  "idle_power_w": 4.7,
+  "avg_power_w": 6.32,
+  "active_power_w": 1.62,
+  "energy_j": 139.99,
+  "energy_active_j": 35.81,
+  "energy_per_inf_mj_raw": 279.98,
+  "energy_per_inf_mj_active": 71.62
+}
