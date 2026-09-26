@@ -351,6 +351,13 @@ def main():
         })
         print(f"  {tr:>16} -> {te:<16} [{kind:9}] F1={m.get('f1')}")
 
+    # Written here, before the optional blocks below, because those blocks are
+    # the expensive and fragile part: a failure in them used to discard four
+    # results that were already measured. The same file is rewritten at the end.
+    import pandas as pd
+    pd.DataFrame(rows).to_csv(
+        os.path.join(OUT_DIR, "cross_dataset_results.csv"), index=False)
+
     # ── Domain adaptation (separate artefact; the rows above stay as published)
     if ADAPT_ENABLED:
         print("\n  Unsupervised domain adaptation (classifier untouched, no target labels):")
@@ -393,7 +400,6 @@ def main():
             print(f"\n[INFO] Saved: {adapt_path}")
             print(adapt_df.to_string(index=False))
 
-    import pandas as pd
     df = pd.DataFrame(rows)
     csv_path = os.path.join(OUT_DIR, "cross_dataset_results.csv")
     df.to_csv(csv_path, index=False)
