@@ -459,38 +459,39 @@
     \begin{column}{0.46\textwidth}
       \centering\small
       \fitwidth{%
-      \begin{tabular}{llc}
+      \begin{tabular}{lcc}
         \toprule
-        Huấn luyện & Kiểm tra & F1 \\
+        Huấn luyện $\rightarrow$ Kiểm tra & F1 & AUC-PR \\
         \midrule
-        CICIDS2017 & CICIDS2017      & \good{0,9952} \\
-        CICIDS2017 & CSE-CIC-IDS2018 & \bad{0,0423} \\
-        CSE-CIC-IDS2018 & CSE-CIC-IDS2018 & \good{0,9245} \\
-        CSE-CIC-IDS2018 & CICIDS2017 & \bad{0,0535} \\
+        2017 $\rightarrow$ 2017 & \good{0,9954} & \good{0,9997} \\
+        2017 $\rightarrow$ 2018 & \bad{0,2154} & \bad{0,4989} \\
+        2018 $\rightarrow$ 2018 & \good{0,9243} & \good{0,9675} \\
+        2018 $\rightarrow$ 2017 & \bad{0,0536} & \bad{0,1862} \\
         \bottomrule
       \end{tabular}
       }
       \\[0.25em]
       \small
-      Tập đặc trưng chung đã loại rò rỉ. CSE-CIC-IDS2018 lấy mẫu phân tầng.
+      Trung bình 4 lượt chạy; tập đặc trưng chung đã loại rò rỉ.
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{itemize}\small
-        \item Trong-miền cao ở \emph{cả hai} chiều --- liên bộ dữ liệu sụp
-              xuống \bad{0,04--0,05}.
-        \item Recall gần 0 trong khi precision 2017$\rightarrow$2018 vẫn 0,596: mô hình
-              \key{không nhận ra} tấn công của testbed kia.
-        \item Nguyên nhân: khác phiên bản CICFlowMeter, khác cấu hình mạng và bộ
-              công cụ tấn công.
+        \item Trong-miền ổn định \emph{cả hai} chiều --- liên bộ sụp: AUC-PR
+              \bad{1,00$\rightarrow$0,50} và \bad{0,97$\rightarrow$0,19}.
+        \item Recall 0,126 / 0,030: \key{không nhận ra} tấn công của testbed
+              kia (khác CICFlowMeter, cấu hình mạng, công cụ tấn công).
+        \item F1 liên bộ \key{không tái lập được} (0,045--0,30) --- báo cáo
+              trung bình nhiều lượt, xét theo AUC-PR.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Điểm số trong-miền gần hoàn hảo --- \emph{kể cả khi đã loại rò rỉ}
-  --- \key{không chứng nhận} khả năng triển khai dưới dịch chuyển phân phối.}
-  \note{Không làm nhẹ con số này. Recall cụ thể là 0,022 và 0,030. Mẫu
-  CSE-CIC-IDS2018 khoảng 2,39 triệu luồng, seed cố định. Kết quả thống nhất với
-  các nghiên cứu liên bộ dữ liệu trước đó và là lý do khiến thích ứng
-  miền trở thành điều kiện tiên quyết.}
+  \takeaway{Điểm số trong-miền gần hoàn hảo --- \emph{kể cả khi đã loại rò
+  rỉ} --- \key{không chứng nhận} khả năng triển khai khi phân phối dịch chuyển.}
+  \note{Không làm nhẹ con số này. Nếu hội đồng hỏi vì sao F1 liên bộ dao động
+  rộng: đó chính là một phát hiện --- ở mức recall này gần như toàn bộ luồng tấn
+  công miền đích nằm sát dưới ngưỡng 0,5, nên luận văn báo cáo trung bình 4 lượt
+  và lấy AUC-PR (dao động 6\%) làm đại lượng chính. Thống nhất với các nghiên
+  cứu liên bộ trước đó.}
 \end{frame}
 
 % =====================================================================
