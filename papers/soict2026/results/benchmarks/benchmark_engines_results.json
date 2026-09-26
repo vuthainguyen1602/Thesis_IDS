@@ -1,0 +1,42 @@
+{
+  "device": "single-node baseline",
+  "data": "real_csv",
+  "features": 29,
+  "sklearn_model_size_mb": 13.883,
+  "engines": [
+    {
+      "engine": "sklearn",
+      "samples": 5000,
+      "batch_size": 10,
+      "throughput_rps": 204.4,
+      "latency_batch_mean_ms": 48.398,
+      "latency_batch_p50_ms": 47.755,
+      "latency_batch_p95_ms": 49.789,
+      "latency_batch_p99_ms": 58.863,
+      "avg_cpu_percent": 17.8,
+      "avg_memory_percent": 13.3,
+      "idle_power_w": 4.77,
+      "active_power_w": 0.59,
+      "energy_per_inference_mj_raw": 26.244,
+      "energy_per_inference_mj_active": 2.906,
+      "power_available": true
+    },
+    {
+      "engine": "onnxruntime",
+      "samples": 5000,
+      "batch_size": 10,
+      "throughput_rps": 7870.8,
+      "latency_batch_mean_ms": 0.948,
+      "latency_batch_p50_ms": 0.929,
+      "latency_batch_p95_ms": 1.13,
+      "latency_batch_p99_ms": 1.257,
+      "avg_cpu_percent": 8.9,
+      "avg_memory_percent": 15.7,
+      "idle_power_w": 4.64,
+      "active_power_w": 0.44,
+      "energy_per_inference_mj_raw": 0.646,
+      "energy_per_inference_mj_active": 0.056,
+      "power_available": true
+    }
+  ]
+}
