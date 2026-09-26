@@ -463,34 +463,35 @@
         \toprule
         Huấn luyện $\rightarrow$ Kiểm tra & F1 & AUC-PR \\
         \midrule
-        2017 $\rightarrow$ 2017 & \good{0,9954} & \good{0,9997} \\
-        2017 $\rightarrow$ 2018 & \bad{0,2154} & \bad{0,4989} \\
-        2018 $\rightarrow$ 2018 & \good{0,9243} & \good{0,9675} \\
-        2018 $\rightarrow$ 2017 & \bad{0,0536} & \bad{0,1862} \\
+        2017 $\rightarrow$ 2017 & \good{0,9952} & \good{0,9997} \\
+        2017 $\rightarrow$ 2018 & \bad{0,1321} & \bad{0,4862} \\
+        2018 $\rightarrow$ 2018 & \good{0,9246} & \good{0,9676} \\
+        2018 $\rightarrow$ 2017 & \bad{0,0539} & \bad{0,2072} \\
         \bottomrule
       \end{tabular}
       }
       \\[0.25em]
       \small
-      Trung bình 4 lượt chạy; tập đặc trưng chung đã loại rò rỉ.
+      Trung bình 12 lượt chạy; tập đặc trưng chung đã loại rò rỉ.
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{itemize}\small
         \item Trong-miền ổn định \emph{cả hai} chiều --- liên bộ sụp: AUC-PR
-              \bad{1,00$\rightarrow$0,50} và \bad{0,97$\rightarrow$0,19}.
-        \item Recall 0,126 / 0,030: \key{không nhận ra} tấn công của testbed
+              \bad{1,00$\rightarrow$0,49} và \bad{0,97$\rightarrow$0,21}.
+        \item Recall 0,075 / 0,030: \key{không nhận ra} tấn công của testbed
               kia (khác CICFlowMeter, cấu hình mạng, công cụ tấn công).
-        \item F1 liên bộ \key{không tái lập được} (0,045--0,30) --- báo cáo
-              trung bình nhiều lượt, xét theo AUC-PR.
+        \item 12 lượt chạy, \key{hai chế độ rời nhau}: 7 lượt 0,03--0,08 và 5
+              lượt 0,19--0,30, không có giá trị ở giữa; AUC-PR như nhau.
       \end{itemize}
     \end{column}
   \end{columns}
   \takeaway{Điểm số trong-miền gần hoàn hảo --- \emph{kể cả khi đã loại rò
   rỉ} --- \key{không chứng nhận} khả năng triển khai khi phân phối dịch chuyển.}
   \note{Không làm nhẹ con số này. Nếu hội đồng hỏi vì sao F1 liên bộ dao động
-  rộng: ở mức recall này gần như toàn bộ luồng tấn công miền đích nằm sát dưới
-  ngưỡng 0,5, nên luận văn báo cáo trung bình 4 lượt và lấy AUC-PR (dao động
-  6\%) làm đại lượng chính. Thống nhất với các nghiên cứu liên bộ trước đó.}
+  rộng: cụm luồng tấn công miền đích nằm sát ngưỡng 0,5 nên cả cụm lật cùng lúc,
+  tạo ra hai chế độ. Năm hạt giống chạy hai lượt: ba giữ chế độ, hai đổi chế độ
+  --- tức không phải do hạt giống. AUC-PR như nhau ở cả hai chế độ nên đó là đại
+  lượng chính. Thống nhất với các nghiên cứu liên bộ trước đó.}
 \end{frame}
 
 % =====================================================================
@@ -887,7 +888,8 @@
     \item \textbf{Nội tại.} Xếp hạng RF/SHAP lấy từ tập huấn luyện gốc và giữ
           cố định qua các lần lấy mẫu lại --- nhất quán với thiết kế ``cấu hình
           cố định trước'', nhưng có thể gây rò rỉ nhẹ ở phần xếp hạng. Xếp hạng
-          lại theo từng lần lấy mẫu chặt chẽ hơn nhưng rất tốn kém với SHAP.
+          lại trong hai trong sáu lần lấy mẫu chỉ làm F1 lệch
+          $\le 7{,}4\times10^{-5}$, và 25--26/30 đặc trưng vẫn được chọn lại.
           MLP không được gán trọng số lớp (Spark ML không hỗ trợ).
     \item \textbf{Ngoại tại.} CICIDS2017 (2017) có thể không phản ánh lưu lượng
           hiện tại. Các bộ dữ liệu NIDS chuẩn đều có hạn chế chất lượng đã ghi
