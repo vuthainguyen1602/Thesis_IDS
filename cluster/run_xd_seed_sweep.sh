@@ -19,9 +19,12 @@
 #
 #   ./cluster/run_xd_seed_sweep.sh            # 4 runs, ~3-4h at 8 cores
 #   SEEDS="42 42 7 13" ./cluster/run_xd_seed_sweep.sh
+#   SEEDS="5 11 23 31" ./cluster/run_xd_seed_sweep.sh   # add 4 more draws
 #
 # Per-run results land in results/ml_11_cross_dataset/sweep/<label>.csv on the
-# Mac; the summary at the end is what answers the question.
+# Mac; the summary at the end is what answers the question. Repetitions
+# accumulate in that directory, so a later night can add runs and re-summarise
+# everything with  python3 cluster/xd_sweep_summary.py  on its own.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
@@ -34,6 +37,9 @@ LOGS="$ROOT/output/xd_sweep"
 mkdir -p "$OUT" "$LOGS"
 
 SEEDS="${SEEDS:-42 42 7 13}"
+# Repetitions from different nights must not overwrite each other: the whole
+# point is to accumulate draws from the same distribution.
+BATCH="${BATCH:-$(date +%Y%m%d-%H%M)}"
 REMOTE_CSV="${CLUSTER_DRIVER_IDS_ROOT}/results/ml_11_cross_dataset/cross_dataset_results.csv"
 
 # The worker JVMs on the 8GB boards have not survived every heavy run — they
@@ -67,7 +73,7 @@ ensure_workers() {
 i=0
 for seed in $SEEDS; do
     i=$((i + 1))
-    label="run${i}_seed${seed}"
+    label="${BATCH}_run${i}_seed${seed}"
     echo ""
     echo "================================================================"
     echo "  Sweep $i/$(echo $SEEDS | wc -w | tr -d ' ')  —  seed=$seed  —  $label"
@@ -88,28 +94,8 @@ done
 
 echo ""
 echo "================================================================"
-echo "  Summary — cross-dataset F1 per run"
+echo "  Summary — all runs in $OUT"
 echo "================================================================"
-python3 - "$OUT" <<'PY'
-import csv, glob, os, statistics, sys
-rows = {}
-for path in sorted(glob.glob(os.path.join(sys.argv[1], "*.csv"))):
-    label = os.path.basename(path)[:-4]
-    for r in csv.DictReader(open(path)):
-        if r["kind"] == "cross":
-            rows.setdefault(f'{r["train"]}->{r["test"]}', []).append((label, float(r["f1"])))
-for pair, vals in rows.items():
-    print(f"\n{pair}")
-    for label, f1 in vals:
-        print(f"   {label:16s} {f1:.6f}")
-    fs = [f for _, f in vals]
-    if len(fs) > 1:
-        print(f"   {'mean':16s} {statistics.mean(fs):.6f}"
-              f"   sd {statistics.pstdev(fs):.6f}   range {max(fs) - min(fs):.6f}")
-same = [f for l, f in rows.get("CICIDS2017->CSE-CIC-IDS2018", []) if l.endswith("seed42")]
-if len(same) >= 2:
-    verdict = ("NOT deterministic — identical configuration gave different results"
-               if max(same) - min(same) > 1e-9 else
-               "deterministic under a fixed seed — differences across seeds are seed sensitivity")
-    print(f"\nVerdict on the repeated seed-42 runs: {verdict}")
-PY
+# Kept in its own script so repetitions added on a later night are summarised
+# by re-running it over the same directory, no sweep re-run needed.
+python3 "$HERE/xd_sweep_summary.py" "$OUT"
