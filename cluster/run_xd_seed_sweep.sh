@@ -37,8 +37,8 @@ LOGS="$ROOT/output/xd_sweep"
 mkdir -p "$OUT" "$LOGS"
 
 SEEDS="${SEEDS:-42 42 7 13}"
-# Repetitions from different nights must not overwrite each other: the whole
-# point is to accumulate draws from the same distribution.
+# Repetitions from different nights have to accumulate, not overwrite each
+# other, so each sweep writes under its own stamp.
 BATCH="${BATCH:-$(date +%Y%m%d-%H%M)}"
 REMOTE_CSV="${CLUSTER_DRIVER_IDS_ROOT}/results/ml_11_cross_dataset/cross_dataset_results.csv"
 

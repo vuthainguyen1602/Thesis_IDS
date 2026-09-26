@@ -5,18 +5,18 @@ Summarise the cross-dataset stability sweep.
 
 ``run_xd_seed_sweep.sh`` drops one CSV per repetition into
 ``results/ml_11_cross_dataset/sweep/``. This script turns that directory into
-the numbers the manuscripts quote, so adding repetitions later is a re-run of
-this script and a copy-paste, not a hand computation:
+the numbers the manuscripts quote, so adding repetitions later means re-running
+it and copying the rows out. It prints:
 
-  * per-run values, to see the spread rather than a summary of it
+  * every run's own values, so the spread is visible
   * mean, sd, coefficient of variation and a Student-t 95% interval per metric
   * the LaTeX rows for the thesis table (comma decimals) and the paper table
 
-Why an interval at all: the 2017->CSE-CIC-IDS2018 cross-dataset F1 is *not*
-reproducible across runs of identical code and configuration (two runs with the
-same seed disagreed), while in-domain F1 and cross-dataset AUC-PR are stable to
-the third decimal. A single draw from that distribution is not a reportable
-number; the mean over repetitions with its interval is.
+The interval is there because the 2017->CSE-CIC-IDS2018 cross-dataset F1 does
+*not* reproduce across runs of identical code and configuration: two runs with
+the same seed disagreed, while in-domain F1 and cross-dataset AUC-PR stay stable
+to the third decimal. One draw from that distribution says very little, so the
+manuscripts quote the mean over repetitions and its interval.
 
     python3 cluster/xd_sweep_summary.py [sweep_dir]
 """

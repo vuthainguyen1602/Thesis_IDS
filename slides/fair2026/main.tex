@@ -342,10 +342,10 @@ usually a property of the evaluation pipeline, not of the model.}
   \takeaway{Near-perfect in-domain scores --- \emph{even leakage-free ones} ---
   do not certify deployability under distribution shift.}
   \note{Do not soften this. In-domain 0.99, cross-dataset AUC-PR 0.50 / 0.19.
-  If asked about the wide F1 interval: that is the finding --- at this recall the
-  metric is threshold-fragile, which is why we report means over runs and read
-  the gap off AUC-PR. Consistent with prior cross-dataset IDS studies, and the
-  reason domain adaptation is a prerequisite rather than a nice-to-have.}
+  If asked about the wide F1 interval: at this recall the metric is fragile to
+  where the threshold falls, so we average F1 over runs and judge the gap on
+  AUC-PR. Consistent with prior cross-dataset IDS studies, and the reason domain
+  adaptation is a prerequisite rather than a nice-to-have.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
