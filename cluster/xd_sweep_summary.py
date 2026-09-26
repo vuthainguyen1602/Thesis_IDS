@@ -27,13 +27,24 @@ import statistics
 import sys
 
 METRICS = ("f1", "precision", "recall", "auc_pr")
-# Student-t, two-sided 95%, df = n-1. Normal-approximation z for large n.
-T95 = {2: 12.706, 3: 4.303, 4: 3.182, 5: 2.776, 6: 2.571, 7: 2.447, 8: 2.365,
-       9: 2.306, 10: 2.262, 11: 2.228, 12: 2.201, 15: 2.145, 20: 2.093}
+# Student-t, two-sided 95%, keyed by SAMPLE SIZE n, so the entry for n already
+# accounts for df = n-1. Looking it up at n-1 is an off-by-one that widens every
+# interval by one step, which is exactly what happened until n reached 12.
+T95_BY_N = {2: 12.706, 3: 4.303, 4: 3.182, 5: 2.776, 6: 2.571, 7: 2.447,
+            8: 2.365, 9: 2.306, 10: 2.262, 11: 2.228, 12: 2.201, 13: 2.179,
+            14: 2.160, 15: 2.145, 16: 2.131, 20: 2.093, 25: 2.064, 30: 2.045}
 
 
 def _t95(n):
-    return T95.get(n - 1, 1.96) if n > 1 else float("nan")
+    # Two-sided 95% t multiplier for a sample of n values.
+    if n <= 1:
+        return float("nan")
+    if n in T95_BY_N:
+        return T95_BY_N[n]
+    smaller = [k for k in T95_BY_N if k < n]
+    if n > max(T95_BY_N):
+        return 1.96
+    return T95_BY_N[max(smaller)] if smaller else 12.706
 
 
 def _vn(x, digits=4):
