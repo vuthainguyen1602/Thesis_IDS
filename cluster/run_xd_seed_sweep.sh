@@ -5,11 +5,11 @@
 # What 12 runs of this sweep established, and what it is now kept for:
 #
 # The cross-dataset F1 for CICIDS2017 -> CSE-CIC-IDS2018 is bimodal. Seven runs
-# landed at 0.029-0.084 (recall 0.015-0.045) and five at 0.185-0.301 (recall
-# 0.104-0.178), with nothing in between, so its mean sits in an empty gap. The
+# landed at 0.0291-0.0843 (recall 0.0148-0.0447) and five at 0.1853-0.3009
+# (recall 0.1036-0.1778), nothing in between, so its mean sits in an empty gap.
 # seed does not decide which: of five seeds run twice, three returned to their
 # own regime within 0.007 and two crossed over. AUC-PR is the same in both
-# regimes (0.453-0.536), so the model ranks flows identically every time; what
+# regimes (0.4532-0.5357), so the model ranks flows identically every time; what
 # moves is where the 0.5 threshold falls against a cluster of near-identical
 # target flows that crosses it as a block.
 #
