@@ -101,6 +101,9 @@ export IDS_XD_DIR_B="${IDS_XD_DIR_B:-$REMOTE_ROOT/data_2018}"
 export IDS_XD_NAME_A="${IDS_XD_NAME_A:-CICIDS2017}"
 export IDS_XD_NAME_B="${IDS_XD_NAME_B:-CSE-CIC-IDS2018}"
 export IDS_XD_MAX_MEMORY_MB="${IDS_XD_MAX_MEMORY_MB:-128}"
+# Missing from this list until now, so the sweep's IDS_XD_ADAPT=0 never
+# reached the driver and every repetition also ran the adaptation block.
+export IDS_XD_ADAPT="${IDS_XD_ADAPT:-1}"
 export IDS_XD_TARGET_LABEL_FRAC="${IDS_XD_TARGET_LABEL_FRAC:-}"
 export IDS_XD_SEED="${IDS_XD_SEED:-42}"
 python -u "$SCRIPT" "$@"

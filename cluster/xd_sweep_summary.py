@@ -87,20 +87,35 @@ def main():
             print("   " + f"{line:16s}"
                   + "".join(fmt.format(summary[key][m]) for m in METRICS))
 
-    # Determinism check: repetitions that share a seed must agree bit-for-bit.
-    same_seed = {}
+    # Where the spread comes from. Two sources are tangled together: the forest
+    # seed, and whatever the distributed fit does differently between runs at a
+    # fixed seed. Repetitions of one seed measure the second alone, so comparing
+    # the two spreads says which one dominates -- the thing a reader will ask.
+    by_seed = {}
     for (kind, train, test), runs in groups.items():
         if kind != "cross":
             continue
         for label, vals in runs:
             seed = label.split("seed")[-1] if "seed" in label else label
-            same_seed.setdefault((train, seed), []).append(vals["f1"])
-    repeated = {k: v for k, v in same_seed.items() if len(v) > 1}
-    if repeated:
-        spread = max(max(v) - min(v) for v in repeated.values())
-        print(f"\nRepeated-seed spread: {spread:.6f} -> "
-              + ("NOT deterministic (identical configuration, different results)"
-                 if spread > 1e-9 else "deterministic under a fixed seed"))
+            by_seed.setdefault(train, {}).setdefault(seed, []).append(vals["f1"])
+    for train, seeds in by_seed.items():
+        print(f"\n{train} cross-dataset F1 by seed")
+        for seed, fs in sorted(seeds.items(), key=lambda kv: -statistics.mean(kv[1])):
+            extra = f"   spread {max(fs) - min(fs):.6f}" if len(fs) > 1 else ""
+            print(f"   seed {seed:<4} n={len(fs)}  "
+                  + " ".join(f"{f:.4f}" for f in fs) + extra)
+        within = [max(fs) - min(fs) for fs in seeds.values() if len(fs) > 1]
+        means = [statistics.mean(fs) for fs in seeds.values()]
+        between = max(means) - min(means) if len(means) > 1 else float("nan")
+        if within:
+            print(f"   within-seed spread  (same configuration): {max(within):.6f}")
+            print(f"   between-seed spread (different seeds)   : {between:.6f}")
+            ratio = between / max(within) if max(within) else float("inf")
+            print(f"   the seed accounts for {ratio:.0f}x more spread than a repeat does"
+                  if ratio > 1 else
+                  f"   repeats vary as much as seeds do (ratio {ratio:.2f})")
+        else:
+            print(f"   between-seed spread: {between:.6f} (no seed was repeated)")
 
     print("\n" + "=" * 72)
     print("  LaTeX rows — thesis (comma decimals), F1 as mean +/- CI over n runs")
