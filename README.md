@@ -480,8 +480,9 @@ Both write into `results/ml_11_cross_dataset/cross_dataset_adaptation.csv`
 (one `adaptation` column distinguishes the configurations).
 
 **The cross-dataset F1 is not reproducible run to run, and it is bimodal.**
-Over 12 runs of identical code, 2017→2018 F1 landed either at 0.0291–0.0843 or
-at 0.1853–0.3009 with nothing in between, while AUC-PR stayed at 0.4532–0.5357
+Over 18 runs of identical code, 2017→2018 F1 landed either at 0.0291–0.0843 (11
+runs) or at 0.1853–0.3009 (7 runs), nothing in between, while AUC-PR stayed at
+0.4444–0.5397
 throughout: a cluster of near-identical target flows sits on the 0.5 threshold
 and crosses it as a block. Repeating a seed does not pin the outcome — two of
 five repeated seeds switched regime. Report it over repetitions:
