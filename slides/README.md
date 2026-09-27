@@ -52,9 +52,11 @@ show up in the rendered PDF:
   number gets printed on top of the last line. After editing, check the log:
   `grep "Overfull \\\\vbox" <deck>/main.log`. A few points of overrun stay
   invisible; past ~11 pt the footer starts colliding with the last line and that
-  frame needs a line or two cut. All three decks are currently under that bar —
-  the worst entries are ~10.6 pt on the two *Key references* frames — so treat a
-  new entry above ~11 pt as something you introduced.
+  frame needs a line or two cut. All four decks are currently under that bar —
+  the worst entries are ~10.8 pt on `fair2026_vi`'s *Kết quả 2* frame and ~10.6 pt
+  on the two *Key references* frames — so treat a new entry above ~11 pt as
+  something you introduced. The Vietnamese deck sits closest to the bar because
+  Vietnamese sets longer than English at the same font size.
 
 - **An image constrained only by `height` can still be wider than the text
   block** and stick out sideways. Every `\includegraphics` here passes both
@@ -72,7 +74,7 @@ Backup slides sit after `\appendix`, where `appendixnumberbeamer` restarts the
 count, and metropolis' section page carries no footline at all, so neither
 inflates the denominator: the fraction runs `1/9 … 9/9` in the paper decks
 (8 talk slides + references) and `1/18 … 18/18` in the defense deck. Section
-titles are Roman-numbered and upper-case in all three decks.
+titles are Roman-numbered and upper-case in all four decks.
 
 The defense deck opens its backup section with a **clickable index** keyed by
 the question a committee member is likely to ask, so the right slide is one
