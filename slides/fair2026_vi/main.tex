@@ -1,0 +1,507 @@
+% =====================================================================
+% FAIR 2026 — báo cáo miệng 7 phút (bản tiếng Việt)
+% Bài báo: papers/fair2026/manuscript/main_en.tex
+% Bản gốc tiếng Anh: ../fair2026/main.tex — hai bản phải khớp số liệu
+% Biên dịch: ./compile.sh   (XeLaTeX; bản kèm ghi chú: NOTES=1 ./compile.sh)
+%
+% KẾ HOẠCH THỜI GIAN (tổng 7:00, dư ~30 s). Ba trang phân mục nằm giữa các
+% phần, không được đánh số khung và mất ~5 s mỗi trang để bấm qua.
+%   Trang bìa ...................... 0:20
+%   I   Vấn đề, đóng góp ........... 1:25   (2 slide)
+%   II  Quy trình loại rò rỉ ....... 0:55   (1 slide)
+%   III Kết quả, kết luận .......... 4:10   (5 slide)
+% Từ slide 10 trở đi là DỰ PHÒNG cho hỏi đáp, không tính vào 7 phút.
+% Ghi chú người trình bày nằm trong \note{} — dựng bằng NOTES=1.
+% =====================================================================
+\documentclass[aspectratio=169, 11pt]{beamer}
+\input{../common/preamble.tex}
+\centeredtitles
+
+\graphicspath{%
+  {../../results/ml_07_cross_method_comparison/}%
+  {../../results/ml_05_shap_explainability/}%
+  {../../results/ml_06_feature_selection_shap/}%
+  {../../results/ml_09_multiclass_eval/}%
+  {../../results/ml_10_leakage_ablation/}%
+  {../../results/ml_11_cross_dataset/}%
+}
+
+\title{Giảm chiều và chọn lọc đặc trưng cho phát hiện xâm nhập mạng trên Apache Spark ML}
+\subtitle{\ldots với quy trình đánh giá loại rò rỉ dữ liệu}
+\author{\textbf{Vũ Nguyễn Thái}\inst{1} \and Bùi Văn Dũng\inst{2} \and Đỗ Trí Nhựt\inst{2} \and Nguyễn Văn Dư\inst{3}}
+\institute{\scriptsize
+           \inst{1}Phân hiệu tại TP.\ Hồ Chí Minh, Trường Đại học Giao thông Vận tải, TP.\ Hồ Chí Minh, Việt Nam \\
+           \inst{2}Trường Đại học Công nghệ Thông tin, ĐHQG-HCM, TP.\ Hồ Chí Minh, Việt Nam \\
+           \inst{3}Khoa Công nghệ Thông tin, Trường Đại học Nông Lâm, TP.\ Hồ Chí Minh, Việt Nam}
+\date{FAIR'2026}
+
+\begin{document}
+
+% ---------------------------------------------------------------- 0:20
+\maketitle
+\note{Bảy phút cho một luận điểm duy nhất: trên CICIDS2017, F1 gần như hoàn hảo
+thường là tính chất của quy trình đánh giá, không phải của mô hình.}
+
+% ---------------------------------------------------------------- 0:50
+% =====================================================================
+\section{I.\ VẤN ĐỀ VÀ ĐÓNG GÓP}
+% =====================================================================
+
+\begin{frame}{F1 gần như hoàn hảo trên CICIDS2017 là một dấu hiệu đáng ngờ}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \textbf{Hai vấn đề, thường được xét riêng}
+      \begin{itemize}
+        \item \key{Chi phí.} $\approx$80 đặc trưng mỗi luồng.
+        \item \key{Độ tin cậy.} F1 nhị phân gần hoàn hảo thường báo hiệu
+              \bad{rò rỉ dữ liệu}.
+      \end{itemize}
+      \vspace{0.5em}
+      \textbf{Hai nguồn rò rỉ cụ thể}
+      \begin{enumerate}
+        \item \texttt{destination\_port} mã hóa \emph{dịch vụ bị tấn công}.
+        \item \bad{Trùng lặp ở mức đặc trưng} sống sót qua khử trùng lặp
+              toàn dòng --- cùng một mẫu nằm ở \emph{cả} tập huấn luyện
+              \emph{và} tập kiểm tra.
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{alertblock}{Bài báo này}
+        So sánh bốn chiến lược giảm chiều trên cùng tám bộ phân loại Spark ML
+        --- nhưng trước hết làm cho \emph{quy trình đánh giá} đáng tin đã.
+      \end{alertblock}
+      \begin{exampleblock}{Đóng góp nằm ở giao thức đo}
+        Không phải ``phương pháp nào thắng'' mà là \key{đo thế nào để câu trả
+        lời có ý nghĩa}.
+      \end{exampleblock}%
+    \end{column}
+  \end{columns}
+  \note{Định vị bài báo là bài về phép đo. Cổng đích cho mô hình một đường tắt
+  từ cổng sang nhãn; 80 đặc trưng thì tốn cả khi huấn luyện, khi suy luận và
+  khi nhồi lên thiết bị biên. Cả hai nguồn rò rỉ đều được loại trước khi chia
+  tập.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:35
+\begin{frame}{Các đóng góp}
+  \begin{enumerate}
+    \item \key{So sánh thống nhất} giữa RF Importance, SHAP và PCA trên cùng 8
+          thuật toán Spark ML $+$ 2 mô hình tổ hợp, trên CICIDS2017.
+    \item SHAP được đặt \key{trực tiếp} cạnh RF Importance trên cùng tập huấn
+          luyện.
+    \item Quy trình \key{loại rò rỉ và có kiểm định thống kê}: loại đặc trưng rò
+          rỉ, khử trùng lặp ở mức đặc trưng một cách tất định, chọn mô hình trên
+          tập kiểm định, kiểm định hoán vị ghép cặp liệt kê đầy đủ kèm hiệu chỉnh
+          Nadeau--Bengio.
+    \item \key{Đánh giá đa lớp theo từng loại tấn công} --- nơi các phương pháp
+          thực sự khác nhau.
+    \item Khuyến nghị \key{có tính tới thiết bị biên}: F1 \emph{và} số đặc trưng
+          \emph{và} kích thước mô hình, cho Jetson Orin Nano Super (phần triển
+          khai nằm ở một bài hệ thống đi kèm).
+  \end{enumerate}
+  \note{Năm đóng góp; ba, bốn và năm là những thứ ít khi được làm cùng nhau.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:55
+% =====================================================================
+\section{II.\ QUY TRÌNH LOẠI RÒ RỈ}
+% =====================================================================
+
+\begin{frame}{Quy trình loại rò rỉ}
+  \begin{columns}[c]
+    \begin{column}{0.5\textwidth}
+      \centering
+      \resizebox{0.98\textwidth}{!}{%
+      \begin{tikzpicture}[
+        font=\footnotesize, node distance=2.6mm, >=Stealth,
+        box/.style={draw=gray!60, rounded corners=2pt, align=center, inner sep=4pt, minimum width=7.6cm},
+        hl/.style={box, draw=accRed, fill=accRed!10},
+        ed/.style={box, draw=accGreen!80!black, fill=accGreen!10},
+        arr/.style={-{Stealth[length=2mm]}, semithick}]
+        \node[box] (raw)  {CICIDS2017 --- 8 tệp CSV, $\approx$2,8 triệu luồng};
+        \node[hl, below=of raw] (prep) {\textbf{Chuẩn bị dữ liệu loại rò rỉ}\\
+              loại \texttt{destination\_port} $\cdot$ khử trùng lặp mức đặc trưng};
+        \node[box, below=of prep] (split) {Chia 80/20 (hạt giống cố định) $\cdot$ Parquet};
+        \node[box, below=of split] (strat) {\textbf{4 chiến lược}: Cơ sở $|$ RF Top-$K$ $|$ SHAP Top-$K$ $|$ PCA\\
+              (xếp hạng khớp \emph{chỉ trên tập huấn luyện})};
+        \node[box, below=of strat] (clf) {8 bộ phân loại Spark ML $+$ 2 tổ hợp};
+        \node[hl, below=of clf] (val) {Chọn mô hình trên tập kiểm định $\cdot$ kiểm định hoán vị ghép cặp\\
+              khoảng tin cậy Nadeau--Bengio $\cdot$ cỡ hiệu ứng $\cdot$ đa lớp};
+        \node[ed, below=of val] (edge) {SHAP Top-30 $\rightarrow$ Jetson Orin Nano Super};
+        \draw[arr] (raw)--(prep); \draw[arr] (prep)--(split); \draw[arr] (split)--(strat);
+        \draw[arr] (strat)--(clf); \draw[arr] (clf)--(val); \draw[arr] (val)--(edge);
+      \end{tikzpicture}}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \textbf{Việc loại bỏ diễn ra \emph{trước} khi chia tập}
+      \begin{itemize}\small
+        \item Nhóm giống nhau về đặc trưng mà \bad{mâu thuẫn nhãn} bị loại
+              \emph{toàn bộ}: \num{270 nhóm, 44{.}260 dòng}.
+        \item Kết quả: 77 đặc trưng, 1,79 / 0,45 triệu luồng.
+      \end{itemize}
+      \vspace{0.2em}
+      \textbf{Thiết kế cố định \emph{từ trước}}
+      \begin{itemize}\small
+        \item Pha khám phá (quét $K$) tách khỏi pha xác nhận.
+        \item Siêu tham số dùng chung; tập kiểm tra \bad{không} tham gia
+              bước chọn nào.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \note{Khử trùng lặp tất định là chỗ nhiều người làm sai. Nhóm mâu thuẫn nhãn
+  bị loại trọn gói, nên kết quả không phụ thuộc vào cách Spark chia phân vùng.}
+\end{frame}
+
+% ---------------------------------------------------------------- 1:00
+% =====================================================================
+\section{III.\ KẾT QUẢ VÀ KẾT LUẬN}
+% =====================================================================
+
+\begin{frame}{Kết quả 1: bỏ được 60\% đặc trưng}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \centering\small
+      \fitwidth{%
+      \begin{tabular}{llccc}
+        \toprule
+        Phương pháp & Mô hình & F1 & Huấn luyện (s) & Đ.trưng \\
+        \midrule
+        Cơ sở                & XGBoost & 0,9971 & 4615,5 & 77 \\
+        \textbf{SHAP Top-30} & XGBoost & \num{0,9970} & \num{1226,1} & \num{30} \\
+        PCA $k{=}40$         & XGBoost & 0,9939 & 1444,8 & 40 \\
+        RF Top-30            & XGBoost & 0,9922 & 1295,1 & 30 \\
+        \bottomrule
+      \end{tabular}
+      }
+      \vspace{0.5em}
+
+      \footnotesize
+      \fitwidth{%
+      \begin{tabular}{lccc}
+        \toprule
+        Thuật toán & RF Top-30 & SHAP Top-30 & $\Delta$ \\
+        \midrule
+        Random Forest & 0,9879 & 0,9955 & \good{$+$0,77\%} \\
+        XGBoost       & 0,9922 & 0,9970 & \good{$+$0,48\%} \\
+        GBT           & 0,9844 & 0,9918 & \good{$+$0,75\%} \\
+        Decision Tree & 0,9835 & 0,9948 & \good{$+$1,15\%} \\
+        \bottomrule
+      \end{tabular}
+      }
+    \end{column}
+    \begin{column}{0.43\textwidth}
+      \begin{itemize}\small
+        \item SHAP Top-30 giữ được F1 của cấu hình cơ sở trong khi cắt
+              \good{$\approx$60\% đặc trưng} và \good{$\approx$73\% thời gian
+              huấn luyện}.
+        \item Ở \emph{cùng} số đặc trưng, SHAP thắng RF Importance trên mọi
+              thuật toán dạng cây.
+        \item PCA dùng $k{=}40$ vì nó \emph{trích xuất} chứ không
+              \emph{chọn lọc} --- mỗi thành phần chỉ mang một phần phương sai.
+              Rẻ hơn cấu hình cơ sở, nhưng không giải thích được.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \note{Hai bảng, một thông điệp: SHAP Top-30 là điểm vận hành. Cùng độ chính
+  xác, ít hơn 60 phần trăm đặc trưng, và giải thích được — điều quan trọng với
+  phân tích viên SOC và với thiết bị biên ở phía sau.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:40
+\begin{frame}{Kết quả 2: kiểm định sự khác biệt thay vì khẳng định nó}
+  \begin{columns}[T]
+    \begin{column}{0.47\textwidth}
+      \centering\footnotesize
+      \fitwidth{%
+      \begin{tabular}{llc}
+        \toprule
+        Phương pháp & Mô hình & F1 (TB $\pm$ CI95) \\
+        \midrule
+        Cơ sở       & XGBoost & 0,99734 $\pm$ 0,00007 \\
+        SHAP Top-30 & XGBoost & 0,99720 $\pm$ 0,00009 \\
+        \midrule
+        \multicolumn{3}{c}{\footnotesize hoán vị ghép cặp $p = 0{,}031$;\ $d \approx 1{,}94$} \\
+        \bottomrule
+      \end{tabular}
+      }
+      \vspace{0.15em}
+
+      \scriptsize
+      \fitwidth{%
+      \begin{tabular}{lcc}
+        \toprule
+        Ablation cổng (RF) & F1 & Recall (Tấn công) \\
+        \midrule
+        Giữ cổng            & 0,9965 & 0,9988 \\
+        \textbf{Loại cổng}  & 0,9955 & 0,9961 \\
+        \bottomrule
+      \end{tabular}
+      }
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{itemize}\footnotesize
+        \item $N{=}6$ lần \emph{lấy mẫu lại} ghép cặp: phương sai phản ánh
+              việc lấy mẫu dữ liệu, không chỉ hạt giống.
+        \item Hoán vị hai phía, \key{liệt kê đủ} $2^6$ tổ hợp dấu: $p$ nhỏ
+              nhất là $2/2^6$, nên $N \geq 6$ là \emph{bắt buộc}.
+        \item Lấy mẫu chồng nhau phá vỡ tính độc lập của $t$ $\rightarrow$
+              dùng CI \key{hiệu chỉnh Nadeau--Bengio}.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \takeaway{Có ý nghĩa \emph{chỉ ở sát ngưỡng phân giải}, cách biệt
+  $\approx$0,0001: \key{tương đương về thực hành}, nên tính giải thích được và
+  chi phí mới quyết định. Trùng lặp mới là nguồn rò rỉ chính, không phải cổng.}
+  {\tiny\textcolor{gray!55!black}{Nadeau \& Bengio, \emph{Inference for the
+  Generalization Error}, Machine Learning 52(3), 2003.}}
+  \note{Phương sai phản ánh việc lấy mẫu dữ liệu, không chỉ khởi tạo mô hình.
+  Kiểm định là hai phía, và các lần lấy mẫu chồng nhau phá vỡ tính độc lập của
+  t. p nhỏ nhưng hiệu ứng tuyệt đối rất nhỏ: nói thẳng rằng ta coi hai phương
+  pháp là tương đương chứ không tuyên bố ai thắng.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:55
+\begin{frame}{Kết quả 3: F1 nhị phân che giấu các lớp hiếm}
+  \begin{columns}[c]
+    \begin{column}{0.40\textwidth}
+      \centering
+      \IfFileExists{../../results/ml_09_multiclass_eval/confusion_matrix.png}
+        {\includegraphics[width=0.98\textwidth]{confusion_matrix.png}}
+        {\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.2cm}
+          \texttt{confusion\_matrix.png}\vspace{1.2cm}}}}
+    \end{column}
+    \begin{column}{0.58\textwidth}
+      \centering\footnotesize
+      \fitwidth{%
+      \begin{tabular}{lccc}
+        \toprule
+        Lớp & Số mẫu & Recall & F1 \\
+        \midrule
+        Benign                & 380.119 & 0,9997 & 0,9989 \\
+        DoS Hulk              & 34.446  & 0,9904 & 0,9947 \\
+        Web -- Brute Force    & 311     & 0,7299 & 0,7323 \\
+        Bot                   & 290     & \bad{0,4552} & 0,6256 \\
+        Web -- XSS            & 111     & \bad{0,0270} & 0,0526 \\
+        Web -- SQL Injection  & 6       & \bad{0,0000} & 0,0000 \\
+        \midrule
+        \multicolumn{2}{l}{weighted-F1 $=$ 0,998} &
+        \multicolumn{2}{l}{\bad{macro-F1 $=$ 0,806}} \\
+        \bottomrule
+      \end{tabular}
+      }
+      \par\vspace{0.2em}
+      \raggedright\scriptsize
+      Hai kiểu sai, theo \emph{nơi lỗi rơi vào}:
+      \begin{itemize}\scriptsize
+        \item \textbf{Nhầm loại nhưng vẫn bắt}: 81/111 XSS rơi vào Web Brute
+              Force --- \good{76\% vẫn bị gắn cờ} ở mức nhị phân.
+        \item \textbf{Lọt vào Benign} (nguy hiểm): cả 6 SQL Injection,
+              \bad{54\% Bot}, 27\% Brute Force.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \note{Weighted F1 0,998 so với macro F1 0,806. Ba nguyên nhân: mất cân bằng
+  cực độ; loại cổng đích ảnh hưởng nặng nhất tới tấn công web, vì không còn
+  đường tắt cổng 80 thì các luồng HTTP ngắn trông như lướt web bình thường,
+  nên recall 0,027 báo ở đây thay cho một con số từng bị rò rỉ thổi phồng; và
+  hành vi beaconing của Bot C\&C giống lưu lượng nền.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:55
+\begin{frame}{Kết quả 4: điểm số không sống sót khi đổi testbed}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \centering\small
+      \fitwidth{%
+      \begin{tabular}{lcc}
+        \toprule
+        Huấn luyện $\to$ Kiểm tra & F1 & AUC-PR \\
+        \midrule
+        2017 $\to$ 2017 & \good{0,9953} & \good{0,9997} \\
+        2017 $\to$ 2018 & \bad{0,029--0,085 $\mid$ 0,185--0,301} & \bad{0,4849} \\
+        2018 $\to$ 2018 & \good{0,9246} & \good{0,9679} \\
+        2018 $\to$ 2017 & \bad{0,0544} \tiny$\pm$0,0019 & \bad{0,1926} \\
+        \bottomrule
+      \end{tabular}
+      }
+      \\[0.4em]
+      \footnotesize
+      Trung bình 18 lượt; đặc trưng chung đã loại rò rỉ, $\sim$2,39 triệu luồng.
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{itemize}\footnotesize
+        \item Trong-miền ổn định \emph{cả hai} chiều --- AUC-PR liên bộ
+              \bad{1,00$\to$0,48} và \bad{0,97$\to$0,19}.
+        \item Recall 0,073 / 0,030 (precision 0,772 / 0,272): mô hình
+              \key{không nhận ra} tấn công của testbed kia.
+        \item 18 lượt, \key{hai chế độ rời nhau}: 11 lượt 0,029--0,085 và 7
+              lượt 0,185--0,301, không gì ở giữa; AUC-PR như nhau.
+        \item Nguyên nhân: khác CICFlowMeter, cấu hình mạng, công cụ tấn công.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \takeaway{Điểm số trong-miền gần hoàn hảo, \emph{kể cả khi đã loại rò rỉ},
+  \key{không chứng nhận} khả năng triển khai khi phân phối dịch chuyển.}
+  \note{Không làm nhẹ con số này. Trong-miền 0,99, liên bộ AUC-PR 0,48 / 0,19.
+  Nếu bị hỏi vì sao khoảng F1 rộng: ở mức recall này, cụm luồng tấn công miền
+  đích nằm sát ngưỡng 0,5 nên cả cụm lật cùng lúc, tạo ra hai chế độ; vì vậy
+  báo cáo theo nhiều lượt và xét theo AUC-PR. Thống nhất với các nghiên cứu
+  liên bộ dữ liệu trước đó, và là lý do khiến thích ứng miền là điều kiện tiên
+  quyết chứ không phải thứ có thì tốt.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:40
+\begin{frame}{Kết luận}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \textbf{Những gì đã chỉ ra}
+      \begin{itemize}
+        \item SHAP Top-30 giữ được F1 cơ sở với \good{$\approx$60\% ít đặc
+              trưng hơn}.
+        \item Cơ sở và SHAP Top-30 \key{tương đương về thực hành}.
+        \item \bad{macro-F1 0,806} so với weighted-F1 0,998.
+        \item AUC-PR liên bộ dữ liệu \bad{sụp xuống 0,48 / 0,19}.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \textbf{Đóng góp}
+      \begin{itemize}\small
+        \item \key{Đo thế nào cho đáng tin}, quan trọng ngang với phương pháp
+              nào thắng.
+      \end{itemize}
+      \textbf{Hướng tiếp theo}
+      \begin{itemize}\small
+        \item Toàn bộ CSE-CIC-IDS2018; các bộ mới hơn (RoEduNet, CIC-IoT).
+        \item \emph{Bản thân} tập SHAP Top-30 có chuyển được sang bộ khác?
+        \item Xử lý mất cân bằng có chủ đích; đặc trưng thời gian cho beaconing.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \vfill
+  \centering \key{Xin cảm ơn --- kính mời câu hỏi}
+  \note{Kết bằng giao thức đo, không kết bằng bảng xếp hạng.}
+\end{frame}
+
+% ---------------------------------------------------------------- 7:00
+\begin{frame}{Tài liệu tham khảo chính}
+  \begin{itemize}\scriptsize
+    \setlength{\itemsep}{0.1em}
+    \item[{[1]}] Sharafaldin, I., Lashkari, A.\,H. \& Ghorbani, A.\,A.
+          \emph{Toward generating a new intrusion detection dataset and
+          intrusion traffic characterization}. ICISSP 2018.
+          \hfill{\key{CICIDS2017}}
+    \item[{[2]}] Lanvin, M. et al. \emph{Errors in the CICIDS2017 Dataset and the
+          Significant Differences in Detection Performances It Makes}.
+          CRiSIS 2022.
+          \hfill{\key{mâu thuẫn nhãn}}
+    \item[{[3]}] Arp, D. et al. \emph{Dos and Don'ts of Machine Learning in Computer
+          Security}. USENIX Security 2022.
+          \hfill{\key{bẫy rò rỉ}}
+    \item[{[4]}] Lundberg, S.\,M. \& Lee, S.-I. \emph{A unified approach to
+          interpreting model predictions}. NeurIPS 2017.
+          \hfill{\key{SHAP}}
+    \item[{[5]}] Nadeau, C. \& Bengio, Y. \emph{Inference for the Generalization
+          Error}. Machine Learning 52(3), 2003.
+          \hfill{\key{CI hiệu chỉnh}}
+    \item[{[6]}] D'hooge, L. et al. \emph{Inter-dataset generalization strength of
+          supervised machine learning methods for intrusion detection}.
+          J.\ Information Security and Applications 54, 2020.
+          \hfill{\key{liên bộ dữ liệu}}
+    \item[{[7]}] Zaharia, M. et al. \emph{Spark: Cluster computing with working
+          sets}. HotCloud 2010.
+          \hfill{\key{Spark ML}}
+    \item[{[8]}] CIC \& CSE. \emph{CSE-CIC-IDS2018 dataset}. 2018.
+          \hfill{\key{đích liên bộ dữ liệu}}
+  \end{itemize}
+  \note{Không trình bày --- để trên màn hình trong lúc nhận câu hỏi, nên nguồn
+  luôn hiện sẵn nếu khán giả hỏi. Danh sách đầy đủ nằm trong bài báo.}
+\end{frame}
+
+% =====================================================================
+\appendix
+
+\begin{frame}[standout]
+  Slide dự phòng
+\end{frame}
+
+\begin{frame}{Dự phòng: bản đồ nhiệt F1, phương pháp $\times$ thuật toán}
+  \centering
+  \IfFileExists{../../results/ml_07_cross_method_comparison/f1_heatmap.png}
+    {\includegraphics[height=0.74\textheight, width=\textwidth, keepaspectratio]{f1_heatmap.png}}
+    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
+      \texttt{f1\_heatmap.png}\vspace{1.5cm}}}}
+  \\[0.2em]\footnotesize Nhị phân, đã loại cổng. 8 thuật toán $\times$ 4 phương pháp.
+\end{frame}
+
+\begin{frame}{Dự phòng: siêu tham số, cố định từ trước}
+  \centering\footnotesize
+  \fitwidth{%
+  \begin{tabular}{ll}
+    \toprule
+    Mô hình & Siêu tham số chính \\
+    \midrule
+    Decision Tree       & maxDepth=15, minInstancesPerNode=5, impurity=entropy \\
+    Logistic Regression & maxIter=200, regParam=0.001, L2, threshold=0.5 \\
+    SVM (LinearSVC)     & maxIter=200, regParam=0.001 \\
+    Naive Bayes         & gaussian, smoothing=1.0 \\
+    Random Forest       & numTrees=200, maxDepth=15, featureSubset=sqrt \\
+    GBT                 & maxIter=150, maxDepth=6, stepSize=0.05, subsample=0.8 \\
+    XGBoost             & n\_estimators=300, max\_depth=8, lr=0.05, subsample=0.8, colsample=0.8 \\
+    MLP                 & layers=[$d$,64,32,2], maxIter=150, stepSize=0.01 \\
+    \bottomrule
+  \end{tabular}
+  }
+  \\[0.4em]
+  \raggedright\scriptsize
+  Dùng chung cho mọi phương pháp giảm chiều, nên khác biệt phản ánh
+  \emph{phương pháp} chứ không phải việc tinh chỉnh riêng từng mô hình. Trọng số
+  lớp cho 6 mô hình, \texttt{scale\_pos\_weight} cho XGBoost; MLP không có trọng
+  số (Spark ML không hỗ trợ trọng số mẫu cho nó) --- đã nêu trong phần hạn chế.
+  LightGBM bị loại: thư viện gốc qua SynapseML chỉ chạy x86\_64, còn đích triển
+  khai là ARM64.
+\end{frame}
+
+\begin{frame}{Dự phòng: chi phí huấn luyện và suy luận}
+  \centering
+  \IfFileExists{../../results/ml_07_cross_method_comparison/train_predict_time.png}
+    {\includegraphics[height=0.68\textheight, width=\textwidth, keepaspectratio]{train_predict_time.png}}
+    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
+      \texttt{train\_predict\_time.png}\vspace{1.5cm}}}}
+  \\[0.2em]\footnotesize
+  Đo trên cụm huấn luyện Spark. Độ trễ và thông lượng \emph{trên thiết bị biên}
+  thuộc bài hệ thống đi kèm.
+\end{frame}
+
+\begin{frame}{Dự phòng: các yếu tố ảnh hưởng tính hợp lệ}
+  \begin{itemize}\small
+    \item \textbf{Nội tại.} Xếp hạng RF/SHAP lấy từ tập huấn luyện gốc và giữ
+          cố định qua các lần lấy mẫu lại --- nhất quán với thiết kế cố định từ
+          trước, nhưng có thể gây rò rỉ nhẹ ở phần xếp hạng. Xếp hạng lại trong
+          hai trong sáu lần lấy mẫu chỉ làm F1 lệch $\le 7{,}4\times10^{-5}$,
+          và 25--26/30 đặc trưng vẫn được chọn lại. MLP mang hạn chế không có
+          trọng số lớp.
+    \item \textbf{Ngoại tại.} CICIDS2017 có thể không phản ánh lưu lượng hiện
+          tại, và các bộ dữ liệu NIDS chuẩn đều có hạn chế chất lượng đã ghi
+          nhận. Kết luận liên bộ dữ liệu dựa trên \emph{mẫu phân tầng} của
+          CSE-CIC-IDS2018. Chưa kiểm thử lưu lượng né tránh. Bản thân việc khử
+          trùng lặp cũng làm thay đổi phân bố benign/attack.
+    \item \textbf{Thống kê.} $N{=}6$ cho \emph{power} thấp: liệt kê đầy đủ hai
+          phía chặn $p$ ở mức $2/2^N$, nên $N{=}6$ \emph{vừa đủ} chạm 0,05. Các
+          lần lấy mẫu chồng nhau, vi phạm tính độc lập của $t$ --- vì vậy lấy
+          Nadeau--Bengio làm căn cứ chính. Kiểm định chéo lồng với $N$ lớn hơn
+          là hướng củng cố tiếp theo.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Dự phòng: quy kết đặc trưng bằng SHAP}
+  \centering
+  \IfFileExists{../../results/ml_06_feature_selection_shap/shap_summary_beeswarm.png}
+    {\includegraphics[height=0.68\textheight, width=\textwidth, keepaspectratio]{shap_summary_beeswarm.png}}
+    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
+      \texttt{shap\_summary\_beeswarm.png}\vspace{1.5cm}}}}
+  \\[0.2em]\footnotesize
+  SHAP được tính trên \emph{mẫu phân tầng theo lớp} để cả lưu lượng bình thường
+  và lưu lượng tấn công đều có mặt trong bảng xếp hạng.
+\end{frame}
+
+\end{document}
