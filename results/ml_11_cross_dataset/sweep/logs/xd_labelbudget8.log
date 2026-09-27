@@ -1,0 +1,83 @@
+[OK] 2 Spark worker(s) ALIVE
+[skip] sync_raw_2018 (done)
+[skip] prepare_2018 (done)
+[skip] sync_data (done)
+===== STEP: train_ml11 =====
+[INFO] Spark cluster mode | master=spark://192.168.1.25:7077
+[INFO] Spark 3.4.1 | UI: http://192.168.1.50:4040
+============================================================
+  LOADING DATA FROM PARQUET
+============================================================
+  Training set: 1,785,349 samples
+  Test set:     447,275 samples
+  [INFO] Port features excluded to avoid label leakage (set IDS_KEEP_PORT_FEATURES=1 for ablation).
+  Numeric features: 77
+============================================================
+============================================================
+  LOADING DATA FROM PARQUET
+============================================================
+  Training set: 1,913,324 samples
+  Test set:     477,771 samples
+  [INFO] Port features excluded to avoid label leakage (set IDS_KEEP_PORT_FEATURES=1 for ablation).
+  Numeric features: 76
+============================================================
+======================================================================
+  EXPERIMENT 11: CROSS-DATASET GENERALIZATION
+======================================================================
+  A = CICIDS2017 (/home/bvdung/Thesis_IDS/data): 77 features
+  B = CSE-CIC-IDS2018 (/home/bvdung/Thesis_IDS/data_2018): 76 features
+  Common leak-free features: 75
+  Only in A (2): fwd_header_length34, fwd_header_length55
+  Only in B (1): fwd_header_length
+  [INFO] Common feature list saved -> results/ml_11_cross_dataset/common_features.txt
+  Class weights (inverse frequency): {1: 3.317678562137171, 0: 0.5887255215550131}
+  Class weights (inverse frequency): {1: 3.936734853441642, 0: 0.5727434645560867}
+        CICIDS2017 -> CICIDS2017       [in-domain] F1=0.9953627546577147
+        CICIDS2017 -> CSE-CIC-IDS2018  [cross    ] F1=0.2938976079064696
+   CSE-CIC-IDS2018 -> CSE-CIC-IDS2018  [in-domain] F1=0.9247259518713109
+   CSE-CIC-IDS2018 -> CICIDS2017       [cross    ] F1=0.05742808214631816
+  Unsupervised domain adaptation (classifier untouched, no target labels):
+  CICIDS2017 -> CSE-CIC-IDS2018 | scaler-refit : F1=0
+  CICIDS2017 -> CSE-CIC-IDS2018 | CORAL        : F1=0
+  CSE-CIC-IDS2018 -> CICIDS2017 | scaler-refit : F1=0
+  CSE-CIC-IDS2018 -> CICIDS2017 | CORAL        : F1=0
+  Supervised adaptation on a labelled slice of the target's TRAIN split:
+  CICIDS2017 -> CSE-CIC-IDS2018 | labelled target 1.0%: 19,276 flows (2,348 attacks)
+  Class weights (inverse frequency): {1: 3.3244876830229835, 0: 0.5885116269058858}
+  CICIDS2017 -> CSE-CIC-IDS2018 | source + target k%   k=1.0% : F1=0.8034 (no adaptation 0.2939)
+  Class weights (inverse frequency): {1: 4.104770017035775, 0: 0.5693525519848771}
+  CICIDS2017 -> CSE-CIC-IDS2018 | target k% only       k=1.0% : F1=0.9223 (no adaptation 0.2939)
+  CSE-CIC-IDS2018 -> CICIDS2017 | labelled target 1.0%: 18,011 flows (2,742 attacks)
+  Class weights (inverse frequency): {1: 3.9294550174770397, 0: 0.5728978799039384}
+  CSE-CIC-IDS2018 -> CICIDS2017 | source + target k%   k=1.0% : F1=0.9607 (no adaptation 0.0574)
+  Class weights (inverse frequency): {1: 3.2842815463165573, 0: 0.5897897701224704}
+  CSE-CIC-IDS2018 -> CICIDS2017 | target k% only       k=1.0% : F1=0.9897 (no adaptation 0.0574)
+[INFO] Saved: results/ml_11_cross_dataset/cross_dataset_adaptation.csv
+          train            test                       adaptation       f1  precision   recall   auc_pr  f1_no_adaptation  delta_f1  labelled_target_flows
+     CICIDS2017 CSE-CIC-IDS2018 scaler-refit (target statistics) 0.000000   0.000000 0.000000 0.415481          0.293898 -0.293898                    NaN
+     CICIDS2017 CSE-CIC-IDS2018         CORAL (target -> source) 0.000000   0.000000 0.000000 0.177308          0.293898 -0.293898                    NaN
+CSE-CIC-IDS2018      CICIDS2017 scaler-refit (target statistics) 0.000000   0.000000 0.000000 0.091643          0.057428 -0.057428                    NaN
+CSE-CIC-IDS2018      CICIDS2017         CORAL (target -> source) 0.000000   0.000000 0.000000 0.209409          0.057428 -0.057428                    NaN
+     CICIDS2017 CSE-CIC-IDS2018     source + target k% (k=0.010) 0.803414   0.992225 0.674972 0.940155          0.293898  0.509516                19276.0
+     CICIDS2017 CSE-CIC-IDS2018         target k% only (k=0.010) 0.922346   0.924928 0.919778 0.957639          0.293898  0.628448                19276.0
+CSE-CIC-IDS2018      CICIDS2017     source + target k% (k=0.010) 0.960684   0.937252 0.985318 0.992659          0.057428  0.903256                18011.0
+CSE-CIC-IDS2018      CICIDS2017         target k% only (k=0.010) 0.989728   0.994572 0.984931 0.998889          0.057428  0.932300                18011.0
+[INFO] Saved: results/ml_11_cross_dataset/cross_dataset_results.csv
+          train            test      kind       f1  precision   recall   auc_pr
+     CICIDS2017      CICIDS2017 in-domain 0.995363   0.995104 0.995622 0.999716
+     CICIDS2017 CSE-CIC-IDS2018     cross 0.293898   0.920457 0.174866 0.525917
+CSE-CIC-IDS2018 CSE-CIC-IDS2018 in-domain 0.924726   0.913073 0.936680 0.968119
+CSE-CIC-IDS2018      CICIDS2017     cross 0.057428   0.264652 0.032209 0.174167
+[OK] Saved: results/ml_11_cross_dataset/cross_dataset_f1.png
+===== STEP: pull_results =====
+[DONE] Results:
+total 128
+drwxrwxr-x@  8 thainguyenvu  staff    256 Sep 24 01:55 .
+drwxr-xr-x@ 15 thainguyenvu  staff    480 Jul 24 18:13 ..
+-rw-rw-r--@  1 thainguyenvu  staff   1249 Sep 25 09:37 common_features.txt
+-rw-rw-r--@  1 thainguyenvu  staff   1317 Sep 25 12:21 cross_dataset_adaptation.csv
+-rw-rw-r--@  1 thainguyenvu  staff    580 Sep 24 01:55 cross_dataset_adaptation.run1-4core.bak
+-rw-rw-r--@  1 thainguyenvu  staff  43539 Sep 25 12:21 cross_dataset_f1.png
+-rw-rw-r--@  1 thainguyenvu  staff    490 Sep 25 12:21 cross_dataset_results.csv
+-rw-rw-r--@  1 thainguyenvu  staff    491 Sep 23 18:36 cross_dataset_results.published.bak
+Now fill tab:cross-dataset from cross_dataset_results.csv

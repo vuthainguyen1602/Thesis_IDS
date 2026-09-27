@@ -1,0 +1,67 @@
+[skip] sync_raw_2018 (done)
+[skip] prepare_2018 (done)
+[skip] sync_data (done)
+===== STEP: train_ml11 =====
+[INFO] Spark cluster mode | master=spark://192.168.1.25:7077
+[INFO] Spark 3.4.1 | UI: http://192.168.1.50:4040
+============================================================
+  LOADING DATA FROM PARQUET
+============================================================
+  Training set: 1,785,349 samples
+  Test set:     447,275 samples
+  [INFO] Port features excluded to avoid label leakage (set IDS_KEEP_PORT_FEATURES=1 for ablation).
+  Numeric features: 77
+============================================================
+============================================================
+  LOADING DATA FROM PARQUET
+============================================================
+  Training set: 1,913,324 samples
+  Test set:     477,771 samples
+  [INFO] Port features excluded to avoid label leakage (set IDS_KEEP_PORT_FEATURES=1 for ablation).
+  Numeric features: 76
+============================================================
+======================================================================
+  EXPERIMENT 11: CROSS-DATASET GENERALIZATION
+======================================================================
+  A = CICIDS2017 (/home/bvdung/Thesis_IDS/data): 77 features
+  B = CSE-CIC-IDS2018 (/home/bvdung/Thesis_IDS/data_2018): 76 features
+  Common leak-free features: 75
+  Only in A (2): fwd_header_length34, fwd_header_length55
+  Only in B (1): fwd_header_length
+  [INFO] Common feature list saved -> results/ml_11_cross_dataset/common_features.txt
+  Class weights (inverse frequency): {1: 3.317678562137171, 0: 0.5887255215550131}
+  Class weights (inverse frequency): {1: 3.936734853441642, 0: 0.5727434645560867}
+        CICIDS2017 -> CICIDS2017       [in-domain] F1=0.9951562860395384
+        CICIDS2017 -> CSE-CIC-IDS2018  [cross    ] F1=0.04227003390474983
+   CSE-CIC-IDS2018 -> CSE-CIC-IDS2018  [in-domain] F1=0.9249108011676938
+   CSE-CIC-IDS2018 -> CICIDS2017       [cross    ] F1=0.05610030541713551
+  Unsupervised domain adaptation (classifier untouched, no target labels):
+  CICIDS2017 -> CSE-CIC-IDS2018 | scaler-refit : F1=0
+  CICIDS2017 -> CSE-CIC-IDS2018 | CORAL        : F1=0
+  CSE-CIC-IDS2018 -> CICIDS2017 | scaler-refit : F1=0
+  CSE-CIC-IDS2018 -> CICIDS2017 | CORAL        : F1=0
+[INFO] Saved: results/ml_11_cross_dataset/cross_dataset_adaptation.csv
+          train            test                       adaptation  f1  precision  recall   auc_pr  f1_no_adaptation  delta_f1
+     CICIDS2017 CSE-CIC-IDS2018 scaler-refit (target statistics)   0        0.0     0.0 0.174177           0.04227  -0.04227
+     CICIDS2017 CSE-CIC-IDS2018         CORAL (target -> source)   0        0.0     0.0 0.212997           0.04227  -0.04227
+CSE-CIC-IDS2018      CICIDS2017 scaler-refit (target statistics)   0        0.0     0.0 0.088029           0.05610  -0.05610
+CSE-CIC-IDS2018      CICIDS2017         CORAL (target -> source)   0        0.0     0.0 0.257626           0.05610  -0.05610
+[INFO] Saved: results/ml_11_cross_dataset/cross_dataset_results.csv
+          train            test      kind       f1  precision   recall   auc_pr
+     CICIDS2017      CICIDS2017 in-domain 0.995156   0.994498 0.995816 0.999711
+     CICIDS2017 CSE-CIC-IDS2018     cross 0.042270   0.596334 0.021912 0.471975
+CSE-CIC-IDS2018 CSE-CIC-IDS2018 in-domain 0.924911   0.913371 0.936745 0.968731
+CSE-CIC-IDS2018      CICIDS2017     cross 0.056100   0.279349 0.031181 0.199435
+[OK] Saved: results/ml_11_cross_dataset/cross_dataset_f1.png
+===== STEP: pull_results =====
+[DONE] Results:
+total 128
+drwxrwxr-x@  8 thainguyenvu  staff    256 Sep 24 01:55 .
+drwxr-xr-x@ 15 thainguyenvu  staff    480 Jul 24 18:13 ..
+-rw-rw-r--@  1 thainguyenvu  staff   1249 Sep 25 01:11 common_features.txt
+-rw-rw-r--@  1 thainguyenvu  staff    583 Sep 25 03:47 cross_dataset_adaptation.csv
+-rw-rw-r--@  1 thainguyenvu  staff    580 Sep 24 01:55 cross_dataset_adaptation.run1-4core.bak
+-rw-rw-r--@  1 thainguyenvu  staff  43197 Sep 25 03:47 cross_dataset_f1.png
+-rw-rw-r--@  1 thainguyenvu  staff    492 Sep 25 03:47 cross_dataset_results.csv
+-rw-rw-r--@  1 thainguyenvu  staff    491 Sep 23 18:36 cross_dataset_results.published.bak
+Now fill tab:cross-dataset from cross_dataset_results.csv

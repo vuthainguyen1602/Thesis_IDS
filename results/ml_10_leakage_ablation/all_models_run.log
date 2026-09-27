@@ -1,0 +1,337 @@
+================================================================
+  Distributed ML run
+  Driver:  bvdung@192.168.1.50
+  Master:  spark://192.168.1.25:7077
+  Script:  ml_10_leakage_ablation.py
+================================================================
+[INFO] Ensuring ML deps on executor host: bvdung@192.168.1.50
+[OK] ML deps already installed on ubuntu
+[OK] pyarrow + xgboost on /home/bvdung/Thesis_IDS/jetson/venv/bin/python
+[INFO] Ensuring ML deps on executor host: bvdung@192.168.1.204
+[OK] ML deps already installed on ubuntu
+[OK] pyarrow + xgboost on /home/bvdung/Thesis_IDS/jetson/venv/bin/python
+[OK] Core ML deps ready on driver
+[INFO] JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
+[INFO] XGBoost backend available
+[INFO] Spark cluster mode | master=spark://192.168.1.25:7077
+[INFO] Spark 3.4.1 | UI: http://192.168.1.50:4040
+============================================================
+  LOADING DATA FROM PARQUET
+============================================================
+  Test set:     447,275 samples
+  [INFO] Port features excluded to avoid label leakage (set IDS_KEEP_PORT_FEATURES=1 for ablation).
+  Numeric features: 77
+============================================================
+======================================================================
+  EXPERIMENT 10: FEATURE-LEAKAGE ABLATION (destination_port)
+======================================================================
+  Features without port: 77
+  Port columns re-added : ['destination_port']
+  Features with port    : 78
+  Models (8): Decision Tree, Logistic Regression, SVM (LinearSVC), Naive Bayes, Random Forest, GBT, XGBoost, MLP
+  Fits to run          : 16
+============================================================
+  RESULTS: Decision Tree — without destination_port
+============================================================
+  Accuracy:  0.998576
+  Precision: 0.993062
+  Recall:    0.997483
+  F1-Score:  0.995268
+  AUC-ROC:   0.998183
+  AUC-PR:    0.993696
+  TP=66987, TN=379651, FP=468, FN=169
+  Model Size: 0.032 MB
+  Training time:    37.328s
+  Prediction time:  8.499s
+============================================================
+============================================================
+  RESULTS: Decision Tree — with destination_port
+============================================================
+  Accuracy:  0.998989
+  Precision: 0.993928
+  Recall:    0.999375
+  F1-Score:  0.996644
+  AUC-ROC:   0.999734
+  AUC-PR:    0.999503
+  TP=67114, TN=379709, FP=410, FN=42
+  Model Size: 0.022 MB
+  Training time:    40.520s
+  Prediction time:  11.341s
+============================================================
+============================================================
+  RESULTS: Logistic Regression — without destination_port
+============================================================
+  Accuracy:  0.928646
+  Precision: 0.692968
+  Recall:    0.942239
+  F1-Score:  0.798604
+  AUC-ROC:   0.985772
+  AUC-PR:    0.950718
+  TP=63277, TN=352083, FP=28036, FN=3879
+  Model Size: 0.000 MB
+  Training time:    67.847s
+  Prediction time:  9.335s
+============================================================
+============================================================
+  RESULTS: Logistic Regression — with destination_port
+============================================================
+  Accuracy:  0.945300
+  Precision: 0.754150
+  Recall:    0.943147
+  F1-Score:  0.838126
+  AUC-ROC:   0.988671
+  AUC-PR:    0.959086
+  TP=63338, TN=359471, FP=20648, FN=3818
+  Model Size: 0.006 MB
+  Training time:    55.963s
+  Prediction time:  8.380s
+============================================================
+============================================================
+  RESULTS: SVM (LinearSVC) — without destination_port
+============================================================
+  Accuracy:  0.923027
+  Precision: 0.674758
+  Recall:    0.940839
+  F1-Score:  0.785888
+  AUC-ROC:   0.984331
+  AUC-PR:    0.944911
+  TP=63183, TN=349664, FP=30455, FN=3973
+  Model Size: 0.005 MB
+  Training time:    238.261s
+  Prediction time:  13.081s
+============================================================
+============================================================
+  RESULTS: SVM (LinearSVC) — with destination_port
+============================================================
+  Accuracy:  0.941092
+  Precision: 0.738716
+  Recall:    0.940214
+  F1-Score:  0.827373
+  AUC-ROC:   0.986601
+  AUC-PR:    0.950893
+  TP=63141, TN=357786, FP=22333, FN=4015
+  Model Size: 0.004 MB
+  Training time:    222.512s
+  Prediction time:  19.526s
+============================================================
+============================================================
+  RESULTS: Naive Bayes — without destination_port
+============================================================
+  Accuracy:  0.299091
+  Precision: 0.175659
+  Recall:    0.993329
+  F1-Score:  0.298527
+  AUC-ROC:   0.878811
+  AUC-PR:    0.630424
+  TP=66708, TN=67068, FP=313051, FN=448
+  Model Size: 0.014 MB
+  Training time:    25.144s
+  Prediction time:  7.495s
+============================================================
+============================================================
+  RESULTS: Naive Bayes — with destination_port
+============================================================
+  Accuracy:  0.333531
+  Precision: 0.183137
+  Recall:    0.993776
+  F1-Score:  0.309279
+  AUC-ROC:   0.888842
+  AUC-PR:    0.643700
+  TP=66738, TN=82442, FP=297677, FN=418
+  Model Size: 0.014 MB
+  Training time:    15.325s
+  Prediction time:  8.200s
+============================================================
+============================================================
+  RESULTS: Random Forest — without destination_port
+============================================================
+  Accuracy:  0.998607
+  Precision: 0.994647
+  Recall:    0.996084
+  F1-Score:  0.995365
+  AUC-ROC:   0.999936
+  AUC-PR:    0.999717
+  TP=66893, TN=379759, FP=360, FN=263
+  Model Size: 0.006 MB
+  Training time:    1120.020s
+  Prediction time:  33.182s
+============================================================
+============================================================
+  RESULTS: Random Forest — with destination_port
+============================================================
+  Accuracy:  0.998920
+  Precision: 0.994072
+  Recall:    0.998764
+  F1-Score:  0.996412
+  AUC-ROC:   0.999977
+  AUC-PR:    0.999892
+  TP=67073, TN=379719, FP=400, FN=83
+  Model Size: 3.489 MB
+  Training time:    1016.883s
+  Prediction time:  38.296s
+============================================================
+============================================================
+  RESULTS: GBT — without destination_port
+============================================================
+  Accuracy:  0.997715
+  Precision: 0.988218
+  Recall:    0.996664
+  F1-Score:  0.992423
+  AUC-ROC:   0.999823
+  AUC-PR:    0.999060
+  TP=66932, TN=379321, FP=798, FN=224
+  Model Size: 0.704 MB
+  Training time:    1336.447s
+  Prediction time:  24.330s
+============================================================
+org.apache.spark.SparkException: Exception thrown in awaitResult: 
+	at org.apache.spark.util.ThreadUtils$.awaitResult(ThreadUtils.scala:322)
+	at org.apache.spark.rpc.RpcTimeout.awaitResult(RpcTimeout.scala:75)
+	at org.apache.spark.storage.BlockManagerMaster.removeBroadcast(BlockManagerMaster.scala:209)
+	at org.apache.spark.broadcast.TorrentBroadcast$.unpersist(TorrentBroadcast.scala:388)
+	at org.apache.spark.broadcast.TorrentBroadcastFactory.unbroadcast(TorrentBroadcastFactory.scala:49)
+	at org.apache.spark.broadcast.BroadcastManager.unbroadcast(BroadcastManager.scala:82)
+	at org.apache.spark.ContextCleaner.doCleanupBroadcast(ContextCleaner.scala:256)
+	at org.apache.spark.ContextCleaner.$anonfun$keepCleaning$3(ContextCleaner.scala:204)
+	at org.apache.spark.ContextCleaner.$anonfun$keepCleaning$3$adapted(ContextCleaner.scala:195)
+	at scala.Option.foreach(Option.scala:407)
+	at org.apache.spark.ContextCleaner.$anonfun$keepCleaning$1(ContextCleaner.scala:195)
+	at org.apache.spark.util.Utils$.tryOrStopSparkContext(Utils.scala:1471)
+	at org.apache.spark.ContextCleaner.org$apache$spark$ContextCleaner$$keepCleaning(ContextCleaner.scala:189)
+	at org.apache.spark.ContextCleaner$$anon$1.run(ContextCleaner.scala:79)
+Caused by: org.apache.spark.SparkException: Block broadcast_8157 does not exist
+	at org.apache.spark.errors.SparkCoreErrors$.blockDoesNotExistError(SparkCoreErrors.scala:318)
+	at org.apache.spark.storage.BlockInfoManager.blockInfo(BlockInfoManager.scala:237)
+	at org.apache.spark.storage.BlockInfoManager.removeBlock(BlockInfoManager.scala:500)
+	at org.apache.spark.storage.BlockManager.removeBlockInternal(BlockManager.scala:2023)
+	at org.apache.spark.storage.BlockManager.removeBlock(BlockManager.scala:1989)
+	at org.apache.spark.storage.BlockManager.$anonfun$removeBroadcast$3(BlockManager.scala:1975)
+	at org.apache.spark.storage.BlockManager.$anonfun$removeBroadcast$3$adapted(BlockManager.scala:1975)
+	at scala.collection.Iterator.foreach(Iterator.scala:943)
+	at scala.collection.Iterator.foreach$(Iterator.scala:943)
+	at scala.collection.AbstractIterator.foreach(Iterator.scala:1431)
+	at org.apache.spark.storage.BlockManager.removeBroadcast(BlockManager.scala:1975)
+	at org.apache.spark.storage.BlockManagerStorageEndpoint$$anonfun$receiveAndReply$1.$anonfun$applyOrElse$4(BlockManagerStorageEndpoint.scala:69)
+	at scala.runtime.java8.JFunction0$mcI$sp.apply(JFunction0$mcI$sp.java:23)
+	at org.apache.spark.storage.BlockManagerStorageEndpoint.$anonfun$doAsync$1(BlockManagerStorageEndpoint.scala:89)
+	at scala.concurrent.Future$.$anonfun$apply$1(Future.scala:659)
+	at scala.util.Success.$anonfun$map$1(Try.scala:255)
+	at scala.util.Success.map(Try.scala:213)
+	at scala.concurrent.Future.$anonfun$map$1(Future.scala:292)
+	at scala.concurrent.impl.Promise.liftedTree1$1(Promise.scala:33)
+	at scala.concurrent.impl.Promise.$anonfun$transform$1(Promise.scala:33)
+	at scala.concurrent.impl.CallbackRunnable.run(Promise.scala:64)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:840)
+============================================================
+  RESULTS: GBT — with destination_port
+============================================================
+  Accuracy:  0.998220
+  Precision: 0.990698
+  Recall:    0.997513
+  F1-Score:  0.994094
+  AUC-ROC:   0.999926
+  AUC-PR:    0.999517
+  TP=66989, TN=379490, FP=629, FN=167
+  Model Size: 0.721 MB
+  Training time:    1195.540s
+  Prediction time:  12.302s
+============================================================
+	booster params: {'objective': 'binary:logistic', 'colsample_bytree': 0.8, 'device': 'cpu', 'gamma': 0.05, 'learning_rate': 0.05, 'max_depth': 8, 'min_child_weight': 3, 'reg_alpha': 0.5, 'reg_lambda': 1.0, 'scale_pos_weight': 5.635357124274342, 'subsample': 0.8, 'nthread': 1}
+	train_call_kwargs_params: {'verbose_eval': True, 'num_boost_round': 300}
+	dmatrix_kwargs: {'nthread': 1, 'missing': nan}
+============================================================
+  RESULTS: XGBoost — without destination_port
+============================================================
+  Accuracy:  0.999159
+  Precision: 0.995107
+  Recall:    0.999315
+  F1-Score:  0.997206
+  AUC-ROC:   0.999986
+  AUC-PR:    0.999942
+  TP=67110, TN=379789, FP=330, FN=46
+  Model Size: 2.481 MB
+  Training time:    2698.954s
+  Prediction time:  45.808s
+============================================================
+	booster params: {'objective': 'binary:logistic', 'colsample_bytree': 0.8, 'device': 'cpu', 'gamma': 0.05, 'learning_rate': 0.05, 'max_depth': 8, 'min_child_weight': 3, 'reg_alpha': 0.5, 'reg_lambda': 1.0, 'scale_pos_weight': 5.635357124274342, 'subsample': 0.8, 'nthread': 1}
+	train_call_kwargs_params: {'verbose_eval': True, 'num_boost_round': 300}
+	dmatrix_kwargs: {'nthread': 1, 'missing': nan}
+============================================================
+  RESULTS: XGBoost — with destination_port
+============================================================
+  Accuracy:  0.999383
+  Precision: 0.996260
+  Recall:    0.999643
+  F1-Score:  0.997949
+  AUC-ROC:   0.999993
+  AUC-PR:    0.999973
+  TP=67132, TN=379867, FP=252, FN=24
+  Model Size: 2.000 MB
+  Training time:    2155.757s
+  Prediction time:  34.011s
+============================================================
+============================================================
+  RESULTS: MLP — without destination_port
+============================================================
+  Accuracy:  0.989975
+  Precision: 0.984687
+  Recall:    0.947972
+  F1-Score:  0.965981
+  AUC-ROC:   0.998491
+  AUC-PR:    0.993770
+  TP=63662, TN=379129, FP=990, FN=3494
+  Model Size: 0.002 MB
+  Training time:    814.900s
+  Prediction time:  20.885s
+============================================================
+============================================================
+  RESULTS: MLP — with destination_port
+============================================================
+  Accuracy:  0.991502
+  Precision: 0.990630
+  Recall:    0.952409
+  F1-Score:  0.971144
+  AUC-ROC:   0.998717
+  AUC-PR:    0.996208
+  TP=63960, TN=379514, FP=605, FN=3196
+  Model Size: 0.059 MB
+  Training time:    1511.850s
+  Prediction time:  18.338s
+============================================================
+[INFO] Saved: results/ml_10_leakage_ablation/leakage_ablation_all_models.csv
+              model                              config  port_included  n_features       f1   recall  precision   auc_pr
+      Decision Tree Without destination_port (proposed)          False          77 0.995268 0.997483   0.993062 0.993696
+      Decision Tree       With destination_port (leaky)           True          78 0.996644 0.999375   0.993928 0.999503
+Logistic Regression Without destination_port (proposed)          False          77 0.798604 0.942239   0.692968 0.950718
+Logistic Regression       With destination_port (leaky)           True          78 0.838126 0.943147   0.754150 0.959086
+    SVM (LinearSVC) Without destination_port (proposed)          False          77 0.785888 0.940839   0.674758 0.944911
+    SVM (LinearSVC)       With destination_port (leaky)           True          78 0.827373 0.940214   0.738716 0.950893
+        Naive Bayes Without destination_port (proposed)          False          77 0.298527 0.993329   0.175659 0.630424
+        Naive Bayes       With destination_port (leaky)           True          78 0.309279 0.993776   0.183137 0.643700
+      Random Forest Without destination_port (proposed)          False          77 0.995365 0.996084   0.994647 0.999717
+      Random Forest       With destination_port (leaky)           True          78 0.996412 0.998764   0.994072 0.999892
+                GBT Without destination_port (proposed)          False          77 0.992423 0.996664   0.988218 0.999060
+                GBT       With destination_port (leaky)           True          78 0.994094 0.997513   0.990698 0.999517
+            XGBoost Without destination_port (proposed)          False          77 0.997206 0.999315   0.995107 0.999942
+            XGBoost       With destination_port (leaky)           True          78 0.997949 0.999643   0.996260 0.999973
+                MLP Without destination_port (proposed)          False          77 0.965981 0.947972   0.984687 0.993770
+                MLP       With destination_port (leaky)           True          78 0.971144 0.952409   0.990630 0.996208
+[INFO] Port effect per model (F1 with − without) → results/ml_10_leakage_ablation/leakage_ablation_delta_f1.csv
+              model  f1_without_port  f1_with_port  delta_f1
+    SVM (LinearSVC)         0.785888      0.827373  0.041486
+Logistic Regression         0.798604      0.838126  0.039522
+        Naive Bayes         0.298527      0.309279  0.010753
+                MLP         0.965981      0.971144  0.005163
+                GBT         0.992423      0.994094  0.001671
+      Decision Tree         0.995268      0.996644  0.001376
+      Random Forest         0.995365      0.996412  0.001047
+            XGBoost         0.997206      0.997949  0.000742
+[INFO] Saved: results/ml_10_leakage_ablation/leakage_ablation.csv  (Random Forest, schema unchanged)
+                             config  port_included       f1   recall  precision   auc_pr
+Without destination_port (proposed)          False 0.995365 0.996084   0.994647 0.999717
+      With destination_port (leaky)           True 0.996412 0.998764   0.994072 0.999892
+[OK] Saved: results/ml_10_leakage_ablation/leakage_ablation.png
+[OK] Saved: results/ml_10_leakage_ablation/leakage_ablation_by_model.png
+[OK] Finished: ml_10_leakage_ablation.py
