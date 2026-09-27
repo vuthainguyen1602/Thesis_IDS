@@ -2,14 +2,17 @@
 # ---------------------------------------------------------------------------
 # Cross-dataset stability sweep.
 #
-# What 12 runs of this sweep established, and what it is now kept for:
+# What 18 runs of this sweep established, and what it is now kept for:
 #
-# The cross-dataset F1 for CICIDS2017 -> CSE-CIC-IDS2018 is bimodal. Seven runs
-# landed at 0.0291-0.0843 (recall 0.0148-0.0447) and five at 0.1853-0.3009
+# The cross-dataset F1 for CICIDS2017 -> CSE-CIC-IDS2018 is bimodal. Eleven runs
+# landed at 0.0291-0.0843 (recall 0.0148-0.0447) and seven at 0.1853-0.3009
 # (recall 0.1036-0.1778), nothing in between, so its mean sits in an empty gap.
+# The gap spans 37% of the observed range, so a continuous distribution would put
+# about seven of the eighteen runs inside it; none of six seeds never used before
+# landed there either.
 # seed does not decide which: of five seeds run twice, three returned to their
 # own regime within 0.007 and two crossed over. AUC-PR is the same in both
-# regimes (0.4532-0.5357), so the model ranks flows identically every time; what
+# regimes (0.4444-0.5397), so the model ranks flows identically every time; what
 # moves is where the 0.5 threshold falls against a cluster of near-identical
 # target flows that crosses it as a block.
 #
