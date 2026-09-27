@@ -16,5 +16,7 @@ later reader would have to take on trust otherwise:
 its CSV is in `../excluded/` and the event is visible here. `adapt_seed42.log` is
 the run behind `cross_dataset_adaptation_high_regime.csv`.
 
-The raw logs stay out of the repository: `output/xd_sweep/` and
-`output/xd_adapt/` on the Mac, matched by the `*.log` rule in `.gitignore`.
+The raw logs these were trimmed from are not in the repository and have since
+been deleted from the Mac; a new sweep writes its own under `output/xd_sweep/`,
+which the `*.log` rule in `.gitignore` keeps out. So these files are the only
+surviving record of how the 18 runs executed.
