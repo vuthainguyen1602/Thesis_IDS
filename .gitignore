@@ -48,6 +48,10 @@ data/
 data_smoke/
 *.parquet
 *.parquet.crc
+# Spark's part-file markers slipped in past the parquet rules; they carry no
+# information and only the directory names they sit in.
+_SUCCESS
+._SUCCESS.crc
 
 # Experiment outputs (regenerate via reproduce.sh)
 results/*
