@@ -14,6 +14,9 @@ echo "Building SOICT 2026..."
 "$ROOT/papers/soict2026/manuscript/compile.sh" || true
 cp "$ROOT/papers/soict2026/manuscript/main.pdf" "$OUT/SOICT2026.pdf"
 
+# The thesis attaches output/pdfs/FAIR2026.pdf as its appendix, so it has to be
+# built AFTER the paper has been copied there — otherwise the appendix carries the
+# previous version, with nothing to say so. Do not reorder these two steps.
 echo "Building thesis..."
 (cd "$ROOT/thesis" && latexmk -pdf -interaction=nonstopmode main.tex) || true
 cp "$ROOT/thesis/main.pdf" "$OUT/LuanVan_ThacSi.pdf"
