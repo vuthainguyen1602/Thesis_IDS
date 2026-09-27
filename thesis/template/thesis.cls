@@ -95,7 +95,11 @@
 
 %\RequirePackage{showframe}
 \renewcommand{\labelitemii}{$\diamond$}
-\renewcommand\cftchappresnum{Chương }
+% "CHƯƠNG" in hoa ở cả thân bài và mục lục (titleformat bên dưới dùng lại
+% \cftchappresnum). Tên chương thì thân bài in hoa qua \MakeUppercase, còn mục
+% lục lấy chữ hoa từ tham số tuỳ chọn của \chapter trong các tệp chương --
+% \cftchapfont là khai báo font nên không bọc \MakeUppercase được ở đây.
+\renewcommand\cftchappresnum{CHƯƠNG }
 \renewcommand\cftchapaftersnum{.}
 \newlength\mylen
 \settowidth\mylen{\bfseries\cftchappresnum\thechapter\ }
