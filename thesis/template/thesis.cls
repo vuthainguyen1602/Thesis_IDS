@@ -95,7 +95,11 @@
 
 %\RequirePackage{showframe}
 \renewcommand{\labelitemii}{$\diamond$}
-\renewcommand\cftchappresnum{Chương }
+% "CHƯƠNG" in hoa ở cả thân bài và mục lục (titleformat bên dưới dùng lại
+% \cftchappresnum). Tên chương thì thân bài in hoa qua \MakeUppercase, còn mục
+% lục lấy chữ hoa từ tham số tuỳ chọn của \chapter trong các tệp chương --
+% \cftchapfont là khai báo font nên không bọc \MakeUppercase được ở đây.
+\renewcommand\cftchappresnum{CHƯƠNG }
 \renewcommand\cftchapaftersnum{.}
 \newlength\mylen
 \settowidth\mylen{\bfseries\cftchappresnum\thechapter\ }
@@ -165,6 +169,13 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
 \renewcommand{\listtablename}{Danh mục các bảng}
 \renewcommand\listfigurename{Danh mục các hình vẽ và đồ thị}
 \renewcommand{\bibname}{Tài liệu tham khảo}
+% biblatex tự thêm dòng mục lục cho heading=bibintoc, nên tiêu đề in hoa phải đi
+% qua một heading riêng: chữ hoa ở trang, ở mục lục và ở header, còn bookmark
+% giữ chữ thường cho dễ đọc trong trình xem PDF.
+\defbibheading{bibintocuc}[\bibname]{%
+  \chapter*{\MakeUppercase{#1}}%
+  \addcontentsline{toc}{chapter}{\texorpdfstring{\MakeUppercase{#1}}{#1}}%
+  \markboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
 \newcommand{\abbrevname}{Danh mục từ viết tắt}
 
 \overfullrule=2pt
@@ -360,38 +371,38 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
     % \input{chapters/council}
 
     \phantomsection
-    \addcontentsline{toc}{chapter}{Lời cảm ơn}
+    \addcontentsline{toc}{chapter}{\texorpdfstring{\MakeUppercase{Lời cảm ơn}}{Lời cảm ơn}}
     \input{chapters/ack.tex}
 
     \newpage
     \phantomsection
-    \addcontentsline{toc}{chapter}{Tóm tắt}
+    \addcontentsline{toc}{chapter}{\texorpdfstring{\MakeUppercase{Tóm tắt}}{Tóm tắt}}
     \input{chapters/abstract.tex}
 
     \newpage
     \phantomsection
-	\addcontentsline{toc}{chapter}{\contentsname}
+	\addcontentsline{toc}{chapter}{\texorpdfstring{\MakeUppercase{\contentsname}}{\contentsname}}
 	\tableofcontents
 
 
 
     \newpage
     \phantomsection
-	\addcontentsline{toc}{chapter}{\listtablename}
+	\addcontentsline{toc}{chapter}{\texorpdfstring{\MakeUppercase{\listtablename}}{\listtablename}}
     \iftablespage
         \listoftables
     \fi
  
     \newpage
     \phantomsection
-	\addcontentsline{toc}{chapter}{\listfigurename}
+	\addcontentsline{toc}{chapter}{\texorpdfstring{\MakeUppercase{\listfigurename}}{\listfigurename}}
     \iffigurespage
         \listoffigures
     \fi
     
     \newpage
     \phantomsection
-    \addcontentsline{toc}{chapter}{\abbrevname}
+    \addcontentsline{toc}{chapter}{\texorpdfstring{\MakeUppercase{\abbrevname}}{\abbrevname}}
     % acro không tự đặt running mark như \listoffigures, phải đặt tay
     % để trang tràn của danh mục không mang header của danh mục trước đó
     \@mkboth{\MakeUppercase{\abbrevname}}{\MakeUppercase{\abbrevname}}
@@ -406,7 +417,7 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
 \let\@ldthebibliography\thebibliography
 \renewcommand{\thebibliography}[1]{\newpage
                 \@ldthebibliography{#1}
-\addcontentsline{toc}{chapter}{\bibname}}
+\addcontentsline{toc}{chapter}{\texorpdfstring{\MakeUppercase{\bibname}}{\bibname}}}
 
 \def\@endpart{\vfil\newpage
               \if@twoside
