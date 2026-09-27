@@ -1,0 +1,165 @@
+================================================================
+  Distributed ML run
+  Driver:  bvdung@192.168.1.50
+  Master:  spark://192.168.1.25:7077
+  Script:  ml_07_cross_method_comparison.py
+================================================================
+[INFO] Ensuring ML deps on executor host: bvdung@192.168.1.50
+[OK] ML deps already installed on ubuntu
+[OK] pyarrow + xgboost on /home/bvdung/Thesis_IDS/jetson/venv/bin/python
+[INFO] Ensuring ML deps on executor host: bvdung@192.168.1.204
+[OK] ML deps already installed on ubuntu
+[OK] pyarrow + xgboost on /home/bvdung/Thesis_IDS/jetson/venv/bin/python
+[OK] Core ML deps ready on driver
+[INFO] JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
+[INFO] XGBoost backend available
+[INFO] Spark cluster mode | master=spark://192.168.1.25:7077
+[INFO] Spark 3.4.1 | UI: http://192.168.1.50:4040
+============================================================
+  LOADING DATA FROM PARQUET
+============================================================
+  Test set:     447,275 samples
+                                                                                  [INFO] Port features excluded to avoid label leakage (set IDS_KEEP_PORT_FEATURES=1 for ablation).
+  Numeric features: 77
+============================================================
+======================================================================
+  EXPERIMENT 7: RESUME FROM STEP 5 (MULTI-SEED STATS)
+======================================================================
+[INFO] Loaded: /home/bvdung/Thesis_IDS/results/ml_07_cross_method_comparison/cross_method_summary.csv
+  Baseline (All Features)   -> XGBoost (F1=0.997123)
+  RF Top-30                 -> XGBoost (F1=0.992134)
+  SHAP Top-30               -> XGBoost (F1=0.997058)
+  PCA k=40                  -> XGBoost (F1=0.993759)
+======================================================================
+  STEP 5: STATISTICAL VALIDITY TRACK (2 REPEATED SPLITS, PAIRED)
+======================================================================
+  Variance source: repeated stratified train/test resampling of the
+  full dataset. Both top methods are trained on the SAME split each
+  iteration (paired design); classifier seed is fixed.
+  [WARN] STAT_N_SPLITS=2 is low — the two-sided paired permutation test can only reach p>=2/2^2=0.500. Use >=6 for p<0.05, or rely on the CI.
+  ── Split 1/2 (seed=1000) ──
+	booster params: {'objective': 'binary:logistic', 'colsample_bytree': 0.8, 'device': 'cpu', 'gamma': 0.05, 'learning_rate': 0.05, 'max_depth': 8, 'min_child_weight': 3, 'reg_alpha': 0.5, 'reg_lambda': 1.0, 'scale_pos_weight': 5.645229242730443, 'subsample': 0.8, 'nthread': 1}
+	train_call_kwargs_params: {'verbose_eval': True, 'num_boost_round': 300}
+	dmatrix_kwargs: {'nthread': 1, 'missing': nan}
+============================================================
+  RESULTS: XGBoost | Seed=42
+============================================================
+  Accuracy:  0.999193
+  Precision: 0.995266
+  Recall:    0.999408
+  F1-Score:  0.997333
+  AUC-ROC:   0.999992
+  AUC-PR:    0.999958
+  TP=67493, TN=379270, FP=321, FN=40
+  Model Size: 2.501 MB
+  Training time:    3620.344s
+  Prediction time:  39.187s
+============================================================
+	booster params: {'objective': 'binary:logistic', 'colsample_bytree': 0.8, 'device': 'cpu', 'gamma': 0.05, 'learning_rate': 0.05, 'max_depth': 8, 'min_child_weight': 3, 'reg_alpha': 0.5, 'reg_lambda': 1.0, 'scale_pos_weight': 5.645229242730443, 'subsample': 0.8, 'nthread': 1}
+	train_call_kwargs_params: {'verbose_eval': True, 'num_boost_round': 300}
+	dmatrix_kwargs: {'nthread': 1, 'missing': nan}
+============================================================
+  RESULTS: XGBoost | Seed=42
+============================================================
+  Accuracy:  0.999139
+  Precision: 0.994987
+  Recall:    0.999334
+  F1-Score:  0.997156
+  AUC-ROC:   0.999992
+  AUC-PR:    0.999957
+  TP=67488, TN=379251, FP=340, FN=45
+  Model Size: 0.000 MB
+  Training time:    1609.236s
+  Prediction time:  35.070s
+============================================================
+	booster params: {'objective': 'binary:logistic', 'colsample_bytree': 0.8, 'device': 'cpu', 'gamma': 0.05, 'learning_rate': 0.05, 'max_depth': 8, 'min_child_weight': 3, 'reg_alpha': 0.5, 'reg_lambda': 1.0, 'scale_pos_weight': 5.645229242730443, 'subsample': 0.8, 'nthread': 1}
+	train_call_kwargs_params: {'verbose_eval': True, 'num_boost_round': 300}
+	dmatrix_kwargs: {'nthread': 1, 'missing': nan}
+	booster params: {'objective': 'binary:logistic', 'colsample_bytree': 0.8, 'device': 'cpu', 'gamma': 0.05, 'learning_rate': 0.05, 'max_depth': 8, 'min_child_weight': 3, 'reg_alpha': 0.5, 'reg_lambda': 1.0, 'scale_pos_weight': 5.645229242730443, 'subsample': 0.8, 'nthread': 1}
+	train_call_kwargs_params: {'verbose_eval': True, 'num_boost_round': 300}
+	dmatrix_kwargs: {'nthread': 1, 'missing': nan}
+============================================================
+  RESULTS: XGBoost | Seed=42
+============================================================
+  Accuracy:  0.999152
+  Precision: 0.995002
+  Recall:    0.999408
+  F1-Score:  0.997200
+  AUC-ROC:   0.999992
+  AUC-PR:    0.999959
+  TP=67493, TN=379252, FP=339, FN=40
+  Model Size: 0.002 MB
+  Training time:    1447.741s
+  Prediction time:  27.948s
+============================================================
+                                                                                  [RERANK] split 1: fixed 0.997156 vs re-ranked 0.997200 (delta -0.000044); 26/30 features shared with the fixed ranking
+  ── Split 2/2 (seed=1001) ──
+	booster params: {'objective': 'binary:logistic', 'colsample_bytree': 0.8, 'device': 'cpu', 'gamma': 0.05, 'learning_rate': 0.05, 'max_depth': 8, 'min_child_weight': 3, 'reg_alpha': 0.5, 'reg_lambda': 1.0, 'scale_pos_weight': 5.647647271251624, 'subsample': 0.8, 'nthread': 1}
+	train_call_kwargs_params: {'verbose_eval': True, 'num_boost_round': 300}
+	dmatrix_kwargs: {'nthread': 1, 'missing': nan}
+============================================================
+  RESULTS: XGBoost | Seed=42
+============================================================
+  Accuracy:  0.999219
+  Precision: 0.995609
+  Recall:    0.999246
+  F1-Score:  0.997424
+  AUC-ROC:   0.999990
+  AUC-PR:    0.999957
+  TP=67568, TN=379129, FP=298, FN=51
+  Model Size: 2.437 MB
+  Training time:    2962.252s
+  Prediction time:  44.117s
+============================================================
+	booster params: {'objective': 'binary:logistic', 'colsample_bytree': 0.8, 'device': 'cpu', 'gamma': 0.05, 'learning_rate': 0.05, 'max_depth': 8, 'min_child_weight': 3, 'reg_alpha': 0.5, 'reg_lambda': 1.0, 'scale_pos_weight': 5.647647271251624, 'subsample': 0.8, 'nthread': 1}
+	train_call_kwargs_params: {'verbose_eval': True, 'num_boost_round': 300}
+	dmatrix_kwargs: {'nthread': 1, 'missing': nan}
+============================================================
+  RESULTS: XGBoost | Seed=42
+============================================================
+  Accuracy:  0.999163
+  Precision: 0.995228
+  Recall:    0.999261
+  F1-Score:  0.997240
+  AUC-ROC:   0.999990
+  AUC-PR:    0.999959
+  TP=67569, TN=379103, FP=324, FN=50
+  Model Size: 2.528 MB
+  Training time:    1295.745s
+  Prediction time:  30.433s
+============================================================
+	booster params: {'objective': 'binary:logistic', 'colsample_bytree': 0.8, 'device': 'cpu', 'gamma': 0.05, 'learning_rate': 0.05, 'max_depth': 8, 'min_child_weight': 3, 'reg_alpha': 0.5, 'reg_lambda': 1.0, 'scale_pos_weight': 5.647647271251624, 'subsample': 0.8, 'nthread': 1}
+	train_call_kwargs_params: {'verbose_eval': True, 'num_boost_round': 300}
+	dmatrix_kwargs: {'nthread': 1, 'missing': nan}
+	booster params: {'objective': 'binary:logistic', 'colsample_bytree': 0.8, 'device': 'cpu', 'gamma': 0.05, 'learning_rate': 0.05, 'max_depth': 8, 'min_child_weight': 3, 'reg_alpha': 0.5, 'reg_lambda': 1.0, 'scale_pos_weight': 5.647647271251624, 'subsample': 0.8, 'nthread': 1}
+	train_call_kwargs_params: {'verbose_eval': True, 'num_boost_round': 300}
+	dmatrix_kwargs: {'nthread': 1, 'missing': nan}
+============================================================
+  RESULTS: XGBoost | Seed=42
+============================================================
+  Accuracy:  0.999141
+  Precision: 0.995125
+  Recall:    0.999216
+  F1-Score:  0.997166
+  AUC-ROC:   0.999989
+  AUC-PR:    0.999953
+  TP=67566, TN=379096, FP=331, FN=53
+  Model Size: 0.004 MB
+  Training time:    1413.967s
+  Prediction time:  31.135s
+============================================================
+  [RERANK] split 2: fixed 0.997240 vs re-ranked 0.997166 (delta +0.000074); 25/30 features shared with the fixed ranking
+[INFO] Paired permutation p-value (Baseline (All Features) vs SHAP Top-30): 0.500000  (exact enumeration; two-sided min achievable = 0.5000)
+[INFO] Paired Cohen's d (effect size): 36.758 — report alongside the p-value; with N=6 a non-significant p is weak evidence of equivalence on its own.
+[INFO] TOST equivalence (margin ±0.0010 F1, NB-corrected): p=0.00165 — equivalent; tightest margin this data supports at alpha=0.05: ±0.00021 F1
+[INFO] Ranking-step leakage over 2 split(s): mean F1 advantage of the fixed ranking = +0.000015 (positive = the carried-over ranking flatters the method) -> /home/bvdung/Thesis_IDS/results/ml_07_cross_method_comparison/statistical_validity_rerank.csv
+ split  seed      method  f1_fixed_ranking  f1_reranked  delta_f1  feature_overlap  top_k
+     1  1000 SHAP Top-30          0.997156     0.997200 -0.000044               26     30
+     2  1001 SHAP Top-30          0.997240     0.997166  0.000074               25     30
+[INFO] Saved: /home/bvdung/Thesis_IDS/results/ml_07_cross_method_comparison/statistical_validity_multiseed.csv
+[INFO] Saved: /home/bvdung/Thesis_IDS/results/ml_07_cross_method_comparison/multiseed_stability.png
+[INFO] Comprehensive Report exported to: /home/bvdung/Thesis_IDS/results/ml_07_cross_method_comparison/report_step5.html
+[INFO] Step 5 completed!
+[INFO] Results exported to: /home/bvdung/Thesis_IDS/results/ml_07_cross_method_comparison
+[INFO] Spark Session closed.
+[OK] Finished: ml_07_cross_method_comparison.py

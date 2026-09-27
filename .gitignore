@@ -91,6 +91,7 @@ results/ml_06_feature_selection_shap/*
 !results/ml_07_cross_method_comparison/
 results/ml_07_cross_method_comparison/*
 !results/ml_07_cross_method_comparison/*.csv
+!results/ml_07_cross_method_comparison/rerank_run.log
 !results/ml_08_anomaly_gate/
 results/ml_08_anomaly_gate/*
 !results/ml_08_anomaly_gate/*.csv
@@ -101,6 +102,7 @@ results/ml_09_multiclass_eval/*
 !results/ml_10_leakage_ablation/
 results/ml_10_leakage_ablation/*
 !results/ml_10_leakage_ablation/*.csv
+!results/ml_10_leakage_ablation/all_models_run.log
 # ml_03 writes no CSV, so this report is the only record of the 35 numbers in
 # tab:exp2_ml_metrics.
 !results/ml_03_hyperparameter_tuning/
