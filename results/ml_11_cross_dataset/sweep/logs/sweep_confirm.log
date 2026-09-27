@@ -1,0 +1,204 @@
+
+================================================================
+  Sweep 1/6  —  seed=101  —  confirm_run1_seed101
+================================================================
+[OK] 2 worker(s) ALIVE
+[OK] confirm_run1_seed101 -> /Users/thainguyenvu/Desktop/Thesis_IDS/results/ml_11_cross_dataset/sweep/confirm_run1_seed101.csv
+CICIDS2017,CSE-CIC-IDS2018,cross,101
+CSE-CIC-IDS2018,CICIDS2017,cross,101
+
+================================================================
+  Sweep 2/6  —  seed=202  —  confirm_run2_seed202
+================================================================
+[OK] 2 worker(s) ALIVE
+[OK] confirm_run2_seed202 -> /Users/thainguyenvu/Desktop/Thesis_IDS/results/ml_11_cross_dataset/sweep/confirm_run2_seed202.csv
+CICIDS2017,CSE-CIC-IDS2018,cross,202
+CSE-CIC-IDS2018,CICIDS2017,cross,202
+
+================================================================
+  Sweep 3/6  —  seed=303  —  confirm_run3_seed303
+================================================================
+[OK] 2 worker(s) ALIVE
+[OK] confirm_run3_seed303 -> /Users/thainguyenvu/Desktop/Thesis_IDS/results/ml_11_cross_dataset/sweep/confirm_run3_seed303.csv
+CICIDS2017,CSE-CIC-IDS2018,cross,303
+CSE-CIC-IDS2018,CICIDS2017,cross,303
+
+================================================================
+  Sweep 4/6  —  seed=404  —  confirm_run4_seed404
+================================================================
+[OK] 2 worker(s) ALIVE
+[OK] confirm_run4_seed404 -> /Users/thainguyenvu/Desktop/Thesis_IDS/results/ml_11_cross_dataset/sweep/confirm_run4_seed404.csv
+CICIDS2017,CSE-CIC-IDS2018,cross,404
+CSE-CIC-IDS2018,CICIDS2017,cross,404
+
+================================================================
+  Sweep 5/6  —  seed=505  —  confirm_run5_seed505
+================================================================
+[OK] 2 worker(s) ALIVE
+[OK] confirm_run5_seed505 -> /Users/thainguyenvu/Desktop/Thesis_IDS/results/ml_11_cross_dataset/sweep/confirm_run5_seed505.csv
+CICIDS2017,CSE-CIC-IDS2018,cross,505
+CSE-CIC-IDS2018,CICIDS2017,cross,505
+
+================================================================
+  Sweep 6/6  —  seed=606  —  confirm_run6_seed606
+================================================================
+[OK] 2 worker(s) ALIVE
+[OK] confirm_run6_seed606 -> /Users/thainguyenvu/Desktop/Thesis_IDS/results/ml_11_cross_dataset/sweep/confirm_run6_seed606.csv
+CICIDS2017,CSE-CIC-IDS2018,cross,606
+CSE-CIC-IDS2018,CICIDS2017,cross,606
+
+================================================================
+  Summary — all runs in /Users/thainguyenvu/Desktop/Thesis_IDS/results/ml_11_cross_dataset/sweep
+================================================================
+
+CICIDS2017 -> CSE-CIC-IDS2018   [cross]   n=18
+   run                      f1  precision     recall     auc_pr
+   20260926-1523_run1_seed5     0.0495     0.6326     0.0257     0.5162
+   20260926-1523_run2_seed11     0.0843     0.7478     0.0447     0.4590
+   20260926-1523_run4_seed31     0.0303     0.7107     0.0155     0.4839
+   confirm_run1_seed101     0.0545     0.8853     0.0281     0.4821
+   confirm_run2_seed202     0.0400     0.5782     0.0207     0.4491
+   confirm_run3_seed303     0.2366     0.9005     0.1362     0.5396
+   confirm_run4_seed404     0.0443     0.8576     0.0227     0.4949
+   confirm_run5_seed505     0.2947     0.9214     0.1754     0.4842
+   confirm_run6_seed606     0.0415     0.5844     0.0215     0.4444
+   rep2_run1_seed5      0.1854     0.8726     0.1037     0.4855
+   rep2_run2_seed11     0.2606     0.9090     0.1521     0.4533
+   rep2_run3_seed23     0.0434     0.6009     0.0225     0.4770
+   rep2_run4_seed31     0.0291     0.7051     0.0149     0.4859
+   rerun_run1_seed23     0.0411     0.5855     0.0213     0.4776
+   run1_seed42          0.3009     0.9782     0.1778     0.5085
+   run2_seed42          0.2936     0.9216     0.1746     0.5356
+   run3_seed7           0.0449     0.6072     0.0233     0.4860
+   run4_seed13          0.2224     0.8936     0.1270     0.4655
+   mean                 0.1276     0.7718     0.0727     0.4849
+   sd                   0.1094     0.1455     0.0656     0.0269
+   95% CI +/-           0.0549     0.0731     0.0330     0.0135
+   CV %                   85.7       18.9       90.3        5.5
+
+CSE-CIC-IDS2018 -> CICIDS2017   [cross]   n=18
+   run                      f1  precision     recall     auc_pr
+   20260926-1523_run1_seed5     0.0541     0.2945     0.0298     0.2186
+   20260926-1523_run2_seed11     0.0519     0.2815     0.0286     0.1898
+   20260926-1523_run4_seed31     0.0577     0.2842     0.0321     0.1826
+   confirm_run1_seed101     0.0561     0.2506     0.0316     0.1602
+   confirm_run2_seed202     0.0460     0.2196     0.0257     0.1752
+   confirm_run3_seed303     0.0593     0.2650     0.0334     0.1691
+   confirm_run4_seed404     0.0581     0.3093     0.0321     0.1443
+   confirm_run5_seed505     0.0581     0.2984     0.0322     0.1392
+   confirm_run6_seed606     0.0537     0.3142     0.0293     0.1925
+   rep2_run1_seed5      0.0527     0.2519     0.0295     0.2375
+   rep2_run2_seed11     0.0527     0.2709     0.0292     0.1709
+   rep2_run3_seed23     0.0520     0.2784     0.0287     0.2646
+   rep2_run4_seed31     0.0581     0.3112     0.0320     0.1931
+   rerun_run1_seed23     0.0532     0.2716     0.0295     0.2839
+   run1_seed42          0.0587     0.3002     0.0325     0.1770
+   run2_seed42          0.0578     0.2808     0.0322     0.1888
+   run3_seed7           0.0484     0.2147     0.0272     0.1799
+   run4_seed13          0.0497     0.1980     0.0284     0.1993
+   mean                 0.0544     0.2719     0.0302     0.1926
+   sd                   0.0039     0.0338     0.0021     0.0378
+   95% CI +/-           0.0020     0.0170     0.0011     0.0190
+   CV %                    7.2       12.4        7.0       19.7
+
+CICIDS2017 -> CICIDS2017   [in-domain]   n=18
+   run                      f1  precision     recall     auc_pr
+   20260926-1523_run1_seed5     0.9953     0.9946     0.9959     0.9997
+   20260926-1523_run2_seed11     0.9951     0.9945     0.9958     0.9997
+   20260926-1523_run4_seed31     0.9951     0.9941     0.9960     0.9997
+   confirm_run1_seed101     0.9954     0.9949     0.9959     0.9997
+   confirm_run2_seed202     0.9954     0.9948     0.9960     0.9997
+   confirm_run3_seed303     0.9954     0.9947     0.9961     0.9997
+   confirm_run4_seed404     0.9952     0.9942     0.9961     0.9997
+   confirm_run5_seed505     0.9954     0.9948     0.9959     0.9997
+   confirm_run6_seed606     0.9954     0.9949     0.9959     0.9997
+   rep2_run1_seed5      0.9953     0.9946     0.9960     0.9997
+   rep2_run2_seed11     0.9953     0.9947     0.9958     0.9997
+   rep2_run3_seed23     0.9951     0.9943     0.9960     0.9997
+   rep2_run4_seed31     0.9951     0.9942     0.9960     0.9997
+   rerun_run1_seed23     0.9951     0.9943     0.9960     0.9997
+   run1_seed42          0.9954     0.9949     0.9960     0.9997
+   run2_seed42          0.9955     0.9951     0.9960     0.9997
+   run3_seed7           0.9952     0.9944     0.9961     0.9997
+   run4_seed13          0.9952     0.9946     0.9958     0.9997
+   mean                 0.9953     0.9946     0.9960     0.9997
+   sd                   0.0001     0.0003     0.0001     0.0000
+   95% CI +/-           0.0001     0.0001     0.0000     0.0000
+   CV %                    0.0        0.0        0.0        0.0
+
+CSE-CIC-IDS2018 -> CSE-CIC-IDS2018   [in-domain]   n=18
+   run                      f1  precision     recall     auc_pr
+   20260926-1523_run1_seed5     0.9250     0.9135     0.9368     0.9676
+   20260926-1523_run2_seed11     0.9249     0.9126     0.9376     0.9678
+   20260926-1523_run4_seed31     0.9248     0.9133     0.9366     0.9679
+   confirm_run1_seed101     0.9243     0.9122     0.9367     0.9688
+   confirm_run2_seed202     0.9258     0.9157     0.9362     0.9674
+   confirm_run3_seed303     0.9243     0.9117     0.9372     0.9694
+   confirm_run4_seed404     0.9238     0.9101     0.9378     0.9694
+   confirm_run5_seed505     0.9246     0.9120     0.9376     0.9679
+   confirm_run6_seed606     0.9246     0.9126     0.9370     0.9687
+   rep2_run1_seed5      0.9254     0.9144     0.9367     0.9675
+   rep2_run2_seed11     0.9246     0.9120     0.9376     0.9678
+   rep2_run3_seed23     0.9241     0.9106     0.9380     0.9676
+   rep2_run4_seed31     0.9247     0.9130     0.9367     0.9682
+   rerun_run1_seed23     0.9242     0.9110     0.9378     0.9667
+   run1_seed42          0.9247     0.9130     0.9368     0.9679
+   run2_seed42          0.9247     0.9131     0.9367     0.9670
+   run3_seed7           0.9228     0.9093     0.9367     0.9667
+   run4_seed13          0.9251     0.9137     0.9367     0.9682
+   mean                 0.9246     0.9124     0.9371     0.9679
+   sd                   0.0007     0.0015     0.0005     0.0008
+   95% CI +/-           0.0003     0.0008     0.0003     0.0004
+   CV %                    0.1        0.2        0.1        0.1
+
+CICIDS2017 cross-dataset F1 by seed
+   seed 42   n=2  0.3009 0.2936   spread 0.007260
+   seed 505  n=1  0.2947
+   seed 303  n=1  0.2366
+   seed 13   n=1  0.2224
+   seed 11   n=2  0.0843 0.2606   spread 0.176332
+   seed 5    n=2  0.0495 0.1854   spread 0.135895
+   seed 101  n=1  0.0545
+   seed 7    n=1  0.0449
+   seed 404  n=1  0.0443
+   seed 23   n=2  0.0434 0.0411   spread 0.002239
+   seed 606  n=1  0.0415
+   seed 202  n=1  0.0400
+   seed 31   n=2  0.0303 0.0291   spread 0.001107
+   within-seed spread  (same configuration): 0.176332
+   between-seed spread (different seeds)   : 0.267538
+   the seed accounts for 2x more spread than a repeat does
+
+CSE-CIC-IDS2018 cross-dataset F1 by seed
+   seed 303  n=1  0.0593
+   seed 42   n=2  0.0587 0.0578   spread 0.000847
+   seed 404  n=1  0.0581
+   seed 505  n=1  0.0581
+   seed 31   n=2  0.0577 0.0581   spread 0.000366
+   seed 101  n=1  0.0561
+   seed 606  n=1  0.0537
+   seed 5    n=2  0.0541 0.0527   spread 0.001352
+   seed 23   n=2  0.0520 0.0532   spread 0.001192
+   seed 11   n=2  0.0519 0.0527   spread 0.000836
+   seed 13   n=1  0.0497
+   seed 7    n=1  0.0484
+   seed 202  n=1  0.0460
+   within-seed spread  (same configuration): 0.001352
+   between-seed spread (different seeds)   : 0.013282
+   the seed accounts for 10x more spread than a repeat does
+
+========================================================================
+  LaTeX rows — thesis (comma decimals), F1 as mean +/- CI over n runs
+========================================================================
+CICIDS2017 & CSE-CIC-IDS2018 & khác bộ & 0{,}1276 $\pm$ 0{,}0549 & 0{,}4849 \\
+CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & 0{,}0544 $\pm$ 0{,}0020 & 0{,}1926 \\
+CICIDS2017 & CICIDS2017 & cùng bộ & 0{,}9953 & 0{,}9997 \\
+CSE-CIC-IDS2018 & CSE-CIC-IDS2018 & cùng bộ & 0{,}9246 & 0{,}9679 \\
+
+========================================================================
+  LaTeX rows — papers (point decimals)
+========================================================================
+    CICIDS2017 & CSE-CIC-IDS2018 & cross & 0.1276 $\pm$ 0.0549 & 0.4849 \\
+    CSE-CIC-IDS2018 & CICIDS2017 & cross & 0.0544 $\pm$ 0.0020 & 0.1926 \\
+    CICIDS2017 & CICIDS2017 & in-domain & 0.9953 & 0.9997 \\
+    CSE-CIC-IDS2018 & CSE-CIC-IDS2018 & in-domain & 0.9246 & 0.9679 \\

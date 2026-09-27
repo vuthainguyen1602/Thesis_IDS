@@ -1,0 +1,56 @@
+[OK] 2 Spark worker(s) ALIVE
+================================================================
+  Distributed ML run
+  Driver:  bvdung@192.168.1.50
+  Master:  spark://192.168.1.25:7077
+  Script:  ml_11_cross_dataset_eval.py
+================================================================
+[INFO] Ensuring ML deps on executor host: bvdung@192.168.1.50
+[OK] ML deps already installed on ubuntu
+[OK] pyarrow + xgboost on /home/bvdung/Thesis_IDS/jetson/venv/bin/python
+[INFO] Ensuring ML deps on executor host: bvdung@192.168.1.204
+[OK] ML deps already installed on ubuntu
+[OK] pyarrow + xgboost on /home/bvdung/Thesis_IDS/jetson/venv/bin/python
+[OK] Core ML deps ready on driver
+[INFO] JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
+[INFO] XGBoost backend available
+[INFO] Spark cluster mode | master=spark://192.168.1.25:7077
+[INFO] Spark 3.4.1 | UI: http://192.168.1.50:4040
+============================================================
+  LOADING DATA FROM PARQUET
+============================================================
+  Test set:     447,275 samples
+  [INFO] Port features excluded to avoid label leakage (set IDS_KEEP_PORT_FEATURES=1 for ablation).
+  Numeric features: 77
+============================================================
+============================================================
+  LOADING DATA FROM PARQUET
+============================================================
+  Test set:     477,771 samples
+  [INFO] Port features excluded to avoid label leakage (set IDS_KEEP_PORT_FEATURES=1 for ablation).
+  Numeric features: 76
+============================================================
+======================================================================
+  EXPERIMENT 11: CROSS-DATASET GENERALIZATION
+======================================================================
+  A = CICIDS2017 (/home/bvdung/Thesis_IDS/data): 77 features
+  B = CSE-CIC-IDS2018 (/home/bvdung/Thesis_IDS/data_2018): 76 features
+  Common leak-free features: 75
+  Only in A (2): fwd_header_length34, fwd_header_length55
+  Only in B (1): fwd_header_length
+  [INFO] Common feature list saved -> results/ml_11_cross_dataset/common_features.txt
+  Unsupervised domain adaptation (classifier untouched, no target labels):
+[INFO] Saved: results/ml_11_cross_dataset/cross_dataset_adaptation.csv
+          train            test                       adaptation  f1  precision  recall   auc_pr  f1_no_adaptation  delta_f1
+     CICIDS2017 CSE-CIC-IDS2018 scaler-refit (target statistics)   0        0.0     0.0 0.316939          0.297830 -0.297830
+     CICIDS2017 CSE-CIC-IDS2018         CORAL (target -> source)   0        0.0     0.0 0.201500          0.297830 -0.297830
+CSE-CIC-IDS2018      CICIDS2017 scaler-refit (target statistics)   0        0.0     0.0 0.106820          0.057454 -0.057454
+CSE-CIC-IDS2018      CICIDS2017         CORAL (target -> source)   0        0.0     0.0 0.249644          0.057454 -0.057454
+[INFO] Saved: results/ml_11_cross_dataset/cross_dataset_results.csv
+          train            test      kind  seed       f1  precision   recall   auc_pr
+     CICIDS2017      CICIDS2017 in-domain    42 0.995535   0.995120 0.995950 0.999712
+     CICIDS2017 CSE-CIC-IDS2018     cross    42 0.297830   0.978764 0.175638 0.526112
+CSE-CIC-IDS2018 CSE-CIC-IDS2018 in-domain    42 0.924570   0.912753 0.936696 0.968381
+CSE-CIC-IDS2018      CICIDS2017     cross    42 0.057454   0.279729 0.032015 0.179079
+[OK] Saved: results/ml_11_cross_dataset/cross_dataset_f1.png
+[OK] Finished: ml_11_cross_dataset_eval.py
