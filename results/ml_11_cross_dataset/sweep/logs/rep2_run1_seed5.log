@@ -1,0 +1,49 @@
+[OK] 2 Spark worker(s) ALIVE
+================================================================
+  Distributed ML run
+  Driver:  bvdung@192.168.1.50
+  Master:  spark://192.168.1.25:7077
+  Script:  ml_11_cross_dataset_eval.py
+================================================================
+[INFO] Ensuring ML deps on executor host: bvdung@192.168.1.50
+[OK] ML deps already installed on ubuntu
+[OK] pyarrow + xgboost on /home/bvdung/Thesis_IDS/jetson/venv/bin/python
+[INFO] Ensuring ML deps on executor host: bvdung@192.168.1.204
+[OK] ML deps already installed on ubuntu
+[OK] pyarrow + xgboost on /home/bvdung/Thesis_IDS/jetson/venv/bin/python
+[OK] Core ML deps ready on driver
+[INFO] JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
+[INFO] XGBoost backend available
+[INFO] Spark cluster mode | master=spark://192.168.1.25:7077
+[INFO] Spark 3.4.1 | UI: http://192.168.1.50:4040
+============================================================
+  LOADING DATA FROM PARQUET
+============================================================
+  Test set:     447,275 samples
+  [INFO] Port features excluded to avoid label leakage (set IDS_KEEP_PORT_FEATURES=1 for ablation).
+  Numeric features: 77
+============================================================
+============================================================
+  LOADING DATA FROM PARQUET
+============================================================
+  Test set:     477,771 samples
+  [INFO] Port features excluded to avoid label leakage (set IDS_KEEP_PORT_FEATURES=1 for ablation).
+  Numeric features: 76
+============================================================
+======================================================================
+  EXPERIMENT 11: CROSS-DATASET GENERALIZATION
+======================================================================
+  A = CICIDS2017 (/home/bvdung/Thesis_IDS/data): 77 features
+  B = CSE-CIC-IDS2018 (/home/bvdung/Thesis_IDS/data_2018): 76 features
+  Common leak-free features: 75
+  Only in A (2): fwd_header_length34, fwd_header_length55
+  Only in B (1): fwd_header_length
+  [INFO] Common feature list saved -> results/ml_11_cross_dataset/common_features.txt
+[INFO] Saved: results/ml_11_cross_dataset/cross_dataset_results.csv
+          train            test      kind  seed       f1  precision   recall   auc_pr
+     CICIDS2017      CICIDS2017 in-domain     5 0.995298   0.994588 0.996009 0.999676
+     CICIDS2017 CSE-CIC-IDS2018     cross     5 0.185360   0.872564 0.103694 0.485463
+CSE-CIC-IDS2018 CSE-CIC-IDS2018 in-domain     5 0.925405   0.914351 0.936729 0.967505
+CSE-CIC-IDS2018      CICIDS2017     cross     5 0.052740   0.251878 0.029454 0.237459
+[OK] Saved: results/ml_11_cross_dataset/cross_dataset_f1.png
+[OK] Finished: ml_11_cross_dataset_eval.py
