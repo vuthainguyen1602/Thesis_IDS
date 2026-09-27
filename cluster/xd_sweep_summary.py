@@ -12,16 +12,24 @@ it and copying the rows out. It prints:
   * mean, sd, coefficient of variation and a Student-t 95% interval per metric
   * the LaTeX rows for the thesis table (comma decimals) and the paper table
 
-The interval is there because the 2017->CSE-CIC-IDS2018 cross-dataset F1 does
-*not* reproduce across runs of identical code and configuration: two runs with
-the same seed disagreed, while in-domain F1 and cross-dataset AUC-PR stay stable
-to the third decimal. One draw from that distribution says very little, so the
-manuscripts quote the mean over repetitions and its interval.
+Why any of this is needed: the 2017->CSE-CIC-IDS2018 cross-dataset F1 does *not*
+reproduce across runs of identical code and configuration, and over 18 runs it
+turned out to be bimodal -- 11 runs at 0.0291-0.0843 and 7 at 0.1853-0.3009, with
+nothing in between and AUC-PR the same in both groups. In-domain F1 and
+cross-dataset AUC-PR stay stable to the third decimal.
+
+So the manuscripts do not quote a mean for that direction: a mean falls in the
+empty gap and its interval holds 1 of the 18 runs. They quote the two bands with
+their run counts, which is what the LaTeX block below prints for a direction where
+this script detects a gap. The other direction is unimodal and keeps mean +/- CI.
+The per-seed section exists because the seed does not decide the regime: of five
+seeds run twice, three returned to their own regime and two crossed over.
 
     python3 cluster/xd_sweep_summary.py [sweep_dir]
 """
 import csv
 import glob
+import math
 import os
 import statistics
 import sys
@@ -32,7 +40,9 @@ METRICS = ("f1", "precision", "recall", "auc_pr")
 # interval by one step, which is exactly what happened until n reached 12.
 T95_BY_N = {2: 12.706, 3: 4.303, 4: 3.182, 5: 2.776, 6: 2.571, 7: 2.447,
             8: 2.365, 9: 2.306, 10: 2.262, 11: 2.228, 12: 2.201, 13: 2.179,
-            14: 2.160, 15: 2.145, 16: 2.131, 20: 2.093, 25: 2.064, 30: 2.045}
+            14: 2.160, 15: 2.145, 16: 2.131, 17: 2.120, 18: 2.110, 19: 2.101,
+            20: 2.093, 21: 2.086, 22: 2.080, 23: 2.074, 24: 2.069, 25: 2.064,
+            26: 2.060, 27: 2.056, 28: 2.052, 29: 2.048, 30: 2.045}
 
 
 def _t95(n):
@@ -128,23 +138,38 @@ def main():
         else:
             print(f"   between-seed spread: {between:.6f} (no seed was repeated)")
 
-    print("\n" + "=" * 72)
-    print("  LaTeX rows — thesis (comma decimals), F1 as mean +/- CI over n runs")
-    print("=" * 72)
-    for (kind, train, test), st in summary.items():
-        t = "cùng bộ" if kind == "in-domain" else "khác bộ"
-        f1, pr = st["f1"], st["auc_pr"]
-        cell = (f"{_vn(f1['mean'])}" if kind == "in-domain"
-                else f"{_vn(f1['mean'])} $\\pm$ {_vn(f1['ci'])}")
-        print(f"{train} & {test} & {t} & {cell} & {_vn(pr['mean'])} \\\\")
-    print("\n" + "=" * 72)
-    print("  LaTeX rows — papers (point decimals)")
-    print("=" * 72)
-    for (kind, train, test), st in summary.items():
-        f1, pr = st["f1"], st["auc_pr"]
-        cell = (f"{f1['mean']:.4f}" if kind == "in-domain"
-                else f"{f1['mean']:.4f} $\\pm$ {f1['ci']:.4f}")
-        print(f"    {train} & {test} & {kind} & {cell} & {pr['mean']:.4f} \\\\")
+    # A bimodal direction gets bands, not a mean: quoting a mean that lands in the
+    # gap misleads, and the outward rounding here is deliberate -- an interval
+    # printed with ordinary rounding can exclude the very runs it describes.
+    def bands(values):
+        v = sorted(values)
+        gaps = [(v[i + 1] - v[i], i) for i in range(len(v) - 1)]
+        widest, at = max(gaps)
+        if widest < 0.25 * (v[-1] - v[0]):
+            return None
+        lo, hi = v[:at + 1], v[at + 1:]
+        return [(len(lo), math.floor(min(lo) * 1e3) / 1e3, math.ceil(max(lo) * 1e3) / 1e3),
+                (len(hi), math.floor(min(hi) * 1e3) / 1e3, math.ceil(max(hi) * 1e3) / 1e3)]
+
+    for vn, header in ((True, "thesis (comma decimals)"), (False, "papers (point decimals)")):
+        print("\n" + "=" * 72)
+        print(f"  LaTeX rows — {header}")
+        print("=" * 72)
+        for (kind, train, test), st in summary.items():
+            f1, pr = st["f1"], st["auc_pr"]
+            bd = bands([vals["f1"] for _, vals in groups[(kind, train, test)]]) if kind == "cross" else None
+            t = ("cùng bộ" if kind == "in-domain" else "khác bộ") if vn else kind
+            if bd:
+                cell = " $\\mid$ ".join(
+                    (f"{_vn(lo, 3)}--{_vn(hi, 3)} ({n} lượt)" if vn
+                     else f"{lo:.3f}--{hi:.3f} ({n})") for n, lo, hi in bd)
+            elif kind == "in-domain":
+                cell = _vn(f1["mean"]) if vn else f"{f1['mean']:.4f}"
+            else:
+                cell = (f"{_vn(f1['mean'])} $\\pm$ {_vn(f1['ci'])}" if vn
+                        else f"{f1['mean']:.4f} $\\pm$ {f1['ci']:.4f}")
+            prc = _vn(pr["mean"]) if vn else f"{pr['mean']:.4f}"
+            print(f"{'' if vn else '    '}{train} & {test} & {t} & {cell} & {prc} \\\\")
     return 0
 
 
