@@ -83,7 +83,10 @@ within 8 pages.
 > instead of deferring them to the body, and several entries of the
 > related-work table were corrected after checking each against the cited
 > paper, with one cross-dataset study (Cantone et al., already cited in the
-> text) added as a row.
+> text) added as a row. We also narrowed the multiclass claims to what was
+> measured: the per-class results come from one configuration (Random Forest,
+> all features), so the paper no longer says they show where the reduction
+> methods differ.
 >
 > Kind regards,
 > Thai Nguyen Vu, Dung Van Bui, Nhut Tri Do, Van Du Nguyen

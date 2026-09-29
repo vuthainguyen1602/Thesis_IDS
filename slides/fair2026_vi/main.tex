@@ -340,6 +340,7 @@ tính chất của cách đánh giá, không phải của mô hình.}
       \begin{tabular}{lccc}
         \toprule
         Loại lưu lượng & Số mẫu & Bắt được & F1 \\
+        \multicolumn{4}{l}{\scriptsize Random Forest, đủ 77 đặc trưng} \\
         \midrule
         Benign                & 380.119 & 99,97\% & 0,9989 \\
         DoS Hulk              & 34.446  & 99,04\% & 0,9947 \\
@@ -363,10 +364,12 @@ tính chất của cách đánh giá, không phải của mô hình.}
       \end{itemize}
     \end{column}
   \end{columns}
-  \note{``Bắt được'' là recall. F1 có trọng số là weighted-F1, F1 trung bình lớp
-  là macro-F1. XSS: 81/111 mẫu bị đoán là Web Brute Force, nên ở mức nhị phân
-  vẫn bị gắn cờ. Bot 158/290 và 27\% Brute Force bị đoán là Benign. Ba nguyên
-  nhân: mất cân bằng cực độ, 6--311 mẫu so với 380 nghìn Benign; không còn đường
+  \note{Mô hình ở slide này là Random Forest dùng đủ 77 đặc trưng; so sánh các
+  cách giảm đặc trưng ở chế độ đa lớp là hướng tiếp theo. ``Bắt được'' là
+  recall. F1 có trọng số là weighted-F1, F1 trung bình lớp là macro-F1. XSS:
+  81/111 mẫu bị đoán là Web Brute Force, nên ở mức nhị phân vẫn bị gắn cờ. Bot
+  158/290 và 27\% Brute Force bị đoán là Benign. Ba nguyên nhân có thể: mất cân
+  bằng cực độ, 6--311 mẫu so với 380 nghìn Benign; không còn đường
   tắt cổng 80 thì luồng HTTP ngắn của tấn công web trông như lướt web thường;
   beaconing của Bot C\&C giống lưu lượng nền. Hai lớp không có trên bảng:
   PortScan F1 0,976 và Infiltration F1 0,800 (12 mẫu); bảy lớp còn lại đều từ

@@ -96,7 +96,7 @@ A second issue, discussed less often but no less serious, is whether the evaluat
 (1) A uniform comparison of RF Importance, SHAP, and PCA over the same eight Spark ML algorithms and two ensembles;
 (2) Integration of SHAP-based explanation~\cite{lundberg2017unified} with a direct contrast against RF Importance~\cite{breiman2001random};
 (3) A leakage-aware and statistically tested evaluation pipeline: removing the leaking feature, deterministic feature-level deduplication (label-conflicting groups are removed entirely), model selection on a validation set held out from the training set, and a paired permutation test (exact enumeration) over multiple resamplings with Nadeau--Bengio correction and effect size;
-(4) A per-attack-type multiclass evaluation, clarifying where the methods truly differ;
+(4) A per-attack-type multiclass evaluation, exposing the rare-class weaknesses that binary F1 hides;
 (5) An edge-aware model-selection recommendation: jointly considering F1, the number of features, and model size for the Jetson Orin Nano Super.
 
 \section{Related Work}
@@ -221,7 +221,7 @@ To avoid selection bias from trying many configurations on the same test set, we
 
 \textbf{Statistical-significance testing.} The two top methods are trained on $N$ independent resamplings of the training/test split (default $N{=}6$), and in each round both use the same split so that the comparison is paired. As a result, the variance reflects the effect of data sampling rather than only of model initialization. The 95\% confidence interval is computed using the $t$ distribution ($t_{0.975,N-1}$, not the value 1.96); because the resamplings overlap in training data, we report alongside it the Nadeau--Bengio~\cite{nadeau2003inference} corrected confidence interval, with the variance multiplied by $(1/N + n_{\text{test}}/n_{\text{train}})$, and take the corrected interval as the basis for conclusions. Significance is tested by a two-sided paired permutation test on the per-round F1 difference, enumerating all $2^N$ sign patterns exactly rather than sampling them; its floor is $p = 2/2^N$, so $N \geq 6$ is needed to reach below $0.05$ at all. We report the paired Cohen's $d$ alongside $p$, and test equivalence directly with a TOST, since a non-significant $p$ is by itself weak evidence for it.
 
-\textbf{Multiclass evaluation.} Because binary classification on CICIDS2017 is almost perfectly separable, we add a per-attack-type multiclass evaluation, comprising per-class precision/recall/F1, macro-F1, and a confusion matrix. The rare classes, Web Attack, Bot, and Infiltration, are where the methods actually differ.
+\textbf{Multiclass evaluation.} Because binary classification on CICIDS2017 is almost perfectly separable, we add a per-attack-type multiclass evaluation, comprising per-class precision/recall/F1, macro-F1, and a confusion matrix. It exposes the rare classes (Web Attack, Bot, Infiltration) that binary F1 hides.
 
 \section{Experiments and Results}
 \label{sec:exp}
@@ -324,7 +324,7 @@ Table~\ref{tab:stat} reports the mean F1 $\pm$ 95\% CI ($t$ distribution) over $
 
 \subsection{Robustness and multiclass evaluation}
 
-In the in-distribution stability check (a subset of the test set), the ranking of the methods is preserved (XGBoost leads in all four methods). The multiclass evaluation (Figure~\ref{fig:cm}, Table~\ref{tab:perclass}) shows a wide gap between weighted-F1 ($\approx$0.998) and macro-F1 ($\approx$0.806): the rare classes carry the loss. Reading the confusion matrix by where the errors land separates two failure modes. XSS is mostly mislabeled but still detected: 81/111 samples are predicted as Web Brute Force, so at the binary (deployment) level 76\% of XSS flows are still flagged as attacks. The damaging mode is leakage into Benign: all 6 SQL Injection samples, 54\% of Bot (158/290), and 27\% of Web Brute Force are predicted benign. Three mechanisms drive this: extreme imbalance (6--311 samples vs.\ 380k benign); removing \texttt{destination\_port} hits web attacks hardest, since without the port-80 shortcut their short HTTP flows resemble ordinary browsing, so the 0.027 recall here replaces a leakage-inflated one; and Bot C\&C beaconing resembles background traffic once service identity is gone.
+In the in-distribution stability check (a subset of the test set), the ranking of the methods is preserved (XGBoost leads in all four methods). The multiclass evaluation (Figure~\ref{fig:cm}, Table~\ref{tab:perclass}) shows a wide gap between weighted-F1 ($\approx$0.998) and macro-F1 ($\approx$0.806): the rare classes carry the loss. Reading the confusion matrix by where the errors land separates two failure modes. XSS is mostly mislabeled but still detected: 81/111 samples are predicted as Web Brute Force, so at the binary (deployment) level 76\% of XSS flows are still flagged as attacks. The damaging mode is leakage into Benign: all 6 SQL Injection samples, 54\% of Bot (158/290), and 27\% of Web Brute Force are predicted benign. Three mechanisms plausibly drive this: extreme imbalance (6--311 samples vs.\ 380k benign); the removed \texttt{destination\_port}, since without the port-80 shortcut short HTTP attack flows resemble ordinary browsing; and Bot C\&C beaconing, which resembles background traffic once service identity is gone.
 
 \begin{figure}[htbp]
   \centering
@@ -338,7 +338,7 @@ In the in-distribution stability check (a subset of the test set), the ranking o
 \end{figure}
 
 \begin{table}[htbp]
-  \caption{Per-class Precision/Recall/F1 (from the released experiment outputs).}
+  \caption{Per-class Precision/Recall/F1 (Random Forest, all features).}
   \label{tab:perclass}
   \centering
   \resizebox{\columnwidth}{!}{%
@@ -394,7 +394,7 @@ The contrast is the sharpest result in the paper: in-domain F1 is high and stabl
 
 \textbf{Bridge to the edge device.} Cutting $\approx$60\% of the features reduces vector-assembly cost and model footprint on the Jetson Orin Nano Super, so the selection criterion has to weigh feature count, model size and training/prediction time (Figure~\ref{fig:timing}) alongside F1. Latency and throughput on the Jetson appear in a companion systems paper.
 
-\textbf{Limitations of the binary evaluation.} Removing the port and deduplicating brings binary F1 down to a realistic level, but binary classification remains a relatively easy task. Only under multiclass evaluation do the weaknesses on rare attack classes emerge, and this is also a more reliable metric for distinguishing methods.
+\textbf{Limitations of the binary evaluation.} Removing the port and deduplicating brings binary F1 down to a realistic level, but binary classification remains a relatively easy task. Only under multiclass evaluation do the weaknesses on rare attack classes emerge; comparing the reduction methods on it is left to future work.
 
 \section{Threats to Validity}
 \label{sec:threats}
