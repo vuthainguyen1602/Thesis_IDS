@@ -1,7 +1,7 @@
 #!/bin/bash
 # Build the presentation decks in slides/ and copy the PDFs to output/pdfs/.
 #
-#   ./build_slides.sh              # build all four decks
+#   ./build_slides.sh              # build all five decks
 #   ./build_slides.sh soict2026    # build one deck
 #   NOTES=1 ./build_slides.sh      # also build the speaker-notes versions
 #
@@ -20,6 +20,7 @@ deck_output() {
     soict2026) echo "SOICT2026_slides" ;;
     fair2026)  echo "FAIR2026_slides" ;;
     fair2026_vi) echo "FAIR2026_slides_vi" ;;
+    soict2026_vi) echo "SOICT2026_slides_vi" ;;
     defense)   echo "LuanVan_BaoVe_slides" ;;
     *)         echo "$1" ;;
   esac
@@ -77,7 +78,7 @@ build_deck() {
 if [ $# -gt 0 ]; then
   for d in "$@"; do build_deck "$d"; done
 else
-  for d in soict2026 fair2026 fair2026_vi defense; do build_deck "$d"; done
+  for d in soict2026 soict2026_vi fair2026 fair2026_vi defense; do build_deck "$d"; done
 fi
 
 echo ""

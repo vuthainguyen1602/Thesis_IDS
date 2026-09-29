@@ -1,21 +1,23 @@
 # Slides
 
-Four Beamer decks built from the same results as the manuscripts and the thesis.
-`fair2026_vi/` is a translation of `fair2026/`: same frames, same numbers, so a change
-to one belongs in the other. Vietnamese runs longer than English, so its dense frames
-carry a smaller font rather than less content.
+Five Beamer decks built from the same results as the manuscripts and the thesis.
+The English decks are the conference talks. The Vietnamese conference decks are
+not translations: they cover more of each paper, one message per slide in plain
+language, with the statistics and caveats in the speaker notes and backup slides.
+Numbers must match the manuscripts in every deck.
 
 | Deck | Language | Length | Output PDF |
 |---|---|---|---|
-| `soict2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/SOICT2026_slides.pdf` |
+| `soict2026/` | English | ~7:30 (9 talk slides + 3 section pages + references + 5 backup = 20 pages) | `output/pdfs/SOICT2026_slides.pdf` |
+| `soict2026_vi/` | Vietnamese | ~11 min, detailed (12 talk slides + 3 section pages + references + 5 backup = 22 pages) | `output/pdfs/SOICT2026_slides_vi.pdf` |
 | `fair2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/FAIR2026_slides.pdf` |
-| `fair2026_vi/` | Vietnamese | same deck, same 19 pages — FAIR is a domestic conference, so the talk can be given in either language | `output/pdfs/FAIR2026_slides_vi.pdf` |
+| `fair2026_vi/` | Vietnamese | ~10 min, detailed (11 talk slides + 3 section pages + references + 7 backup = 24 pages) | `output/pdfs/FAIR2026_slides_vi.pdf` |
 | `defense/` | Vietnamese | 15 min (16 talk slides + 5 section pages + title/outline/refs/thanks + backup index + 14 backup frames for 14 questions = 40 pages) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
 
 ## Building
 
 ```bash
-./build_slides.sh                 # all four decks
+./build_slides.sh                 # all five decks
 ./build_slides.sh defense         # one deck
 NOTES=1 ./build_slides.sh         # also build the *_notes.pdf versions
 ```
