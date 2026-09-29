@@ -211,7 +211,8 @@ tính chất của cách đánh giá, không phải của mô hình.}
         \bottomrule
       \end{tabular}
       }
-      \vspace{0.6em}
+      \\[0.1em]{\scriptsize Một lần chạy, trên cách chia train/test gốc.}
+      \vspace{0.4em}
 
       \footnotesize
       \fitwidth{%
@@ -294,7 +295,7 @@ tính chất của cách đánh giá, không phải của mô hình.}
       \fitwidth{%
       \begin{tabular}{lc}
         \toprule
-        XGBoost, 6 lần lặp & F1 trung bình \\
+        XGBoost & F1 trung bình \\
         \midrule
         Giữ hết 77 đặc trưng & 0,99734 \\
         SHAP Top-30          & 0,99720 \\
@@ -303,6 +304,8 @@ tính chất của cách đánh giá, không phải của mô hình.}
         \bottomrule
       \end{tabular}
       }
+      \\[0.2em]\raggedright{\scriptsize Trung bình 6 lần chạy, mỗi lần một cách
+      chia train/test khác, nên lệch chút ít so với F1 một lần chạy ở Kết quả 1.}
     \end{column}
     \begin{column}{0.50\textwidth}
       \begin{itemize}

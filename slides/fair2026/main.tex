@@ -171,8 +171,8 @@ usually a property of the evaluation pipeline, not of the model.}
         \bottomrule
       \end{tabular}
       }
-      \par{\scriptsize Train (s): Spark cluster of 2$\times$ Jetson Orin Nano
-      Super; the host is master only, no executor.}
+      \par{\scriptsize One run on the original train/test split. Train (s):
+      Spark cluster of 2$\times$ Jetson Orin Nano Super, host as master only.}
       \vspace{0.5em}
 
       \footnotesize
@@ -214,7 +214,7 @@ usually a property of the evaluation pipeline, not of the model.}
       \fitwidth{%
       \begin{tabular}{llc}
         \toprule
-        Method & Model & F1 (mean $\pm$ CI95) \\
+        Method & Model & F1, mean of 6 splits \\
         \midrule
         Baseline    & XGBoost & 0.99734 $\pm$ 0.00007 \\
         SHAP Top-30 & XGBoost & 0.99720 $\pm$ 0.00009 \\
