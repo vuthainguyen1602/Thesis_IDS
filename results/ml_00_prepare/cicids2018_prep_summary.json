@@ -1,0 +1,14 @@
+{
+  "dataset": "cicids2018",
+  "dedup_on_features": true,
+  "n_features": 76,
+  "rows_before_feature_dedup": 3144655,
+  "rows_after_feature_dedup": 2391095,
+  "label_collision_groups_dropped": 3959,
+  "label_collision_rows_dropped": 54199,
+  "near_duplicate_rows_removed": 699361,
+  "split_mode": "random",
+  "train_rows": 1913324,
+  "test_rows": 477771,
+  "note": "Rerun 2026-09-29 on Jetson 1 (Spark local, 6 GB driver, IDS_SAMPLE_FRAC=0.2) from the raw CSE-CIC-IDS2018 CSVs in ~/ids-2018-raw, same settings as cluster/run_cross_dataset.sh. 16,233,002 raw rows; 15,705,452 after exact dedup + dropna; the 20% stratified sample and the train/test split match the committed data_2018 used by every cross-dataset result."
+}
