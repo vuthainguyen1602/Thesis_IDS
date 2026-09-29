@@ -4,13 +4,19 @@
 % Bản gốc tiếng Anh: ../fair2026/main.tex — hai bản phải khớp số liệu
 % Biên dịch: ./compile.sh   (XeLaTeX; bản kèm ghi chú: NOTES=1 ./compile.sh)
 %
-% KẾ HOẠCH THỜI GIAN (tổng 7:00, dư ~30 s). Ba trang phân mục nằm giữa các
-% phần, không được đánh số khung và mất ~5 s mỗi trang để bấm qua.
+% Bản tiếng Việt chi tiết hơn bản tiếng Anh: thêm slide khử trùng lặp và
+% thiết lập, rò rỉ cổng theo 8 thuật toán, TOST, hai chế độ F1 liên bộ và thích
+% ứng miền. Số liệu vẫn phải khớp bài báo và bản tiếng Anh.
+%
+% KẾ HOẠCH THỜI GIAN (tổng ~11:00). Ba trang phân mục nằm giữa các phần, không
+% được đánh số khung và mất ~5 s mỗi trang để bấm qua.
 %   Trang bìa ...................... 0:20
-%   I   Vấn đề, đóng góp ........... 1:25   (2 slide)
-%   II  Quy trình loại rò rỉ ....... 0:55   (1 slide)
-%   III Kết quả, kết luận .......... 4:10   (5 slide)
-% Từ slide 10 trở đi là DỰ PHÒNG cho hỏi đáp, không tính vào 7 phút.
+%   I   Vấn đề, đóng góp ........... 1:30   (2 slide)
+%   II  Quy trình, thiết lập ....... 2:00   (2 slide)
+%   III Kết quả, kết luận .......... 7:00   (7 slide)
+% Nếu chỉ có 7 phút: bỏ qua slide thiết lập, Kết quả 2 và Kết quả 6, chỉ nói
+% câu kết luận của chúng.
+% Sau slide tài liệu tham khảo là DỰ PHÒNG cho hỏi đáp.
 % Ghi chú người trình bày nằm trong \note{} — dựng bằng NOTES=1.
 % =====================================================================
 \documentclass[aspectratio=169, 11pt]{beamer}
@@ -76,7 +82,8 @@ thường là tính chất của quy trình đánh giá, không phải của mô
       \end{exampleblock}%
     \end{column}
   \end{columns}
-  \note{Định vị bài báo là bài về phép đo. Cổng đích cho mô hình một đường tắt
+  \note{Rò rỉ dữ liệu: thông tin không có lúc triển khai lọt vào huấn luyện hoặc
+  đánh giá. Định vị bài báo là bài về phép đo. Cổng đích cho mô hình một đường tắt
   từ cổng sang nhãn; 80 đặc trưng thì tốn cả khi huấn luyện, khi suy luận và
   khi nhồi lên thiết bị biên. Cả hai nguồn rò rỉ đều được loại trước khi chia
   tập.}
@@ -133,23 +140,80 @@ thường là tính chất của quy trình đánh giá, không phải của mô
       \end{tikzpicture}}
     \end{column}
     \begin{column}{0.47\textwidth}
-      \textbf{Việc loại bỏ diễn ra \emph{trước} khi chia tập}
-      \begin{itemize}\small
-        \item Nhóm giống nhau về đặc trưng mà \bad{mâu thuẫn nhãn} bị loại
-              \emph{toàn bộ}: \num{270 nhóm, 44{.}260 dòng}.
-        \item Kết quả: 77 đặc trưng, 1,79 / 0,45 triệu luồng.
+      \textbf{Mỗi bước chặn một đường rò rỉ}
+      \begin{itemize}\footnotesize
+        \item Loại cổng đích: chặn \bad{đường tắt cổng $\to$ nhãn}.
+        \item Khử trùng lặp \emph{trước} khi chia: không mẫu nào ở cả hai tập.
+        \item Scaler, PCA, xếp hạng RF/SHAP chỉ \emph{fit} trên tập huấn luyện.
+        \item Chọn mô hình trên tập kiểm định (20\% tập huấn luyện): tập kiểm
+              tra \bad{không} tham gia bước chọn nào.
       \end{itemize}
       \vspace{0.2em}
       \textbf{Thiết kế cố định \emph{từ trước}}
-      \begin{itemize}\small
-        \item Pha khám phá (quét $K$) tách khỏi pha xác nhận.
-        \item Siêu tham số dùng chung; tập kiểm tra \bad{không} tham gia
-              bước chọn nào.
+      \begin{itemize}\footnotesize
+        \item Quét $K \in \{20,30,40\}$ tách khỏi pha xác nhận 4 cấu hình:
+              Cơ sở, RF Top-30, SHAP Top-30, PCA $k{=}40$.
       \end{itemize}
     \end{column}
   \end{columns}
-  \note{Khử trùng lặp tất định là chỗ nhiều người làm sai. Nhóm mâu thuẫn nhãn
-  bị loại trọn gói, nên kết quả không phụ thuộc vào cách Spark chia phân vùng.}
+  \note{Đi từ trên xuống, mỗi khối đỏ là một chỗ rò rỉ bị chặn. Không cấu hình
+  nào được chọn theo F1 trên tập kiểm tra. Siêu tham số dùng chung cho mọi
+  phương pháp, nên khác biệt phản ánh phương pháp chứ không phải việc tinh
+  chỉnh.}
+\end{frame}
+
+% ---------------------------------------------------------------- 1:05
+\begin{frame}{Khử trùng lặp tất định và thiết lập thực nghiệm}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \textbf{Chuẩn bị dữ liệu, trước khi chia tập}
+      \begin{enumerate}\footnotesize
+        \item Gộp 8 tệp CSV; $\pm\infty \to$ NaN; bỏ dòng thiếu, dòng trùng.
+        \item Nhãn: BENIGN $\to 0$, mọi tấn công $\to 1$.
+        \item Đặc trưng $\mathcal{F}$: cột số, \emph{trừ} cổng, giao thức,
+              định danh.
+        \item Nhóm dòng giống hệt nhau trên $\mathcal{F}$:
+              mâu thuẫn nhãn $\to$ \bad{loại cả nhóm}
+              (\num{270 nhóm, 44.260 dòng}); còn lại $\to$ giữ \emph{một}
+              đại diện tất định.
+        \item Chia 80/20, hạt giống cố định.
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering\scriptsize
+      \fitwidth{%
+      \begin{tabular}{lr}
+        \toprule
+        \multicolumn{2}{l}{\textbf{CICIDS2017} (sau xử lý)} \\
+        \midrule
+        Đặc trưng số             & 77 \\
+        Huấn luyện / kiểm tra    & 1.785.349 / 447.275 \\
+        Tổng                     & 2.232.624 \\
+        \midrule
+        \multicolumn{2}{l}{\textbf{CSE-CIC-IDS2018} (mẫu phân tầng 20\%)} \\
+        \midrule
+        Trước / sau khử trùng lặp & $\sim$3,14 / $\sim$2,39 triệu \\
+        \bottomrule
+      \end{tabular}
+      }
+      \vspace{0.4em}
+
+      \raggedright
+      \begin{itemize}\scriptsize
+        \item \textbf{Hạ tầng:} Spark 3.4.1; 2$\times$ Jetson Orin Nano Super
+              (8\,GB) làm worker, máy chủ \emph{chỉ} làm master.
+        \item \textbf{Chỉ số:} ưu tiên \key{AUC-PR} và \key{recall tấn công}
+              hơn accuracy vì dữ liệu mất cân bằng.
+        \item Mã nguồn công khai; chạy lại được trên một máy.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \note{Chỗ nhiều người làm sai là nhóm mâu thuẫn nhãn: giữ ngẫu nhiên một dòng
+  thì nhãn phụ thuộc cách Spark chia phân vùng, mỗi lần chạy ra một bộ dữ liệu
+  khác; loại cả nhóm thì kết quả tất định. Lỗi nhãn này của CICIDS2017 đã được
+  Lanvin et al.\ ghi nhận. Cột bị loại cụ thể là destination\_port,
+  source\_port, protocol và các cột định danh. Thời gian huấn luyện ở các slide
+  sau là thời gian trên hai Jetson, không phải trên máy chủ.}
 \end{frame}
 
 % ---------------------------------------------------------------- 1:00
@@ -209,8 +273,53 @@ thường là tính chất của quy trình đánh giá, không phải của mô
   phân tích viên SOC và với thiết bị biên ở phía sau.}
 \end{frame}
 
-% ---------------------------------------------------------------- 0:40
-\begin{frame}{Kết quả 2: kiểm định sự khác biệt thay vì khẳng định nó}
+% ---------------------------------------------------------------- 0:55
+\begin{frame}{Kết quả 2: cổng đích rò rỉ bao nhiêu tùy họ mô hình}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \centering\footnotesize
+      \fitwidth{%
+      \begin{tabular}{lccc}
+        \toprule
+        Thuật toán & F1 (loại cổng) & F1 (giữ cổng) & $\Delta$F1 \\
+        \midrule
+        SVM (LinearSVC)     & 0,7859 & 0,8274 & \bad{$+$0,0415} \\
+        Logistic Regression & 0,7986 & 0,8381 & \bad{$+$0,0395} \\
+        Naive Bayes         & 0,2985 & 0,3093 & $+$0,0108 \\
+        MLP                 & 0,9660 & 0,9711 & $+$0,0052 \\
+        GBT                 & 0,9924 & 0,9941 & $+$0,0017 \\
+        Decision Tree       & 0,9953 & 0,9966 & $+$0,0014 \\
+        Random Forest       & 0,9954 & 0,9964 & $+$0,0010 \\
+        XGBoost             & 0,9972 & 0,9979 & $+$0,0007 \\
+        \bottomrule
+      \end{tabular}
+      }
+      \\[0.3em]
+      \scriptsize Hai lượt trên \emph{cùng} một phép chia, chỉ khác giữ hay
+      loại \texttt{destination\_port}; bài toán nhị phân.
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{itemize}\footnotesize
+        \item \textbf{Họ cây} chỉ được lợi $+$0,0007 đến $+$0,0017: chúng dựng
+              lại cùng biên quyết định từ thống kê hành vi của luồng.
+        \item \textbf{Mô hình tuyến tính} được lợi tới \bad{$+$0,04}, gấp
+              khoảng 40 lần: chúng bám vào cổng như một định danh dịch vụ.
+        \item Random Forest: F1 0,9964 $\to$ 0,9954, recall tấn công
+              0,9988 $\to$ 0,9961. Chiều hướng vẫn nhất quán với rò rỉ.
+        \item Tác vụ nhị phân trong-miền đã gần bão hòa sau khử trùng lặp, nên
+              mức chênh ở họ cây nhỏ.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \takeaway{Ablation trên \emph{một} mô hình \key{không giới hạn được} mức rò rỉ
+  của một lớp mô hình khác. Mọi kết quả sau đều dùng cấu hình đã loại cổng.}
+  \note{Bài bản nộp chỉ đo trên Random Forest; bản camera-ready chạy cả tám thuật
+  toán theo góp ý phản biện. Con số 0,001 là đặc tính của họ cây, không phải của
+  bộ dữ liệu.}
+\end{frame}
+
+% ---------------------------------------------------------------- 1:00
+\begin{frame}{Kết quả 3: kiểm định sự khác biệt, rồi kiểm định sự tương đương}
   \begin{columns}[T]
     \begin{column}{0.47\textwidth}
       \centering\footnotesize
@@ -226,16 +335,17 @@ thường là tính chất của quy trình đánh giá, không phải của mô
         \bottomrule
       \end{tabular}
       }
-      \vspace{0.15em}
+      \vspace{0.4em}
 
-      \scriptsize
       \fitwidth{%
-      \begin{tabular}{lcc}
+      \begin{tabular}{lc}
         \toprule
-        Ablation cổng (RF) & F1 & Recall (Tấn công) \\
+        \multicolumn{2}{l}{\textbf{TOST} (hai kiểm định một phía)} \\
         \midrule
-        Giữ cổng            & 0,9964 & 0,9988 \\
-        \textbf{Loại cổng}  & 0,9954 & 0,9961 \\
+        Biên tương đương, khai báo trước & $\pm$0,001 F1 \\
+        Sai số dùng để kiểm định         & Nadeau--Bengio \\
+        $p_{\text{TOST}}$                & \good{$3{,}9\times10^{-6}$} \\
+        Biên nhỏ nhất chứng minh được ($\alpha{=}0{,}05$) & \good{$\pm2{,}3\times10^{-4}$} \\
         \bottomrule
       \end{tabular}
       }
@@ -248,22 +358,23 @@ thường là tính chất của quy trình đánh giá, không phải của mô
               nhất là $2/2^6$, nên $N \geq 6$ là \emph{bắt buộc}.
         \item Lấy mẫu chồng nhau phá vỡ tính độc lập của $t$ $\rightarrow$
               dùng CI \key{hiệu chỉnh Nadeau--Bengio}.
+        \item $p = 0{,}031$ nằm ngay sàn phân giải, trong khi cách biệt chỉ
+              $\approx$0,0001. Kiểm định ý nghĩa \bad{không} chứng minh được
+              tương đương, nên bài báo kiểm định tương đương \emph{trực tiếp}
+              bằng TOST.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Có ý nghĩa \emph{chỉ ở sát ngưỡng phân giải}, cách biệt
-  $\approx$0,0001: \key{tương đương về thực hành}, nên tính giải thích được và
-  chi phí mới quyết định. Trùng lặp mới là nguồn rò rỉ chính, không phải cổng.}
-  {\tiny\textcolor{gray!55!black}{Nadeau \& Bengio, \emph{Inference for the
-  Generalization Error}, Machine Learning 52(3), 2003.}}
-  \note{Phương sai phản ánh việc lấy mẫu dữ liệu, không chỉ khởi tạo mô hình.
-  Kiểm định là hai phía, và các lần lấy mẫu chồng nhau phá vỡ tính độc lập của
-  t. p nhỏ nhưng hiệu ứng tuyệt đối rất nhỏ: nói thẳng rằng ta coi hai phương
-  pháp là tương đương chứ không tuyên bố ai thắng.}
+  \takeaway{Cơ sở và SHAP Top-30 \key{tương đương theo nghĩa khẳng định}: chênh
+  lệch thật nhỏ hơn $2{,}3\times10^{-4}$ F1. Tính giải thích được và chi phí mới
+  quyết định lựa chọn.}
+  \note{Hai bước: kiểm định hoán vị cho thấy khác biệt rất nhỏ nhưng có ý
+  nghĩa ở sát sàn, rồi TOST cho thấy khác biệt đó nằm gọn trong biên 0,001 khai
+  báo từ trước. Nói "tương đương" là có kiểm định, không phải suy từ một p lớn.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:55
-\begin{frame}{Kết quả 3: F1 nhị phân che giấu các lớp hiếm}
+\begin{frame}{Kết quả 4: F1 nhị phân che giấu các lớp hiếm}
   \begin{columns}[c]
     \begin{column}{0.40\textwidth}
       \centering
@@ -298,58 +409,113 @@ thường là tính chất của quy trình đánh giá, không phải của mô
         \item \textbf{Nhầm loại nhưng vẫn bắt}: 81/111 XSS rơi vào Web Brute
               Force --- \good{76\% vẫn bị gắn cờ} ở mức nhị phân.
         \item \textbf{Lọt vào Benign} (nguy hiểm): cả 6 SQL Injection,
-              \bad{54\% Bot}, 27\% Brute Force.
+              \bad{54\% Bot} (158/290), 27\% Brute Force.
       \end{itemize}
     \end{column}
   \end{columns}
   \note{Weighted F1 0,998 so với macro F1 0,806. Ba nguyên nhân: mất cân bằng
-  cực độ; loại cổng đích ảnh hưởng nặng nhất tới tấn công web, vì không còn
-  đường tắt cổng 80 thì các luồng HTTP ngắn trông như lướt web bình thường,
-  nên recall 0,027 báo ở đây thay cho một con số từng bị rò rỉ thổi phồng; và
-  hành vi beaconing của Bot C\&C giống lưu lượng nền.}
+  cực độ, 6--311 mẫu so với 380 nghìn Benign; không còn đường tắt cổng 80 thì
+  luồng HTTP ngắn của tấn công web trông như lướt web thường; beaconing của Bot
+  C\&C giống lưu lượng nền khi mất định danh dịch vụ. Recall 0,027 của XSS ở đây thay
+  cho một con số từng bị rò rỉ thổi phồng. Hai lớp không có trên bảng: PortScan
+  F1 0,976 và Infiltration F1 0,800 (12 mẫu). Bảy lớp còn lại, gồm cả
+  Heartbleed, đều đạt F1 từ 0,95 trở lên.}
 \end{frame}
 
-% ---------------------------------------------------------------- 0:55
-\begin{frame}{Kết quả 4: điểm số không sống sót khi đổi testbed}
+% ---------------------------------------------------------------- 1:10
+\begin{frame}{Kết quả 5: điểm số không sống sót khi đổi testbed}
   \begin{columns}[T]
-    \begin{column}{0.46\textwidth}
-      \centering\small
+    \begin{column}{0.47\textwidth}
+      \centering\footnotesize
       \fitwidth{%
       \begin{tabular}{lcc}
         \toprule
         Huấn luyện $\to$ Kiểm tra & F1 & AUC-PR \\
         \midrule
-        2017 $\to$ 2017 & \good{0,9953} & \good{0,9997} \\
-        2017 $\to$ 2018 & \bad{0,029--0,085 $\mid$ 0,185--0,301} & \bad{0,4849} \\
-        2018 $\to$ 2018 & \good{0,9246} & \good{0,9679} \\
-        2018 $\to$ 2017 & \bad{0,0544} \tiny$\pm$0,0019 & \bad{0,1926} \\
+        2017 $\to$ 2017 (trong-miền)  & \good{0,9953} & \good{0,9997} \\
+        2017 $\to$ 2018 (11 lượt)     & \bad{0,029--0,085} & \bad{0,4778} \\
+        2017 $\to$ 2018 (7 lượt)      & \bad{0,185--0,301} & \bad{0,4960} \\
+        2018 $\to$ 2018 (trong-miền)  & \good{0,9246} & \good{0,9679} \\
+        2018 $\to$ 2017               & \bad{0,0544} \tiny$\pm$0,0019 & \bad{0,1926} \\
         \bottomrule
       \end{tabular}
       }
-      \\[0.4em]
-      \footnotesize
-      Trung bình 18 lượt; đặc trưng chung đã loại rò rỉ, $\sim$2,39 triệu luồng.
+      \\[0.3em]
+      \scriptsize\raggedright
+      18 lượt cùng mã nguồn và dữ liệu (13 hạt giống, 5 hạt giống chạy hai
+      lần). 2017 = CICIDS2017, 2018 = CSE-CIC-IDS2018.
     \end{column}
     \begin{column}{0.50\textwidth}
-      \begin{itemize}\footnotesize
-        \item Trong-miền ổn định \emph{cả hai} chiều --- AUC-PR liên bộ
-              \bad{1,00$\to$0,48} và \bad{0,97$\to$0,19}.
-        \item Recall 0,073 / 0,030 (precision 0,772 / 0,272): mô hình
-              \key{không nhận ra} tấn công của testbed kia.
-        \item 18 lượt, \key{hai chế độ rời nhau}: 11 lượt 0,029--0,085 và 7
-              lượt 0,185--0,301, không gì ở giữa. AUC-PR không khác biệt.
-        \item Nguyên nhân: khác CICFlowMeter, cấu hình mạng, công cụ tấn công.
+      \begin{itemize}\scriptsize
+        \item AUC-PR sụp \bad{0,9997 $\to$ 0,4849} (trung bình 18 lượt) và
+              \bad{0,9679 $\to$ 0,1926}. Recall 0,073 / 0,030, precision
+              0,772 / 0,272: mô hình \key{bỏ sót} tấn công của testbed kia.
+        \item 2017$\to$2018: F1 có \key{hai chế độ rời nhau}. Trung bình
+              0,1276 rơi vào khoảng trống; CI95 của nó chỉ chứa 1/18 lượt.
+        \item 5 hạt giống chạy lại: 2 đổi chế độ. Quá trình fit phân tán
+              quyết định, không phải hạt giống.
+        \item AUC-PR hai chế độ như nhau (Welch $|t|{=}1{,}3$): chỉ ngưỡng 0,5
+              cắt qua một cụm luồng gần giống nhau, cả cụm lật cùng lúc.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Điểm số trong-miền gần hoàn hảo, \emph{kể cả khi đã loại rò rỉ},
-  \key{không chứng nhận} khả năng triển khai khi phân phối dịch chuyển.}
-  \note{Không làm nhẹ con số này. Trong-miền 0,99, liên bộ AUC-PR 0,48 / 0,19.
-  Nếu bị hỏi vì sao khoảng F1 rộng: ở mức recall này, cụm luồng tấn công miền
-  đích nằm sát ngưỡng 0,5 nên cả cụm lật cùng lúc, tạo ra hai chế độ; vì vậy
-  báo cáo theo nhiều lượt và xét theo AUC-PR. Thống nhất với các nghiên cứu
-  liên bộ dữ liệu trước đó, và là lý do khiến thích ứng miền là điều kiện tiên
-  quyết chứ không phải thứ có thì tốt.}
+  \takeaway{F1 liên bộ của \emph{một} lượt chỉ cho biết lượt đó rơi vào chế độ
+  nào. Bài báo báo cáo cả phân bố và so sánh bằng \key{AUC-PR}.}
+  \note{Nguyên nhân dịch chuyển: khác phiên bản CICFlowMeter nên thang đo đặc
+  trưng đổi, khác cấu hình mạng, khác công cụ tấn công (HOIC/LOIC-HTTP chỉ có ở
+  2018). Trong 5 hạt giống chạy hai lần, 3 giữ nguyên chế độ và 2 đổi chế độ.
+  Không làm nhẹ con số này. Bản nộp ban đầu báo một con số F1 duy nhất;
+  lặp lại thí nghiệm cho thấy con số đó không tái lập được giữa các lượt, nên
+  bản camera-ready báo hai chế độ. Kết luận không đổi, thậm chí chắc hơn: lượt
+  tốt nhất trong 18 lượt cũng chỉ đạt F1 0,30 so với 0,9953 trong-miền.}
+\end{frame}
+
+% ---------------------------------------------------------------- 1:00
+\begin{frame}{Kết quả 6: thích ứng miền --- cái gì cứu được, cái gì không}
+  \begin{columns}[T]
+    \begin{column}{0.53\textwidth}
+      \centering\footnotesize
+      \fitwidth{%
+      \begin{tabular}{lccc}
+        \toprule
+        Cách thích ứng & Nhãn đích & 2017$\to$2018 & 2018$\to$2017 \\
+        \midrule
+        Không thích ứng                  & không & 0,029--0,301 & 0,054 \\
+        Refit scaler trên miền đích      & không & \bad{0,000} & \bad{0,000} \\
+        CORAL                            & không & \bad{0,000} & \bad{0,000} \\
+        \midrule
+        Chỉ 1\% dữ liệu đích             & có    & \good{0,922} & \good{0,990} \\
+        Nguồn 1,79 triệu $+$ 1\% đích    & có    & 0,803 & 0,961 \\
+        \bottomrule
+      \end{tabular}
+      }
+      \\[0.3em]
+      \scriptsize\raggedright
+      Giá trị là F1. 1\% tập huấn luyện của miền đích $\approx$19 nghìn luồng
+      (18 nghìn cho chiều ngược lại). Mỗi cách thích ứng được so với lượt không
+      thích ứng của chính nó.
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{itemize}\scriptsize
+        \setlength{\itemsep}{0.25em}
+        \item Refit scaler và CORAL, không nhãn và không huấn luyện lại, đưa F1
+              về \bad{0} ở cả hai chiều, trong cả 3 lượt. Dịch chuyển nằm ở
+              phân phối có điều kiện, không chỉ ở trung bình và hiệp phương sai.
+        \item CORAL vẫn nâng AUC-PR chiều 2018$\to$2017 (0,179 $\to$ 0,250)
+              dù F1 bằng 0: thứ hạng tốt lên, nhưng ngưỡng 0,5 fit trên miền
+              nguồn không còn đúng. Thích ứng phải hiệu chỉnh cả ngưỡng.
+        \item Gán nhãn một ít dữ liệu mạng mới hiệu quả ngay. Gộp thêm dữ liệu
+              nguồn lại \bad{kém hơn} bỏ hẳn nó.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \takeaway{Thích ứng miền là \key{điều kiện tiên quyết} để chuyển giao, và cách
+  rẻ nhất ở đây là gán nhãn một ít lưu lượng của chính mạng đích.}
+  {\tiny\textcolor{gray!55!black}{Sun, Feng \& Saenko, \emph{Return of
+  frustratingly easy domain adaptation}, AAAI 2016.}}
+  \note{Hai baseline không giám sát được thêm theo góp ý phản biện, và cả hai
+  đều thất bại về F1. Bài học không phải là thích ứng vô ích, mà là nắn lại
+  thang đo đặc trưng thôi thì chưa đủ.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -357,25 +523,29 @@ thường là tính chất của quy trình đánh giá, không phải của mô
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
       \textbf{Những gì đã chỉ ra}
-      \begin{itemize}
-        \item SHAP Top-30 giữ được F1 cơ sở với \good{$\approx$60\% ít đặc
-              trưng hơn}.
-        \item Cơ sở và SHAP Top-30 \key{tương đương về thực hành}.
+      \begin{itemize}\footnotesize
+        \item SHAP Top-30: \good{$\approx$60\% ít đặc trưng}, $\approx$73\% ít
+              thời gian huấn luyện.
+        \item Cơ sở và SHAP Top-30 \key{tương đương} trong
+              $\pm2{,}3\times10^{-4}$ F1 (TOST).
+        \item Rò rỉ cổng: $+$0,001 với cây, \bad{$+$0,04} với mô hình tuyến tính.
         \item \bad{macro-F1 0,806} so với weighted-F1 0,998.
-        \item AUC-PR liên bộ dữ liệu \bad{sụp xuống 0,48 / 0,19}.
+        \item AUC-PR liên bộ \bad{0,48 / 0,19}; F1 liên bộ có hai chế độ.
+        \item Scaler, CORAL: F1 bằng 0; 1\% nhãn đích: \good{0,92 / 0,99}.
       \end{itemize}
     \end{column}
     \begin{column}{0.45\textwidth}
       \textbf{Đóng góp}
-      \begin{itemize}\small
+      \begin{itemize}\footnotesize
         \item \key{Đo thế nào cho đáng tin}, quan trọng ngang với phương pháp
               nào thắng.
       \end{itemize}
       \textbf{Hướng tiếp theo}
-      \begin{itemize}\small
-        \item Toàn bộ CSE-CIC-IDS2018; các bộ mới hơn (RoEduNet, CIC-IoT).
-        \item \emph{Bản thân} tập SHAP Top-30 có chuyển được sang bộ khác?
-        \item Xử lý mất cân bằng có chủ đích; đặc trưng thời gian cho beaconing.
+      \begin{itemize}\footnotesize
+        \item Ablation chính bước khử trùng lặp.
+        \item Toàn bộ CSE-CIC-IDS2018; RoEduNet, CIC-IoT.
+        \item Tập SHAP Top-30 có chuyển được sang bộ khác?
+        \item Tăng $N$ bằng kiểm định chéo lồng.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -414,6 +584,14 @@ thường là tính chất của quy trình đánh giá, không phải của mô
           \hfill{\key{Spark ML}}
     \item[{[8]}] CIC \& CSE. \emph{CSE-CIC-IDS2018 dataset}. 2018.
           \hfill{\key{đích liên bộ dữ liệu}}
+    \item[{[9]}] Schuirmann, D.\,J. \emph{A comparison of the two one-sided tests
+          procedure and the power approach for assessing the equivalence of
+          average bioavailability}. J.\ Pharmacokinetics and
+          Biopharmaceutics 15(6), 1987.
+          \hfill{\key{TOST}}
+    \item[{[10]}] Sun, B., Feng, J. \& Saenko, K. \emph{Return of frustratingly
+          easy domain adaptation}. AAAI 2016.
+          \hfill{\key{CORAL}}
   \end{itemize}
   \note{Không trình bày --- để trên màn hình trong lúc nhận câu hỏi, nên nguồn
   luôn hiện sẵn nếu khán giả hỏi. Danh sách đầy đủ nằm trong bài báo.}
@@ -475,7 +653,7 @@ thường là tính chất của quy trình đánh giá, không phải của mô
 \end{frame}
 
 \begin{frame}{Dự phòng: các yếu tố ảnh hưởng tính hợp lệ}
-  \begin{itemize}\small
+  \begin{itemize}\footnotesize
     \item \textbf{Nội tại.} Xếp hạng RF/SHAP lấy từ tập huấn luyện gốc và giữ
           cố định qua các lần lấy mẫu lại --- nhất quán với thiết kế cố định từ
           trước, nhưng có thể gây rò rỉ nhẹ ở phần xếp hạng. Xếp hạng lại trong
@@ -485,13 +663,15 @@ thường là tính chất của quy trình đánh giá, không phải của mô
     \item \textbf{Ngoại tại.} CICIDS2017 có thể không phản ánh lưu lượng hiện
           tại, và các bộ dữ liệu NIDS chuẩn đều có hạn chế chất lượng đã ghi
           nhận. Kết luận liên bộ dữ liệu dựa trên \emph{mẫu phân tầng} của
-          CSE-CIC-IDS2018. Chưa kiểm thử lưu lượng né tránh. Bản thân việc khử
-          trùng lặp cũng làm thay đổi phân bố benign/attack.
-    \item \textbf{Thống kê.} $N{=}6$ cho \emph{power} thấp: liệt kê đầy đủ hai
-          phía chặn $p$ ở mức $2/2^N$, nên $N{=}6$ \emph{vừa đủ} chạm 0,05. Các
-          lần lấy mẫu chồng nhau, vi phạm tính độc lập của $t$ --- vì vậy lấy
-          Nadeau--Bengio làm căn cứ chính. Kiểm định chéo lồng với $N$ lớn hơn
-          là hướng củng cố tiếp theo.
+          CSE-CIC-IDS2018, chưa phải toàn bộ. Chưa kiểm thử lưu lượng né tránh.
+          Bản thân việc khử trùng lặp cũng làm thay đổi phân bố benign/attack.
+    \item \textbf{Thống kê.} $N{=}6$ cho kiểm định hoán vị \emph{power} thấp:
+          liệt kê đầy đủ hai phía chặn $p$ ở mức $2/2^N$, nên $N{=}6$ \emph{vừa
+          đủ} chạm 0,05. Kết luận tương đương không dựa vào $p$ đó mà dựa vào
+          TOST, trên cùng sai số Nadeau--Bengio đã tính đến việc các lần lấy
+          mẫu chồng nhau. F1 liên bộ không tất định giữa các lượt, nên được báo
+          trên 18 lượt. Kiểm định chéo lồng với $N$ lớn hơn là hướng củng cố
+          tiếp theo.
   \end{itemize}
 \end{frame}
 
