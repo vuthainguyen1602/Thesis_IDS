@@ -125,9 +125,12 @@ except ImportError:
     print("[WARN] XGBoost not available (pip install xgboost pyarrow)")
 
 
+# The repository root is the parent of this package, not the package itself.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 _DEFAULT_DATA_DIR: str = os.environ.get(
     "IDS_DATA_DIR",
-    os.path.join(os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__))), "data")
+    os.path.join(os.environ.get("IDS_ROOT", _REPO_ROOT), "data")
 )
 
 ML01_DIR = "ml_01_baseline"
@@ -142,7 +145,7 @@ ML09_DIR = "ml_09_multiclass_eval"
 
 
 def ids_root() -> str:
-    return os.environ.get("IDS_ROOT", os.path.dirname(os.path.abspath(__file__)))
+    return os.environ.get("IDS_ROOT", _REPO_ROOT)
 
 
 def ml_results_dir(experiment_dir: str, *parts: str, mkdir: bool = True) -> str:
