@@ -573,12 +573,12 @@ tính chất của cách đánh giá, không phải của mô hình.}
     \begin{column}{0.47\textwidth}
       \centering\footnotesize
       \fitwidth{%
-      \begin{tabular}{llc}
+      \begin{tabular}{lcc}
         \toprule
-        Phương pháp & Mô hình & F1 (TB $\pm$ CI95) \\
+        XGBoost & F1 $\pm$ CI95 ($t$) & CI95 (N--B) \\
         \midrule
-        Giữ hết     & XGBoost & 0,99734 $\pm$ 0,00007 \\
-        SHAP Top-30 & XGBoost & 0,99720 $\pm$ 0,00009 \\
+        Giữ hết     & 0,99734 $\pm$ 0,00007 & $\pm$ 0,00012 \\
+        SHAP Top-30 & 0,99720 $\pm$ 0,00009 & $\pm$ 0,00015 \\
         \midrule
         \multicolumn{3}{c}{hoán vị ghép cặp $p = 0{,}031$;\ Cohen's $d \approx 1{,}94$} \\
         \bottomrule

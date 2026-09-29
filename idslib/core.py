@@ -247,6 +247,7 @@ def create_spark_session(app_name: str = "IDS_Binary_Prediction") -> SparkSessio
     spark.sparkContext.setLogLevel("ERROR")
     ui = spark.sparkContext.uiWebUrl or "(cluster — see master UI)"
     print(f"[INFO] Spark {spark.version} | UI: {ui}")
+    log_run_config(app_name)
     return spark
 
 
