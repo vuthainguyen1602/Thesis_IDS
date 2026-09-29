@@ -81,7 +81,7 @@ I.~T. Jolliffe, {\em Principal Component Analysis}.
 
 \bibitem{sarhan2022explainable}
 M.~Sarhan, S.~Layeghy, and M.~Portmann, ``Evaluating standard feature sets
-  towards increased generalisability and explainability of ml-based network
+  towards increased generalisability and explainability of {ML}-based network
   intrusion detection,'' {\em Big Data Research}, vol.~30, p.~100359, 2022.
 
 \bibitem{gama2014survey}
@@ -102,7 +102,7 @@ L.~Ruff, J.~R. Kauffmann, R.~A. Vandermeulen, G.~Montavon, W.~Samek, M.~Kloft,
 \bibitem{lopez2017autoencoder}
 M.~Lopez-Martin, B.~Carro, A.~Sanchez-Esguevillas, and J.~Lloret, ``Conditional
   variational autoencoder for prediction and feature recovery applied to
-  intrusion detection in iot,'' {\em Sensors}, vol.~17, no.~9, p.~1967, 2017.
+  intrusion detection in {IoT},'' {\em Sensors}, vol.~17, no.~9, p.~1967, 2017.
 
 \bibitem{hasan2025iiot}
 T.~Hasan, A.~Hossain, M.~Q. Ansari, and T.~H. Syed, ``Enhanced intrusion
@@ -115,6 +115,11 @@ D.~Arp, E.~Quiring, F.~Pendlebury, A.~Warnecke, F.~Pierazzi, C.~Wressnegger,
   L.~Cavallaro, and K.~Rieck, ``Dos and don'ts of machine learning in computer
   security,'' in {\em 31st USENIX Security Symposium (USENIX Security 22)},
   pp.~3971--3988, 2022.
+
+\bibitem{cantone2024crossdataset}
+M.~Cantone, C.~Marrocco, and A.~Bria, ``Machine learning in network intrusion
+  detection: A cross-dataset generalization study,'' {\em IEEE Access},
+  vol.~12, pp.~144489--144508, 2024.
 
 \bibitem{nadeau2003inference}
 C.~Nadeau and Y.~Bengio, ``Inference for the generalization error,'' {\em
@@ -143,11 +148,6 @@ L.~D'hooge, T.~Wauters, B.~Volckaert, and F.~De~Turck, ``Inter-dataset
   generalization strength of supervised machine learning methods for intrusion
   detection,'' {\em Journal of Information Security and Applications}, vol.~54,
   p.~102564, 2020.
-
-\bibitem{cantone2024crossdataset}
-M.~Cantone, C.~Marrocco, and A.~Bria, ``Machine learning in network intrusion
-  detection: A cross-dataset generalization study,'' {\em IEEE Access},
-  vol.~12, pp.~144489--144508, 2024.
 
 \bibitem{goldschmidt2025datasets}
 P.~Goldschmidt and D.~Chud{\'a}, ``Network intrusion datasets: A survey,

@@ -62,7 +62,7 @@ within 8 pages.
 
 > Dear Chair,
 >
-> Please find our camera-ready for paper [ID]. It implements the changes both
+> Please find our camera-ready for paper #1571327230. It implements the changes both
 > reviewers asked for: a TOST equivalence test in place of relying on a
 > non-significant p-value, the destination-port ablation extended from one model
 > to all eight, two unsupervised domain-adaptation baselines (per-domain scaler
@@ -79,5 +79,14 @@ within 8 pages.
 > and leads the comparison with AUC-PR, instead of quoting one draw. The paper's
 > conclusion is unchanged. We are happy to provide the run data if useful.
 >
+> Two smaller editorial changes: the abstract now states the main findings
+> instead of deferring them to the body, and several entries of the
+> related-work table were corrected after checking each against the cited
+> paper, with one cross-dataset study (Cantone et al., already cited in the
+> text) added as a row. We also narrowed the multiclass claims to what was
+> measured: the per-class results come from one configuration (Random Forest,
+> all features), so the paper no longer says they show where the reduction
+> methods differ.
+>
 > Kind regards,
-> [authors]
+> Thai Nguyen Vu, Dung Van Bui, Nhut Tri Do, Van Du Nguyen

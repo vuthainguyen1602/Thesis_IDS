@@ -30,7 +30,7 @@ Diaz-Gorrin, J., Caballero-Gil, C., Brankovic, L.: Enhancing network security
   ~1442 (2026). \doi{10.3390/app16031442}
 
 \bibitem{ferrag2020deep}
-Ferrag, M.A., Maglaras, L., Janicke, H., Jiang, J., Shu, L.: Deep learning for
+Ferrag, M.A., Maglaras, L., Moschoyiannis, S., Janicke, H.: Deep learning for
   cyber security intrusion detection: Approaches, datasets, and comparative
   study. Journal of Information Security and Applications  \textbf{50},  102419
   (2020)
@@ -75,7 +75,7 @@ Lanvin, M., Gimenez, P.F., Han, Y., Majorczyk, F., M{\'e}, L., Totel, {\'E}.:
 \bibitem{lopez2017autoencoder}
 Lopez-Martin, M., Carro, B., Sanchez-Esguevillas, A., Lloret, J.: Conditional
   variational autoencoder for prediction and feature recovery applied to
-  intrusion detection in iot. Sensors  \textbf{17}(9), ~1967 (2017).
+  intrusion detection in {IoT}. Sensors  \textbf{17}(9), ~1967 (2017).
   \doi{10.3390/s17091967}
 
 \bibitem{lundberg2017unified}
@@ -122,7 +122,7 @@ Ruff, L., Kauffmann, J.R., Vandermeulen, R.A., Montavon, G., Samek, W., Kloft,
 
 \bibitem{sarhan2022explainable}
 Sarhan, M., Layeghy, S., Portmann, M.: Evaluating standard feature sets towards
-  increased generalisability and explainability of ml-based network intrusion
+  increased generalisability and explainability of {ML}-based network intrusion
   detection. Big Data Research  \textbf{30},  100359 (2022).
   \doi{10.1016/j.bdr.2022.100359}
 

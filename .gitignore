@@ -76,6 +76,9 @@ cluster/spark_cluster.env
 # total against 25 MB of regenerable parquet, models and figures, and an
 # adaptation run was already lost to an overwrite before it could be pulled.
 # Figures and per-model artefacts stay ignored.
+!results/ml_00_prepare/
+results/ml_00_prepare/*
+!results/ml_00_prepare/*.json
 !results/ml_01_baseline/
 results/ml_01_baseline/*
 !results/ml_01_baseline/*.csv

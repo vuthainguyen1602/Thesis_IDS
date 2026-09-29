@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import json
 import os
 import shutil
 from shared_utils import (
@@ -8,6 +9,7 @@ from shared_utils import (
     clean_column_names,
     handle_infinity_values,
     align_schema,
+    ml_results_dir,
     _leaky_port_cols,
     F, col, when,
 )
@@ -152,7 +154,12 @@ if __name__ == "__main__":
     # near-duplicates on both sides, leaking and inflating test metrics. Dedup
     # on feature columns BEFORE splitting closes this. Disable with
     # IDS_DEDUP_ON_FEATURES=0 to reproduce the legacy (leakier) behaviour.
-    if os.environ.get("IDS_DEDUP_ON_FEATURES", "1") == "1":
+    prep_summary = {
+        "dataset": DATASET,
+        "dedup_on_features": os.environ.get("IDS_DEDUP_ON_FEATURES", "1") == "1",
+        "n_features": len(feature_cols),
+    }
+    if prep_summary["dedup_on_features"]:
         # Deterministic dedup with explicit LABEL-COLLISION handling.
         #
         # dropDuplicates(feature_cols) keeps an ARBITRARY row per group (it
@@ -192,6 +199,13 @@ if __name__ == "__main__":
               f"({n_conflict_rows:,} rows with contradictory labels)")
         print(f"  - near-duplicate rows removed:    "
               f"{before - after - n_conflict_rows:,}")
+        prep_summary.update({
+            "rows_before_feature_dedup": before,
+            "rows_after_feature_dedup": after,
+            "label_collision_groups_dropped": n_conflict_groups,
+            "label_collision_rows_dropped": n_conflict_rows,
+            "near_duplicate_rows_removed": before - after - n_conflict_rows,
+        })
 
     df = df.cache()
     df.count()
@@ -229,6 +243,16 @@ if __name__ == "__main__":
     test_count = test_df.count()
     print(f"\nTraining set: {train_count:,} samples")
     print(f"Test set:     {test_count:,} samples")
+
+    prep_summary.update({
+        "split_mode": split_mode,
+        "train_rows": train_count,
+        "test_rows": test_count,
+    })
+    summary_path = ml_results_dir("ml_00_prepare", f"{DATASET}_prep_summary.json")
+    with open(summary_path, "w") as fh:
+        json.dump(prep_summary, fh, indent=2)
+    print(f"  Saved: {summary_path}")
 
     print(f"\nSaving to parquet...")
     os.makedirs(OUTPUT_DIR, exist_ok=True)

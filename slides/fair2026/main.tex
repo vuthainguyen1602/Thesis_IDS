@@ -89,8 +89,8 @@ usually a property of the evaluation pipeline, not of the model.}
     \item A \key{leakage-aware, statistically tested} pipeline: leak removal,
           deterministic feature-level dedup, validation-based selection, exact
           paired permutation test with Nadeau--Bengio correction.
-    \item A \key{per-attack-type multiclass} evaluation --- where the methods
-          genuinely differ.
+    \item A \key{per-attack-type multiclass} evaluation --- exposing what
+          binary F1 hides.
     \item An \key{edge-aware} recommendation: F1 \emph{and} feature count
           \emph{and} model size, for a Jetson Orin Nano Super (deployment
           reported in a companion systems paper).
@@ -231,8 +231,8 @@ usually a property of the evaluation pipeline, not of the model.}
         \toprule
         Port ablation (RF) & F1 & Recall (Attack) \\
         \midrule
-        Keep port          & 0.9965 & 0.9988 \\
-        \textbf{Remove port} & 0.9955 & 0.9961 \\
+        Keep port          & 0.9964 & 0.9988 \\
+        \textbf{Remove port} & 0.9954 & 0.9961 \\
         \bottomrule
       \end{tabular}
       }
@@ -251,7 +251,7 @@ usually a property of the evaluation pipeline, not of the model.}
   \end{columns}
   \takeaway{Significant \emph{only at the resolution floor}, gap $\approx$0.0001:
   \key{practically equivalent}, so explainability and cost decide. After dedup the
-  port's isolated effect is small --- duplicates were the dominant leak.}
+  port's isolated effect on the tree models is small.}
   {\tiny\textcolor{gray!55!black}{Nadeau \& Bengio, \emph{Inference for the
   Generalization Error}, Machine Learning 52(3), 2003.}}
   \note{Variance reflects data sampling, not just model initialization. The
@@ -276,6 +276,7 @@ usually a property of the evaluation pipeline, not of the model.}
       \begin{tabular}{lccc}
         \toprule
         Class & Support & Recall & F1 \\
+        \multicolumn{4}{l}{\scriptsize Random Forest, all 77 features} \\
         \midrule
         Benign                & 380{,}119 & 0.9997 & 0.9989 \\
         DoS Hulk              & 34{,}446  & 0.9904 & 0.9947 \\
@@ -300,11 +301,11 @@ usually a property of the evaluation pipeline, not of the model.}
       \end{itemize}
     \end{column}
   \end{columns}
-  \note{Weighted F1 0.998 versus macro F1 0.806. Three causes: extreme
-  imbalance; removing the port hits web attacks hardest, because without the
-  port-80 shortcut short HTTP flows look like browsing, so the 0.027 recall
-  reported here replaces a leakage-inflated one; and Bot C\&C beaconing
-  resembles background traffic.}
+  \note{Random Forest on all 77 features. Weighted F1 0.998 versus macro F1
+  0.806. Three plausible causes: extreme imbalance; the removed port, because
+  without the port-80 shortcut short HTTP attack flows look like browsing; and
+  Bot C\&C beaconing resembles background traffic. Comparing the reduction
+  methods in multiclass mode is future work.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:55
