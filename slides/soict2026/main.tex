@@ -184,9 +184,9 @@ devices. Seven minutes, four results.}
         Mode & Flows/s & e2e p95 (s) & J / verdict \\
         \midrule
         Single node         & 2.5            & 11.3          & 3.04 \\
-        Single node + gate  & 1.9            & 7.8           & 3.04 \\
+        Single node + gate  & $\approx$2.5   & 7.8           & 3.04 \\
         B: Horizontal       & 3.3            & 8.2           & 3.20 \\
-        C: Spark cluster    & 8.7            & 5.2           & 1.15 \\
+        C: Spark cluster    & 9--17          & 5.2           & 1.15 \\
         \textbf{A: Split}   & \num{22.4}     & \num{7.1}     & \num{0.60} \\
         \bottomrule
       \end{tabular}
@@ -212,7 +212,7 @@ devices. Seven minutes, four results.}
   \note{Single node and horizontal run with the gate off, as in the submitted
   version. Energy is measured at each mode's sustained rate: 2.0, 2.0, 3.9,
   9.5 and 18.4 flows per second. Gate skip is about 89 percent in every gated
-  mode. Median latency in split mode is about one second.}
+  mode. Median latency in split mode is about one second. Single node plus gate: the 10 second rule puts it at 1.9 only because one repeat drained in 10.6 seconds; at 3 flows per second it delivers 2.4 to 2.5 like the single node. Spark cluster: at 20 flows per second one repeat kept up at 17.1 and the other did not, so its capacity is only known to lie between about 9 and 17.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35

@@ -507,9 +507,9 @@
            &       & (luồng/giây) & (giây)           & (\%)          & (J/phán quyết) \\
     \midrule
     Một nút, không cổng       & 1 & 2,5  & 5,9 / 11,3 & --   & 3,04 \\
-    Một nút + cổng            & 1 & 1,9  & 3,8 / 7,8  & 89,0 & 3,04 \\
+    Một nút + cổng            & 1 & $\approx$2,5  & 3,8 / 7,8  & 89,0 & 3,04 \\
     B: Mở rộng ngang          & 2 & 3,3  & 4,1 / 8,2  & --   & 3,20 \\
-    C: Cụm Spark              & 2 & 8,7  & 0,7 / 5,2  & 88,6 & 1,15 \\
+    C: Cụm Spark              & 2 & 9--17  & 0,7 / 5,2  & 88,6 & 1,15 \\
     \textbf{A: Tách pipeline} & 2 & \good{22,4} & 1,0 / 7,1 & 88,8 & \good{0,60} \\
     \bottomrule
   \end{tabular}
@@ -521,7 +521,7 @@
           quyết trong 10\,giây; độ trễ tính từ lúc gửi, \key{gồm cả thời gian
           xếp hàng}.
     \item \good{A gấp 9 lần một nút} --- nhờ đặt cổng và bộ phân loại trên
-          \emph{hai bo riêng}: thêm cổng trên cùng bo còn chậm hơn (1,9).
+          \emph{hai bo riêng}: thêm cổng trên cùng bo không nhanh hơn.
     \item \bad{Cái giá}: cổng bỏ sót $\approx$30\% luồng tấn công (recall thực
           đo 69,6\%); p95 $\approx$7\,giây vì mỗi lô PySpark mất vài giây.
   \end{itemize}
@@ -529,7 +529,7 @@
   trong cửa sổ tải: số cũ 62,5 luồng/giây và 95,8\% bỏ qua thực chất là
   $1 - 2{,}6/62{,}5$, tức năng lực bộ phân loại chia tổng số phán quyết. Lần đo
   mới theo dõi từng luồng đã gửi đến khi có phán quyết. Không có cổng, recall
-  thực đo 100\% (212 luồng tấn công). Năng lượng là công suất toàn bo chia tốc
+  thực đo 100\% (212 luồng tấn công). Một nút + cổng: quy tắc 10 giây xếp nó ở mức 1,9 chỉ vì một lần lặp mất 10,6 giây; ở mức gửi 3 luồng/giây nó cho 2,4--2,5 như một nút. Cụm Spark: ở mức 20, một lần lặp theo kịp (17,1), lần kia thì không, nên chỉ biết khoảng 9--17. Năng lượng là công suất toàn bo chia tốc
   độ phán quyết.}
 \end{frame}
 
