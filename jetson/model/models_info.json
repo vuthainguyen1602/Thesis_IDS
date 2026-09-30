@@ -1,26 +1,26 @@
 [
   {
     "name": "Decision Tree",
-    "f1": 0.9813911100658514,
-    "accuracy": 0.9943390531552178,
-    "train_time": 24.36433219909668,
-    "model_size_mb": 0.046356201171875,
+    "f1": 0.9950381594464099,
+    "accuracy": 0.998504275892907,
+    "train_time": 17.20265293121338,
+    "model_size_mb": 0.034598350524902344,
     "path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/model/ids_pipeline_decision_tree"
   },
   {
     "name": "GBT",
-    "f1": 0.9752909855002311,
-    "accuracy": 0.9924677212006037,
-    "train_time": 341.8237318992615,
-    "model_size_mb": 0.8649578094482422,
+    "f1": 0.9922373718276652,
+    "accuracy": 0.9976591582359846,
+    "train_time": 334.92674589157104,
+    "model_size_mb": 0.7232952117919922,
     "path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/model/ids_pipeline_gbt"
   },
   {
     "name": "Random Forest",
-    "f1": 0.9825553983969826,
-    "accuracy": 0.9947057179587502,
-    "train_time": 687.2700560092926,
-    "model_size_mb": 4.426758766174316,
+    "f1": 0.9958634645716156,
+    "accuracy": 0.9987569168855849,
+    "train_time": 565.2347340583801,
+    "model_size_mb": 4.002231597900391,
     "path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/model/ids_pipeline_random_forest"
   }
 ]
