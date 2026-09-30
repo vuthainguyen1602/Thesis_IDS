@@ -89,4 +89,4 @@ within 8 pages.
 > methods differ.
 >
 > Kind regards,
-> Thai Nguyen Vu, Dung Van Bui, Nhut Tri Do, Van Du Nguyen
+> Thai Nguyen Vu, Bui Van Dung, Tri Nhut Do, Van Du Nguyen
