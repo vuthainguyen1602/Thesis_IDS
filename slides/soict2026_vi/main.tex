@@ -18,6 +18,7 @@
 \centeredtitles
 
 \graphicspath{%
+  {../../papers/soict2026/results/remeasure_20260930/}%
   {../../papers/soict2026/results/benchmarks/}%
   {../../papers/soict2026/figures/}%
   {../../results/ml_08_anomaly_gate/}%
@@ -114,7 +115,7 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
     \node[mtr] (out) at (0,-6.0)   {Chỉ số hiệu năng $\rightarrow$ InfluxDB $\rightarrow$ Grafana \quad$|$\quad
         Cảnh báo: Email / Slack};
     \draw[arr] (pc.south -| j1) -- node[lbl]{luồng mạng} (j1.north);
-    \draw[arr] (j1.east) -- node[lbl]{chỉ luồng đáng ngờ\\ ($\approx$4\% số luồng)} (j2.west);
+    \draw[arr] (j1.east) -- node[lbl]{chỉ luồng đáng ngờ\\ ($\approx$11\% số luồng)} (j2.west);
     \draw[arr] (j2.north) -- node[lbl]{kết quả\\ $\rightarrow$ PostgreSQL} (pc.south -| j2);
     \draw[dsh] (j1.south) -- (out.north -| j1);
     \draw[dsh] (j2.south) -- (out.north -| j2);
@@ -142,18 +143,15 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
     \begin{column}{0.49\textwidth}
       \textbf{Tầng 2 --- bộ phân loại (PySpark)}
       \begin{itemize}\small
-        \item Random Forest trên \key{29 đặc trưng} được SHAP chọn,
-              không có cổng đích.
+        \item Random Forest trên \key{30 đặc trưng} được SHAP chọn
+              (bài FAIR), không có cổng đích; F1 0,9959.
         \item Chỉ phải xét số ít luồng mà cổng chuyển sang.
       \end{itemize}
     \end{column}
   \end{columns}
-  \note{Sai số tái tạo là MSE. Ngưỡng là phân vị 0,995 của MSE trên tập kiểm
-  định gồm 10\% luồng bình thường của tập huấn luyện
-  (jetson/model/anomaly\_threshold.json). Bộ 29 đặc trưng
-  (jetson/model/feature\_columns.json) lấy từ một bảng xếp hạng SHAP \emph{cũ}
-  đã bỏ destination\_port; nó chỉ trùng 15/30 với SHAP Top-30 hiện tại của bài
-  FAIR, xem jetson/config.py.}
+  \note{Cổng lọc dùng đủ 77 đặc trưng, ngưỡng là phân vị 0,995 của sai số trên
+  10\% luồng bình thường của tập huấn luyện. Mỗi tầng xử lý theo lô 20 luồng,
+  hoặc sớm hơn khi luồng cũ nhất đã chờ 1 giây.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -162,46 +160,44 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
     \setlength{\itemsep}{0.5em}
     \item \key{Random Forest có sẵn trong Spark ML}, nên mô hình xuất ra chạy
           được trên Jetson (ARM64) mà không cần thư viện native như XGBoost.
-    \item \key{Ít đặc trưng} (29 thay vì 77) thì dựng vector và suy luận nhanh
+    \item \key{Ít đặc trưng} (30 thay vì 77) thì dựng vector và suy luận nhanh
           hơn trên bo 8\,GB.
     \item \key{Cùng một bộ công cụ} (Spark) vừa huấn luyện trên cụm vừa chạy
           trên thiết bị --- cái giá của lựa chọn này ở Kết quả 5.
   \end{itemize}
-  \note{Bộ 29 đặc trưng của mô hình đang chạy lấy từ một bảng xếp hạng SHAP cũ,
-  không phải SHAP Top-30 hiện tại của bài FAIR (chỉ trùng 15/30). Vì vậy slide
-  này không trích F1 0,9955 của bài FAIR cho mô hình triển khai. Các số đo tốc
-  độ, độ trễ, năng lượng vẫn là của đúng mô hình đang chạy.}
+  \note{Đây đúng là mô hình SHAP Top-30 của bài FAIR, huấn luyện lại trên toàn bộ
+  tập train: F1 0,9959 (bài FAIR báo 0,9955).}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:50
-\begin{frame}{Ba cách triển khai, cùng một khối lượng việc}
+\begin{frame}{Các cách triển khai và cách đo}
   \begin{columns}[T]
     \begin{column}{0.56\textwidth}
       \begin{description}\small
-        \item[Một bo] làm hết mọi việc --- mốc so sánh.
+        \item[Một bo] làm hết mọi việc, tắt hoặc bật cổng lọc.
         \item[A: Tách tầng] cổng trên \#1, phân loại trên \#2.
-        \item[B: Nhân bản] mỗi bo làm \emph{đủ} cả hai tầng, chia nhau luồng
-              qua Kafka.
+        \item[B: Nhân bản] mỗi bo làm đủ cả hai việc (tắt cổng).
         \item[C: Cụm Spark] PC làm master, hai bo làm worker.
       \end{description}
       \vspace{0.3em}
-      \footnotesize Tốc độ tính bằng \key{số phán quyết mỗi giây}: một luồng
-      được quyết ở cổng \emph{hoặc} ở bộ phân loại, không đếm hai lần.
+      \footnotesize Theo dõi \key{từng luồng từ lúc gửi tới lúc có phán quyết},
+      tính cả thời gian chờ. \key{Chịu được}: mức tải cao nhất mà mọi luồng có
+      phán quyết trong vòng 10 giây sau khi ngừng tải.
     \end{column}
     \begin{column}{0.41\textwidth}
       \begin{block}{Thiết lập đo}
         \footnotesize
-        2$\times$ Jetson Orin Nano Super: CPU 6 nhân, 8\,GB RAM, GPU $\approx$67 TOPS\\[0.3em]
+        2$\times$ Jetson Orin Nano Super: CPU 6 nhân, 8\,GB RAM\\[0.3em]
         PySpark 3.4.1, Kafka 3.5, mạng Wi-Fi\\[0.3em]
-        Phát lại CICIDS2017, 100 luồng/giây\\[0.3em]
-        Mỗi cấu hình lặp $\geq$3 lần, bỏ giai đoạn khởi động\\[0.3em]
+        10.000 luồng từ tập kiểm tra, 15\% tấn công\\[0.3em]
+        Quét mức tải 1--40 luồng/giây, mỗi mức 2 lần\\[0.3em]
         Năng lượng đo bằng \texttt{tegrastats}
       \end{block}
     \end{column}
   \end{columns}
-  \note{Độ trễ p95 tính theo từng bo trên dữ liệu thô của từng luồng, và lấy bo
-  tệ nhất làm con số của cả cụm. Bỏ giai đoạn khởi động để JVM chưa nóng máy
-  không làm phồng độ trễ.}
+  \note{Mỗi phán quyết lưu thời điểm gửi của luồng, nên độ trễ tính cả thời gian
+  nằm trong hàng đợi. Mỗi lần chạy dùng một consumer group Kafka riêng để không
+  xử lý phần tồn của lần trước.}
 \end{frame}
 
 % =====================================================================
@@ -209,43 +205,41 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
 % =====================================================================
 
 % ---------------------------------------------------------------- 1:00
-\begin{frame}{Kết quả 1: tách tầng nhanh gấp 24 lần, độ trễ gần như không đổi}
+\begin{frame}{Kết quả 1: tách tầng chịu được tải gấp 9 lần}
   \begin{columns}[T]
-    \begin{column}{0.54\textwidth}
+    \begin{column}{0.56\textwidth}
       \centering\small
       \fitwidth{%
       \begin{tabular}{lcc}
         \toprule
-        Cách triển khai & Phán quyết/giây & Độ trễ p95 (ms) \\
+        Cách triển khai & Chịu được (luồng/giây) & p95 (giây) \\
         \midrule
-        Một bo            & 2,6            & 12,3 \\
-        \textbf{A: Tách tầng} & \num{62,5} & \num{13,1} \\
-        B: Nhân bản       & 5,9            & 21,6 \\
-        C: Cụm Spark      & 90,0           & 23,9 \\
+        Một bo              & 2,5            & 11,3 \\
+        Một bo + cổng       & 1,9            & 7,8 \\
+        B: Nhân bản         & 3,3            & 8,2 \\
+        C: Cụm Spark        & 8,7            & 5,2 \\
+        \textbf{A: Tách tầng} & \num{22,4}   & \num{7,1} \\
         \bottomrule
       \end{tabular}
       }
       \\[0.3em]
       \raggedright\scriptsize \textbf{p95}: 95\% số luồng có phán quyết nhanh
-      hơn mức này.
+      hơn mức này, tính từ lúc gửi, gồm cả thời gian chờ.
     \end{column}
-    \begin{column}{0.43\textwidth}
+    \begin{column}{0.41\textwidth}
       \begin{itemize}
         \setlength{\itemsep}{0.4em}
-        \item \good{Tách tầng: gấp 24 lần}, cổng xử lý xong 95,8\% số luồng
-              trước khi tới Spark.
-        \item \bad{Nhân bản: chỉ gấp 2,3 lần} --- bo nào cũng vẫn phải chạy
-              Spark.
-        \item Cụm Spark nhanh nhất nhưng \bad{dao động mạnh} ($\pm$25,6).
+        \item \good{Tách tầng: gấp 9 lần} một bo.
+        \item \bad{Cùng cổng mà để chung một bo thì không nhanh hơn}: lợi ích
+              đến từ bo thứ hai.
+        \item Độ trễ vài giây vì mỗi lô Spark mất vài giây.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{\textbf{Nên dùng tách tầng}: nhanh và ổn định nhất.}
-  \note{Độ lệch giữa các lần lặp: một bo 2,60 $\pm$ 0,41; tách tầng 62,5
-  $\pm$ 0,6; nhân bản 5,9 $\pm$ 1,4; cụm Spark 90,0 $\pm$ 25,6 luồng/giây. Độ
-  trễ p95 lệch 3,0 / 2,6 / 19,2 / 17,8 ms. Nhân bản chứng minh lợi ích đến từ
-  việc tách vai trò, không phải từ việc thêm một bo. Cụm Spark còn cần thêm máy
-  master và hợp với mô hình quá lớn cho một bo.}
+  \takeaway{\textbf{Nên dùng tách tầng}: chịu được tải cao nhất.}
+  \note{Chế độ một bo và nhân bản tắt cổng, như bản đã nộp. Độ trễ trung vị
+  của tách tầng khoảng 1 giây. Cổng bỏ qua khoảng 89\% số luồng ở mọi chế độ có
+  bật cổng.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35
@@ -256,7 +250,7 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
       \includegraphics[width=\textwidth]{grafana_peak_load.png}
     \end{column}
     \begin{column}{0.35\textwidth}
-      Lúc tải cao nhất, chế độ tách tầng:
+      Lúc tải cao nhất, chế độ tách tầng\\{\scriptsize (lần đo trước, mô hình cũ)}:
       \begin{itemize}
         \item bo cổng lọc: \good{4,6\% CPU}
         \item bo phân loại: \bad{90,8\% CPU}
@@ -270,39 +264,38 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:45
-\begin{frame}{Kết quả 3: năng lượng mỗi phán quyết giảm từ 2,5 J còn 0,18 J}
+\begin{frame}{Kết quả 3: năng lượng mỗi phán quyết giảm 5 lần}
   \begin{columns}[T]
-    \begin{column}{0.46\textwidth}
+    \begin{column}{0.48\textwidth}
       \centering\small
       \fitwidth{%
-      \begin{tabular}{lc}
+      \begin{tabular}{lcc}
         \toprule
-        Cách triển khai & J / phán quyết \\
+        Cách triển khai & Mức tải & J / phán quyết \\
         \midrule
-        Một bo            & 2,49 \\
-        \textbf{A: Tách tầng} & \num{0,18} \\
-        B: Nhân bản       & 2,25 \\
-        C: Cụm Spark      & 0,12 \\
+        Một bo            & 2,0/giây  & 3,04 \\
+        Một bo + cổng     & 2,0/giây  & 3,04 \\
+        B: Nhân bản       & 3,9/giây  & 3,20 \\
+        C: Cụm Spark      & 9,5/giây  & 1,15 \\
+        \textbf{A: Tách tầng} & 18,4/giây & \num{0,60} \\
         \bottomrule
       \end{tabular}
       }
     \end{column}
-    \begin{column}{0.51\textwidth}
+    \begin{column}{0.49\textwidth}
       \begin{itemize}\small
         \setlength{\itemsep}{0.4em}
-        \item Ở 100 luồng/giây, điện năng \emph{tăng thêm} khi chạy quá nhỏ
-              để đo ($<$0,15\,W).
-        \item Nên con số chủ yếu là \key{điện nền của bo chia đều cho số phán
-              quyết}.
-        \item Tách tầng và cụm Spark ra nhiều phán quyết hơn 24--35 lần, nên
-              mỗi phán quyết tốn ít hơn hẳn.
+        \item Đo ở đúng mức tải mà mỗi chế độ chịu được.
+        \item J mỗi phán quyết = công suất của các bo chia cho số phán quyết
+              mỗi giây.
+        \item Tách tầng dùng hai bo (11\,W) nhưng ra nhiều phán quyết hơn hẳn,
+              nên mỗi phán quyết tốn ít hơn.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Đây là năng lượng ở \emph{mức triển khai}, không phải năng lượng
-  của riêng mô hình.}
-  \note{Năng lượng đo bằng tegrastats: 30 giây nền rồi đến cửa sổ tải; chế độ
-  hai bo cộng cả hai bo.}
+  \takeaway{Tách tầng: \key{3,0\,J $\rightarrow$ 0,60\,J} mỗi phán quyết.}
+  \note{Năng lượng đo bằng tegrastats: 30 giây nền rồi cửa sổ tải; chế độ hai
+  bo cộng cả hai bo. Khi chạy, công suất tăng thêm khoảng 1,5\,W ở mọi chế độ.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:45
@@ -316,59 +309,58 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
         Ngưỡng cổng & Tấn công & Báo & Luồng \\
         (phân vị) & chuyển tiếp & nhầm & bỏ qua \\
         \midrule
-        0,99                   & 74,2\% & 1,01\% & 88,0\% \\
-        \textbf{0,995 (đang dùng)} & \num{72,3\%} & \num{0,53\%} & 88,7\% \\
-        0,999                  & 58,1\% & 0,10\% & 91,2\% \\
+        0,99                   & 72,4\% & 0,99\% & 88,3\% \\
+        \textbf{0,995 (đang dùng)} & \num{68,1\%} & \num{0,49\%} & 89,4\% \\
+        0,999                  & 39,8\% & 0,09\% & 94,0\% \\
         \bottomrule
       \end{tabular}
       }
       \\[0.3em]
-      \raggedright\scriptsize Đo offline trên tập kiểm tra CICIDS2017.
+      \raggedright\scriptsize Offline trên tập kiểm tra; cổng dùng đủ 77 đặc
+      trưng. Chạy thật: bắt được 69,6\% trong 1.261 luồng tấn công.
     \end{column}
     \begin{column}{0.44\textwidth}
       \begin{itemize}\small
         \setlength{\itemsep}{0.4em}
-        \item Luồng bị cổng bỏ qua là \emph{chốt luôn}: \bad{khoảng 28\% luồng
+        \item Luồng bị cổng bỏ qua là \emph{chốt luôn}: \bad{khoảng 30\% luồng
               tấn công} không tới được bộ phân loại.
-        \item Hạ ngưỡng thì bắt thêm tấn công nhưng Spark phải xét nhiều luồng
-              hơn.
+        \item Nếu cổng chỉ dùng 30 đặc trưng của bộ phân loại thì chỉ chuyển
+              tiếp được 44,8\%.
         \item Người vận hành chọn điểm hợp với sức máy.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Tốc độ gấp 24 lần phải trả bằng recall: cổng là một \key{sự đánh
-  đổi có thể chỉnh}, không phải bộ lọc miễn phí.}
+  \takeaway{Tải gấp 9 lần phải trả bằng recall: cổng là một \key{sự đánh đổi
+  có thể chỉnh}, không phải bộ lọc miễn phí.}
   \note{Số liệu từ results/ml\_08\_anomaly\_gate/gate\_operating\_points.csv.
-  Tỷ lệ bỏ qua ở đây đo offline trên tập kiểm tra; khi chạy thật cổng bỏ qua
-  95,8\% của một mẫu lưu lượng khác, nên hai con số không nhất thiết trùng.
-  Đường cong đầy đủ ở slide dự phòng.}
+  Khi tắt cổng, mọi luồng tấn công trong dữ liệu phát lại đều bị bắt, nên phần
+  bị lọt là do cổng.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:45
 \begin{frame}{Kết quả 5: cái giá của việc dùng Spark để suy luận}
-  \small Cùng một Random Forest, cùng 29 đặc trưng, cùng một bo --- chỉ đổi
-  bộ máy chạy:
+  \small Đúng khu rừng đang triển khai, xuất sang các bộ máy chạy khác, cùng một
+  bo:
   \vspace{0.4em}
 
   \centering
   \fitwidth{%
-  \begin{tabular}{lcccc}
+  \begin{tabular}{lccc}
     \toprule
-    Bộ máy chạy & Luồng/giây & p95 (ms) & RAM (\%) & mJ mỗi luồng \\
+    Bộ máy chạy & Luồng/giây & p95 mỗi lô (ms) & mJ mỗi luồng \\
     \midrule
-    PySpark (đang dùng) & 22,6    & 532  & 24,3 & 71,6 \\
-    scikit-learn        & 204,4   & 49,8 & 13,3 & 2,91 \\
-    \textbf{ONNX Runtime} & \num{7870,8} & \num{1,1} & 15,7 & \num{0,06} \\
+    PySpark (đang dùng) & 1,4     & 7515 & 1506 \\
+    NumPy               & 54,8    & 194  & 11,3 \\
+    \textbf{ONNX Runtime} & \num{10.092} & \num{1,2} & \num{0,087} \\
     \bottomrule
   \end{tabular}
   }
-  \\[0.2em]{\scriptsize mJ mỗi luồng: năng lượng tăng thêm so với lúc bo nghỉ.}
-  \takeaway{ONNX Runtime nhanh gấp \num{348 lần} PySpark. Hướng tiếp theo:
+  \\[0.2em]{\scriptsize Ba bộ máy cho dự đoán giống nhau 100\%. mJ mỗi luồng:
+  năng lượng tăng thêm so với lúc bo nghỉ.}
+  \takeaway{ONNX nhanh gấp \num{khoảng 7.200 lần} PySpark. Hướng tiếp theo:
   \key{huấn luyện bằng Spark, suy luận bằng ONNX/TensorRT}.}
   \note{Dùng Spark để suy luận là để cùng một bộ công cụ vừa huấn luyện trên
-  cụm vừa chạy trên thiết bị. Cái giá là JVM: scikit-learn đã nhanh gấp 9 lần,
-  p95 thấp hơn khoảng 11 lần, RAM bằng khoảng nửa. Đo ở batch 10, năng lượng
-  tăng thêm tại mức bão hòa.}
+  cụm vừa chạy trên thiết bị. Cái giá là JVM. Đo ở lô 10 luồng.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -378,12 +370,12 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
       \textbf{Những gì đã chỉ ra}
       \begin{itemize}\small
         \setlength{\itemsep}{0.3em}
-        \item Tách cổng lọc và bộ phân loại ra hai bo: \good{2,6 $\rightarrow$
-              62,5 phán quyết/giây}, p95 $\approx$13\,ms.
-        \item Năng lượng mỗi phán quyết: \good{2,5\,J $\rightarrow$ 0,18\,J}.
-        \item Đổi lại, cổng cho lọt \bad{$\approx$28\%} luồng tấn công ở ngưỡng
+        \item Tách cổng lọc và bộ phân loại ra hai bo: \good{2,5 $\rightarrow$
+              22,4 luồng/giây}, p95 $\approx$7 giây.
+        \item Năng lượng mỗi phán quyết: \good{3,0\,J $\rightarrow$ 0,60\,J}.
+        \item Đổi lại, cổng cho lọt \bad{$\approx$30\%} luồng tấn công ở ngưỡng
               đang dùng.
-        \item Spark là nút thắt suy luận: ONNX nhanh gấp 348 lần.
+        \item Spark là nút thắt suy luận: ONNX nhanh gấp khoảng 7.200 lần.
       \end{itemize}
     \end{column}
     \begin{column}{0.42\textwidth}
@@ -401,8 +393,8 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
   \end{columns}
   \vfill
   \centering \key{Xin cảm ơn --- kính mời câu hỏi}
-  \note{Nhắc lại ba con số: gấp 24 lần, 13 mili giây, 0,18 J. Và nói thẳng cái
-  giá: khoảng 28\% luồng tấn công bị cổng cho qua ở ngưỡng hiện tại.}
+  \note{Nhắc lại: gấp 9 lần, năng lượng giảm 5 lần, và cái giá: khoảng 30\%
+  luồng tấn công bị cổng cho qua ở ngưỡng hiện tại.}
 \end{frame}
 
 % ---------------------------------------------------------------- ~11:00
@@ -444,14 +436,12 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
   Slide dự phòng
 \end{frame}
 
-\begin{frame}{Dự phòng: biểu đồ so sánh các cách triển khai}
+\begin{frame}{Dự phòng: mức tải chịu được và năng lượng}
   \centering
-  \IfFileExists{../../papers/soict2026/results/benchmarks/edge_modes.png}
-    {\includegraphics[height=0.72\textheight, width=\textwidth, keepaspectratio]{edge_modes.png}}
-    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
-      \texttt{edge\_modes.png}\vspace{1.5cm}}}}
+  \includegraphics[height=0.70\textheight, width=\textwidth, keepaspectratio]{edge_capacity.png}
   \\[0.2em]
-  \footnotesize Số phán quyết mỗi giây (trái) và độ trễ p95 (phải).
+  \footnotesize Số phán quyết mỗi giây chịu được, mọi luồng xong trong 10 giây
+  (trái); năng lượng mỗi phán quyết ở mức tải đó (phải).
 \end{frame}
 
 \begin{frame}{Dự phòng: đường cong vận hành của cổng lọc}
@@ -475,17 +465,17 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
 
 \begin{frame}{Dự phòng: quy trình đo}
   \begin{itemize}\small
-    \item Máy chủ khởi động các vai trò trên Jetson qua SSH, tạo tải, thu log
-          từng bo.
-    \item Mỗi cấu hình lặp $\geq$3 lần; bỏ giai đoạn khởi động để JVM chưa
-          nóng máy không làm phồng số liệu.
-    \item Truy vấn chỉ số khớp đúng cửa sổ tải, không lấy khoảng thời gian trượt.
-    \item p95 tính theo từng bo trên dữ liệu thô của từng luồng; p95 của cụm lấy
-          bo tệ nhất.
-    \item Độ trễ đầu cuối tính từ lúc gửi tới lúc có phán quyết, đồng hồ đồng bộ
-          NTP, không tính thời gian ghi CSDL.
-    \item Năng lượng: \texttt{tegrastats}, 30 giây nền rồi cửa sổ tải; chế độ
-          hai bo cộng cả hai bo.
+    \item Máy chủ khởi động các vai trò trên Jetson qua SSH, tạo tải, thu mọi
+          phán quyết.
+    \item Mỗi phán quyết lưu thời điểm gửi và số dòng của luồng: độ trễ tính từ
+          lúc gửi, \emph{gồm cả thời gian chờ}; tỷ lệ bỏ qua và tỷ lệ bắt tấn
+          công tính từ chính các luồng.
+    \item Quét mức tải cho từng chế độ; một mức được coi là chịu được khi mọi
+          luồng gửi trong 45 giây đều có phán quyết trong vòng 10 giây sau đó.
+    \item Mỗi lần chạy một consumer group Kafka riêng; mỗi tầng xử lý lô 20
+          luồng hoặc sau 1 giây.
+    \item Năng lượng: \texttt{tegrastats}, 30 giây nền rồi cửa sổ tải ở mức
+          chịu được; chế độ hai bo cộng cả hai bo.
   \end{itemize}
 \end{frame}
 
