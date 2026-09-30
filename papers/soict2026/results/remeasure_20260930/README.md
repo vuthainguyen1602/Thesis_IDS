@@ -53,7 +53,8 @@ includes queueing; skip ratio and attack recall come from the flows themselves).
 
 Source: `capacity_sweep_part1.csv` (rates run before 00:39) and
 `capacity_sweep_part2.csv`. Runs between 00:39 and 08:04 were lost to the Mac
-sleeping and were repeated; `capacity_sweep_before_batch_flush.csv` is the sweep
+sleeping and were repeated (the two single_gate @ 2 rows from that window were
+dropped from part 1: 65 s load window, sender at 1.3 flows/s); `capacity_sweep_before_batch_flush.csv` is the sweep
 before the batching fix, kept as evidence of the stall.
 
 ## Energy at the sustained rate (`energy_at_sustained_rate.csv`)
