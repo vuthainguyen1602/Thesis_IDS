@@ -8,7 +8,9 @@ repeat drained within DRAIN_OK seconds; the bar is the mean sustained verdict
 rate over the repeats at the highest such rate.
 
     python papers/soict2026/plot_capacity.py
+    python papers/soict2026/plot_capacity.py --vi thesis/img/edge_capacity_vi.png
 """
+import argparse
 import os
 
 import matplotlib
@@ -23,6 +25,13 @@ ORDER = ["single", "single_gate", "horizontal", "spark_cluster", "split"]
 LABELS = {"single": "Single node", "single_gate": "Single node\n+ gate",
           "horizontal": "B: Horizontal", "spark_cluster": "C: Spark\ncluster",
           "split": "A: Pipeline\nsplit"}
+LABELS_VI = {"single": "Một nút", "single_gate": "Một nút\n+ cổng",
+             "horizontal": "B: Ngang", "spark_cluster": "C: Cụm\nSpark",
+             "split": "A: Tách\npipeline"}
+TITLES = {"en": ("Sustained verdicts/s (all flows done ≤10 s)",
+                 "Energy per verdict (J), at the sustained rate"),
+          "vi": ("Phán quyết/giây duy trì được (mọi luồng xong ≤10 s)",
+                 "Năng lượng mỗi phán quyết (J) ở tốc độ duy trì")}
 
 
 def capacity_table() -> pd.DataFrame:
@@ -42,6 +51,10 @@ def capacity_table() -> pd.DataFrame:
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--vi", metavar="OUT", help="Vietnamese labels, written to OUT")
+    args = ap.parse_args()
+    labels, titles = (LABELS_VI, TITLES["vi"]) if args.vi else (LABELS, TITLES["en"])
     cap = capacity_table()
     en = pd.read_csv(os.path.join(D, "energy_at_sustained_rate.csv")).set_index("mode")
     modes = [m for m in ORDER if m in cap.index]
@@ -51,18 +64,21 @@ def main():
     x = range(len(modes))
     colors = ["#0072B2" if m == "split" else "#999999" for m in modes]
     b1 = ax1.bar(x, cap.loc[modes, "sustained_rps"], color=colors)
-    ax1.set_title("Sustained verdicts/s (all flows done ≤10 s)")
-    ax2.set_title("Energy per verdict (J), at the sustained rate")
+    ax1.set_title(titles[0])
+    ax2.set_title(titles[1])
     b2 = ax2.bar(x, en.loc[modes, "j_per_verdict"], color=colors)
     for ax, bars, fmt in ((ax1, b1, "{:.1f}"), (ax2, b2, "{:.2f}")):
         ax.set_xticks(list(x))
-        ax.set_xticklabels([LABELS[m] for m in modes], fontsize=8)
+        ax.set_xticklabels([labels[m] for m in modes], fontsize=8)
         for b in bars:
-            ax.annotate(fmt.format(b.get_height()), (b.get_x() + b.get_width() / 2, b.get_height()),
+            txt = fmt.format(b.get_height())
+            ax.annotate(txt.replace(".", ",") if args.vi else txt, (b.get_x() + b.get_width() / 2, b.get_height()),
                         ha="center", va="bottom", fontsize=8)
         ax.spines[["top", "right"]].set_visible(False)
+        if args.vi:
+            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:g}".replace(".", ",")))
     fig.tight_layout()
-    out = os.path.join(D, "edge_capacity.png")
+    out = args.vi or os.path.join(D, "edge_capacity.png")
     fig.savefig(out, dpi=200)
     print(f"[OK] {out}")
 

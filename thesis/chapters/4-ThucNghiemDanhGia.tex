@@ -597,10 +597,13 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
     Dữ liệu từ bộ CICIDS2017 được mô phỏng theo thời gian thực thông qua một Python script và gửi vào Kafka Producer trên topic \texttt{ids-network-flow}.
 
     \item \textbf{Cổng phát hiện bất thường (Jetson~\#1)}:
-    Jetson~\#1 đảm nhận vai trò \texttt{anomaly\_gate}: một autoencoder nhẹ (huấn luyện chỉ trên lưu lượng bình thường) tính sai số tái tạo (reconstruction error) cho từng luồng. Các luồng có sai số dưới ngưỡng được coi là bình thường và bị lọc bỏ. Chỉ các luồng nghi vấn mới được chuyển tiếp sang topic \texttt{ids-suspicious-flow}. Cơ chế này giảm đáng kể khối lượng phải đưa vào suy luận Spark.
+    Jetson~\#1 đảm nhận vai trò \texttt{anomaly\_gate}: một autoencoder nhẹ (huấn luyện chỉ trên lưu lượng bình thường, trên toàn bộ 77 đặc trưng số không rò rỉ) tính sai số tái tạo (reconstruction error) cho từng luồng. Các luồng có sai số dưới ngưỡng được coi là bình thường và bị lọc bỏ. Chỉ các luồng nghi vấn mới được chuyển tiếp sang topic \texttt{ids-suspicious-flow}. Cơ chế này giảm đáng kể khối lượng phải đưa vào suy luận Spark.
 
     \item \textbf{Bộ phân loại (Jetson~\#2)}:
-    Jetson~\#2 đảm nhận vai trò \texttt{classifier}: tải mô hình PySpark \texttt{PipelineModel} (với tập đặc trưng SHAP Top-30 đã chọn) và phân loại các luồng nghi vấn thành \textit{Benign} hoặc \textit{Attack}. Vector đầu vào khi triển khai gồm 29 đặc trưng: trong Top-30 theo xếp hạng SHAP có \texttt{destination\_port}, nhưng đặc trưng này bị loại khỏi mô hình xuất ra để triển khai vì là kênh rò rỉ nhãn trên CICIDS2017 (Mục~\ref{sec:leakage_analysis}), nhất quán với giao thức chống rò rỉ ở pha huấn luyện.
+    Jetson~\#2 đảm nhận vai trò \texttt{classifier}: tải mô hình PySpark \texttt{PipelineModel} (với tập đặc trưng SHAP Top-30 đã chọn) và phân loại các luồng nghi vấn thành \textit{Benign} hoặc \textit{Attack}. Vector đầu vào khi triển khai gồm đúng 30 đặc trưng SHAP Top-30 của pha huấn luyện loại trừ rò rỉ: các cột cổng (\texttt{destination\_port}, \texttt{source\_port}) đã bị loại trước khi xếp hạng (Mục~\ref{sec:leakage_analysis}). Random Forest triển khai (200 cây, độ sâu 15, huấn luyện trên toàn bộ tập huấn luyện) đạt F1 0{,}9959 trên tập kiểm tra, khớp với kết quả 0{,}9955 ở pha huấn luyện phân tán (Bảng~\ref{tab:summary_comparison}).
+
+    \item \textbf{Gom lô có giới hạn thời gian}:
+    Mỗi tầng xử lý theo lô tối đa 20 luồng, nhưng một lô chưa đầy cũng được xử lý sau tối đa 1\,giây. Nếu không có giới hạn này, bộ phân loại (chỉ nhận khoảng 11\% lưu lượng sau cổng) có thể giữ một lô dở dang chứa luồng tấn công trong thời gian không xác định.
 
     \item \textbf{Ghi nhận hiệu năng}:
     Mỗi nút ghi nhận thời gian dự đoán/mẫu, mức sử dụng CPU/RAM/nhiệt độ và thông lượng (gắn nhãn theo \texttt{EDGE\_NODE\_ID}) và lưu các chỉ số này vào InfluxDB.
@@ -622,26 +625,28 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
 
 Kiến trúc này tách các thành phần xử lý thành những mô-đun độc lập, phù hợp với triển khai phân tán trên thiết bị biên tài nguyên hạn chế như Jetson Orin Nano Super.
 
-\textbf{Đặc tả cổng bất thường (operating point).} Cổng autoencoder là một bộ lọc điều chỉnh được chứ không phải một điểm vận hành cố định: nâng ngưỡng giúp giảm tải (offload) nhiều lưu lượng bình thường hơn khỏi Spark (tăng tỷ lệ bỏ qua tại cổng, gate-skip) nhưng có thể giảm recall trên lớp tấn công. Ngưỡng của cổng được chọn theo phân vị (quantile) của sai số tái tạo tính trên một tập kiểm định benign gồm 10\% tách từ phần lưu lượng bình thường của tập huấn luyện (\texttt{seed}=42). Tập kiểm tra không tham gia việc chọn ngưỡng, tránh rò rỉ kiểu ``ngưỡng oracle''. Bảng~\ref{tab:gate_oc} trình bày đường đánh đổi giữa recall và mức giảm tải (recall--offload) khi quét các mức quantile trên tập kiểm định này. Điểm vận hành được chọn theo ngân sách độ trễ/độ chính xác của triển khai. FPR trong bảng là tỷ lệ luồng benign bị cổng chuyển nhầm sang bộ phân loại, không phải FPR của toàn hệ thống. Cần lưu ý phạm vi tính toán: tỷ lệ bỏ qua trong Bảng~\ref{tab:gate_oc} được tính trên tập kiểm tra đã loại trùng lặp ở mức đặc trưng (380.119 benign / 67.156 attack, tức khoảng 85\% benign), còn tỷ lệ bỏ qua thực đo khi triển khai (95{,}8\% ở chế độ A và 97{,}9\% ở chế độ C, Bảng~\ref{tab:edge_modes}) được tính trên luồng phát lại tuần tự từ các tệp CSV gốc của CICIDS2017, vốn còn nguyên các luồng trùng lặp (phần lớn là benign) nên tỷ lệ benign trong cửa sổ đo cao hơn. Cùng một ngưỡng nhưng khác thành phần lưu lượng thì cho tỷ lệ bỏ qua khác nhau, vì vậy con số thực đo không phải là một điểm nằm trên đường đánh đổi của bảng này và hai giá trị không so sánh trực tiếp được.
+\textbf{Đặc tả cổng bất thường (operating point).} Cổng autoencoder là một bộ lọc điều chỉnh được chứ không phải một điểm vận hành cố định: nâng ngưỡng giúp giảm tải (offload) nhiều lưu lượng bình thường hơn khỏi Spark (tăng tỷ lệ bỏ qua tại cổng, gate-skip) nhưng có thể giảm recall trên lớp tấn công. Ngưỡng của cổng được chọn theo phân vị (quantile) của sai số tái tạo tính trên một tập kiểm định benign gồm 10\% tách từ phần lưu lượng bình thường của tập huấn luyện (\texttt{seed}=42). Tập kiểm tra không tham gia việc chọn ngưỡng, tránh rò rỉ kiểu ``ngưỡng oracle''. Bảng~\ref{tab:gate_oc} trình bày đường đánh đổi giữa recall và mức giảm tải (recall--offload) khi quét các mức quantile trên tập kiểm định này. Điểm vận hành được chọn theo ngân sách độ trễ/độ chính xác của triển khai. FPR trong bảng là tỷ lệ luồng benign bị cổng chuyển nhầm sang bộ phân loại, không phải FPR của toàn hệ thống. Hệ thống triển khai dùng quantile 0{,}995, cố định trước khi đo: cổng chuyển tiếp 68{,}1\% luồng tấn công sang bộ phân loại, chỉ chuyển nhầm 0{,}49\% luồng benign và bỏ qua 89{,}4\% lưu lượng. Tỷ lệ bỏ qua và recall trong Bảng~\ref{tab:gate_oc} được tính trên tập kiểm tra đã loại trùng lặp ở mức đặc trưng (380.119 benign / 67.156 attack). Luồng phát lại khi triển khai là 10.000 luồng lấy ngẫu nhiên từ chính tập kiểm tra này (\texttt{seed}=42, 15{,}2\% tấn công), nên các con số thực đo (bỏ qua 88{,}8\%, recall tấn công 69{,}6\% ở chế độ A, Bảng~\ref{tab:edge_modes}) khớp với điểm vận hành của bảng. Recall của cả hệ thống bị chặn trên bởi recall của cổng: luồng tấn công bị cổng bỏ qua không bao giờ đến bộ phân loại. Đây là cái giá của việc giảm tải và là lý do đường đánh đổi được báo cáo đầy đủ: hạ quantile xuống 0{,}90 nâng recall của cổng lên 84{,}5\% nhưng chuyển nhầm 10\% luồng benign sang bộ phân loại.
 
 \begin{table}[htbp]
 \centering
-\caption[Điểm vận hành của cổng bất thường theo ngưỡng quantile]{Điểm vận hành của cổng bất thường theo ngưỡng quantile trên tập kiểm định benign}
+\caption[Điểm vận hành của cổng bất thường theo ngưỡng quantile]{Điểm vận hành của cổng bất thường theo ngưỡng quantile trên tập kiểm định benign (dòng in đậm: điểm triển khai)}
 \label{tab:gate_oc}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
 \textbf{Quantile (validation)} & \textbf{Ngưỡng} & \textbf{Recall (Attack)} & \textbf{FPR} & \textbf{Tỷ lệ bỏ qua tại cổng (\%)} \\ \midrule
-0{,}90 & 0{,}0023 & 0{,}7589 & 0{,}1003 & 80{,}08 \\
-0{,}95 & 0{,}0052 & 0{,}7552 & 0{,}0506 & 84{,}36 \\
-0{,}99 & 0{,}0192 & 0{,}7420 & 0{,}0101 & 88{,}00 \\
-0{,}995 & 0{,}0317 & 0{,}7229 & 0{,}0053 & 88{,}70 \\ \bottomrule
+0{,}90 & 0{,}0145 & 0{,}8449 & 0{,}1009 & 78{,}74 \\
+0{,}95 & 0{,}0317 & 0{,}7571 & 0{,}0503 & 84{,}36 \\
+0{,}975 & 0{,}0607 & 0{,}7506 & 0{,}0249 & 86{,}62 \\
+0{,}99 & 0{,}1219 & 0{,}7235 & 0{,}0099 & 88{,}29 \\
+\textbf{0{,}995} & \textbf{0{,}2021} & \textbf{0{,}6807} & \textbf{0{,}0049} & \textbf{89{,}37} \\
+0{,}999 & 0{,}5917 & 0{,}3981 & 0{,}0009 & 93{,}95 \\ \bottomrule
 \end{tabular*}
 \end{table}
 
 
 \subsection{Lựa chọn mô hình cho thiết bị biên}
 
-Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguyên: RAM 8\,GB chia sẻ giữa CPU và GPU (trong đó PySpark JVM chiếm một phần đáng kể), CPU ARM, cùng ràng buộc về nhiệt độ/băng thông tại biên. Việc chọn Apache Spark trên Jetson 8\,GB phải chịu chi phí JVM/Spark đáng kể. Spark được dùng ở đây nhằm nhất quán với pha huấn luyện phân tán, chứ không nhằm tối ưu độ trễ suy luận trên một nút. Chi phí đánh đổi này được định lượng qua so sánh với scikit-learn và ONNX Runtime ở mục~\ref{sec:engine-baseline-thesis}, còn tăng tốc bằng TensorRT là hướng nghiên cứu tương lai. Ba mô hình đại diện cho ba thử nghiệm khác nhau được chọn để đánh giá:
+Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguyên: RAM 8\,GB chia sẻ giữa CPU và GPU (trong đó PySpark JVM chiếm một phần đáng kể), CPU ARM, cùng ràng buộc về nhiệt độ/băng thông tại biên. Việc chọn Apache Spark trên Jetson 8\,GB phải chịu chi phí JVM/Spark đáng kể. Spark được dùng ở đây nhằm nhất quán với pha huấn luyện phân tán, chứ không nhằm tối ưu độ trễ suy luận trên một nút. Chi phí đánh đổi này được định lượng bằng cách chạy cùng mô hình qua NumPy và ONNX Runtime ở mục~\ref{sec:engine-baseline-thesis}, còn tăng tốc bằng TensorRT là hướng nghiên cứu tương lai. Ba mô hình đại diện cho ba thử nghiệm khác nhau được chọn để đánh giá:
 
 \begin{enumerate}
     \item \textbf{Decision Tree} -- Mô hình cây đơn lẻ, đại diện cho cách tiếp cận đơn giản nhất.
@@ -649,7 +654,7 @@ Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguy
     \item \textbf{Random Forest} -- Đại diện cho phương pháp Bagging, sử dụng ensemble 200 cây song song.
 \end{enumerate}
 
-Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc trưng và triển khai dưới dạng PySpark PipelineModel.
+Cả ba mô hình đều được huấn luyện trên một danh sách SHAP Top-30 và triển khai dưới dạng PySpark PipelineModel. Lưu ý về phạm vi: phép so sánh ba ứng viên (Bảng~\ref{tab:edge_training} và~\ref{tab:edge_benchmark}) được thực hiện ở giai đoạn đầu, với danh sách đặc trưng xếp hạng \emph{trước} khi áp dụng quy trình loại trừ rò rỉ (29 đặc trưng, chỉ trùng 15 với SHAP Top-30 hiện tại). Kết quả so sánh tương đối giữa ba mô hình vẫn là căn cứ chọn Random Forest, nhưng mô hình thực sự triển khai đã được huấn luyện lại trên SHAP Top-30 loại trừ rò rỉ (F1 0{,}9959), và mọi số đo hệ thống từ Mục~\ref{sec:engine-baseline-thesis} trở đi là của mô hình huấn luyện lại này.
 
 % LƯU Ý: terminal + Grafana đã chụp lại từ cụm Jetson (2026-07-19). Riêng 2 ảnh
 % cảnh báo email/Slack dùng lại ảnh giai đoạn thử nghiệm sớm — chính văn dưới cụm
@@ -659,7 +664,7 @@ Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc 
     \IfFileExists{img/pipeline_terminal_jetson1.png}{\includegraphics[width=0.85\textwidth]{img/pipeline_terminal_jetson1.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Ảnh terminal node cổng (jetson-nano-1)}\vspace{1.2cm}}}}\\[2pt]
     {\footnotesize (a) Jetson \#1 (\texttt{jetson-nano-1}): cổng phát hiện bất thường, giám sát tài nguyên theo node}\\[8pt]
     \IfFileExists{img/pipeline_terminal_jetson2.png}{\includegraphics[width=0.85\textwidth]{img/pipeline_terminal_jetson2.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Ảnh terminal node phân loại (jetson-nano-2)}\vspace{1.2cm}}}}\\[2pt]
-    {\footnotesize (b) Jetson \#2 (\texttt{jetson-nano-2}): bộ phân loại PySpark, thông lượng \textasciitilde6 luồng/giây, độ trễ suy luận \textasciitilde4\,ms, đếm tấn công theo lô}
+    {\footnotesize (b) Jetson \#2 (\texttt{jetson-nano-2}): bộ phân loại PySpark, đếm tấn công theo lô (chụp ở giai đoạn trước, với mô hình cũ)}
     \caption[Giao diện terminal của pipeline IDS trên hai nút Jetson]{Giao diện terminal của pipeline IDS trên hai nút Jetson: (a) cổng lọc bất thường, (b) bộ phân loại PySpark}
     \label{fig:pipeline_terminal}
 \end{figure}
@@ -700,14 +705,14 @@ Cả ba mô hình đều được huấn luyện trên tập SHAP Top-30 đặc 
     \label{fig:slack_alert}
 \end{figure}
 
-Hình~\ref{fig:pipeline_terminal} minh họa giao diện terminal thực tế khi pipeline IDS đang xử lý dữ liệu trên Jetson Orin Nano Super, bao gồm thông tin về thông lượng, độ trễ và số lượng tấn công phát hiện được. Hai dashboard Grafana (Hình~\ref{fig:grafana_dashboard} và Hình~\ref{fig:grafana_attacks}) cho phép giám sát hiệu năng hệ thống và chi tiết các cuộc tấn công theo thời gian thực. Hình~\ref{fig:grafana_peak_load} ghi lại thời điểm tải đỉnh, cho thấy rõ sự phân bố tải lệch đặc trưng của chế độ tách pipeline: nút cổng chỉ sử dụng khoảng 5\% CPU trong khi nút phân loại PySpark đạt tới 91\%, xác nhận bộ phân loại là thành phần chiếm tài nguyên chủ đạo và là căn cứ cho các phân tích năng lượng--thông lượng ở phần sau. Khi phát hiện tấn công, hệ thống tự động gửi cảnh báo qua nhiều kênh: email thông qua Mailtrap SMTP (Hình~\ref{fig:mailtrap_alert}) và tin nhắn Slack (Hình~\ref{fig:slack_alert}). Hai ảnh cảnh báo này chụp từ giai đoạn thử nghiệm sớm của hệ thống. Mô-đun cảnh báo và định dạng thông điệp giữ nguyên khi triển khai trên cụm Jetson.
+Hình~\ref{fig:pipeline_terminal} minh họa giao diện terminal thực tế khi pipeline IDS đang xử lý dữ liệu trên Jetson Orin Nano Super, bao gồm thông tin về thông lượng, độ trễ và số lượng tấn công phát hiện được. Hai dashboard Grafana (Hình~\ref{fig:grafana_dashboard} và Hình~\ref{fig:grafana_attacks}) cho phép giám sát hiệu năng hệ thống và chi tiết các cuộc tấn công theo thời gian thực. Hình~\ref{fig:grafana_peak_load} ghi lại thời điểm tải đỉnh, cho thấy rõ sự phân bố tải lệch đặc trưng của chế độ tách pipeline: nút cổng chỉ sử dụng khoảng 5\% CPU trong khi nút phân loại PySpark đạt tới 91\%, xác nhận bộ phân loại là thành phần chiếm tài nguyên chủ đạo. Các ảnh terminal và Grafana được chụp ở một lượt chạy trước với mô hình cũ. Chúng minh họa cách hệ thống vận hành và giám sát, còn các con số hiệu năng chính thức là số đo lại ở Bảng~\ref{tab:engines_thesis} và~\ref{tab:edge_modes}. Khi phát hiện tấn công, hệ thống tự động gửi cảnh báo qua nhiều kênh: email thông qua Mailtrap SMTP (Hình~\ref{fig:mailtrap_alert}) và tin nhắn Slack (Hình~\ref{fig:slack_alert}). Hai ảnh cảnh báo này chụp từ giai đoạn thử nghiệm sớm của hệ thống. Mô-đun cảnh báo và định dạng thông điệp giữ nguyên khi triển khai trên cụm Jetson.
 \subsection{Kết quả huấn luyện các mô hình ứng viên trên cụm Spark}
 
 Bảng~\ref{tab:edge_training} trình bày kết quả huấn luyện và đánh giá ba mô hình ứng viên trên cụm Spark (mô tả ở mục Môi trường thực nghiệm) trước khi triển khai xuống thiết bị biên.
 
 \begin{table}[htbp]
 \centering
-\caption[Các mô hình ứng viên cho triển khai biên (SHAP Top-30)]{Kết quả huấn luyện các mô hình ứng viên cho triển khai biên (SHAP Top-30)}
+\caption[Các mô hình ứng viên cho triển khai biên (giai đoạn chọn mô hình)]{Kết quả huấn luyện các mô hình ứng viên cho triển khai biên (giai đoạn chọn mô hình, danh sách đặc trưng trước khi loại trừ rò rỉ)}
 \label{tab:edge_training}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
@@ -728,7 +733,7 @@ Bảng~\ref{tab:edge_benchmark} trình bày kết quả đo hiệu năng (benchm
 
 \begin{table}[htbp]
 \centering
-\caption{So sánh hiệu năng triển khai trên Jetson Orin Nano Super}
+\caption[So sánh hiệu năng ba mô hình ứng viên trên Jetson Orin Nano Super]{So sánh hiệu năng ba mô hình ứng viên trên Jetson Orin Nano Super (giai đoạn chọn mô hình, độ trễ suy luận theo lô, không gồm thời gian chờ hàng đợi)}
 \label{tab:edge_benchmark}
 \small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
@@ -744,53 +749,64 @@ Random Forest     & 26{,}8 & 378 / 397 / -- & 35{,}2 & 27{,}5 & 4{,}427 \\
 
 \subsection{So sánh engine suy luận: chi phí của việc đồng nhất stack}
 \label{sec:engine-baseline-thesis}
-Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của Spark để đồng nhất với pha huấn luyện phân tán: cùng một stack vừa huấn luyện trên cụm vừa suy luận trên thiết bị. Để định lượng chi phí đánh đổi của sự đồng nhất này, luận văn đo lại cùng một mô hình Random Forest (cùng siêu tham số) trên cùng tập đặc trưng SHAP đã chọn để triển khai nhưng qua các engine nhẹ hơn ở chế độ một nút: scikit-learn (CPU, không JVM) và ONNX Runtime (CPU execution provider, xem Bảng~\ref{tab:engines_thesis}, sinh từ \texttt{benchmark\_engines.py}). Cả ba engine được đo trên nút phân loại với batch 10. Năng lượng báo cáo là phần hoạt động, đã trừ nền idle. Vì cùng thuật toán và đặc trưng nên độ chính xác tương đương. Phép so sánh vì vậy tập trung vào chi phí suy luận. (Cả ba dòng của Bảng~\ref{tab:engines_thesis} được đo lại trong cùng một phiên trên cùng trạng thái bo mạch để so sánh công bằng, nên dòng PySpark chênh lệch nhỏ so với Bảng~\ref{tab:edge_benchmark} đo ở phiên trước: 22{,}6 so với 26{,}8 luồng/giây, do khác phiên đo và xung CPU.) Kết quả đo (Bảng~\ref{tab:engines_thesis}) cho thấy stack JVM/Spark chịu chi phí suy luận cao hơn đáng kể so với scikit-learn trên bo mạch ARM 8\,GB: thông lượng thấp hơn khoảng 9 lần, độ trễ p95 cao hơn khoảng 11 lần, tỷ lệ RAM gần gấp đôi và năng lượng mỗi suy luận cao hơn khoảng 25 lần. Biên dịch cùng mô hình rừng ngẫu nhiên sang ONNX Runtime còn nới rộng khoảng cách này đáng kể: $\approx$7\,900 luồng/giây với p95 1{,}1\,ms, tức gấp $\approx$348 lần thông lượng của Spark đã triển khai, ở mức năng lượng chỉ $\approx$2\% so với scikit-learn. Khoảng cách đó là cơ sở cho hướng phát triển xuất mô hình sang ONNX/TensorRT để suy luận trong khi vẫn giữ Spark cho huấn luyện (việc tích hợp phiên ONNX vào pipeline streaming và khai thác GPU qua TensorRT thuộc hướng phát triển).
+Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của Spark để đồng nhất với pha huấn luyện phân tán: cùng một stack vừa huấn luyện trên cụm vừa suy luận trên thiết bị. Để định lượng chi phí của sự đồng nhất này, luận văn chạy \emph{cùng một} rừng ngẫu nhiên đã triển khai (cùng 200 cây, cùng 30 đặc trưng) qua ba engine suy luận của chính hệ thống biên: PySpark (bản triển khai), NumPy (duyệt cây trực tiếp trên mảng, không JVM) và ONNX Runtime (CPU execution provider). Hai bản NumPy và ONNX được xuất từ chính mô hình Spark, và cả ba engine cho dự đoán trùng nhau 100\% trên 1.000 luồng phát lại, nên độ chính xác là như nhau và phép so sánh chỉ đo chi phí suy luận. Phép đo chạy trên nút phân loại với lô 10 luồng (\texttt{benchmark\_same\_forest.py}). Năng lượng báo cáo là phần hoạt động, đã trừ công suất nền idle. Kết quả (Bảng~\ref{tab:engines_thesis}) cho thấy chi phí JVM/Spark rất lớn trên bo mạch ARM 8\,GB: một lô 10 luồng qua PySpark mất vài giây (p95 7{,}5\,s), chủ yếu do chi phí cố định của mỗi lần gọi Spark chứ không phải do tính toán cây. Cùng mô hình qua ONNX Runtime đạt $\approx$10.000 luồng/giây với p95 1{,}2\,ms, tức gấp $\approx$7.200 lần PySpark, ở mức năng lượng mỗi luồng thấp hơn khoảng bốn bậc độ lớn. Khoảng cách này giải thích vì sao thông lượng của mọi chế độ triển khai ở mục sau bị giới hạn bởi bộ phân loại PySpark, và là cơ sở cho hướng phát triển xuất mô hình sang ONNX/TensorRT để suy luận trong khi vẫn giữ Spark cho huấn luyện.
 
 \begin{table}[htbp]
 \centering
-\caption[Chi phí suy luận một nút: Spark, sklearn và ONNX]{Chi phí suy luận một nút trên cùng mô hình và tập đặc trưng: Spark, sklearn và ONNX}
+\caption[Chi phí suy luận một nút của cùng một mô hình: PySpark, NumPy và ONNX]{Chi phí suy luận một nút của cùng một rừng ngẫu nhiên qua ba engine (Jetson~\#2, lô 10 luồng, dự đoán trùng nhau 100\%)}
 \label{tab:engines_thesis}
 \renewcommand{\arraystretch}{1.1}
 \small
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
-\textbf{Engine} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ\\p95 (ms)}} & \textbf{RAM (\%)} & \textbf{\shortstack{Năng lượng\\/suy luận (mJ)}} \\ \midrule
-PySpark (triển khai) & 22{,}6 & 532 & 24{,}3 & 71{,}6 \\
-scikit-learn         & 204{,}4 & 49{,}8 & 13{,}3 & 2{,}91 \\
-ONNX Runtime         & 7870{,}8 & 1{,}1 & 15{,}7 & 0{,}06 \\
+\textbf{Engine} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ một lô\\p95 (ms)}} & \textbf{\shortstack{Năng lượng hoạt động\\/luồng (mJ)}} \\ \midrule
+PySpark (triển khai) & 1{,}4 & 7515 & 1506 \\
+NumPy                & 54{,}8 & 194 & 11{,}3 \\
+ONNX Runtime         & 10.092 & 1{,}2 & 0{,}087 \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
 \subsection{Kết quả ba chế độ triển khai phân tán}
 
-Ngoài việc so sánh các mô hình trên một nút, luận văn đánh giá ba chế độ triển khai phân tán trên cụm hai Jetson Orin Nano Super (Bảng~\ref{tab:edge_modes}). Chỉ số chính gồm thông lượng, độ trễ p95 (ms), tỷ lệ bỏ qua tại cổng (gate-skip: \% lưu lượng bình thường được cổng lọc khỏi suy luận Spark) và F1 trên lớp tấn công. \emph{Thông lượng} được định nghĩa là số phán quyết cuối cùng ghi vào PostgreSQL trên giây (một luồng nhận phán quyết hoặc tại cổng (nếu bị bỏ qua là benign) hoặc tại bộ phân loại), không cộng dồn đầu ra của hai tầng để tránh đếm trùng luồng được chuyển tiếp ở chế độ pipeline split.
+Ngoài việc so sánh engine trên một nút, luận văn đánh giá ba chế độ triển khai phân tán trên cụm hai Jetson Orin Nano Super, cùng hai cấu hình một nút làm cơ sở: một nút chạy toàn bộ pipeline không có cổng, và một nút chạy cả cổng lẫn bộ phân loại (Bảng~\ref{tab:edge_modes}). Ở chế độ B (mở rộng theo chiều ngang), mỗi nút chạy vai trò \texttt{full} không có cổng, đúng như cấu hình đã dùng trong các lượt đo trước.
+
+\textbf{Phương pháp đo có tính hàng đợi.} Mỗi luồng phát lại mang theo nhãn thời gian gửi và số thứ tự dòng, và hai giá trị này được lưu cùng phán quyết trong PostgreSQL. Nhờ đó, phép đo theo dõi \emph{mọi luồng được gửi} trong cửa sổ tải đến khi nó có phán quyết, kể cả khi phán quyết đến sau khi cửa sổ tải đã kết thúc. Độ trễ đầu cuối tính từ lúc gửi đến lúc có phán quyết, nên đã bao gồm thời gian chờ trong hàng đợi Kafka và thời gian chờ gom lô. Tỷ lệ bỏ qua tại cổng và recall tấn công được tính trực tiếp trên các luồng đó. Mỗi lượt chạy dùng một nhóm tiêu thụ Kafka riêng để lượt sau không xử lý phần tồn đọng của lượt trước. Với mỗi chế độ, tốc độ gửi được nâng dần. \emph{Năng lực duy trì} là tốc độ phán quyết ở mức gửi cao nhất mà mọi luồng đều có phán quyết trong vòng 10\,giây sau cửa sổ tải (mỗi mức 2 lần lặp, cửa sổ tải 45\,giây sau 15\,giây khởi động).
 
 \begin{table}[!t]
 \centering
-\caption{So sánh ba chế độ triển khai phân tán trên cụm 2 Jetson Orin Nano Super}
+\caption[Điểm vận hành duy trì được của từng chế độ triển khai]{Điểm vận hành duy trì được của từng chế độ triển khai trên cụm 2 Jetson Orin Nano Super}
 \label{tab:edge_modes}
 \small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
 \toprule
-\textbf{Chế độ} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ\\p95 (ms)}} & \textbf{\shortstack{Bỏ qua\\tại cổng (\%)}} & \textbf{\shortstack{Năng lượng\\/suy luận (mJ)}} & \textbf{\shortstack{F1\\(Attack)}} \\ \midrule
-Một nút (single)        & 2{,}60 $\pm$ 0{,}41 & 12{,}3 $\pm$ 3{,}0 & (nội tuyến) & 2490 & $\dagger$ \\
-A: Pipeline split       & 62{,}5 $\pm$ 0{,}6  & 13{,}1 $\pm$ 2{,}6 & 95{,}8      & 178  & $\dagger$ \\
-B: Horizontal scaling   & 5{,}9 $\pm$ 1{,}4   & 21{,}6 $\pm$ 19{,}2 & (nội tuyến) & 2250 & $\dagger$ \\
-C: Spark cluster        & 90{,}0 $\pm$ 25{,}6 & 23{,}9 $\pm$ 17{,}8 & 97{,}9      & 119  & $\dagger$ \\ \bottomrule
+\textbf{Chế độ} & \textbf{Số bo} & \textbf{\shortstack{Năng lực duy trì\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ đầu cuối\\p50 / p95 (s)}} & \textbf{\shortstack{Bỏ qua\\tại cổng (\%)}} & \textbf{\shortstack{Năng lượng\\/phán quyết (J)}} \\ \midrule
+Một nút, không cổng       & 1 & 2{,}5  & 5{,}9 / 11{,}3 & --      & 3{,}04 \\
+Một nút + cổng            & 1 & 1{,}9  & 3{,}8 / 7{,}8  & 89{,}0 & 3{,}04 \\
+B: Horizontal, không cổng & 2 & 3{,}3  & 4{,}1 / 8{,}2  & --      & 3{,}20 \\
+C: Spark cluster          & 2 & 8{,}7  & 0{,}7 / 5{,}2  & 88{,}6 & 1{,}15 \\
+\textbf{A: Pipeline split} & 2 & \textbf{22{,}4} & 1{,}0 / 7{,}1 & 88{,}8 & \textbf{0{,}60} \\ \bottomrule
 \end{tabular*}
 
-\tabnote{Phát lại CICIDS2017 ở 100 luồng/giây; trung bình $\pm$ độ lệch chuẩn trên $\geq$3 lần lặp; p95 tính từ log thô từng luồng (nút xấu nhất). ``(nội tuyến)'': ở vai trò \texttt{full}, cổng chạy trong cùng tiến trình và các luồng bị bỏ qua vẫn được ghi phán quyết nên không có tỷ lệ bỏ qua riêng. $\dagger$: chất lượng phát hiện không phụ thuộc chế độ (các chế độ dùng cùng một mô hình xuất ra). F1 lớp tấn công ngoại tuyến xem Bảng~\ref{tab:leakage_ablation}.}
+\tabnote{Phát lại 10.000 luồng lấy từ tập kiểm tra CICIDS2017 (15{,}2\% tấn công). Năng lực duy trì và độ trễ là trung bình 2 lần lặp ở mức gửi cao nhất còn duy trì được. Tỷ lệ bỏ qua gộp trên mọi lượt chạy của chế độ. Năng lượng là công suất toàn bo (cộng cả hai bo ở chế độ hai nút) chia cho tốc độ phán quyết, đo ở 2{,}0 / 2{,}0 / 3{,}9 / 9{,}5 / 18{,}4 luồng/giây. Recall tấn công thực đo là 100\% khi không có cổng (212 luồng tấn công) và 69{,}6\% ở chế độ A (1.261 luồng tấn công), khớp với recall 68{,}1\% của cổng ở Bảng~\ref{tab:gate_oc}. Nguồn: \texttt{papers/soict2026/results/remeasure\_20260930/}.}
 \end{table}
 
 \begin{figure}[!t]
     \centering
-    \IfFileExists{img/edge_modes.png}{\includegraphics[width=0.95\textwidth]{img/edge_modes.png}}{\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.2cm}\ph{Biểu đồ so sánh chế độ triển khai --- chạy plot\_edge\_modes.py}\vspace{1.2cm}}}}
-    \caption[Thông lượng và độ trễ p95 của bốn cấu hình triển khai]{Thông lượng và độ trễ p95 của bốn cấu hình (một nút cơ sở + ba chế độ phân tán) trên cụm 2 Jetson}
+    \IfFileExists{img/edge_capacity_vi.png}{\includegraphics[width=\textwidth]{img/edge_capacity_vi.png}}{\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.2cm}\ph{Biểu đồ năng lực --- chạy plot\_capacity.py --vi}\vspace{1.2cm}}}}
+    \caption[Năng lực duy trì và năng lượng mỗi phán quyết của các cấu hình triển khai]{Năng lực duy trì (trái) và năng lượng mỗi phán quyết ở tốc độ duy trì (phải) của năm cấu hình triển khai trên cụm 2 Jetson}
     \label{fig:edge_modes}
 \end{figure}
 
-Kết quả thực đo (Hình~\ref{fig:edge_modes}) cho thấy: chế độ \emph{pipeline split} tách cổng khỏi bộ phân loại Spark giúp thông lượng phán quyết tăng từ 2{,}6 lên 62{,}5 luồng/giây (gấp $\approx$24 lần) với p95 gần như không đổi, nhờ cổng lọc 95{,}8\% lưu lượng bình thường và không còn bị Spark chặn vòng xử lý (tỷ lệ này tính trên luồng phát lại, không so sánh trực tiếp với Bảng~\ref{tab:gate_oc}). \emph{Mở rộng theo chiều ngang} chỉ tăng xấp xỉ gấp đôi một nút (5{,}9 so với 2{,}6) vì mỗi nút vẫn chạy trọn bộ phân loại Spark trong tiến trình. \emph{Spark cluster} (cổng + bộ phân loại nối cụm Spark standalone) đạt thông lượng trung bình cao nhất (90{,}0) nhưng dao động lớn giữa các lần chạy ($\pm$26) và phụ thuộc thêm nút chủ (master) trên máy điều phối, nên pipeline split vẫn là khuyến nghị mặc định. Năng lượng mỗi suy luận đo bằng \texttt{tegrastats} (nền idle 30\,giây trước mỗi cửa sổ tải, chế độ hai nút cộng công suất cả hai bo mạch): ở mức tải 100 luồng/giây, phần công suất hoạt động (đã trừ idle) nằm dưới ngưỡng nhiễu lấy mẫu ($<$0{,}15\,W mọi nút), do đó bảng báo cáo năng lượng toàn bo mạch trên mỗi phán quyết, tức thước đo mức dàn trải công suất bo mạch theo thông lượng ở cấp triển khai (không phải chi phí riêng của mô hình): các chế độ dùng cổng (A, C) dàn trải công suất hai bo mạch trên số phán quyết lớn gấp 24--35 lần, giảm năng lượng mỗi phán quyết từ $\approx$2{,}5\,J xuống 0{,}12--0{,}18\,J.
+Kết quả (Bảng~\ref{tab:edge_modes}, Hình~\ref{fig:edge_modes}) cho thấy:
+\begin{itemize}
+    \item \textbf{Năng lực}: chế độ \emph{pipeline split} duy trì được 22{,}4 luồng/giây, gấp khoảng 9 lần một nút chạy toàn bộ pipeline (2{,}5 luồng/giây). Mức tăng đến từ việc đặt hai tầng trên hai bo mạch riêng, không phải từ riêng cổng lọc: khi thêm cổng trên cùng một bo, một nút chỉ duy trì được 1{,}9 luồng/giây vì cổng và bộ phân loại PySpark tranh nhau cùng CPU. \emph{Mở rộng theo chiều ngang} (không cổng) vẫn bị PySpark giới hạn ở 3{,}3 luồng/giây. \emph{Spark cluster} đạt 8{,}7 luồng/giây, chưa bằng một nửa pipeline split, lại phụ thuộc thêm nút chủ trên máy điều phối. Vì vậy pipeline split là cấu hình khuyến nghị.
+    \item \textbf{Độ trễ}: ở tốc độ duy trì, pipeline split trả phán quyết trung vị sau khoảng 1\,giây, chủ yếu là các luồng được cổng kết luận benign. Các luồng được chuyển sang bộ phân loại phải chờ một lô PySpark, nên p95 trên mọi luồng là 7{,}1\,giây. Mọi chế độ đều có đuôi độ trễ vài giây vì cùng một lý do: một lô PySpark trên bo mạch mất vài giây bất kể kích thước lô (Bảng~\ref{tab:engines_thesis}). Hệ thống do đó phù hợp với cảnh báo gần thời gian thực (cỡ giây) chứ chưa phải chặn lưu lượng theo từng gói.
+    \item \textbf{Năng lượng}: công suất được lấy mẫu bằng \texttt{tegrastats} (30\,giây nền idle, sau đó cửa sổ tải). Ở 18{,}4 luồng/giây trên hai bo, pipeline split tiêu tốn 0{,}60\,J mỗi phán quyết, so với 3{,}04\,J của một nút ở 2 luồng/giây, tức giảm khoảng 5 lần. Phần công suất hoạt động (đã trừ idle) chỉ tăng khoảng 1{,}5\,W khi có tải ở mọi chế độ, nên năng lượng mỗi phán quyết chủ yếu phản ánh việc dàn trải công suất bo mạch trên nhiều phán quyết hơn.
+    \item \textbf{Chất lượng phát hiện}: không có cổng, bộ phân loại bắt được mọi luồng tấn công trong các lượt đo. Với cổng ở quantile 0{,}995, recall tấn công thực đo là 69{,}6\%, đúng như điểm vận hành của cổng. Như vậy năng lực gấp 9 lần đi kèm việc bỏ sót khoảng 30\% luồng tấn công ở ngay tầng cổng, và đây là một lựa chọn ngưỡng có thể điều chỉnh theo Bảng~\ref{tab:gate_oc}.
+\end{itemize}
+
+\textbf{So với số liệu đo trước.} Lượt đo trước đó (cũng là số liệu trong bản nộp ban đầu của bài báo SOICT) báo cáo 62{,}5 luồng/giây, p95 13\,ms và tỷ lệ bỏ qua 95{,}8\% cho pipeline split. Các con số đó đếm số phán quyết ghi được \emph{trong} cửa sổ tải, trong khi bộ phân loại PySpark không theo kịp và phán quyết của nó rơi ra sau cửa sổ, nên 95{,}8\% thực chất là $1 - 2{,}6/62{,}5$, tức tỷ số giữa năng lực của bộ phân loại và tổng số phán quyết, không phải một tính chất của cổng. Độ trễ 13\,ms khi đó là thời gian suy luận của từng nút, chưa gồm thời gian chờ hàng đợi. Ngoài ra, mô hình triển khai khi đó dùng danh sách đặc trưng cũ, cổng dùng chung đặc trưng với bộ phân loại, và các chế độ một nút/ngang chạy không có cổng. Toàn bộ các điểm này đã được sửa và đo lại như trình bày ở trên.
 
 \subsection{Phân tích và lựa chọn mô hình}
 
@@ -823,7 +839,7 @@ Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữ
 \textbf{Random Forest được chọn} làm mô hình triển khai chính trên thiết bị biên dựa trên ba tiêu chí:
 \begin{enumerate}
     \item \textbf{Hiệu năng xử lý thời gian thực}: thông lượng cao nhất (26{,}8 mẫu/giây) và độ trễ p95 thấp nhất (397\,ms). Với \ac{ids}, độ trễ phán quyết là ràng buộc trực tiếp: một mô hình nhỏ nhưng chậm hơn 35\% về p95 sẽ kéo dài cửa sổ mà tấn công chưa bị chặn.
-    \item \textbf{Chất lượng phát hiện}: cao nhất trong ba mô hình ứng viên ở cả hai phép đo: F1 0{,}9955 trên đánh giá ngoại tuyến đầy đủ (Bảng~\ref{tab:summary_comparison}) và 0{,}9826 ở bản xuất huấn luyện trên mẫu con để vừa bộ nhớ một nút (Bảng~\ref{tab:edge_training}).
+    \item \textbf{Chất lượng phát hiện}: cao nhất trong ba mô hình ứng viên ở cả hai phép đo: F1 0{,}9955 trên đánh giá ngoại tuyến đầy đủ (Bảng~\ref{tab:summary_comparison}) và 0{,}9826 ở bản xuất ứng viên (Bảng~\ref{tab:edge_training}). Bản huấn luyện lại trên SHAP Top-30 loại trừ rò rỉ để triển khai đạt F1 0{,}9959.
     \item \textbf{Tương thích nền tảng}: Random Forest là estimator gốc của Spark ML. Nhờ vậy \texttt{PipelineModel} xuất ra nạp được trực tiếp trên bo mạch ARM64, không cần các thư viện native mà tích hợp \ac{xgb} của Spark đòi hỏi.
 \end{enumerate}
 
@@ -832,7 +848,7 @@ Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữ
 \section{Thảo luận và so sánh tổng hợp}
 Kết quả thực nghiệm cho thấy lựa chọn đặc trưng dựa trên \ac{shap} là hướng tiếp cận phù hợp cho hệ thống \ac{ids} trên bộ dữ liệu CICIDS2017: dưới cấu hình đánh giá loại trừ rò rỉ dữ liệu, \ac{shap} Top-30 giữ được hiệu năng gần như nguyên vẹn trong khi cắt khoảng 60\% số đặc trưng. Ngược lại, học tổ hợp không mang lại lợi thế trên chính cấu hình này: Hybrid Bagging đạt F1 0{,}9966 và Soft Voting đạt 0{,}9967, đều thấp hơn \ac{xgb} đơn lẻ (0{,}9970). Học tổ hợp chỉ vượt mô hình đơn ở những cấu hình mà mô hình đơn yếu hơn (\ac{rf} Top-30: 0{,}9938 so với 0{,}9922; \ac{pca} $k$=40: 0{,}9940 so với 0{,}9939), nghĩa là nó bù cho bộ đặc trưng kém chứ không tạo thêm hiệu năng phân loại. Chi phí đi kèm lại lớn: trên \ac{shap} Top-30, Hybrid Bagging cần 4909\,giây huấn luyện (so với 1226\,giây của \ac{xgb}), 46{,}6\,giây dự đoán (so với 7{,}1\,giây) và mô hình nặng 7{,}15\,MB, lớn nhất trong tất cả các cấu hình đã thử. Vì vậy cấu hình được chọn để triển khai lên thiết bị biên là một \emph{mô hình đơn} trên tập đặc trưng \ac{shap} Top-30, không phải mô hình học tổ hợp.
 
-Khi triển khai trên thiết bị biên Jetson Orin Nano Super, Random Forest với SHAP Top-30 đặc trưng đạt F1-Score 0{,}9955 ngoại tuyến (đã loại trừ rò rỉ), thông lượng 26{,}8 mẫu/giây, độ trễ p95 397\,ms và sử dụng 27{,}5\% RAM. Các số liệu này cho thấy việc triển khai hệ thống IDS dựa trên học máy trên thiết bị biên tài nguyên giới hạn là khả thi, và là cơ sở cho hướng giám sát an ninh mạng phân tán trong thực tế.
+Khi triển khai trên cụm hai Jetson Orin Nano Super, Random Forest với SHAP Top-30 đặc trưng (F1 0{,}9959 trên tập kiểm tra) sau cổng autoencoder duy trì được 22{,}4 luồng/giây ở chế độ pipeline split, với độ trễ đầu cuối trung vị khoảng 1\,giây, p95 7{,}1\,giây và 0{,}60\,J mỗi phán quyết. Cái giá là recall tấn công 69{,}6\% do cổng bỏ qua một phần luồng tấn công. Các số liệu này cho thấy triển khai \ac{ids} học máy trên thiết bị biên tài nguyên hạn chế là khả thi cho cảnh báo gần thời gian thực, đồng thời chỉ ra rõ nút thắt: bộ phân loại PySpark. Chạy cùng mô hình qua ONNX Runtime nhanh hơn khoảng 7.200 lần, nên đây là hướng cải thiện trực tiếp nhất.
 
 
 
