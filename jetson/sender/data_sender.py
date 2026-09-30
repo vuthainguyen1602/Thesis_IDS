@@ -69,6 +69,7 @@ def send_csv_to_kafka(csv_path, producer, topic, rate=100):
                         cleaned_row[clean_name] = value
 
                 cleaned_row["_timestamp"] = time.time()
+                cleaned_row["_row"] = total_sent  # row index; joins verdicts to replay labels
 
                 producer.send(
                     topic,

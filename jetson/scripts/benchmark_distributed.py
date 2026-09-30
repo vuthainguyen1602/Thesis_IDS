@@ -796,7 +796,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_collect.set_defaults(func=cmd_collect)
 
     p_run = sub.add_parser("run", help="Warmup (real load) + send + collect (distributed)")
-    p_run.add_argument("--mode", choices=["single", "split", "horizontal", "spark_cluster"], default="split")
+    p_run.add_argument("--mode", choices=["single", "single_gate", "split", "horizontal", "spark_cluster"], default="split")
     p_run.add_argument("--duration", type=int, default=60)
     p_run.add_argument("--rate", type=int, default=100)
     p_run.add_argument("--warmup", type=int, default=30,

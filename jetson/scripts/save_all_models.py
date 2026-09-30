@@ -23,20 +23,19 @@ from shared_utils import (
 MODEL_DIR = os.path.join(PROJECT_ROOT, "model")
 FEATURES_PATH = os.path.join(MODEL_DIR, "feature_columns.json")
 
-SHAP_TOP_FEATURES = [
-    "flow_duration", "total_fwd_packets", "total_backward_packets",
-    "total_length_of_fwd_packets", "total_length_of_bwd_packets",
-    "fwd_packet_length_max", "fwd_packet_length_min", "fwd_packet_length_mean",
-    "bwd_packet_length_max", "bwd_packet_length_mean", "bwd_packet_length_std",
-    "flow_bytes_s", "flow_packets_s", "flow_iat_mean", "flow_iat_std",
-    "flow_iat_max", "flow_iat_min", "fwd_iat_total", "fwd_iat_mean",
-    "bwd_iat_total", "bwd_iat_mean", "fwd_psh_flags", "bwd_packets_s",
-    "min_packet_length", "max_packet_length", "packet_length_mean",
-    "packet_length_std", "packet_length_variance", "average_packet_size",
-    # destination_port removed — label-leakage feature now excluded from
-    # training (shared_utils._leaky_port_cols). Regenerate from ml_06 SHAP
-    # ranking after re-running on the leak-free feature set.
-]
+def _shap_top_features(k: int = 30) -> list:
+    """Leakage-free SHAP Top-k, read from the ml_06 ranking so the exported model
+    cannot drift from the feature set the offline study selected."""
+    import csv
+    path = os.path.join(THESIS_ROOT, "results", "ml_06_feature_selection_shap",
+                        "shap_feature_importance.csv")
+    leaky = {"destination_port", "source_port", "src_port", "dst_port"}
+    with open(path) as fh:
+        ranked = [r["feature"] for r in csv.DictReader(fh)]
+    return [f for f in ranked if f not in leaky][:k]
+
+
+SHAP_TOP_FEATURES = _shap_top_features()
 
 MODELS_TO_SAVE = ["Decision Tree", "GBT", "Random Forest"]
 

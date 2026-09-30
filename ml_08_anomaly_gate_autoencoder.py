@@ -20,7 +20,7 @@ TRAIN_PARQUET = os.path.join(BASE_DIR, "data", "train_data.parquet")
 TEST_PARQUET = os.path.join(BASE_DIR, "data", "test_data.parquet")
 
 JETSON_MODEL_DIR = os.path.join(BASE_DIR, "jetson", "model")
-FEATURES_PATH = os.path.join(JETSON_MODEL_DIR, "feature_columns.json")
+FEATURES_PATH = os.path.join(JETSON_MODEL_DIR, "anomaly_feature_columns.json")
 
 AE_MODEL_PATH = os.path.join(JETSON_MODEL_DIR, "anomaly_autoencoder.pkl")
 AE_SCALER_PATH = os.path.join(JETSON_MODEL_DIR, "anomaly_scaler.pkl")
@@ -108,29 +108,24 @@ def main():
     print("  EXP 8: LIGHTWEIGHT AUTOENCODER ANOMALY DETECTION (EDGE)")
     print("=" * 70)
 
-    if not os.path.exists(FEATURES_PATH):
-        raise FileNotFoundError(
-            f"{FEATURES_PATH} not found.\n"
-            "Run `python jetson/scripts/save_model.py` first to export `feature_columns.json`."
-        )
-
-    with open(FEATURES_PATH, "r") as f:
-        feature_cols = json.load(f)
-    print(f"[OK] Loaded feature list: {len(feature_cols)} features")
-
-    # Guard against train/serve skew: the exported feature set must already be
-    # leakage-aware (no port columns). Fail loudly if a stale JSON sneaks them in.
-    _LEAKY_PORTS = {"destination_port", "source_port", "src_port", "dst_port"}
-    _leaky_in_json = [c for c in feature_cols if c.lower() in _LEAKY_PORTS]
-    if _leaky_in_json:
-        raise ValueError(
-            f"feature_columns.json contains leaky port features {_leaky_in_json}. "
-            "Re-export with the leakage-aware save_model.py before training the gate."
-        )
-
     train_df = pd.read_parquet(TRAIN_PARQUET)
     test_df = pd.read_parquet(TEST_PARQUET)
     print(f"[OK] Loaded parquet: train={len(train_df):,}, test={len(test_df):,}")
+
+    # The gate is unsupervised, so it scores every leak-free numeric feature
+    # rather than the classifier's SHAP subset: a subset picked to separate
+    # the classes is not the one that exposes anomalies (at q=0.995 the SHAP
+    # Top-30 gate forwarded 44.8% of attack flows, the full set 68.1%).
+    _EXCLUDE = {"label", "label_binary", "source_ip", "destination_ip", "flow_id",
+                "timestamp", "protocol", "destination_port", "source_port",
+                "src_port", "dst_port"}
+    feature_cols = [c for c in train_df.columns
+                    if c not in _EXCLUDE and pd.api.types.is_numeric_dtype(train_df[c])]
+    os.makedirs(JETSON_MODEL_DIR, exist_ok=True)
+    with open(FEATURES_PATH, "w") as f:
+        json.dump(feature_cols, f, indent=2)
+    print(f"[OK] Gate features: {len(feature_cols)} -> {FEATURES_PATH}")
+
 
     missing = [c for c in feature_cols if c not in train_df.columns]
     if missing:

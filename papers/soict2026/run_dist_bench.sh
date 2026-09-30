@@ -3,7 +3,8 @@
 # One-mode distributed-benchmark orchestrator for the SOICT edge table.
 # RUN THIS ON THE MAC. It manages both Jetson pipelines over SSH (key auth).
 #
-#   ./run_dist_bench.sh single         # 1-node full pipeline (Jetson #2)
+#   ./run_dist_bench.sh single         # 1-node full pipeline (Jetson #2), gate OFF
+#   ./run_dist_bench.sh single_gate    # 1-node full pipeline with the gate inline
 #   ./run_dist_bench.sh split          # gate on #1 + classifier on #2
 #   ./run_dist_bench.sh horizontal     # both nodes full, same Kafka group
 #   ./run_dist_bench.sh spark_cluster  # Mac=master, both Jetsons=workers
@@ -17,7 +18,7 @@
 set -uo pipefail
 
 # ---- cluster config (from cluster/spark_cluster.env) ----
-MAC_IP=192.168.1.68
+MAC_IP=${MAC_IP:-$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1)}  # the Mac's DHCP address changes
 J1=192.168.1.50            # jetson-nano-1
 J2=192.168.1.204           # jetson-nano-2
 U=bvdung
@@ -26,6 +27,8 @@ SSH="ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o ServerAlive
 
 # ---- tunables (fast draft defaults; raise REP/DUR for the final numbers) ----
 RATE=${RATE:-100}; DUR=${DUR:-45}; WARM=${WARM:-20}; REP=${REP:-3}
+# Pause between repeats; long enough for a backlogged classifier queue to drain.
+COOL=${COOL:-120}
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$DIR/../.." && pwd)"
@@ -42,7 +45,10 @@ export INFLUXDB_URL=http://localhost:8086
 export DATA_CSV_PATH="$CSV_ABS"
 
 # Inline env every remote pipeline gets (wins over stale .env values/IPs).
-REMOTE_ENV="KAFKA_BOOTSTRAP_SERVERS=$MAC_IP:9092 POSTGRES_HOST=$MAC_IP POSTGRES_PORT=5433 INFLUXDB_URL=http://$MAC_IP:8086 KAFKA_GROUP_ID=ids-jetson-cluster"
+# A fresh consumer group per run: with a shared group, flows a stopped run had not
+# consumed stay committed-but-unread in Kafka and the next run would process them.
+RUN_TAG="$(date +%Y%m%d_%H%M%S)"
+REMOTE_ENV="KAFKA_BOOTSTRAP_SERVERS=$MAC_IP:9092 POSTGRES_HOST=$MAC_IP POSTGRES_PORT=5433 INFLUXDB_URL=http://$MAC_IP:8086 KAFKA_GROUP_ID=ids-bench-$RUN_TAG KAFKA_CLASSIFIER_GROUP_ID=ids-bench-clf-$RUN_TAG"
 
 ensure_mac_deps() {
   python - <<'PY' 2>/dev/null && return 0 || true
@@ -70,7 +76,7 @@ start_pipe() {
   # Background the ssh CLIENT locally so a lingering channel can never block us;
   # the remote pipeline is nohup+detached so it survives the ssh client exiting.
   $SSH -n $U@$host "cd $JROOT && source venv/bin/activate && \
-    $REMOTE_ENV $spark RAW_LATENCY_LOG=\$HOME/ids_raw_latency_${id}.csv \
+    $REMOTE_ENV ${EXTRA_REMOTE_ENV:-} $spark RAW_LATENCY_LOG=\$HOME/ids_raw_latency_${id}.csv \
     EDGE_NODE_ID=$id EDGE_NODE_ROLE=$role ALERT_ENABLED=$alert \
     nohup python edge/kafka_consumer.py > \$HOME/edge_${id}.log 2>&1 </dev/null &" &
   sleep 5
@@ -112,6 +118,7 @@ run_mode() {
   stop_all
   case "$mode" in
     single)      start_pipe $J2 jetson-nano-2 full 1 ;;
+    single_gate) EXTRA_REMOTE_ENV="ANOMALY_ENABLED=1" start_pipe $J2 jetson-nano-2 full 1 ;;
     split)       start_pipe $J1 jetson-nano-1 anomaly_gate 0
                  start_pipe $J2 jetson-nano-2 classifier   1 ;;
     horizontal)  start_pipe $J1 jetson-nano-1 full 1
@@ -130,12 +137,14 @@ run_mode() {
   # 1) throughput / latency / F1  (run sends its own warmup+load, REP repeats)
   echo "[run] throughput/latency, mode=$mode, repeats=$REP ..."
   ( cd "$MACJ" && python scripts/benchmark_distributed.py run \
-      --mode "$mode" --duration "$DUR" --rate "$RATE" --warmup "$WARM" --repeats "$REP" \
+      --mode "$mode" --duration "$DUR" --rate "$RATE" --warmup "$WARM" --repeats "$REP" --cooldown "$COOL" \
       --output "$OUT/run_${mode}_${T}.json" )
 
-  # 2) energy window (node-power on the active node(s))
+  # 2) energy window (node-power on the active node(s)); NO_ENERGY=1 skips it for
+  #    rate sweeps, where only throughput and latency are needed.
+  [ "${NO_ENERGY:-0}" = "1" ] && { stop_all; echo "[done] mode=$mode (no energy window)"; return; }
   case "$mode" in
-    single)        energy_window "$T" "$J2:jetson-nano-2:full" ; ACTIVE="$J2" ;;
+    single|single_gate) energy_window "$T" "$J2:jetson-nano-2:full" ; ACTIVE="$J2" ;;
     split|spark_cluster)
                    energy_window "$T" "$J1:jetson-nano-1:anomaly_gate" "$J2:jetson-nano-2:classifier"; ACTIVE="$J1 $J2" ;;
     horizontal)    energy_window "$T" "$J1:jetson-nano-1:full" "$J2:jetson-nano-2:full"; ACTIVE="$J1 $J2" ;;
@@ -147,12 +156,12 @@ run_mode() {
 }
 
 case "${1:-}" in
-  single|split|horizontal|spark_cluster) run_mode "$1" ;;
+  single|single_gate|split|horizontal|spark_cluster) run_mode "$1" ;;
   merge)
     ensure_mac_deps
     ( cd "$MACJ" && python scripts/benchmark_distributed.py merge \
         --input "$OUT/*.json" --output-csv "$OUT/summary.csv" )
     echo "[merge] -> $OUT/summary.csv" ;;
   *)
-    echo "Usage: $0 {single|split|horizontal|spark_cluster|merge}"; exit 1 ;;
+    echo "Usage: $0 {single|single_gate|split|horizontal|spark_cluster|merge}"; exit 1 ;;
 esac
