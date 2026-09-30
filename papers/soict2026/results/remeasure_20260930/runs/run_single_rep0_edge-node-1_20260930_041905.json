@@ -1,0 +1,65 @@
+{
+  "benchmark_type": "run",
+  "deploy_mode": "single",
+  "warmup": {
+    "benchmark_type": "send",
+    "duration_s": 15,
+    "requested_rate_rps": 2,
+    "elapsed_s": 15.01,
+    "interrupted_after_timeout": true,
+    "csv_path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/sender/replay_cicids2017.csv",
+    "topic": "ids-network-flow",
+    "broker": "localhost:9092",
+    "timestamp": "2026-09-29T20:41:14.196539+00:00"
+  },
+  "send": {
+    "benchmark_type": "send",
+    "duration_s": 45,
+    "requested_rate_rps": 2,
+    "elapsed_s": 811.98,
+    "interrupted_after_timeout": true,
+    "csv_path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/sender/replay_cicids2017.csv",
+    "topic": "ids-network-flow",
+    "broker": "localhost:9092",
+    "timestamp": "2026-09-29T20:54:48.181010+00:00"
+  },
+  "load_start_epoch": 1790714476.1994,
+  "load_end_epoch": 1790715288.181603,
+  "collect": {
+    "benchmark_type": "collect",
+    "deploy_mode": "single",
+    "window_minutes": 5,
+    "load_start_epoch": 1790714476.1994,
+    "load_end_epoch": 1790715288.181603,
+    "timestamp": "2026-09-29T21:19:04.881276+00:00",
+    "gate_skip": {
+      "benign_skipped": 0,
+      "total_gate_events": 0,
+      "gate_skip_pct": null
+    },
+    "final_throughput": {
+      "final_verdicts": 0,
+      "window_s": 812.0,
+      "throughput_final_rps": 0.0
+    },
+    "raw_latency_per_node": {},
+    "nodes": [],
+    "aggregate": {
+      "throughput_final_rps": 0.0,
+      "throughput_rps_per_node_sum_DIAGNOSTIC_ONLY": null,
+      "latency_avg_ms": null,
+      "latency_p95_ms": null,
+      "e2e_latency_avg_ms": null,
+      "e2e_latency_p95_ms": null,
+      "latency_source": null,
+      "latency_note": "run-level p95 = worst node's percentile over its RAW per-flow samples within [load_start, load_end]; e2e = send->verdict, assumes NTP-synced clocks"
+    },
+    "device": "unknown-device",
+    "local_cpu_percent": 30.7,
+    "local_memory_percent": 73.7
+  },
+  "timestamp": "2026-09-29T21:19:05.391644+00:00",
+  "node_id": "edge-node-1",
+  "role": "full",
+  "repeat_index": 0
+}

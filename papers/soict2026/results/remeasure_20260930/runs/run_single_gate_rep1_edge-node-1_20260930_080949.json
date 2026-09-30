@@ -1,0 +1,65 @@
+{
+  "benchmark_type": "run",
+  "deploy_mode": "single_gate",
+  "warmup": {
+    "benchmark_type": "send",
+    "duration_s": 5,
+    "requested_rate_rps": 3,
+    "elapsed_s": 5.03,
+    "interrupted_after_timeout": true,
+    "csv_path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/sender/replay_cicids2017.csv",
+    "topic": "ids-network-flow",
+    "broker": "localhost:9092",
+    "timestamp": "2026-09-30T01:08:31.987998+00:00"
+  },
+  "send": {
+    "benchmark_type": "send",
+    "duration_s": 45,
+    "requested_rate_rps": 3,
+    "elapsed_s": 45.02,
+    "interrupted_after_timeout": true,
+    "csv_path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/sender/replay_cicids2017.csv",
+    "topic": "ids-network-flow",
+    "broker": "localhost:9092",
+    "timestamp": "2026-09-30T01:09:19.009729+00:00"
+  },
+  "load_start_epoch": 1790730513.990805,
+  "load_end_epoch": 1790730559.0106502,
+  "collect": {
+    "benchmark_type": "collect",
+    "deploy_mode": "single_gate",
+    "window_minutes": 5,
+    "load_start_epoch": 1790730513.990805,
+    "load_end_epoch": 1790730559.0106502,
+    "timestamp": "2026-09-30T01:09:49.110620+00:00",
+    "gate_skip": {
+      "benign_skipped": 0,
+      "total_gate_events": 0,
+      "gate_skip_pct": null
+    },
+    "final_throughput": {
+      "final_verdicts": 0,
+      "window_s": 45.0,
+      "throughput_final_rps": 0.0
+    },
+    "raw_latency_per_node": {},
+    "nodes": [],
+    "aggregate": {
+      "throughput_final_rps": 0.0,
+      "throughput_rps_per_node_sum_DIAGNOSTIC_ONLY": null,
+      "latency_avg_ms": null,
+      "latency_p95_ms": null,
+      "e2e_latency_avg_ms": null,
+      "e2e_latency_p95_ms": null,
+      "latency_source": null,
+      "latency_note": "run-level p95 = worst node's percentile over its RAW per-flow samples within [load_start, load_end]; e2e = send->verdict, assumes NTP-synced clocks"
+    },
+    "device": "unknown-device",
+    "local_cpu_percent": 11.6,
+    "local_memory_percent": 75.6
+  },
+  "timestamp": "2026-09-30T01:09:49.613001+00:00",
+  "node_id": "edge-node-1",
+  "role": "full",
+  "repeat_index": 1
+}
