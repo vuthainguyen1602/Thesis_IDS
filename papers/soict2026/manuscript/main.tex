@@ -340,17 +340,17 @@ A host-side script starts the pipeline roles on the Jetsons over SSH, drives the
     Mode & Boards & Sustained (flows/s) & e2e p50 / p95 (s) & Gate skip (\%) & J / verdict \\
     \midrule
     Single node, gate off & 1 & 2.5 & 5.9 / 11.3 & -- & 3.04 \\
-    Single node + gate & 1 & 1.9 & 3.8 / 7.8 & 89.0 & 3.04 \\
+    Single node + gate & 1 & 1.9$^{*}$ & 3.8 / 7.8 & 89.0 & 3.04 \\
     B: Horizontal, gate off & 2 & 3.3 & 4.1 / 8.2 & -- & 3.20 \\
-    C: Spark cluster & 2 & 8.7 & 0.7 / 5.2 & 88.6 & 1.15 \\
+    C: Spark cluster & 2 & $\geq$8.7$^{\dagger}$ & 0.7 / 5.2 & 88.6 & 1.15 \\
     A: Pipeline split & 2 & 22.4 & 1.0 / 7.1 & 88.8 & 0.60 \\
     \bottomrule
   \end{tabular}
 
-  \tabnote{Energy is total-board power over verdict rate, measured at 2.0, 2.0, 3.9, 9.5 and 18.4 flows/s respectively; both boards are summed in two-node modes. Gate skip is pooled over all runs of a mode. Live attack recall is 100\% without the gate (212 attack flows) and 69.6\% in pipeline split (1{,}261 attack flows).}
+  \tabnote{Energy is total-board power over verdict rate, measured at 2.0, 2.0, 3.9, 9.5 and 18.4 flows/s respectively; both boards are summed in two-node modes. Gate skip is pooled over all runs of a mode. Live attack recall is 100\% without the gate (212 attack flows) and 69.6\% in pipeline split (1{,}261 attack flows). $^{*}$At 3\,flows/s the single node with and without the gate both deliver 2.4--2.5 verdicts/s; the gated one falls to the 2\,flows/s step only because one of its two repeats drained in 10.6\,s. $^{\dagger}$Lower bound: at 20\,flows/s one repeat kept up at 17.1\,flows/s and the other drained in 12.3\,s.}
 \end{table}
 
-\textbf{Capacity.} Pipeline split sustains 22.4 flows/s, about $9\times$ the single node that runs the whole pipeline (2.5\,flows/s). The gain comes from placing the two stages on separate boards, not from the gate alone: with the gate added on the same board, the single node sustains only 1.9\,flows/s, because gate scoring and the Spark classifier compete for the same CPU. Horizontal scaling of the full role (gate off) stays Spark-bound at 3.3\,flows/s, and the Spark standalone cluster reaches 8.7\,flows/s, less than half of pipeline split, at the cost of an extra host dependency.
+\textbf{Capacity.} Pipeline split sustains 22.4 flows/s, about $9\times$ the single node that runs the whole pipeline (2.5\,flows/s). The gain comes from placing the two stages on separate boards, not from the gate alone: with the gate added on the same board, the single node shows no measurable gain (2.4--2.5 verdicts/s at 3\,flows/s, the same as without the gate). Horizontal scaling of the full role (gate off) stays Spark-bound at 3.3\,flows/s. The Spark standalone cluster sustains at least 8.7\,flows/s; at 20\,flows/s one of two repeats kept up (17.1\,flows/s) and the other did not, so its capacity lies between about 9 and 17\,flows/s, below pipeline split and with an extra host dependency.
 
 \textbf{Latency.} At its sustained rate, pipeline split returns a median verdict in about 1\,s, dominated by gate-only verdicts; flows forwarded to the classifier wait for a PySpark batch, and the p95 over all flows is 7.1\,s. Every mode shows a multi-second tail for the same reason: one PySpark batch on the board takes seconds regardless of its size.
 
@@ -377,7 +377,7 @@ A host-side script starts the pipeline roles on the Jetsons over SSH, drives the
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{edge_capacity.png}
-  \caption{Sustained verdict throughput (left) and energy per verdict at that rate (right) per deployment mode.}
+  \caption{Sustained verdict throughput (left) and energy per verdict at that rate (right) per deployment mode. The Spark-cluster bar is a lower bound (Table~\ref{tab:benchmark}).}
   \label{fig:edge-modes}
 \end{figure}
 
@@ -404,7 +404,7 @@ As summarized in Sect.~\ref{sec:bridge}, offline Spark experiments and edge Jets
 
 \section{Conclusion}
 
-We presented a reproducible distributed edge IDS for Jetson Orin Nano Super clusters that pairs Kafka streaming with PySpark inference and deploys a model validated under a leakage-aware offline protocol. Measured from send to verdict with queueing included, placing a lightweight autoencoder gate and the Spark classifier on separate boards sustains 22.4 flows/s against 2.5 for a single node running the whole pipeline ($\approx$9$\times$), at an end-to-end p95 of about 7\,s and 0.60\,J per verdict against 3.04\,J. The gain requires the separate board: the same gate on the classifier's board sustains 1.9\,flows/s. It is paid for in recall, since the gate lets about 30\% of attack flows through at its pre-committed threshold. Horizontal scaling of the full role stays Spark-bound (3.3\,flows/s) and the Spark standalone cluster reaches 8.7\,flows/s, so pipeline split remains our recommended default. Serving the same forest, ONNX Runtime is about $7{,}200\times$ faster than the deployed PySpark path with identical predictions, a concrete target for the next iteration of the serving layer. Future work includes TensorRT optimization, live-traffic validation, and federated retraining under drift~\cite{hernandezramos2025federated}.
+We presented a reproducible distributed edge IDS for Jetson Orin Nano Super clusters that pairs Kafka streaming with PySpark inference and deploys a model validated under a leakage-aware offline protocol. Measured from send to verdict with queueing included, placing a lightweight autoencoder gate and the Spark classifier on separate boards sustains 22.4 flows/s against 2.5 for a single node running the whole pipeline ($\approx$9$\times$), at an end-to-end p95 of about 7\,s and 0.60\,J per verdict against 3.04\,J. The gain requires the separate board: the same gate on the classifier's board brings no measurable gain. It is paid for in recall, since the gate lets about 30\% of attack flows through at its pre-committed threshold. Horizontal scaling of the full role stays Spark-bound (3.3\,flows/s) and the Spark standalone cluster sustains between about 9 and 17\,flows/s, so pipeline split remains our recommended default. Serving the same forest, ONNX Runtime is about $7{,}200\times$ faster than the deployed PySpark path with identical predictions, a concrete target for the next iteration of the serving layer. Future work includes TensorRT optimization, live-traffic validation, and federated retraining under drift~\cite{hernandezramos2025federated}.
 
 \begin{credits}
 \subsubsection{\discintname}

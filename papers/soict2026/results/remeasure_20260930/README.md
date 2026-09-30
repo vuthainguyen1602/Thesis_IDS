@@ -47,9 +47,9 @@ includes queueing; skip ratio and attack recall come from the flows themselves).
 |---|---|---|---|---|
 | Single node, gate off (as published) | 1 | ≈2.5 flows/s | 10–13 s | — |
 | Horizontal, gate off (as published) | 2 | ≈3.3–4.8 | 8–13 s | — |
-| Single node, gate on | 1 | ≈2–2.4 | 8–13 s | — |
+| Single node, gate on | 1 | ≈2.4–2.5 at 3/s (one repeat drained in 10.6 s, so the 10 s rule gives 1.9) | 8–13 s | — |
 | **A: pipeline split** | 2 | **≈22** | 5–9 s | **≈70%** |
-| C: Spark cluster | 2 | ≈9–15 | 4–6 s (at 10) | ≈69% |
+| C: Spark cluster | 2 | ≥8.7; at 20/s one repeat kept up (17.1) and one did not, so ≈9–17 | 4–6 s (at 10) | ≈69% |
 
 Source: `capacity_sweep_part1.csv` (rates run before 00:39) and
 `capacity_sweep_part2.csv`. Runs between 00:39 and 08:04 were lost to the Mac

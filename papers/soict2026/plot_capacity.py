@@ -67,11 +67,14 @@ def main():
     ax1.set_title(titles[0])
     ax2.set_title(titles[1])
     b2 = ax2.bar(x, en.loc[modes, "j_per_verdict"], color=colors)
+    lower_bound = {"spark_cluster"}  # the next rate step had one of two repeats keep up
     for ax, bars, fmt in ((ax1, b1, "{:.1f}"), (ax2, b2, "{:.2f}")):
         ax.set_xticks(list(x))
         ax.set_xticklabels([labels[m] for m in modes], fontsize=8)
-        for b in bars:
+        for m, b in zip(modes, bars):
             txt = fmt.format(b.get_height())
+            if ax is ax1 and m in lower_bound:
+                txt = "≥" + txt
             ax.annotate(txt.replace(".", ",") if args.vi else txt, (b.get_x() + b.get_width() / 2, b.get_height()),
                         ha="center", va="bottom", fontsize=8)
         ax.spines[["top", "right"]].set_visible(False)
