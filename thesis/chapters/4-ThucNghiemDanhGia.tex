@@ -1,5 +1,5 @@
 
-Trong chương này, luận văn trình bày kết quả đạt được khi áp dụng kỹ thuật lựa chọn đặc trưng để huấn luyện các mô hình học máy. Bên cạnh đó, quy trình tinh chỉnh siêu tham số bằng tìm kiếm lưới kết hợp kiểm định chéo (cross-validation) cũng được trình bày, cùng với đánh giá kết quả thực nghiệm khi áp dụng các thuật toán học máy như \ac{svm}, \ac{lr}, \ac{nb}, \ac{rf}, \ac{dt}, \ac{gbt}, \ac{xgb} và \ac{mlp} cả trong trường hợp có và không sử dụng kỹ thuật giảm chiều dữ liệu. Ngoài ra, luận văn cũng xác định và trình bày các giá trị tham số tối ưu cho từng thuật toán thông qua phương pháp tìm kiếm theo lưới kết hợp với kiểm định chéo (cross-validation). Dựa trên các kết quả thu được, luận văn sẽ làm rõ vấn đề liệu việc giảm chiều dữ liệu có thực sự cần thiết hay không. Cuối cùng, luận văn đánh giá hiệu quả của các mô hình \ac{el}, sau đó so sánh với các thuật toán học máy truyền thống, từ đó trả lời câu hỏi: \textit{Liệu có nên sử dụng \ac{el} so với các mô hình học máy truyền thống khi làm việc với dữ liệu \ac{iot} hay không?}
+Chương này trình bày kết quả thực nghiệm và trả lời ba câu hỏi nghiên cứu nêu ở Mục~\ref{sec:CauHoi}. Phần đầu đánh giá các mô hình trên cụm Spark: hiệu năng cơ sở với toàn bộ đặc trưng, so sánh ba phương pháp giảm chiều (RQ1), tinh chỉnh siêu tham số, và so sánh học tổ hợp với mô hình đơn (RQ2). Tiếp theo là các phép kiểm tra độ tin cậy của những kết quả đó: ảnh hưởng của rò rỉ dữ liệu, kiểm định thống kê, đánh giá khác bộ dữ liệu và đánh giá đa lớp. Phần sau triển khai mô hình được chọn lên cụm hai Jetson Orin Nano Super và đo năng lực, độ trễ và năng lượng (RQ3). Mục cuối tổng hợp và thảo luận các kết quả.
 
 \section{Môi trường thực nghiệm}
 
@@ -24,11 +24,11 @@ Máy chủ MacBook chỉ đảm nhận vai trò \textit{master} điều phối c
 % Giá trị điền vào lấy từ các tệp results/*/...csv tương ứng.
 
 \vspace{1em}
-Bảng~\ref{tab:model_parameters} tóm tắt thiết lập tham số của các mô hình học máy được sử dụng trong nghiên cứu này. Trong đó, \ac{xgb} và MLP được tinh chỉnh bằng Grid Search kết hợp kiểm định chéo (Kịch bản 3). Các mô hình còn lại dùng bộ tham số cố định từ trước, lựa chọn dựa trên các nghiên cứu gần đây và thực nghiệm sơ bộ, nhằm bảo đảm rằng khác biệt quan sát được giữa các phương pháp giảm chiều phản ánh đúng bản thân phương pháp, thay vì mức độ tinh chỉnh riêng từng mô hình.
+Bảng~\ref{tab:model_parameters} tóm tắt bộ tham số cố định của các mô hình. Bộ tham số này được chọn từ trước, dựa trên các nghiên cứu gần đây và thực nghiệm sơ bộ, và dùng chung cho Kịch bản 1 và 2. Nhờ vậy khác biệt quan sát được giữa các phương pháp giảm chiều phản ánh đúng bản thân phương pháp, thay vì mức độ tinh chỉnh riêng từng mô hình. Riêng Kịch bản 3 tinh chỉnh lại bốn mô hình (Random Forest, Decision Tree, \ac{gbt}, Logistic Regression) bằng Grid Search kết hợp kiểm định chéo.
 
 \begin{table}[htbp]
 \centering
-\caption{Tham số tối ưu của các mô hình học máy}
+\caption{Tham số cố định của các mô hình học máy}
 \label{tab:model_parameters}
 \small
 \renewcommand{\arraystretch}{0.9}
@@ -124,12 +124,12 @@ Bảng~\ref{tab:model_parameters} tóm tắt thiết lập tham số của các 
 \vspace*{\fill}
 \clearpage
 \subsection{Kịch bản 1: Đánh giá hiệu năng cơ sở (Baseline)}
-Trong kịch bản này, toàn bộ tập đặc trưng số (khoảng 78 đặc trưng trước khi loại cổng, chính xác là 77 đặc trưng sau khi loại \texttt{destination\_port}/\texttt{source\_port}) được đưa vào mô hình mà chưa qua bất kỳ bước lựa chọn đặc trưng hay giảm chiều nào. Mục tiêu là thiết lập một mức hiệu năng tham chiếu cho các thử nghiệm tiếp theo.
+Trong kịch bản này, toàn bộ 77 đặc trưng số (sau khi loại các cột cổng) được đưa vào mô hình mà chưa qua bất kỳ bước lựa chọn đặc trưng hay giảm chiều nào. Mục tiêu là thiết lập một mức hiệu năng tham chiếu cho các thử nghiệm tiếp theo.
 
 Kết quả hiệu năng của các thuật toán \ac{ml} đơn lẻ và phương pháp Ensemble được trình bày trong Bảng~\ref{tab:exp0_ml_metrics}.
 \begin{table}[htbp]
 \centering
-\caption[Hiệu năng phân loại kịch bản Baseline]{Kết quả hiệu năng phân loại kịch bản Baseline (toàn bộ đặc trưng số, $\approx$78 trước khi loại cổng)}
+\caption[Hiệu năng phân loại kịch bản Baseline]{Kết quả hiệu năng phân loại kịch bản Baseline (toàn bộ 77 đặc trưng số)}
 \label{tab:exp0_ml_metrics}
 \small
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccccc@{}}
@@ -152,19 +152,21 @@ MLP                    & 0{,}9900 & 0{,}9844 & 0{,}9487 & 0{,}9662 & 0{,}9984 & 
 \end{table}
 
 % (Ghi chú nội bộ: điền số liệu từ results/ml_01_baseline/ và ml_07_cross_method_comparison/cross_method_summary.csv sau khi chạy pipeline loại trừ rò rỉ.)
-Với cấu hình đã loại trừ rò rỉ dữ liệu, nhóm mô hình dựa trên cây (Random Forest, \ac{xgb}, GBT) được kỳ vọng dẫn đầu, với F1 thấp hơn mức gần-tuyệt-đối của các cấu hình có rò rỉ và phản ánh đúng độ khó thực của bài toán. Kết luận ``mô hình nào tốt nhất'' chỉ được đưa ra khi chênh lệch vượt khoảng tin cậy (xem mục kiểm định thống kê). Do dữ liệu mất cân bằng mạnh, AUC-PR và recall trên lớp tấn công được ưu tiên hơn Accuracy khi diễn giải, vì Accuracy có thể gây lạc quan giả tạo (một mô hình luôn đoán lớp benign chiếm đa số vẫn đạt Accuracy cao).
+Nhóm mô hình dựa trên cây dẫn đầu: \ac{xgb} đạt F1 0{,}9971, Decision Tree 0{,}9954, Random Forest 0{,}9949 và \ac{gbt} 0{,}9932. MLP đứng sau với 0{,}9662. Hai mô hình tuyến tính thấp hơn hẳn (Logistic Regression 0{,}7991, \ac{svm} 0{,}7788): recall vẫn khoảng 0{,}94 nhưng precision chỉ 0{,}69 và 0{,}67, tức khoảng một phần ba cảnh báo là sai. \ac{nb} gần như gắn cờ mọi luồng (recall 0{,}9933, precision 0{,}1793) nên F1 chỉ 0{,}3038. Hai mô hình học tổ hợp (0{,}9967 và 0{,}9969) không vượt \ac{xgb} đơn lẻ.
+
+Các con số này thu được sau khi đã loại trừ rò rỉ dữ liệu, nên thấp hơn mức gần tuyệt đối của các cấu hình có rò rỉ và phản ánh đúng hơn độ khó của bài toán. Chênh lệch giữa các mô hình dẫn đầu rất nhỏ, vì vậy kết luận ``mô hình nào tốt nhất'' chỉ được đưa ra khi chênh lệch vượt khoảng tin cậy (Mục~\ref{sec:stat_validity}). Do dữ liệu mất cân bằng mạnh, AUC-\ac{pr} và recall trên lớp tấn công được ưu tiên hơn Accuracy khi diễn giải: một mô hình luôn đoán lớp benign vẫn đạt Accuracy cao.
 
 \subsection{Kịch bản 2: So sánh chiến lược giảm chiều dữ liệu}
 Luận văn thực hiện so sánh 3 chiến lược chính nhằm giảm số lượng đặc trưng nhưng vẫn bảo đảm hiệu năng:
 \begin{enumerate}
     \item \textbf{\ac{rf} Feature Importance}: Trích xuất 30 đặc trưng có độ quan trọng cao nhất từ Random Forest.
     \item \textbf{\ac{shap} Importance}: Sử dụng giá trị Shapley từ mô hình \ac{xgb} để chọn ra 30 đặc trưng có ảnh hưởng lớn nhất.
-    \item \textbf{\ac{pca} (k=40)}: Giảm chiều dữ liệu từ không gian đặc trưng gốc ($\approx$78 chiều trước khi loại cổng) xuống 40 thành phần chính.
+    \item \textbf{\ac{pca} (k=40)}: Giảm chiều dữ liệu từ không gian đặc trưng gốc (77 chiều) xuống 40 thành phần chính.
 \end{enumerate}
 
 \noindent Lưu ý rằng \ac{pca} dùng $k=40$, nhiều hơn 30 đặc trưng của \ac{rf}/\ac{shap}, vì đây là phép trích xuất chứ không phải chọn lọc: mỗi thành phần chính chỉ là một tổ hợp tuyến tính mang một phần phương sai, nên cần nhiều thành phần hơn để giữ lượng thông tin (phương sai tích lũy) tương đương với tập 30 đặc trưng gốc. Trong dải quét chung $\{20,30,40\}$, $k=40$ là mức giữ phương sai cao nhất, nên là điểm vận hành đại diện công bằng nhất cho \ac{pca}. Ép $k=30$ sẽ làm \ac{pca} mất thêm phương sai và bất lợi khi so sánh.
 
-Bảng~\ref{tab:summary_comparison} tóm tắt sự khác biệt giữa các phương pháp. Mô hình đại diện (cột \emph{Mô hình tốt nhất}) của mỗi phương pháp được chọn theo F1 trên tập kiểm định (validation) tách từ tập huấn luyện. Tập kiểm tra không tham gia khâu chọn lọc này. Mục tiêu là kiểm chứng giả thuyết: lựa chọn đặc trưng (\ac{rf}/\ac{shap} Top-30) giữ được hiệu năng gần với baseline trong khi giảm hơn 60\% số đặc trưng, qua đó phù hợp cho triển khai biên.
+Bảng~\ref{tab:summary_comparison} so sánh bốn cấu hình. Mô hình đại diện (cột \emph{Mô hình tốt nhất}) của mỗi phương pháp được chọn theo F1 trên tập kiểm định (validation) tách từ tập huấn luyện. Tập kiểm tra không tham gia khâu chọn này.
 
 \begin{table}[htbp]
 \centering
@@ -180,10 +182,12 @@ Baseline (Toàn bộ) & 77 & \ac{xgb} & 0{,}9971 & 4615{,}5 & 2{,}32 \\
 \ac{pca} (k=40) & 40 & \ac{xgb} & 0{,}9939 & 1444{,}8 & 3{,}82 \\ \bottomrule
 \end{tabular*}
 
-\tabnote{Baseline dùng toàn bộ 77 đặc trưng số ($\approx$78 trước khi loại cổng). $^{\dagger}$Kích thước đo bằng cách tuần tự hóa mô hình \emph{trên cụm huấn luyện phân tán}: bước lưu mô hình phân tán ghi các phân vùng dữ liệu rừng cây trên executor đang giữ chúng, nên giá trị cỡ KB chỉ bắt được metadata cục bộ trên driver và \emph{thấp hơn thực tế}. Vì dung lượng ensemble cây phụ thuộc số cây và số nút (không phụ thuộc số đặc trưng đầu vào), mô hình \ac{xgb} SHAP Top-30 thực tế tương đương bản RF Top-30 ($\approx$2{,}5\,MB). Cũng vì vậy, tập đặc trưng rút gọn có thể cho mô hình \emph{lớn hơn} baseline một chút (2{,}52 so với 2{,}32\,MB): ít ứng viên tách hơn khiến cây cần nhiều nút hơn để đạt cùng độ tinh khiết. Phép đo tin cậy là bản mô hình xuất ra ở chế độ đơn nút của pipeline triển khai (Mục kết quả biên).}
+\tabnote{$^{\dagger}$Kích thước đo bằng cách tuần tự hóa mô hình \emph{trên cụm huấn luyện phân tán}: bước lưu mô hình phân tán ghi các phân vùng dữ liệu rừng cây trên executor đang giữ chúng, nên giá trị cỡ KB chỉ bắt được metadata cục bộ trên driver và \emph{thấp hơn thực tế}. Vì dung lượng ensemble cây phụ thuộc số cây và số nút (không phụ thuộc số đặc trưng đầu vào), mô hình \ac{xgb} SHAP Top-30 thực tế tương đương bản RF Top-30 ($\approx$2{,}5\,MB). Cũng vì vậy, tập đặc trưng rút gọn có thể cho mô hình \emph{lớn hơn} baseline một chút (2{,}52 so với 2{,}32\,MB): ít ứng viên tách hơn khiến cây cần nhiều nút hơn để đạt cùng độ tinh khiết. Phép đo tin cậy là bản mô hình xuất ra ở chế độ đơn nút của pipeline triển khai (Mục kết quả biên).}
 \end{table}
 
-Ngoài ra, việc so sánh trực tiếp giữa hai phương pháp lựa chọn đặc trưng dựa trên độ quan trọng của \ac{rf} và \ac{shap} được trình bày chi tiết trong Bảng~\ref{tab:rf_vs_shap}.
+\ac{shap} Top-30 giữ được hiệu năng của Baseline: F1 0{,}9970 so với 0{,}9971, trong khi số đặc trưng giảm từ 77 xuống 30 (giảm 61\%) và thời gian huấn luyện giảm từ 4615{,}5 xuống 1226{,}1\,giây, tức còn khoảng một phần tư. Hai phương pháp còn lại cũng rút ngắn thời gian huấn luyện tương tự nhưng mất hiệu năng nhiều hơn: \ac{pca} đạt 0{,}9939 và \ac{rf} Importance đạt 0{,}9922. Chênh lệch giữa Baseline và \ac{shap} Top-30 có đủ nhỏ để coi hai cấu hình là tương đương hay không được kiểm định ở Mục~\ref{sec:stat_validity}.
+
+Bảng~\ref{tab:rf_vs_shap} so sánh trực tiếp hai cách chọn 30 đặc trưng trên bốn mô hình cây. Danh sách chọn theo \ac{shap} cho F1 cao hơn danh sách chọn theo độ quan trọng của \ac{rf} ở cả bốn mô hình, với mức chênh tương đối từ $+0{,}48\%$ đến $+1{,}15\%$.
 
 \begin{table}[htbp]
 \centering
@@ -200,10 +204,9 @@ Decision Tree & 0{,}9835 & 0{,}9948 & +1{,}15 \\ \bottomrule
 \end{table}
 
 \subsection{Kịch bản 3: Tối ưu hóa siêu tham số}
-Sau khi chọn được bộ đặc trưng tối ưu từ \ac{shap}, bốn mô hình Spark ML gốc (Random Forest, Decision Tree, \ac{gbt}, Logistic Regression) được tinh chỉnh tham số thông qua Grid Search kết hợp Cross-validation trên tập đặc trưng SHAP Top-30. Các mô hình còn lại (\ac{xgb}, MLP, \ac{svm}, \ac{nb}) giữ nguyên bộ tham số cố định ở Bảng~\ref{tab:model_parameters} (xem lý do ở đầu mục).
-Việc tinh chỉnh giúp các mô hình cây đạt F1 quanh mức 0{,}995 (Bảng~\ref{tab:exp2_ml_metrics}). Mức cải thiện so với cấu hình cố định là nhỏ do bài toán nhị phân trong-miền đã gần bão hòa, phù hợp với nhận định ở mục kiểm định thống kê.
+Kịch bản này tinh chỉnh bốn mô hình Spark ML gốc (Random Forest, Decision Tree, \ac{gbt}, Logistic Regression) bằng Grid Search kết hợp kiểm định chéo. Việc tinh chỉnh chạy trên cấu hình đặc trưng có F1 cao nhất ở Kịch bản 2, tức Baseline với toàn bộ 77 đặc trưng. Các mô hình còn lại (\ac{xgb}, MLP, \ac{svm}, \ac{nb}) giữ bộ tham số cố định ở Bảng~\ref{tab:model_parameters}.
 
-Kết quả hiệu năng của phương pháp Tối ưu hóa siêu tham số được trình bày trong Bảng~\ref{tab:exp2_ml_metrics}.
+Kết quả ở Bảng~\ref{tab:exp2_ml_metrics}. Sau tinh chỉnh, ba mô hình cây đạt F1 quanh mức 0{,}995. Mức cải thiện so với cấu hình cố định là nhỏ (ví dụ Random Forest từ 0{,}9949 lên 0{,}9953), vì bài toán nhị phân cùng bộ đã gần bão hòa. Logistic Regression tăng từ 0{,}7991 lên 0{,}8226 nhưng vẫn cách xa nhóm cây.
 \begin{table}[htbp]
 \centering
 \caption{Kết quả hiệu năng phân loại kịch bản Tối ưu hóa siêu tham số}
@@ -337,9 +340,15 @@ MLP                    & 314{,}7  & 8{,}0  & 0{,}0004 \\ \midrule
 
 \subsection{Kiểm định ý nghĩa thống kê}
 \label{sec:stat_validity}
-Do các con số F1 giữa những phương pháp/thuật toán hàng đầu rất sát nhau, luận văn không kết luận ``mô hình tốt nhất'' chỉ dựa trên một lần đo. Mô hình đại diện của mỗi phương pháp, cũng như cặp phương pháp dẫn đầu được đưa vào kiểm định, đều được chọn theo F1 trên tập kiểm định (validation, 20\% tách từ tập huấn luyện, \texttt{seed}=42). Tập kiểm tra không tham gia khâu chọn lọc. Hai phương pháp này sau đó được huấn luyện lại trên $N$ lần lấy mẫu lại tập huấn luyện/kiểm tra (mặc định $N{=}6$, ghép cặp trên cùng một phép chia ở mỗi vòng), tính F1 trung bình kèm hai loại khoảng tin cậy 95\%: khoảng tin cậy $t$ thông thường và khoảng tin cậy hiệu chỉnh \emph{Nadeau--Bengio}~\cite{nadeau2003inference}, trong đó phương sai nhân hệ số $(1/N + n_{\text{test}}/n_{\text{train}})$ để bù tương quan giữa các lần lấy mẫu lại chồng lấn. Khoảng Nadeau--Bengio được dùng làm căn cứ kết luận chính. Ý nghĩa thống kê được kiểm bằng permutation test ghép cặp hai phía, liệt kê đầy đủ toàn bộ $2^N = 64$ hoán vị đổi dấu (kiểm định chính xác, không xấp xỉ Monte Carlo), do đó $p$ nhỏ nhất khả dĩ là $2/64 \approx 0{,}031$. Độ lớn hiệu ứng được báo cáo bằng Cohen's $d$ ghép cặp (Bảng~\ref{tab:stat_validity}). Chênh lệch F1 giữa Baseline và \ac{shap} Top-30 có ý nghĩa thống kê ở mức sàn của độ phân giải kiểm định ($p \approx 0{,}031$, $d \approx 1{,}94$), nhưng khác biệt tuyệt đối rất nhỏ ($\approx 0{,}0001$ điểm F1) nên hai phương pháp tương đương về mặt thực dụng. Khi đó, tiêu chí phụ (khả năng giải thích, kích thước, chi phí biên) mới là căn cứ lựa chọn. Với $N{=}6$, kiểm định có lực thống kê thấp. Vì vậy, một giá trị $p$ không có ý nghĩa thống kê tự nó chỉ là bằng chứng yếu cho ``tương đương'', và kết luận được căn cứ đồng thời vào khoảng tin cậy Nadeau--Bengio và Cohen's $d$.
+Các giá trị F1 của những cấu hình dẫn đầu rất sát nhau, nên luận văn không kết luận ``mô hình tốt nhất'' từ một lần đo. Mục này kiểm định cặp cấu hình dẫn đầu, Baseline và \ac{shap} Top-30, theo hai câu hỏi: hai cấu hình có khác nhau không, và nếu khác thì mức khác có đủ nhỏ để coi là tương đương không. Kết quả ở Bảng~\ref{tab:stat_validity}.
 
-\textbf{Kiểm định tương đương (TOST).} Kiểm định ý nghĩa thông thường chỉ có thể \emph{bác bỏ} giả thuyết ``không khác biệt'', không bao giờ \emph{chứng minh} được hai cấu hình tương đương. Đó là lý do lập luận ``$p$ sát sàn nên coi như tương đương'' ở trên vẫn còn yếu. Luận văn do đó bổ sung kiểm định hai phía một đuôi (two one-sided tests, TOST~\cite{schuirmann1987tost}) với biên tương đương \emph{khai báo trước} là $0{,}001$ điểm F1, mức chênh lệch còn lại không có ý nghĩa vận hành cho \ac{ids}, và lớn hơn một bậc so với khoảng cách thực tế giữa hai cấu hình. Dùng chính sai số chuẩn đã hiệu chỉnh Nadeau--Bengio ($4{,}58 \times 10^{-5}$) để các lần lấy mẫu lại chồng lấn không làm kết luận đẹp lên giả tạo, kết quả là $p_{\text{TOST}} = 3{,}9 \times 10^{-6}$: hai cấu hình \emph{tương đương} theo nghĩa khẳng định, chứ không chỉ là ``chưa phân biệt được''. Chặt hơn nữa, biên nhỏ nhất mà dữ liệu sáu lần lấy mẫu lại này chứng minh được ở mức $\alpha = 0{,}05$ là $\pm 2{,}30 \times 10^{-4}$ điểm F1, tức chênh lệch thật giữa Baseline và \ac{shap} Top-30 chắc chắn nhỏ hơn ngưỡng đó. Tăng $N$ (kèm kiểm định chéo lồng) vẫn là hướng củng cố tiếp theo, nhưng kết luận tương đương không còn phụ thuộc vào một giá trị $p$ nằm sát sàn phân giải.
+\textbf{Cách đo.} Mô hình đại diện của mỗi phương pháp, cũng như cặp phương pháp đưa vào kiểm định, đều được chọn theo F1 trên tập kiểm định (validation, 20\% tách từ tập huấn luyện, \texttt{seed}=42). Tập kiểm tra không tham gia khâu chọn này. Hai phương pháp sau đó được huấn luyện lại trên $N{=}6$ lần lấy mẫu lại tập huấn luyện/kiểm tra, ghép cặp trên cùng một phép chia ở mỗi lần. Với mỗi phương pháp, luận văn báo cáo F1 trung bình kèm hai khoảng tin cậy 95\%: khoảng $t$ thông thường và khoảng hiệu chỉnh \emph{Nadeau--Bengio}~\cite{nadeau2003inference}. Khoảng Nadeau--Bengio nhân phương sai với hệ số $(1/N + n_{\text{test}}/n_{\text{train}})$ để bù tương quan giữa các lần lấy mẫu lại chồng lấn, và được dùng làm căn cứ kết luận chính.
+
+\textbf{Hai cấu hình có khác nhau không.} Khác biệt được kiểm bằng permutation test ghép cặp hai phía, liệt kê đầy đủ $2^N = 64$ hoán vị đổi dấu (kiểm định chính xác, không xấp xỉ Monte Carlo). Với cách này, $p$ nhỏ nhất có thể đạt là $2/64 \approx 0{,}031$. Độ lớn hiệu ứng được đo bằng Cohen's $d$ ghép cặp. Chênh lệch F1 giữa Baseline và \ac{shap} Top-30 có ý nghĩa thống kê ở đúng mức sàn đó ($p \approx 0{,}031$, $d \approx 1{,}94$), nhưng giá trị tuyệt đối chỉ khoảng $0{,}0001$ điểm F1. Với $N{=}6$, kiểm định có lực thống kê thấp, nên riêng giá trị $p$ này chưa đủ để kết luận hai cấu hình tương đương hay không.
+
+\textbf{Hai cấu hình có tương đương không.} Kiểm định ý nghĩa thông thường chỉ có thể bác bỏ giả thuyết ``không khác biệt'', không chứng minh được hai cấu hình tương đương. Luận văn vì vậy bổ sung kiểm định tương đương TOST (two one-sided tests~\cite{schuirmann1987tost}). Biên tương đương được khai báo trước là $0{,}001$ điểm F1: mức chênh nhỏ hơn thế không có ý nghĩa vận hành với \ac{ids}, và biên này lớn hơn một bậc so với khoảng cách thực tế giữa hai cấu hình. Kiểm định dùng chính sai số chuẩn đã hiệu chỉnh Nadeau--Bengio ($4{,}58 \times 10^{-5}$), để các lần lấy mẫu lại chồng lấn không làm kết luận đẹp lên giả tạo.
+
+Kết quả là $p_{\text{TOST}} = 3{,}9 \times 10^{-6}$: hai cấu hình tương đương theo nghĩa khẳng định, chứ không chỉ là ``chưa phân biệt được''. Biên nhỏ nhất mà sáu lần lấy mẫu lại này chứng minh được ở mức $\alpha = 0{,}05$ là $\pm 2{,}30 \times 10^{-4}$ điểm F1, tức chênh lệch thật giữa Baseline và \ac{shap} Top-30 nhỏ hơn ngưỡng đó. Vì hai cấu hình tương đương về hiệu năng, các tiêu chí phụ (khả năng giải thích, kích thước, chi phí trên thiết bị biên) mới là căn cứ lựa chọn. Tăng $N$ kèm kiểm định chéo lồng vẫn là hướng củng cố tiếp theo.
 
 \begin{table}[htbp]
 \centering
@@ -374,9 +383,13 @@ Baseline & \ac{xgb} & 0{,}9971 & 0{,}9999 \\
 
 \subsection{Tổng quát hóa liên bộ dữ liệu}
 \label{sec:cross-dataset}
-Đánh giá trên tập giữ lại ở trên là phép thử cùng bộ (in-domain, cùng phân phối). Để kiểm chứng khả năng tổng quát hóa thực sự, mô hình được huấn luyện trên một bộ dữ liệu và kiểm tra trên bộ còn lại, chạy theo cả hai chiều (đánh giá khác bộ, cross-dataset), trên tập đặc trưng đã loại trừ rò rỉ dùng chung cho hai bộ. Do hai bộ dữ liệu đặt tên cột khác nhau (CSE-CIC-IDS2018 dùng tên viết tắt kiểu CICFlowMeter v3), tên cột của CSE-CIC-IDS2018 được ánh xạ về tên chuẩn của CICIDS2017 qua một bảng bí danh (alias) tường minh trong mã nguồn. Danh sách đặc trưng chung sau ánh xạ được lưu tại \texttt{common\_features.txt} để bảo đảm tái lập. Mô hình dùng cho thí nghiệm là Random Forest có trọng số lớp (\texttt{weightCol}), nhất quán với cơ chế xử lý mất cân bằng ở Chương~3. Khoảng cách giữa F1 cùng bộ và F1 khác bộ (Bảng~\ref{tab:cross_dataset}) định lượng mức suy giảm khi gặp dịch chuyển phân phối, một thước đo độ ổn định chặt chẽ hơn holdout cùng phân phối.
+Các kết quả từ đầu chương đến đây đều là đánh giá \emph{cùng bộ}: mô hình được huấn luyện và kiểm tra trên hai phần của cùng một bộ dữ liệu. Mục này đánh giá \emph{khác bộ}: huấn luyện trên một bộ dữ liệu (miền nguồn) rồi kiểm tra trên bộ còn lại (miền đích), theo cả hai chiều giữa CICIDS2017 và CSE-CIC-IDS2018. Đây là phép thử gần nhất với tình huống đưa một hệ thống đã huấn luyện sang một mạng khác. Mục này trả lời ba câu hỏi: hiệu năng giảm bao nhiêu khi đổi bộ dữ liệu, có khắc phục được mà không cần nhãn của miền đích hay không, và nếu cần nhãn thì cần bao nhiêu.
 
-Do CSE-CIC-IDS2018~\cite{csecicids2018} có quy mô rất lớn ($\sim$16 triệu luồng, $\sim$6\,GB), vượt quá khả năng xử lý thoải mái của thiết bị biên Jetson (8\,GB), thí nghiệm này dùng mẫu phân tầng theo nhãn của CSE-CIC-IDS2018 (tỷ lệ 0{,}2, $\sim$3{,}14 triệu luồng lấy mẫu, còn $\sim$2{,}39 triệu sau khử trùng lặp mức đặc trưng, \texttt{seed}=42, công tắc \texttt{IDS\_SAMPLE\_FRAC}) nhằm bảo toàn tỷ lệ các lớp trong khi vừa với phần cứng, còn CICIDS2017 dùng $\sim$2{,}23 triệu luồng. Toàn bộ quy trình tiền xử lý và căn chỉnh CSE-CIC-IDS2018 cho thí nghiệm liên bộ dữ liệu được trình bày ở Thuật toán~\ref{alg:prep_2018}. Các bước loại trừ rò rỉ (giao đặc trưng chung không chứa cổng/IP, khử trùng lặp mức đặc trưng) hoàn toàn nhất quán với quy trình cho CICIDS2017 (Thuật toán~\ref{data_preparation_ag}). Các con số mẫu được báo cáo tường minh để bảo đảm tính tái lập. Việc mở rộng lên toàn bộ CSE-CIC-IDS2018 là hướng phát triển tiếp theo.
+\textbf{Thiết lập thí nghiệm.} Mô hình là Random Forest có trọng số lớp (\texttt{weightCol}), giống cơ chế xử lý mất cân bằng ở Chương~3. Hai bộ dữ liệu đặt tên cột khác nhau, nên tên cột của CSE-CIC-IDS2018 được ánh xạ về tên chuẩn của CICIDS2017. Mô hình chỉ dùng các đặc trưng có ở cả hai bộ, sau khi đã loại các đặc trưng rò rỉ. Các bước loại trừ rò rỉ giống hệt quy trình cho CICIDS2017 (Thuật toán~\ref{data_preparation_ag}). Toàn bộ quy trình cho CSE-CIC-IDS2018 được trình bày ở Thuật toán~\ref{alg:prep_2018}.
+
+CSE-CIC-IDS2018~\cite{csecicids2018} có khoảng 16 triệu luồng ($\sim$6\,GB), quá lớn so với bộ nhớ 8\,GB của Jetson. Vì vậy thí nghiệm dùng một mẫu 20\% phân tầng theo nhãn: khoảng 3{,}14 triệu luồng, còn khoảng 2{,}39 triệu sau khi khử trùng lặp ở mức đặc trưng\footnote{Mẫu được lấy với \texttt{seed}=42 qua công tắc \texttt{IDS\_SAMPLE\_FRAC}. Danh sách đặc trưng chung sau ánh xạ được lưu tại \texttt{common\_features.txt}.}. CICIDS2017 dùng khoảng 2{,}23 triệu luồng. Việc mở rộng lên toàn bộ CSE-CIC-IDS2018 là hướng phát triển tiếp theo.
+
+Thí nghiệm được chạy 18 lượt trên cùng mã nguồn, cùng dữ liệu và cùng danh sách đặc trưng. Chỉ hạt giống của rừng ngẫu nhiên thay đổi: 13 hạt giống, trong đó 5 hạt giống được chạy hai lượt để đo riêng phần dao động giữa hai lượt có cấu hình giống hệt nhau. Kết quả ở Bảng~\ref{tab:cross_dataset}.
 
 \begin{algorithm}[htbp]
 \caption{Tiền xử lý và căn chỉnh CSE-CIC-IDS2018 cho đánh giá liên bộ dữ liệu}
@@ -423,20 +436,34 @@ CICIDS2017 & CSE-CIC-IDS2018 & khác bộ & 0{,}185--0{,}301 (7) & 0{,}4960 \\
 CSE-CIC-IDS2018 & CSE-CIC-IDS2018 & cùng bộ & 0{,}9246 & 0{,}9679 \\
 CSE-CIC-IDS2018 & CICIDS2017 & khác bộ & 0{,}0544 $\pm$ 0{,}0019 & 0{,}1926 \\ \bottomrule
 \end{tabular*}
-\tabnote{Mười tám lượt chạy trên cùng mã nguồn và cùng dữ liệu, dùng mười ba hạt giống rừng ngẫu nhiên, trong đó năm hạt giống được lặp lại hai lượt. Chiều 2017$\rightarrow$2018 tách thành hai dòng theo hai chế độ, mỗi dòng kèm số lượt trong ngoặc và AUC-\ac{pr} của riêng chế độ đó (trung bình chung là 0{,}4849), và không ghi trung bình F1 vì mười tám giá trị tách thành hai nhóm rời nhau (0{,}0291--0{,}0843 với 11 lượt và 0{,}1853--0{,}3009 với 7 lượt, không có giá trị nào ở giữa): trung bình 0{,}1276 rơi đúng vào khoảng trống nên không lượt nào cho giá trị đó, và khoảng tin cậy 95\% của trung bình ([0{,}0732; 0{,}1820], Student-$t$, $n=18$) chỉ chứa 1 trong 18 lượt. Ghi con số đó ở đây sẽ gợi ý sai rằng kết quả dao động quanh 0{,}13. Chiều 2018$\rightarrow$2017 đơn đỉnh (khoảng cách lớn nhất giữa hai giá trị liền nhau là 0{,}0023) nên trung bình kèm khoảng tin cậy là cách mô tả hợp lý. Các đại lượng cùng bộ (hệ số biến thiên $\le$ 0{,}1\%) và AUC-\ac{pr} chiều 2017$\rightarrow$2018 (0{,}4444--0{,}5397, hệ số biến thiên 5{,}5\%) thì ổn định.}
+\tabnote{Chiều 2017$\rightarrow$2018 được ghi thành hai dòng vì F1 của 18 lượt tách thành hai nhóm rời nhau (giải thích ở phần dưới). Mỗi dòng ghi khoảng giá trị F1, số lượt trong ngoặc và AUC-\ac{pr} trung bình của riêng nhóm đó. AUC-\ac{pr} trung bình của cả 18 lượt là 0{,}4849. Ở dòng cuối, $\pm$ là nửa độ rộng khoảng tin cậy 95\% (Student-$t$, $n=18$).}
 \end{table}
 
-\textbf{Diễn giải.} Kết quả cho thấy một tương phản rõ rệt: hiệu năng cùng bộ cao và ổn định ở cả hai chiều (F1 0{,}9953 và 0{,}9246, hệ số biến thiên dưới 0{,}1\% qua 18 lượt chạy), còn hiệu năng khác bộ rơi xuống mức không dùng được. AUC-\ac{pr} cho thấy mức rơi này rõ nhất, vì nó không phụ thuộc ngưỡng quyết định và ổn định giữa các lượt chạy: từ 0{,}9997 xuống 0{,}4849 ở chiều 2017$\rightarrow$2018 và từ 0{,}9679 xuống 0{,}1926 ở chiều ngược lại, tức mất một nửa đến bốn phần năm khả năng xếp hạng luồng độc hại. F1 khác bộ nằm ở hai chế độ 0{,}0291--0{,}0843 và 0{,}1853--0{,}3009 ở chiều 2017$\rightarrow$2018, còn chiều ngược lại tập trung quanh 0{,}0544 (0{,}0460--0{,}0593). Mức thấp này đến từ recall rất nhỏ (trung bình 0{,}073 và 0{,}030) trong khi precision vẫn còn khá (0{,}772 và 0{,}272), tức mô hình gần như không nhận ra tấn công của bộ dữ liệu kia, chứ không tạo ra cảnh báo sai tràn lan. Nguyên nhân là dịch chuyển phân phối đặc trưng giữa hai testbed: khác phiên bản CICFlowMeter (thang đo và cách tính một số đặc trưng thay đổi), khác hạ tầng mạng và cấu hình dịch vụ, khác tổ hợp loại tấn công (HOIC/LOIC-HTTP của 2018 không có trong 2017). Sự sụt giảm này nhất quán với các nghiên cứu cross-dataset trên IDS dựa trên đặc trưng luồng~\cite{dhooge2020interdataset,cantone2024crossdataset,sarhan2022explainable}, và củng cố luận điểm trung tâm của luận văn: con số trong-miền gần hoàn hảo, kể cả khi đã loại rò rỉ, không bảo đảm khả năng triển khai sang môi trường khác. Đánh giá liên bộ dữ liệu phải là một phần bắt buộc của quy trình kiểm định IDS~\cite{goldschmidt2025datasets}, và các hướng thích ứng miền (chuẩn hóa theo miền, huấn luyện liên bộ, cập nhật theo drift) là điều kiện tiên quyết cho triển khai thực tế.
+\textbf{Hiệu năng khác bộ rơi xuống mức không dùng được.} Cùng bộ, mô hình đạt F1 0{,}9953 và 0{,}9246, gần như không đổi qua 18 lượt chạy (hệ số biến thiên không quá 0{,}1\%). Khác bộ, F1 cao nhất quan sát được chỉ là 0{,}3009.
 
-\textbf{F1 khác bộ không phải một con số tái lập được.} Mười tám lượt chạy ở Bảng~\ref{tab:cross_dataset} dùng cùng mã nguồn, cùng tệp parquet và cùng danh sách đặc trưng. Chỉ hạt giống của rừng ngẫu nhiên thay đổi, và năm hạt giống được chạy hai lượt để đo riêng phần dao động \emph{trong cùng một cấu hình}. Kết quả ở chiều 2017$\rightarrow$2018 không phải nhiễu quanh một giá trị trung tâm mà là \emph{hai chế độ rời nhau}: mười một lượt cho F1 0{,}0291--0{,}0843 với recall 0{,}0148--0{,}0447, bảy lượt cho F1 0{,}1853--0{,}3009 với recall 0{,}1036--0{,}1778, và không một lượt nào rơi vào khoảng giữa 0{,}0843 và 0{,}1853.
+AUC-\ac{pr} cho thấy mức rơi này rõ nhất, vì nó không phụ thuộc ngưỡng quyết định và ổn định giữa các lượt chạy (ở chiều 2017$\rightarrow$2018 nó nằm trong khoảng 0{,}4444--0{,}5397, hệ số biến thiên 5{,}5\%). AUC-\ac{pr} giảm từ 0{,}9997 xuống 0{,}4849 ở chiều 2017$\rightarrow$2018 và từ 0{,}9679 xuống 0{,}1926 ở chiều ngược lại. Mô hình mất từ một nửa đến bốn phần năm khả năng xếp hạng luồng độc hại.
 
-Chế độ của một lượt do quá trình huấn luyện quyết định, \emph{không phải} hạt giống. Trong năm hạt giống được lặp, ba hạt giống cho hai lượt cùng chế độ và lệch nhau rất ít (seed 42: 0{,}3009 và 0{,}2936; seed 23: 0{,}0411 và 0{,}0434; seed 31: 0{,}0291 và 0{,}0303), nhưng \emph{hai hạt giống đổi hẳn chế độ giữa hai lượt}: seed 5 cho 0{,}0495 rồi 0{,}1854, seed 11 cho 0{,}0843 rồi 0{,}2606. Cùng một hạt giống, cùng một tệp dữ liệu vẫn có thể cho hai kết quả cách nhau hơn ba lần (3{,}1 lần ở seed 11 và 3{,}7 lần ở seed 5). Nguồn dao động nằm ở chính quá trình huấn luyện phân tán, nơi thứ tự gộp các phân vùng khi Spark tính biểu đồ tần suất chia nút không cố định giữa các lượt, nên một vài ngưỡng chia nút được chọn khác đi.
+Mô hình bỏ sót gần hết tấn công của bộ dữ liệu kia: recall trung bình chỉ 0{,}073 ở chiều 2017$\rightarrow$2018 và 0{,}030 ở chiều ngược lại. Precision cao hơn recall nhiều lần (0{,}772 và 0{,}272), nên vấn đề chính là bỏ sót tấn công chứ không phải cảnh báo sai tràn lan.
 
-Chính vị trí ngưỡng quyết định 0{,}5 khuếch đại sai lệch nhỏ đó thành hai chế độ. Xác suất dự đoán của gần như toàn bộ luồng tấn công miền đích nằm \emph{sát ngay} ngưỡng này, mà các luồng đó lại rất giống nhau (cùng vài họ tấn công, cùng bộ công cụ sinh ra), nên chúng không vượt ngưỡng lẻ tẻ từng luồng: cả một cụm lớn cùng lật qua hoặc cùng tụt xuống dưới ngưỡng, đưa recall nhảy thẳng từ $\approx$0{,}03 lên $\approx$0{,}15 mà không đi qua các giá trị trung gian. AUC-\ac{pr} xác nhận cách giải thích này: không dùng ngưỡng, nó \emph{không khác biệt phát hiện được giữa hai chế độ}. Trung bình 0{,}4778 ở chế độ thấp so với 0{,}4960 ở chế độ cao, hai khoảng giá trị (0{,}4444--0{,}5163 và 0{,}4532--0{,}5397) giao nhau trên phần lớn miền (88\% khoảng thấp và 73\% khoảng cao), và kiểm định Welch trên 11 so với 7 lượt không đủ bằng chứng để nói hai chế độ khác nhau ($|t| = 1{,}30$, $\mathrm{df} \approx 9$). Khả năng xếp hạng của mô hình không đổi giữa các lượt. Chỉ vị trí của ngưỡng 0{,}5 so với cụm luồng đó là đổi.
+Nguyên nhân là hai testbed khác nhau ở ba điểm: phiên bản CICFlowMeter (thang đo và cách tính một số đặc trưng thay đổi), hạ tầng mạng cùng cấu hình dịch vụ, và tổ hợp loại tấn công (HOIC, LOIC-HTTP của 2018 không có trong 2017). Mức sụt giảm này nhất quán với các nghiên cứu khác bộ trên \ac{ids} dựa trên đặc trưng luồng~\cite{dhooge2020interdataset,cantone2024crossdataset,sarhan2022explainable}. Nó củng cố luận điểm trung tâm của luận văn: F1 cùng bộ gần hoàn hảo, kể cả khi đã loại rò rỉ, không bảo đảm mô hình dùng được ở môi trường khác. Đánh giá khác bộ vì vậy phải là một bước bắt buộc khi kiểm định \ac{ids}~\cite{goldschmidt2025datasets}.
 
-Hai hệ quả về phương pháp đánh giá. Thứ nhất, trung bình không phải một cách mô tả tốt cho phân phối hai chế độ: con số 0{,}1276 ở Bảng~\ref{tab:cross_dataset} nằm đúng vào khoảng trống giữa hai chế độ, tức \emph{không lượt chạy nào} cho giá trị ấy. Thứ hai, một con số F1 khác bộ từ một lượt chạy duy nhất không mang thông tin về mô hình mà chủ yếu cho biết lượt đó rơi vào chế độ nào. Mẫu 0{,}0423 từng được ghi trong các bản thảo trước của luận văn và của bài báo, lưu tại \texttt{cross\_dataset\_results.published.bak}, là một mẫu thuộc chế độ thấp. Vì vậy luận văn báo cáo cả phân phối (số lượt mỗi chế độ và khoảng giá trị) và dùng AUC-\ac{pr} làm đại lượng chính khi so sánh khác bộ. Kết luận định tính không đổi: kể cả ở chế độ cao, F1 khác bộ 0{,}30 và AUC-\ac{pr} 0{,}50 vẫn cách rất xa mức cùng bộ 0{,}99 và 0{,}9997. Hai tiểu mục sau cho thấy khoảng cách đó không phép biến đổi nào \emph{trên miền nguồn} lấp được: cả hai kỹ thuật thích ứng không giám sát đều đưa F1 về 0, và chỉ khi có nhãn của miền đích thì khoảng cách mới thu hẹp lại.
+\textbf{F1 chiều 2017$\rightarrow$2018 tách thành hai nhóm rời nhau.} Mười tám lượt chạy chỉ khác nhau ở hạt giống, nhưng F1 của chúng không dao động quanh một giá trị trung tâm. Mười một lượt cho F1 0{,}0291--0{,}0843 với recall 0{,}0148--0{,}0447, gọi là \emph{nhóm thấp}. Bảy lượt cho F1 0{,}1853--0{,}3009 với recall 0{,}1036--0{,}1778, gọi là \emph{nhóm cao}. Không lượt nào rơi vào khoảng giữa 0{,}0843 và 0{,}1853. Chiều 2018$\rightarrow$2017 không có hiện tượng này: mười tám giá trị F1 nằm liền nhau trong khoảng 0{,}0460--0{,}0593, hai giá trị kề nhau cách nhau nhiều nhất 0{,}0023.
 
-\textbf{Thử hai kỹ thuật thích ứng miền không giám sát.} Câu hỏi tự nhiên tiếp theo là phần sụt giảm đó có phải chỉ do lệch thang đo giữa hai testbed hay không: nếu đúng vậy thì một phép căn chỉnh tuyến tính là đủ để khắc phục. Luận văn kiểm chứng bằng hai kỹ thuật kinh điển, cả hai đều \emph{không dùng bất kỳ nhãn nào của miền đích} và \emph{không huấn luyện lại bộ phân loại}, tức đúng tình huống của một hệ đã triển khai gặp mạng mới: (i)~\emph{chuẩn hóa theo miền}, giữ nguyên rừng cây, chỉ fit lại \texttt{StandardScaler} trên phần đặc trưng (không nhãn) của tập huấn luyện miền đích; (ii)~\emph{CORAL}~\cite{sun2016coral}, làm trắng miền đích bằng hiệp phương sai của chính nó rồi ``tô'' lại bằng hiệp phương sai miền nguồn, tức căn khớp cả moment bậc hai. Kết quả ở Bảng~\ref{tab:cross_adapt}.
+Hạt giống không quyết định một lượt rơi vào nhóm nào. Trong năm hạt giống được chạy hai lượt, ba hạt giống cho hai lượt cùng nhóm và lệch nhau rất ít (seed 42: 0{,}3009 và 0{,}2936; seed 23: 0{,}0411 và 0{,}0434; seed 31: 0{,}0291 và 0{,}0303). Hai hạt giống còn lại đổi nhóm giữa hai lượt: seed 5 cho 0{,}0495 rồi 0{,}1854, seed 11 cho 0{,}0843 rồi 0{,}2606. Cùng hạt giống và cùng dữ liệu, hai lượt vẫn chênh nhau 3{,}7 lần và 3{,}1 lần. Nguồn dao động là quá trình huấn luyện phân tán: thứ tự Spark gộp các phân vùng khi tính biểu đồ tần suất để chia nút không cố định giữa các lượt, nên một vài ngưỡng chia nút được chọn khác đi.
+
+Sai lệch nhỏ đó trở thành hai nhóm là do ngưỡng quyết định 0{,}5. Xác suất dự đoán của gần như toàn bộ luồng tấn công miền đích nằm sát ngưỡng này. Các luồng đó lại rất giống nhau, vì thuộc cùng vài họ tấn công và do cùng bộ công cụ sinh ra. Vì vậy chúng không vượt ngưỡng lẻ tẻ từng luồng, mà cả một cụm lớn cùng nằm trên hoặc cùng nằm dưới ngưỡng. Recall nhảy thẳng từ $\approx$0{,}03 lên $\approx$0{,}15 mà không đi qua các giá trị trung gian.
+
+AUC-\ac{pr} xác nhận cách giải thích này, vì nó không dùng ngưỡng. AUC-\ac{pr} trung bình là 0{,}4778 ở nhóm thấp và 0{,}4960 ở nhóm cao. Hai khoảng giá trị (0{,}4444--0{,}5163 và 0{,}4532--0{,}5397) chồng lên nhau trên phần lớn miền: 88\% khoảng của nhóm thấp và 73\% khoảng của nhóm cao. Kiểm định Welch trên 11 so với 7 lượt không đủ bằng chứng để nói hai nhóm khác nhau ($|t| = 1{,}30$, $\mathrm{df} \approx 9$). Khả năng xếp hạng của mô hình không đổi giữa các lượt. Chỉ vị trí của cụm luồng đó so với ngưỡng 0{,}5 là đổi.
+
+\textbf{Hệ quả đối với cách báo cáo.} Thứ nhất, không nên báo cáo F1 trung bình cho chiều 2017$\rightarrow$2018. Trung bình của 18 lượt là 0{,}1276, rơi đúng vào khoảng trống giữa hai nhóm nên không lượt nào cho giá trị ấy. Khoảng tin cậy 95\% của nó ([0{,}0732; 0{,}1820], Student-$t$, $n=18$) chỉ chứa 1 trong 18 lượt. Ghi con số này sẽ gợi ý sai rằng kết quả dao động quanh 0{,}13. Thứ hai, F1 khác bộ từ một lượt chạy duy nhất chủ yếu cho biết lượt đó rơi vào nhóm nào, chứ không mô tả mô hình.
+
+Vì vậy Bảng~\ref{tab:cross_dataset} ghi khoảng giá trị và số lượt của từng nhóm, và luận văn dùng AUC-\ac{pr} làm đại lượng chính khi so sánh khác bộ. Kết luận về mức sụt giảm không phụ thuộc vào nhóm: ngay ở nhóm cao, F1 khác bộ 0{,}30 và AUC-\ac{pr} 0{,}50 vẫn cách rất xa mức cùng bộ 0{,}99 và 0{,}9997.
+
+\textbf{Căn chỉnh đặc trưng không cần nhãn không thu hẹp được khoảng cách.} Nếu mức sụt giảm chỉ do hai testbed lệch thang đo thì một phép căn chỉnh tuyến tính là đủ để khắc phục. Luận văn kiểm chứng giả thuyết này bằng hai kỹ thuật thích ứng miền không giám sát kinh điển. Cả hai không dùng nhãn nào của miền đích và không huấn luyện lại bộ phân loại, đúng với tình huống một hệ đã triển khai gặp mạng mới:
+\begin{itemize}
+    \item \textbf{Chuẩn hóa theo miền}: giữ nguyên rừng cây, chỉ fit lại \texttt{StandardScaler} trên phần đặc trưng (không nhãn) của tập huấn luyện miền đích.
+    \item \textbf{CORAL}~\cite{sun2016coral}: làm trắng miền đích bằng hiệp phương sai của chính nó rồi ``tô'' lại bằng hiệp phương sai miền nguồn, tức căn khớp cả moment bậc hai.
+\end{itemize}
 
 \begin{table}[htbp]
 \centering
@@ -452,12 +479,16 @@ Hai hệ quả về phương pháp đánh giá. Thứ nhất, trung bình không
  & Chuẩn hóa theo miền & 0{,}0000 & 0{,}1068 \\
  & CORAL & 0{,}0000 & \textbf{0{,}2496} \\ \bottomrule
 \end{tabular*}
-\tabnote{Ba dòng của mỗi chiều đến từ \emph{cùng một lượt chạy} nên so sánh được với nhau. Dữ liệu thô của bảng này là \texttt{cross\_dataset\_adaptation\_high\_regime.csv} (hạt giống 42). Kết quả F1 về 0 được kiểm chứng trên \emph{bốn} lượt chạy độc lập, trải cả hai chế độ: ba lượt có mức cơ sở 0{,}2938--0{,}3001 thuộc chế độ cao (trong đó có lượt của Bảng~\ref{tab:label_budget} với mức cơ sở 0{,}2939, nên hai bảng nhất quán với nhau) và một lượt có mức cơ sở 0{,}0423 thuộc chế độ thấp, lưu tại \texttt{sweep/logs/xd\_clean\_run.log}. Cả hai kỹ thuật đều triệt tiêu phán quyết tấn công bất kể lượt chạy rơi vào chế độ nào. Ánh xạ CORAL được kiểm chứng giải tích: sau khi ánh xạ, trung bình và hiệp phương sai của miền đích khớp miền nguồn với sai số tương đối $4\times10^{-12}$.}
+\tabnote{Ba dòng của mỗi chiều đến từ cùng một lượt chạy (hạt giống 42, thuộc nhóm cao, từ \texttt{cross\_dataset\_adaptation\_high\_regime.csv}) nên so sánh được với nhau. Kết quả F1 về 0 lặp lại ở cả bốn lượt chạy độc lập đã thử: ba lượt nhóm cao (F1 khi không thích ứng 0{,}2938--0{,}3001, trong đó có lượt của Bảng~\ref{tab:label_budget}) và một lượt nhóm thấp (0{,}0423, lưu tại \texttt{sweep/logs/xd\_clean\_run.log}). Sau ánh xạ CORAL, trung bình và hiệp phương sai của miền đích khớp miền nguồn với sai số tương đối $4\times10^{-12}$.}
 \end{table}
 
-Cả hai kỹ thuật đều \emph{không} khôi phục được F1: sau khi căn chỉnh, mô hình gần như ngừng báo tấn công nên F1 về 0. Điều này bác bỏ giả thuyết ``chỉ lệch thang đo'': nếu dịch chuyển nằm ở moment bậc một và bậc hai thì hai phép căn chỉnh này đã đủ, nhưng thực tế phần khác biệt nằm ở \emph{phân phối có điều kiện}, tức cái gì làm một luồng trở thành độc hại, và hai testbed còn dùng bộ công cụ tấn công không trùng nhau. Tuy vậy có một chi tiết đáng chú ý: ở chiều 2018$\rightarrow$2017, CORAL \emph{cải thiện} AUC-\ac{pr} từ 0{,}1791 lên 0{,}2496 trong khi F1 vẫn bằng 0. Nghĩa là phép căn chỉnh có làm \emph{thứ tự xếp hạng} tốt lên, nhưng ngưỡng quyết định 0{,}5 học từ miền nguồn không còn hiệu lực trong không gian đặc trưng đã đổi. Bài học rút ra cho triển khai thực tế: thích ứng miền cho \ac{ids} không thể dừng ở căn chỉnh đặc trưng mà phải kèm \emph{hiệu chỉnh lại ngưỡng} trên miền đích.
+Bảng~\ref{tab:cross_adapt} cho thấy cả hai kỹ thuật đều đưa F1 về 0: sau khi căn chỉnh, mô hình gần như ngừng báo tấn công. Kết quả này bác bỏ giả thuyết ``chỉ lệch thang đo''. Nếu hai miền chỉ khác nhau ở trung bình và hiệp phương sai (moment bậc một và bậc hai) thì hai phép căn chỉnh này đã đủ. Phần khác biệt thực sự nằm ở phân phối có điều kiện, tức ở chỗ điều gì làm một luồng trở thành độc hại, và hai testbed còn dùng bộ công cụ tấn công không trùng nhau.
 
-\textbf{Cái giá của việc gán nhãn: 1\% dữ liệu miền đích.} Nếu không kỹ thuật không giám sát nào hiệu quả, câu hỏi thực tế tiếp theo là \emph{phải gán nhãn bao nhiêu} lưu lượng của mạng mới để có bộ phát hiện dùng được. Luận văn đo trực tiếp: lấy ngẫu nhiên 1\% tập huấn luyện của miền đích \emph{kèm nhãn} (giữ tỷ lệ tấn công tự nhiên, không phải mẫu cân bằng 50/50, vì kịch bản là gán nhãn những gì đi qua mạng), huấn luyện lại mô hình từ đầu, rồi đánh giá trên tập kiểm tra miền đích chưa hề đụng tới. Hai cấu hình được so sánh: (i)~\emph{gộp} dữ liệu nguồn với 1\% nhãn đích và (ii)~\emph{chỉ dùng} 1\% nhãn đích, bỏ hẳn dữ liệu nguồn. Cấu hình thứ hai là đối chứng để trả lời câu hỏi dữ liệu nguồn có đóng góp gì không. Kết quả ở Bảng~\ref{tab:label_budget}.
+Có một chi tiết đáng chú ý. Ở chiều 2018$\rightarrow$2017, CORAL nâng AUC-\ac{pr} từ 0{,}1791 lên 0{,}2496 trong khi F1 vẫn bằng 0. Phép căn chỉnh có làm thứ tự xếp hạng tốt lên, nhưng ngưỡng quyết định 0{,}5 học từ miền nguồn không còn hiệu lực trong không gian đặc trưng đã đổi. Với triển khai thực tế, thích ứng miền cho \ac{ids} vì vậy không thể dừng ở căn chỉnh đặc trưng mà phải kèm hiệu chỉnh lại ngưỡng trên miền đích.
+
+\textbf{Gán nhãn 1\% dữ liệu miền đích là đủ.} Khi không kỹ thuật không giám sát nào hiệu quả, câu hỏi thực tế là phải gán nhãn bao nhiêu lưu lượng của mạng mới để có bộ phát hiện dùng được. Luận văn đo trực tiếp: lấy ngẫu nhiên 1\% tập huấn luyện của miền đích kèm nhãn, huấn luyện lại mô hình từ đầu, rồi đánh giá trên tập kiểm tra của miền đích. Mẫu 1\% giữ tỷ lệ tấn công tự nhiên chứ không cân bằng 50/50, vì kịch bản là gán nhãn những gì đi qua mạng.
+
+Hai cấu hình được so sánh: gộp dữ liệu nguồn với 1\% nhãn đích, và chỉ dùng 1\% nhãn đích. Cấu hình thứ hai là đối chứng, cho biết dữ liệu nguồn có đóng góp gì không. Kết quả ở Bảng~\ref{tab:label_budget}.
 
 \begin{table}[htbp]
 \centering
@@ -475,12 +506,14 @@ Cả hai kỹ thuật đều \emph{không} khôi phục được F1: sau khi că
  & Nguồn $+$ 1\% nhãn đích & 18.011 & 0{,}9607 & 0{,}9853 \\
  & \textbf{Chỉ 1\% nhãn đích} & 18.011 & \textbf{0{,}9897} & 0{,}9849 \\ \bottomrule
 \end{tabular*}
-\tabnote{1\% được lấy từ \emph{tập huấn luyện} của miền đích, không bao giờ từ tập kiểm tra. Dòng ``không thích ứng'' lấy từ chính lượt chạy này để ba dòng so sánh được với nhau. Mức cơ sở 0{,}2939 vì vậy là một lượt thuộc \emph{chế độ cao} của phân phối F1 khác bộ nói trên, cùng chế độ với lượt dùng ở Bảng~\ref{tab:cross_adapt} (0{,}2978). Kết luận rút ra dưới đây không phụ thuộc vào mức cơ sở cụ thể: kể cả khi so với mẫu cao nhất quan sát được (0{,}3009), mức tăng do 1\% nhãn vẫn là hơn một bậc độ lớn ở cả hai chiều.}
+\tabnote{1\% được lấy từ tập huấn luyện của miền đích, không lấy từ tập kiểm tra. Dòng ``không thích ứng'' lấy từ chính lượt chạy này nên ba dòng so sánh được với nhau. Lượt này thuộc nhóm cao (F1 0{,}2939). Kết luận không phụ thuộc vào mức đó: F1 sau khi có 1\% nhãn vẫn cao gấp khoảng ba lần giá trị khác bộ cao nhất quan sát được (0{,}3009).}
 \end{table}
 
-Hai điều rút ra, điều thứ hai là bất ngờ. Thứ nhất, \textbf{khoảng 19 nghìn luồng có nhãn là đủ}: F1 chiều 2017$\rightarrow$2018 tăng từ 0{,}29 lên 0{,}92 và chiều ngược lại từ 0{,}06 lên 0{,}99. Bản thân mạng mới \emph{không} khó phát hiện. Cái không chuyển được là kiến thức của mô hình cũ. Thứ hai, \textbf{dữ liệu miền nguồn không những vô ích mà còn có hại}: chỉ dùng 19 nghìn dòng nhãn đích cho F1 0{,}9223, trong khi gộp thêm 1,79 triệu dòng có nhãn của miền nguồn lại kéo xuống 0{,}8034 (recall rơi từ 0{,}92 xuống 0{,}68). Chiều ngược lại cũng cùng xu hướng (0{,}9897 so với 0{,}9607). Khối lượng áp đảo của dữ liệu nguồn kéo mô hình về những mẫu hình đặc thù của testbed cũ, lấn át tín hiệu từ phần dữ liệu đích ít ỏi nhưng đúng phân phối.
+Có hai kết quả. Thứ nhất, \textbf{khoảng 19 nghìn luồng có nhãn là đủ}: F1 tăng từ 0{,}29 lên 0{,}92 ở chiều 2017$\rightarrow$2018 và từ 0{,}06 lên 0{,}99 ở chiều ngược lại. Mạng mới không khó phát hiện. Cái không chuyển sang được là kiến thức của mô hình cũ.
 
-Khuyến nghị triển khai rút ra từ đây rất cụ thể: khi đưa hệ thống sang một mạng mới, \emph{đừng} tái sử dụng mô hình cũ hay gộp dữ liệu cũ vào, mà hãy gán nhãn một lượng nhỏ lưu lượng tại chỗ (cỡ 1\%, tương đương vài giờ công của một phân tích viên) rồi huấn luyện lại từ đầu. Đây cũng là lời giải thích vì sao các kỹ thuật thích ứng không giám sát ở trên thất bại: khoảng cách giữa hai miền không nằm ở phép biến đổi tuyến tính của không gian đặc trưng mà ở chính ranh giới quyết định, và ranh giới đó chỉ học được từ nhãn của miền đích.
+Thứ hai, và bất ngờ hơn, \textbf{dữ liệu miền nguồn không những vô ích mà còn có hại}. Ở chiều 2017$\rightarrow$2018, chỉ dùng 19 nghìn luồng có nhãn của miền đích cho F1 0{,}9223. Gộp thêm 1{,}79 triệu luồng có nhãn của miền nguồn kéo F1 xuống 0{,}8034 và recall từ 0{,}92 xuống 0{,}68. Chiều ngược lại cùng xu hướng (0{,}9897 so với 0{,}9607). Dữ liệu nguồn nhiều áp đảo nên kéo mô hình về những mẫu hình đặc thù của testbed cũ, lấn át phần dữ liệu đích ít nhưng đúng phân phối.
+
+Khuyến nghị triển khai rút ra từ đây rất cụ thể. Khi đưa hệ thống sang một mạng mới, không nên dùng lại mô hình cũ hay gộp dữ liệu cũ vào. Nên gán nhãn một lượng nhỏ lưu lượng tại chỗ (cỡ 1\%, tương đương vài giờ công của một phân tích viên) rồi huấn luyện lại từ đầu. Kết quả này cũng giải thích vì sao hai kỹ thuật không giám sát ở trên thất bại: khoảng cách giữa hai miền nằm ở chính ranh giới quyết định chứ không ở một phép biến đổi tuyến tính của không gian đặc trưng, và ranh giới đó chỉ học được từ nhãn của miền đích.
 
 \subsection{Đánh giá đa lớp theo loại tấn công}
 \label{sec:multiclass}
@@ -520,7 +553,20 @@ Heartbleed                   & 3       & 1{,}0000 & 1{,}0000 & 1{,}0000 \\ \midr
     \label{fig:confusion_matrix}
 \end{figure}
 
-\textbf{Phân tích hướng nhầm lẫn giữa các lớp hiếm.} Đọc ma trận nhầm lẫn theo \emph{đích đến} của các dự đoán sai cho thấy các lớp hiếm suy giảm theo hai kiểu khác nhau. Kiểu thứ nhất là \emph{nhầm loại nhưng vẫn bị phát hiện}: 81/111 mẫu Web Attack~--~XSS bị gán thành Web Attack~--~Brute Force, tức ở bài toán nhị phân triển khai trên biên, các luồng này \emph{vẫn bị gắn cờ tấn công} (76\% XSS vẫn bị chặn), chỉ sai ở khâu định danh loại. Kiểu thứ hai nguy hiểm hơn là \emph{lọt hẳn thành Benign}: toàn bộ 6/6 mẫu SQL Injection, 158/290 mẫu Bot (54\%) và 84/311 mẫu Web Brute Force bị dự đoán là lưu lượng bình thường. Ba cơ chế giải thích hiện tượng này: (i)~\emph{mất cân bằng cực đoan} (6--311 mẫu so với 380.119 mẫu Benign) khiến các lớp hiếm gần như không có vùng quyết định riêng; (ii)~việc \emph{loại \texttt{destination\_port}} ảnh hưởng nặng nhất đến nhóm tấn công web: khi mất ``lối tắt'' cổng 80, các luồng HTTP tấn công (request/response ngắn) có đặc trưng hành vi rất gần lưu lượng duyệt web thường và gần lẫn nhau, do đó giá trị recall 0{,}027 của XSS là con số trung thực thay cho con số đẹp nhờ rò rỉ; (iii)~\emph{Bot lẫn Benign do bản chất}: các luồng beaconing C\&C nhỏ, đều đặn, giống lưu lượng nền khi không còn định danh cổng/dịch vụ. Nhận diện này dẫn thẳng tới các hướng phát triển: xử lý mất cân bằng có chủ đích (tăng cường/oversampling lớp hiếm), bổ sung đặc trưng chuỗi thời gian cho hành vi beaconing, và kiểm chứng liên bộ dữ liệu (Mục~\ref{sec:cross-dataset}).
+\textbf{Phân tích hướng nhầm lẫn giữa các lớp hiếm.} Ma trận nhầm lẫn cho thấy các lớp hiếm suy giảm theo hai kiểu khác nhau, tùy dự đoán sai rơi vào lớp nào.
+
+Kiểu thứ nhất là nhầm loại nhưng vẫn bị phát hiện. 81/111 mẫu Web Attack~--~XSS bị gán thành Web Attack~--~Brute Force. Ở bài toán nhị phân triển khai trên biên, các luồng này vẫn bị gắn cờ tấn công (76\% XSS vẫn bị chặn), chỉ sai ở khâu định danh loại.
+
+Kiểu thứ hai nguy hiểm hơn: lọt hẳn thành Benign. Toàn bộ 6/6 mẫu SQL Injection, 158/290 mẫu Bot (54\%) và 84/311 mẫu Web Brute Force bị dự đoán là lưu lượng bình thường.
+
+Có ba nguyên nhân:
+\begin{itemize}
+    \item \textbf{Mất cân bằng cực đoan}: mỗi lớp hiếm chỉ có 6--311 mẫu so với 380.119 mẫu Benign, nên gần như không có vùng quyết định riêng.
+    \item \textbf{Loại \texttt{destination\_port}}: ảnh hưởng nặng nhất đến nhóm tấn công web. Khi mất ``lối tắt'' cổng 80, các luồng HTTP tấn công (request/response ngắn) có đặc trưng hành vi rất gần lưu lượng duyệt web thường và gần lẫn nhau. Recall 0{,}027 của XSS vì vậy là con số trung thực, thay cho con số đẹp nhờ rò rỉ.
+    \item \textbf{Bot giống Benign về bản chất}: các luồng beaconing C\&C nhỏ và đều đặn, giống lưu lượng nền khi không còn định danh cổng/dịch vụ.
+\end{itemize}
+
+Các nguyên nhân này dẫn thẳng tới các hướng phát triển: xử lý mất cân bằng có chủ đích (tăng cường/oversampling lớp hiếm), bổ sung đặc trưng chuỗi thời gian cho hành vi beaconing, và kiểm chứng liên bộ dữ liệu (Mục~\ref{sec:cross-dataset}).
 
 \clearpage
 \section{Thực nghiệm và đánh giá hiệu năng mô hình trên Jetson Orin Nano Super}
@@ -625,7 +671,13 @@ Hệ thống phát hiện xâm nhập được thiết kế theo kiến trúc x�
 
 Kiến trúc này tách các thành phần xử lý thành những mô-đun độc lập, phù hợp với triển khai phân tán trên thiết bị biên tài nguyên hạn chế như Jetson Orin Nano Super.
 
-\textbf{Đặc tả cổng bất thường (operating point).} Cổng autoencoder là một bộ lọc điều chỉnh được chứ không phải một điểm vận hành cố định: nâng ngưỡng giúp giảm tải (offload) nhiều lưu lượng bình thường hơn khỏi Spark (tăng tỷ lệ bỏ qua tại cổng, gate-skip) nhưng có thể giảm recall trên lớp tấn công. Ngưỡng của cổng được chọn theo phân vị (quantile) của sai số tái tạo tính trên một tập kiểm định benign gồm 10\% tách từ phần lưu lượng bình thường của tập huấn luyện (\texttt{seed}=42). Tập kiểm tra không tham gia việc chọn ngưỡng, tránh rò rỉ kiểu ``ngưỡng oracle''. Bảng~\ref{tab:gate_oc} trình bày đường đánh đổi giữa recall và mức giảm tải (recall--offload) khi quét các mức quantile trên tập kiểm định này. Điểm vận hành được chọn theo ngân sách độ trễ/độ chính xác của triển khai. FPR trong bảng là tỷ lệ luồng benign bị cổng chuyển nhầm sang bộ phân loại, không phải FPR của toàn hệ thống. Hệ thống triển khai dùng quantile 0{,}995, cố định trước khi đo: cổng chuyển tiếp 68{,}1\% luồng tấn công sang bộ phân loại, chỉ chuyển nhầm 0{,}49\% luồng benign và bỏ qua 89{,}4\% lưu lượng. Tỷ lệ bỏ qua và recall trong Bảng~\ref{tab:gate_oc} được tính trên tập kiểm tra đã loại trùng lặp ở mức đặc trưng (380.119 benign / 67.156 attack). Luồng phát lại khi triển khai là 10.000 luồng lấy ngẫu nhiên từ chính tập kiểm tra này (\texttt{seed}=42, 15{,}2\% tấn công), nên các con số thực đo (bỏ qua 88{,}8\%, recall tấn công 69{,}6\% ở chế độ A, Bảng~\ref{tab:edge_modes}) khớp với điểm vận hành của bảng. Recall của cả hệ thống bị chặn trên bởi recall của cổng: luồng tấn công bị cổng bỏ qua không bao giờ đến bộ phân loại. Đây là cái giá của việc giảm tải và là lý do đường đánh đổi được báo cáo đầy đủ: hạ quantile xuống 0{,}90 nâng recall của cổng lên 84{,}5\% nhưng chuyển nhầm 10\% luồng benign sang bộ phân loại.
+\textbf{Điểm vận hành của cổng bất thường.} Cổng autoencoder là một bộ lọc điều chỉnh được chứ không phải một điểm vận hành cố định. Nâng ngưỡng thì cổng bỏ qua nhiều lưu lượng bình thường hơn, giảm tải cho Spark, nhưng cũng có thể bỏ qua nhiều luồng tấn công hơn. Recall của cả hệ thống bị chặn trên bởi recall của cổng, vì luồng tấn công bị cổng bỏ qua không bao giờ đến bộ phân loại.
+
+Ngưỡng được chọn theo phân vị (quantile) của sai số tái tạo, tính trên một tập kiểm định benign gồm 10\% tách từ phần lưu lượng bình thường của tập huấn luyện (\texttt{seed}=42). Tập kiểm tra không tham gia việc chọn ngưỡng, tránh rò rỉ kiểu ``ngưỡng oracle''. Bảng~\ref{tab:gate_oc} trình bày đường đánh đổi giữa recall và mức giảm tải khi quét các mức quantile; điểm vận hành được chọn theo ngân sách độ trễ/độ chính xác của triển khai. Tỷ lệ bỏ qua và recall trong bảng được tính trên tập kiểm tra đã loại trùng lặp ở mức đặc trưng (380.119 benign / 67.156 attack). FPR trong bảng là tỷ lệ luồng benign bị cổng chuyển nhầm sang bộ phân loại, không phải FPR của toàn hệ thống.
+
+Hệ thống triển khai dùng quantile 0{,}995, cố định trước khi đo. Ở điểm này cổng chuyển tiếp 68{,}1\% luồng tấn công sang bộ phân loại, chỉ chuyển nhầm 0{,}49\% luồng benign và bỏ qua 89{,}4\% lưu lượng. Đây là cái giá của việc giảm tải, và là lý do đường đánh đổi được báo cáo đầy đủ: hạ quantile xuống 0{,}90 nâng recall của cổng lên 84{,}5\% nhưng chuyển nhầm 10\% luồng benign sang bộ phân loại.
+
+Luồng phát lại khi triển khai là 10.000 luồng lấy ngẫu nhiên từ chính tập kiểm tra này (\texttt{seed}=42, 15{,}2\% tấn công). Vì vậy các con số thực đo (bỏ qua 88{,}8\%, recall tấn công 69{,}6\% ở chế độ A, Bảng~\ref{tab:edge_modes}) khớp với điểm vận hành của bảng.
 
 \begin{table}[htbp]
 \centering
@@ -747,6 +799,43 @@ Random Forest     & 26{,}8 & 378 / 397 / -- & 35{,}2 & 27{,}5 & 4{,}427 \\
 \end{tabular*}
 \end{table}
 
+\subsection{Phân tích và lựa chọn mô hình}
+
+Hình~\ref{fig:benchmark_comparison} minh họa trực quan sự khác biệt giữa ba mô hình về thông lượng, độ trễ và mức sử dụng RAM trên Jetson Orin Nano Super.
+
+\begin{figure}[htbp]
+    \centering
+    \IfFileExists{img/benchmark_comparison.png}{\includegraphics[width=0.85\textwidth]{img/benchmark_comparison.png}}{\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.4cm}\ph{Biểu đồ so sánh hiệu năng --- tạo từ \texttt{benchmark\_comparison.json}}\vspace{1.4cm}}}}
+    \caption{So sánh hiệu năng ba mô hình trên Jetson Orin Nano Super}
+    \label{fig:benchmark_comparison}
+\end{figure}
+
+Kết quả benchmark cho thấy sự đánh đổi rõ ràng giữa các chỉ số:
+
+\begin{itemize}
+    \item \textbf{Random Forest} thắng ở cả ba chỉ số vận hành quan trọng nhất đối với phát hiện xâm nhập thời gian thực: thông lượng cao nhất (26{,}8 mẫu/giây), độ trễ p95 thấp nhất (397\,ms) và CPU thấp nhất (35{,}2\%), nhờ Spark song song hóa tốt trên nhiều cây. Cái giá phải trả là RAM cao nhất (27{,}5\%) và mô hình lớn nhất ($\approx$4{,}4\,MB).
+    \item \textbf{\ac{gbt}} có hiệu năng trung bình ở tất cả các chỉ số, đóng vai trò cầu nối giữa Decision Tree và Random Forest.
+    \item \textbf{Decision Tree} nhẹ nhất về bộ nhớ (RAM 21{,}9\%, mô hình $\approx$0{,}05\,MB) nhưng chậm nhất: thông lượng 22{,}0 mẫu/giây và độ trễ p95 537\,ms, cao hơn Random Forest khoảng 35\%.
+\end{itemize}
+
+Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữa các tiêu chí lựa chọn mô hình: Decision Tree chiếm ưu thế về bộ nhớ, còn Random Forest chiếm ưu thế về tốc độ xử lý và tải CPU.
+
+\begin{figure}[!t]
+    \centering
+    \IfFileExists{img/model_tradeoff_radar.png}{\includegraphics[width=0.75\textwidth]{img/model_tradeoff_radar.png}}{\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.4cm}\ph{Biểu đồ radar trade-off --- tạo từ \texttt{benchmark\_comparison.json}}\vspace{1.4cm}}}}
+    \caption[Biểu đồ radar đánh đổi giữa các mô hình trên thiết bị biên]{Biểu đồ radar thể hiện sự đánh đổi (trade-off) giữa các mô hình trên thiết bị biên}
+    \label{fig:model_tradeoff}
+\end{figure}
+
+\textbf{Random Forest được chọn} làm mô hình triển khai chính trên thiết bị biên dựa trên ba tiêu chí:
+\begin{enumerate}
+    \item \textbf{Hiệu năng xử lý thời gian thực}: thông lượng cao nhất (26{,}8 mẫu/giây) và độ trễ p95 thấp nhất (397\,ms). Với \ac{ids}, độ trễ phán quyết là ràng buộc trực tiếp: một mô hình nhỏ nhưng chậm hơn 35\% về p95 sẽ kéo dài cửa sổ mà tấn công chưa bị chặn.
+    \item \textbf{Chất lượng phát hiện}: cao nhất trong ba mô hình ứng viên ở cả hai phép đo: F1 0{,}9955 trên đánh giá ngoại tuyến đầy đủ (Bảng~\ref{tab:summary_comparison}) và 0{,}9826 ở bản xuất ứng viên (Bảng~\ref{tab:edge_training}). Bản huấn luyện lại trên SHAP Top-30 loại trừ rò rỉ để triển khai đạt F1 0{,}9959.
+    \item \textbf{Tương thích nền tảng}: Random Forest là estimator gốc của Spark ML. Nhờ vậy \texttt{PipelineModel} xuất ra nạp được trực tiếp trên bo mạch ARM64, không cần các thư viện native mà tích hợp \ac{xgb} của Spark đòi hỏi.
+\end{enumerate}
+
+Đánh đổi được chấp nhận là mức tiêu thụ bộ nhớ: Random Forest dùng 27{,}5\% RAM so với 21{,}9\% của Decision Tree và mô hình nặng $\approx$4{,}4\,MB so với 0{,}05\,MB. Trên bo mạch 8\,GB, khoảng chênh này vẫn còn dư địa lớn, nên bộ nhớ không phải là ràng buộc quyết định. Decision Tree vẫn là phương án dự phòng hợp lý nếu triển khai xuống các thiết bị \ac{iot} eo hẹp bộ nhớ hơn.
+
 \subsection{So sánh engine suy luận: chi phí của việc đồng nhất stack}
 \label{sec:engine-baseline-thesis}
 Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của Spark để đồng nhất với pha huấn luyện phân tán: cùng một stack vừa huấn luyện trên cụm vừa suy luận trên thiết bị. Để định lượng chi phí của sự đồng nhất này, luận văn chạy \emph{cùng một} rừng ngẫu nhiên đã triển khai (cùng 200 cây, cùng 30 đặc trưng) qua ba engine suy luận của chính hệ thống biên: PySpark (bản triển khai), NumPy (duyệt cây trực tiếp trên mảng, không JVM) và ONNX Runtime (CPU execution provider). Hai bản NumPy và ONNX được xuất từ chính mô hình Spark, và cả ba engine cho dự đoán trùng nhau 100\% trên 1.000 luồng phát lại, nên độ chính xác là như nhau và phép so sánh chỉ đo chi phí suy luận. Phép đo chạy trên nút phân loại với lô 10 luồng (\texttt{benchmark\_same\_forest.py}). Năng lượng báo cáo là phần hoạt động, đã trừ công suất nền idle. Kết quả (Bảng~\ref{tab:engines_thesis}) cho thấy chi phí JVM/Spark rất lớn trên bo mạch ARM 8\,GB: một lô 10 luồng qua PySpark mất vài giây (p95 7{,}5\,s), chủ yếu do chi phí cố định của mỗi lần gọi Spark chứ không phải do tính toán cây. Cùng mô hình qua ONNX Runtime đạt $\approx$10.000 luồng/giây với p95 1{,}2\,ms, tức gấp $\approx$7.200 lần PySpark, ở mức năng lượng mỗi luồng thấp hơn khoảng bốn bậc độ lớn. Khoảng cách này giải thích vì sao thông lượng của mọi chế độ triển khai ở mục sau bị giới hạn bởi bộ phân loại PySpark, và là cơ sở cho hướng phát triển xuất mô hình sang ONNX/TensorRT để suy luận trong khi vẫn giữ Spark cho huấn luyện.
@@ -806,44 +895,7 @@ Kết quả (Bảng~\ref{tab:edge_modes}, Hình~\ref{fig:edge_modes}) cho thấy
     \item \textbf{Chất lượng phát hiện}: không có cổng, bộ phân loại bắt được mọi luồng tấn công trong các lượt đo. Với cổng ở quantile 0{,}995, recall tấn công thực đo là 69{,}6\%, đúng như điểm vận hành của cổng. Như vậy năng lực gấp 9 lần đi kèm việc bỏ sót khoảng 30\% luồng tấn công ở ngay tầng cổng, và đây là một lựa chọn ngưỡng có thể điều chỉnh theo Bảng~\ref{tab:gate_oc}.
 \end{itemize}
 
-\textbf{So với số liệu đo trước.} Lượt đo trước đó (cũng là số liệu trong bản nộp ban đầu của bài báo SOICT) báo cáo 62{,}5 luồng/giây, p95 13\,ms và tỷ lệ bỏ qua 95{,}8\% cho pipeline split. Các con số đó đếm số phán quyết ghi được \emph{trong} cửa sổ tải, trong khi bộ phân loại PySpark không theo kịp và phán quyết của nó rơi ra sau cửa sổ, nên 95{,}8\% thực chất là $1 - 2{,}6/62{,}5$, tức tỷ số giữa năng lực của bộ phân loại và tổng số phán quyết, không phải một tính chất của cổng. Độ trễ 13\,ms khi đó là thời gian suy luận của từng nút, chưa gồm thời gian chờ hàng đợi. Ngoài ra, mô hình triển khai khi đó dùng danh sách đặc trưng cũ, cổng dùng chung đặc trưng với bộ phân loại, và các chế độ một nút/ngang chạy không có cổng. Toàn bộ các điểm này đã được sửa và đo lại như trình bày ở trên.
-
-\subsection{Phân tích và lựa chọn mô hình}
-
-Hình~\ref{fig:benchmark_comparison} minh họa trực quan sự khác biệt giữa ba mô hình về thông lượng, độ trễ và mức sử dụng RAM trên Jetson Orin Nano Super.
-
-\begin{figure}[htbp]
-    \centering
-    \IfFileExists{img/benchmark_comparison.png}{\includegraphics[width=0.85\textwidth]{img/benchmark_comparison.png}}{\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.4cm}\ph{Biểu đồ so sánh hiệu năng --- tạo từ \texttt{benchmark\_comparison.json}}\vspace{1.4cm}}}}
-    \caption{So sánh hiệu năng ba mô hình trên Jetson Orin Nano Super}
-    \label{fig:benchmark_comparison}
-\end{figure}
-
-Kết quả benchmark cho thấy sự đánh đổi rõ ràng giữa các chỉ số:
-
-\begin{itemize}
-    \item \textbf{Random Forest} thắng ở cả ba chỉ số vận hành quan trọng nhất đối với phát hiện xâm nhập thời gian thực: thông lượng cao nhất (26{,}8 mẫu/giây), độ trễ p95 thấp nhất (397\,ms) và CPU thấp nhất (35{,}2\%), nhờ Spark song song hóa tốt trên nhiều cây. Cái giá phải trả là RAM cao nhất (27{,}5\%) và mô hình lớn nhất ($\approx$4{,}4\,MB).
-    \item \textbf{\ac{gbt}} có hiệu năng trung bình ở tất cả các chỉ số, đóng vai trò cầu nối giữa Decision Tree và Random Forest.
-    \item \textbf{Decision Tree} nhẹ nhất về bộ nhớ (RAM 21{,}9\%, mô hình $\approx$0{,}05\,MB) nhưng chậm nhất: thông lượng 22{,}0 mẫu/giây và độ trễ p95 537\,ms, cao hơn Random Forest khoảng 35\%.
-\end{itemize}
-
-Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữa các tiêu chí lựa chọn mô hình: Decision Tree chiếm ưu thế về bộ nhớ, còn Random Forest chiếm ưu thế về tốc độ xử lý và tải CPU.
-
-\begin{figure}[!t]
-    \centering
-    \IfFileExists{img/model_tradeoff_radar.png}{\includegraphics[width=0.75\textwidth]{img/model_tradeoff_radar.png}}{\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.4cm}\ph{Biểu đồ radar trade-off --- tạo từ \texttt{benchmark\_comparison.json}}\vspace{1.4cm}}}}
-    \caption[Biểu đồ radar đánh đổi giữa các mô hình trên thiết bị biên]{Biểu đồ radar thể hiện sự đánh đổi (trade-off) giữa các mô hình trên thiết bị biên}
-    \label{fig:model_tradeoff}
-\end{figure}
-
-\textbf{Random Forest được chọn} làm mô hình triển khai chính trên thiết bị biên dựa trên ba tiêu chí:
-\begin{enumerate}
-    \item \textbf{Hiệu năng xử lý thời gian thực}: thông lượng cao nhất (26{,}8 mẫu/giây) và độ trễ p95 thấp nhất (397\,ms). Với \ac{ids}, độ trễ phán quyết là ràng buộc trực tiếp: một mô hình nhỏ nhưng chậm hơn 35\% về p95 sẽ kéo dài cửa sổ mà tấn công chưa bị chặn.
-    \item \textbf{Chất lượng phát hiện}: cao nhất trong ba mô hình ứng viên ở cả hai phép đo: F1 0{,}9955 trên đánh giá ngoại tuyến đầy đủ (Bảng~\ref{tab:summary_comparison}) và 0{,}9826 ở bản xuất ứng viên (Bảng~\ref{tab:edge_training}). Bản huấn luyện lại trên SHAP Top-30 loại trừ rò rỉ để triển khai đạt F1 0{,}9959.
-    \item \textbf{Tương thích nền tảng}: Random Forest là estimator gốc của Spark ML. Nhờ vậy \texttt{PipelineModel} xuất ra nạp được trực tiếp trên bo mạch ARM64, không cần các thư viện native mà tích hợp \ac{xgb} của Spark đòi hỏi.
-\end{enumerate}
-
-Đánh đổi được chấp nhận là mức tiêu thụ bộ nhớ: Random Forest dùng 27{,}5\% RAM so với 21{,}9\% của Decision Tree và mô hình nặng $\approx$4{,}4\,MB so với 0{,}05\,MB. Trên bo mạch 8\,GB, khoảng chênh này vẫn còn dư địa lớn, nên bộ nhớ không phải là ràng buộc quyết định. Decision Tree vẫn là phương án dự phòng hợp lý nếu triển khai xuống các thiết bị \ac{iot} eo hẹp bộ nhớ hơn.
+\textbf{So với số liệu đo trước.} Bản nộp ban đầu của bài báo SOICT báo cáo 62{,}5 luồng/giây, p95 13\,ms và tỷ lệ bỏ qua 95{,}8\% cho pipeline split. Phép đo đó chỉ đếm các phán quyết ghi được trong cửa sổ tải và chỉ tính độ trễ suy luận của từng nút, nên bỏ sót các luồng còn nằm trong hàng đợi của bộ phân loại PySpark. Mô hình triển khai khi đó cũng dùng danh sách đặc trưng cũ. Các số liệu ở mục này thay thế toàn bộ số liệu đó.
 
 \section{Thảo luận và so sánh tổng hợp}
 Kết quả thực nghiệm cho thấy lựa chọn đặc trưng dựa trên \ac{shap} là hướng tiếp cận phù hợp cho hệ thống \ac{ids} trên bộ dữ liệu CICIDS2017: dưới cấu hình đánh giá loại trừ rò rỉ dữ liệu, \ac{shap} Top-30 giữ được hiệu năng gần như nguyên vẹn trong khi cắt khoảng 60\% số đặc trưng. Ngược lại, học tổ hợp không mang lại lợi thế trên chính cấu hình này: Hybrid Bagging đạt F1 0{,}9966 và Soft Voting đạt 0{,}9967, đều thấp hơn \ac{xgb} đơn lẻ (0{,}9970). Học tổ hợp chỉ vượt mô hình đơn ở những cấu hình mà mô hình đơn yếu hơn (\ac{rf} Top-30: 0{,}9938 so với 0{,}9922; \ac{pca} $k$=40: 0{,}9940 so với 0{,}9939), nghĩa là nó bù cho bộ đặc trưng kém chứ không tạo thêm hiệu năng phân loại. Chi phí đi kèm lại lớn: trên \ac{shap} Top-30, Hybrid Bagging cần 4909\,giây huấn luyện (so với 1226\,giây của \ac{xgb}), 46{,}6\,giây dự đoán (so với 7{,}1\,giây) và mô hình nặng 7{,}15\,MB, lớn nhất trong tất cả các cấu hình đã thử. Vì vậy cấu hình được chọn để triển khai lên thiết bị biên là một \emph{mô hình đơn} trên tập đặc trưng \ac{shap} Top-30, không phải mô hình học tổ hợp.
