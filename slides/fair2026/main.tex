@@ -59,14 +59,13 @@ usually a property of the evaluation pipeline, not of the model.}
       \textbf{Two concrete leakage sources}
       \begin{enumerate}
         \item \texttt{destination\_port} encodes the \emph{attacked service}.
-        \item \bad{Feature-level duplicates} survive full-row dedup --- the
-              same sample lands in train \emph{and} test.
+        \item \bad{Feature-level duplicates} survive full-row dedup, so the same sample lands in train \emph{and} test.
       \end{enumerate}
     \end{column}
     \begin{column}{0.42\textwidth}
       \begin{alertblock}{This paper}
         Compare four reduction strategies over the same eight Spark ML
-        classifiers --- but first make the \emph{evaluation pipeline} trustworthy.
+        classifiers, but first make the \emph{evaluation pipeline} trustworthy.
       \end{alertblock}
       \begin{exampleblock}{The contribution is the protocol}
         Not ``which method wins'' but \key{how to measure so the answer means
@@ -75,7 +74,7 @@ usually a property of the evaluation pipeline, not of the model.}
     \end{column}
   \end{columns}
   \note{Frame the talk as a measurement paper. The port gives the model a
-  port-to-label shortcut; 80 features are expensive to train, to score and to
+  port-to-label shortcut, and 80 features are expensive to train, to score and to
   fit on an edge device. Both leakage sources are removed before any split.}
 \end{frame}
 
@@ -87,15 +86,14 @@ usually a property of the evaluation pipeline, not of the model.}
     \item SHAP contrasted \key{directly} against RF Importance on the same
           training set.
     \item A \key{leakage-aware, statistically tested} pipeline: leak removal,
-          deterministic feature-level dedup, validation-based selection, exact
-          paired permutation test with Nadeau--Bengio correction.
-    \item A \key{per-attack-type multiclass} evaluation --- exposing what
-          binary F1 hides.
+          deterministic feature-level dedup, validation-based selection, paired
+          resampling with an \emph{equivalence} test (TOST).
+    \item A \key{per-attack-type} and a \key{cross-dataset} evaluation, which expose what in-domain binary F1 hides.
     \item An \key{edge-aware} recommendation: F1 \emph{and} feature count
           \emph{and} model size, for a Jetson Orin Nano Super (deployment
           reported in a companion systems paper).
   \end{enumerate}
-  \note{Five contributions; three, four and five are the ones rarely done
+  \note{Five contributions. Three, four and five are the ones rarely done
   together.}
 \end{frame}
 
@@ -115,15 +113,15 @@ usually a property of the evaluation pipeline, not of the model.}
         hl/.style={box, draw=accRed, fill=accRed!10},
         ed/.style={box, draw=accGreen!80!black, fill=accGreen!10},
         arr/.style={-{Stealth[length=2mm]}, semithick}]
-        \node[box] (raw)  {CICIDS2017 --- 8 CSV files, $\approx$2.8M flows};
+        \node[box] (raw)  {CICIDS2017: 8 CSV files, $\approx$2.8M flows};
         \node[hl, below=of raw] (prep) {\textbf{Leakage-aware preparation}\\
               remove \texttt{destination\_port} $\cdot$ feature-level dedup};
         \node[box, below=of prep] (split) {80/20 split (fixed seed) $\cdot$ Parquet};
         \node[box, below=of split] (strat) {\textbf{4 strategies}: Baseline $|$ RF Top-$K$ $|$ SHAP Top-$K$ $|$ PCA\\
               (rankings fit on the \emph{training set only})};
         \node[box, below=of strat] (clf) {8 Spark ML classifiers $+$ 2 ensembles};
-        \node[hl, below=of clf] (val) {Validation-based selection $\cdot$ paired permutation test\\
-              Nadeau--Bengio CI $\cdot$ effect size $\cdot$ multiclass};
+        \node[hl, below=of clf] (val) {Validation-based selection $\cdot$ paired resampling\\
+              equivalence test (TOST) $\cdot$ multiclass $\cdot$ cross-dataset};
         \node[ed, below=of val] (edge) {SHAP Top-30 $\rightarrow$ Jetson Orin Nano Super};
         \draw[arr] (raw)--(prep); \draw[arr] (prep)--(split); \draw[arr] (split)--(strat);
         \draw[arr] (strat)--(clf); \draw[arr] (clf)--(val); \draw[arr] (val)--(edge);
@@ -179,12 +177,12 @@ usually a property of the evaluation pipeline, not of the model.}
       \fitwidth{%
       \begin{tabular}{lccc}
         \toprule
-        Algorithm & RF Top-30 & SHAP Top-30 & $\Delta$ \\
+        F1 by algorithm & RF Top-30 & SHAP Top-30 & $\Delta$F1 \\
         \midrule
-        Random Forest & 0.9879 & 0.9955 & \good{$+$0.77\%} \\
-        XGBoost       & 0.9922 & 0.9970 & \good{$+$0.48\%} \\
-        GBT           & 0.9844 & 0.9918 & \good{$+$0.75\%} \\
-        Decision Tree & 0.9835 & 0.9948 & \good{$+$1.15\%} \\
+        Random Forest & 0.9879 & 0.9955 & \good{$+$0.008} \\
+        XGBoost       & 0.9922 & 0.9970 & \good{$+$0.005} \\
+        GBT           & 0.9844 & 0.9918 & \good{$+$0.007} \\
+        Decision Tree & 0.9835 & 0.9948 & \good{$+$0.011} \\
         \bottomrule
       \end{tabular}
       }
@@ -196,7 +194,7 @@ usually a property of the evaluation pipeline, not of the model.}
         \item At \emph{equal} feature count, SHAP beats RF Importance on every
               tree-based algorithm.
         \item PCA uses $k{=}40$ because it \emph{extracts} rather than
-              \emph{selects} --- each component carries only part of the
+              \emph{selects}: each component carries only part of the
               variance. Cheaper than the baseline, but not explainable.
       \end{itemize}
     \end{column}
@@ -207,57 +205,59 @@ usually a property of the evaluation pipeline, not of the model.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
-\begin{frame}{Result 2: testing the difference instead of asserting it}
+\begin{frame}{Result 2: equivalence is tested, not asserted}
   \begin{columns}[T]
     \begin{column}{0.47\textwidth}
       \centering\small
       \fitwidth{%
-      \begin{tabular}{llc}
+      \begin{tabular}{lc}
         \toprule
-        Method & Model & F1, mean of 6 splits \\
+        XGBoost & F1, mean of 6 splits \\
         \midrule
-        Baseline    & XGBoost & 0.99734 $\pm$ 0.00007 \\
-        SHAP Top-30 & XGBoost & 0.99720 $\pm$ 0.00009 \\
+        Baseline (77 features) & 0.99734 \\
+        SHAP Top-30            & 0.99720 \\
         \midrule
-        \multicolumn{3}{c}{\footnotesize paired permutation $p = 0.031$;\ $d \approx 1.94$} \\
+        \textbf{Gap}           & \textbf{$\approx$0.0001} \\
         \bottomrule
       \end{tabular}
       }
-      \vspace{0.3em}
+      \vspace{0.4em}
 
       \footnotesize
       \fitwidth{%
-      \begin{tabular}{lcc}
+      \begin{tabular}{lc}
         \toprule
-        Port ablation (RF) & F1 & Recall (Attack) \\
+        Keeping the port & F1 inflation \\
         \midrule
-        Keep port          & 0.9964 & 0.9988 \\
-        \textbf{Remove port} & 0.9954 & 0.9961 \\
+        4 tree models    & $+$0.0007 to $+$0.0017 \\
+        2 linear models  & \bad{$+$0.0395 to $+$0.0415} \\
         \bottomrule
       \end{tabular}
       }
     \end{column}
     \begin{column}{0.50\textwidth}
       \begin{itemize}\small
-        \item $N{=}6$ paired \emph{resamplings}: variance reflects data sampling,
-              not just seeds.
-        \item Two-sided permutation test, \key{exact enumeration} of all $2^6$
-              sign flips: smallest reachable $p$ is $2/2^6$, so $N \geq 6$ is
-              \emph{required}.
-        \item Overlapping resamplings break $t$-independence $\rightarrow$ we use
-              the \key{Nadeau--Bengio corrected} CI.
+        \item $N{=}6$ paired \emph{resamplings}: both methods see the same
+              split each round.
+        \item A significance test cannot show two methods are the same, so we
+              test \key{equivalence} directly (TOST).
+        \item Result: the true gap is \good{below 0.00023 F1} at
+              $\alpha = 0.05$.
+        \item The port leak was measured on \key{all eight} classifiers, not
+              one.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Significant \emph{only at the resolution floor}, gap $\approx$0.0001:
-  \key{practically equivalent}, so explainability and cost decide. After dedup the
-  port's isolated effect on the tree models is small.}
-  {\tiny\textcolor{gray!55!black}{Nadeau \& Bengio, \emph{Inference for the
-  Generalization Error}, Machine Learning 52(3), 2003.}}
-  \note{Variance reflects data sampling, not just model initialization. The
-  test is two-sided, and overlapping resamplings break t-independence.
-  Small p, tiny effect in absolute terms: say plainly that we treat them as
-  equivalent rather than claiming a winner.}
+  \takeaway{Baseline and SHAP Top-30 are \key{equivalent}, so explainability and
+  cost decide. How much the port inflates F1 depends on the model class.}
+  \note{Say the gap first: one ten-thousandth of F1 over six paired splits.
+  Then the point: we do not argue from a non-significant p-value, we test
+  equivalence. If asked: exact paired permutation over all $2^6$ sign flips
+  gives $p = 0.031$, the floor of that test, Cohen's $d \approx 1.94$. TOST
+  against a $\pm0.001$ margin fixed in advance, on the Nadeau--Bengio error,
+  gives $p = 3.9\times10^{-6}$, and the tightest supported margin is
+  $\pm2.3\times10^{-4}$. Port table: per-model rows are in the paper. MLP is
+  $+0.0052$ and Naive Bayes $+0.0108$. All later results have the port removed.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:55
@@ -290,21 +290,20 @@ usually a property of the evaluation pipeline, not of the model.}
         \bottomrule
       \end{tabular}
       }
-      \par\vspace{0.2em}
+      \par
       \raggedright\footnotesize
-      Two failure modes, read \emph{by destination}:
       \begin{itemize}\footnotesize
-        \item \textbf{Mislabeled but caught}: 81/111 XSS land on Web Brute
-              Force --- \good{76\% still flagged} at the binary level.
-        \item \textbf{Leaking into Benign} (dangerous): all 6 SQL Injection,
-              \bad{54\% of Bot}, 27\% of Brute Force.
+        \setlength{\itemsep}{0pt}
+        \item \textbf{Mislabeled but caught}: \good{76\% of XSS} is still
+              flagged as an attack.
+        \item \textbf{Missed}: all 6 SQL Injection and \bad{54\% of Bot} are
+              predicted benign.
       \end{itemize}
     \end{column}
   \end{columns}
   \note{Random Forest on all 77 features. Weighted F1 0.998 versus macro F1
-  0.806. Three plausible causes: extreme imbalance; the removed port, because
-  without the port-80 shortcut short HTTP attack flows look like browsing; and
-  Bot C\&C beaconing resembles background traffic. Comparing the reduction
+  0.806. XSS: 81 of 111 land on Web Brute Force, so they are still flagged at
+  the binary level. 27 percent of Brute Force also goes to Benign. Three plausible causes. The imbalance is extreme. With the port removed there is no port-80 shortcut, so short HTTP attack flows look like browsing. And Bot C\&C beaconing resembles background traffic. Comparing the reduction
   methods in multiclass mode is future work.}
 \end{frame}
 
@@ -319,36 +318,41 @@ usually a property of the evaluation pipeline, not of the model.}
         Train $\to$ Test & F1 & AUC-PR \\
         \midrule
         2017 $\to$ 2017 & \good{0.9953} & \good{0.9997} \\
-        2017 $\to$ 2018 & \bad{0.029--0.085 $\mid$ 0.185--0.301} & \bad{0.4849} \\
+        2017 $\to$ 2018 & \bad{0.03--0.30} & \bad{0.4849} \\
         2018 $\to$ 2018 & \good{0.9246} & \good{0.9679} \\
-        2018 $\to$ 2017 & \bad{0.0544} \tiny$\pm$0.0019 & \bad{0.1926} \\
+        2018 $\to$ 2017 & \bad{0.0544} & \bad{0.1926} \\
         \bottomrule
       \end{tabular}
       }
-      \\[0.4em]
-      \footnotesize
-      Mean of 18 runs; shared leakage-free features, $\sim$2.39M flows.
+      \\[0.3em]
+      \scriptsize
+      18 runs of identical code and data. AUC-PR is their mean.
     \end{column}
     \begin{column}{0.50\textwidth}
       \begin{itemize}\small
-        \item In-domain stable \emph{both} ways --- cross-dataset AUC-PR
-              \bad{1.00$\to$0.48} and \bad{0.97$\to$0.19}.
-        \item Recall 0.073 / 0.030 at precision 0.772 / 0.272: the model
-              \key{fails to recognize} the other testbed's attacks.
-        \item 18 runs, \key{two disjoint regimes}: 11 at 0.029--0.085, 7 at
-              0.185--0.301, nothing between; AUC-PR indistinguishable.
-        \item Causes: CICFlowMeter version, network configuration, attack
-              tooling.
+        \item Cross-dataset AUC-PR drops \bad{1.00$\to$0.48} and
+              \bad{0.97$\to$0.19}.
+        \item Recall 0.07 / 0.03: the model \key{misses} the other testbed's
+              attacks.
+        \item Same code, same data, \key{two F1 bands}: 11 runs at
+              0.03--0.08, 7 at 0.19--0.30, none between.
+        \item Label-free adaptation (scaler refit, CORAL): \bad{F1 0}.
+              Retraining on \key{1\% target labels}: \good{0.92 / 0.99}.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Near-perfect in-domain scores --- \emph{even leakage-free ones} ---
-  do not certify deployability under distribution shift.}
-  \note{Do not soften this. In-domain 0.99, cross-dataset AUC-PR 0.50 / 0.19.
-  If asked about the wide F1 interval: at this recall the metric is fragile to
-  where the threshold falls, so we average F1 over runs and judge the gap on
-  AUC-PR. Consistent with prior cross-dataset IDS studies, and the reason domain
-  adaptation is a prerequisite rather than a nice-to-have.}
+  \takeaway{Near-perfect in-domain scores, \emph{even leakage-free ones}, do not certify deployability under distribution shift.}
+  \note{Do not soften this. In-domain 0.99, cross-dataset AUC-PR 0.48 / 0.19.
+  Recall 0.073 / 0.030 at precision 0.772 / 0.272: it misses attacks rather
+  than alarming indiscriminately.
+  If asked about the two F1 bands: AUC-PR is the same in both, so the ranking
+  does not change between runs, only where the 0.5 threshold falls against a
+  cluster of near-identical flows. A mean (0.13) would sit in the empty gap, so
+  we report both bands and judge the collapse on AUC-PR. Causes of the shift:
+  CICFlowMeter version, network configuration, attack tooling. 1\% of the
+  target is about 19k flows. Consistent with prior cross-dataset IDS studies,
+  and the reason domain adaptation is a prerequisite rather than a
+  nice-to-have.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -359,9 +363,10 @@ usually a property of the evaluation pipeline, not of the model.}
       \begin{itemize}
         \item SHAP Top-30 retains baseline F1 with \good{$\approx$60\% fewer
               features}.
-        \item Baseline vs.\ SHAP Top-30 are \key{practically equivalent}.
+        \item Baseline vs.\ SHAP Top-30 are \key{equivalent} within
+              $\pm2.3\times10^{-4}$ F1.
         \item \bad{macro-F1 0.806} against weighted-F1 0.998.
-        \item Cross-dataset AUC-PR \bad{collapses to 0.50 / 0.19}.
+        \item Cross-dataset AUC-PR \bad{collapses to 0.48 / 0.19}. Retraining on 1\% of target labels recovers it.
       \end{itemize}
     \end{column}
     \begin{column}{0.45\textwidth}
@@ -371,21 +376,21 @@ usually a property of the evaluation pipeline, not of the model.}
       \end{itemize}
       \textbf{Next}
       \begin{itemize}\small
-        \item Full CSE-CIC-IDS2018; newer sets (RoEduNet, CIC-IoT).
+        \item Full CSE-CIC-IDS2018 and newer sets (RoEduNet, CIC-IoT).
         \item Does the SHAP Top-30 \emph{set itself} transfer?
-        \item Targeted imbalance handling; temporal features for beaconing.
+        \item An ablation of the deduplication step.
       \end{itemize}
     \end{column}
   \end{columns}
   \vfill
-  \centering \key{Thank you --- questions?}
+  \centering \key{Thank you. Questions?}
   \note{Close on the protocol, not the leaderboard.}
 \end{frame}
 
 % ---------------------------------------------------------------- 7:00
 \begin{frame}{Key references}
-  \begin{itemize}\footnotesize
-    \setlength{\itemsep}{0.15em}
+  \begin{itemize}\scriptsize
+    \setlength{\itemsep}{0.1em}
     \item[{[1]}] Sharafaldin, I., Lashkari, A.\,H. \& Ghorbani, A.\,A.
           \emph{Toward generating a new intrusion detection dataset and
           intrusion traffic characterization}. ICISSP 2018.
@@ -412,8 +417,16 @@ usually a property of the evaluation pipeline, not of the model.}
           \hfill{\key{Spark ML}}
     \item[{[8]}] CIC \& CSE. \emph{CSE-CIC-IDS2018 dataset}. 2018.
           \hfill{\key{cross-dataset target}}
+    \item[{[9]}] Schuirmann, D.\,J. \emph{A comparison of the two one-sided tests
+          procedure and the power approach for assessing the equivalence of
+          average bioavailability}. J.\ Pharmacokinetics and
+          Biopharmaceutics 15(6), 1987.
+          \hfill{\key{TOST}}
+    \item[{[10]}] Sun, B., Feng, J. \& Saenko, K. \emph{Return of frustratingly
+          easy domain adaptation}. AAAI 2016.
+          \hfill{\key{CORAL}}
   \end{itemize}
-  \note{Not presented --- shown while taking questions, so sources are on
+  \note{Not presented. Shown while taking questions, so sources are on
   screen if the audience asks. Full list is in the paper.}
 \end{frame}
 
@@ -455,8 +468,7 @@ usually a property of the evaluation pipeline, not of the model.}
   \raggedright\footnotesize
   Shared across all reduction methods, so differences reflect the
   \emph{method}, not per-model tuning. Class weights for 6 models,
-  \texttt{scale\_pos\_weight} for XGBoost; MLP unweighted (Spark ML has no
-  sample weights for it) --- stated in the limitations. LightGBM excluded: its
+  \texttt{scale\_pos\_weight} for XGBoost. MLP is unweighted (Spark ML has no sample weights for it), as stated in the limitations. LightGBM excluded: its
   SynapseML native library is x86\_64-only, and the deployment target is ARM64.
 \end{frame}
 
@@ -474,7 +486,7 @@ usually a property of the evaluation pipeline, not of the model.}
 \begin{frame}{Backup: threats to validity}
   \begin{itemize}\small
     \item \textbf{Internal.} RF/SHAP rankings come from the original training
-          set and stay fixed across resamplings --- consistent with the
+          set and stay fixed across resamplings, consistent with the
           a-priori design, but a possible leak in the ranking step. Re-ranking
           inside two of the six resamplings moved F1 by $\le 7.4\times10^{-5}$,
           and 25--26 of 30 features were reselected. MLP carries the
@@ -486,9 +498,10 @@ usually a property of the evaluation pipeline, not of the model.}
           shifts the benign/attack distribution.
     \item \textbf{Statistical.} $N{=}6$ gives low power: two-sided exact
           enumeration floors $p$ at $2/2^N$, so $N{=}6$ \emph{just} reaches
-          0.05. Resamplings overlap, violating $t$-independence --- hence
-          Nadeau--Bengio as the primary basis. Nested CV with larger $N$ is the
-          next reinforcement.
+          0.05. The equivalence claim does not rest on that $p$ but on TOST,
+          on the Nadeau--Bengio error that accounts for overlapping
+          resamplings. Cross-dataset F1 is not deterministic across runs, so
+          it is reported over 18 runs.
   \end{itemize}
 \end{frame}
 
