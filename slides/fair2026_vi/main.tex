@@ -158,6 +158,8 @@ cách đánh giá nhiều hơn là về mô hình.}
         \item Xếp hạng đặc trưng chỉ tính trên \emph{tập huấn luyện}.
         \item Chọn mô hình trên \emph{tập validation}. Tập kiểm tra
               \bad{chỉ dùng một lần}, ở cuối.
+        \item Siêu tham số \key{cố định từ trước}, dùng chung cho cả 4
+              cách.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -166,6 +168,8 @@ cách đánh giá nhiều hơn là về mô hình.}
   luồng nào nằm ở cả hai tập. Sau đó áp dụng bốn cách giảm đặc trưng, huấn
   luyện tám thuật toán. Bảng xếp hạng đặc trưng chỉ tính trên tập huấn luyện.
   Chọn mô hình thì dùng tập validation. Tập kiểm tra chỉ dùng một lần, ở cuối.
+  Siêu tham số được cố định từ trước và dùng chung cho cả bốn cách, nên khác
+  biệt là do phương pháp chứ không do tinh chỉnh.
   Cuối cùng, cấu hình SHAP 30 đặc trưng được đưa xuống thiết bị biên.
   \ifasked Tập validation tách 20\% từ tập huấn luyện. Bốn cấu hình so sánh
   được cố định từ trước (giữ hết, RF Top-30, SHAP Top-30, PCA $k{=}40$), siêu
