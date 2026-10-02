@@ -498,61 +498,66 @@
 \section{IV.\ KẾT QUẢ 2 --- TRIỂN KHAI PHÂN TÁN TRÊN CỤM BIÊN}
 % =====================================================================
 
-\begin{frame}{KQ6 --- Tách pipeline nâng thông lượng gấp 24 lần}
+\begin{frame}{KQ6 --- Tách pipeline: năng lực gấp 9 lần một nút}
   \centering\footnotesize
   \fitwidth{%
-  \begin{tabular}{lcccc}
+  \begin{tabular}{lccccc}
     \toprule
-    Chế độ & Thông lượng & p95 & Bỏ qua ở cổng & Năng lượng \\
-           & (luồng/giây) & (ms) & (\%)         & (mJ/luồng) \\
+    Chế độ & Số bo & Duy trì được & Độ trễ p50 / p95 & Bỏ qua ở cổng & Năng lượng \\
+           &       & (luồng/giây) & (giây)           & (\%)          & (J/phán quyết) \\
     \midrule
-    Đơn nút                   & 2,60 $\pm$ 0,41 & 12,3 $\pm$ 3,0  & (chạy chung) & 2490 \\
-    \textbf{A: Tách pipeline} & \num{62,5 $\pm$ 0,6} & \num{13,1 $\pm$ 2,6} & \num{95,8} & \num{178} \\
-    B: Mở rộng ngang          & 5,9 $\pm$ 1,4   & 21,6 $\pm$ 19,2 & (chạy chung) & 2250 \\
-    C: Cụm Spark              & 90,0 $\pm$ 25,6 & 23,9 $\pm$ 17,8 & 97,9        & 119 \\
+    Một nút, không cổng       & 1 & 2,5  & 5,9 / 11,3 & --   & 3,04 \\
+    Một nút + cổng            & 1 & $\approx$2,5  & 3,8 / 7,8  & 89,0 & 3,04 \\
+    B: Mở rộng ngang          & 2 & 3,3  & 4,1 / 8,2  & --   & 3,20 \\
+    C: Cụm Spark              & 2 & 9--17  & 0,7 / 5,2  & 88,6 & 1,15 \\
+    \textbf{A: Tách pipeline} & 2 & \good{22,4} & 1,0 / 7,1 & 88,8 & \good{0,60} \\
     \bottomrule
   \end{tabular}
   }
   \par\vspace{0.4em}
-  \raggedright
+  \raggedright\small
   \begin{itemize}
-    \item \good{A: gấp 24 lần, p95 gần như không đổi} --- cổng lọc bỏ 95,8\%
-          lưu lượng bình thường.
-    \item \bad{B vẫn bị chặn bởi Spark} ($\approx$2 lần) --- lợi ích đến từ
-          \emph{tách vai trò}, không phải từ thêm bo mạch.
+    \item \emph{Duy trì được} = tốc độ cao nhất mà \key{mọi luồng} đều có phán
+          quyết trong 10\,giây; độ trễ tính từ lúc gửi, \key{gồm cả thời gian
+          xếp hàng}.
+    \item \good{A gấp 9 lần một nút} --- nhờ đặt cổng và bộ phân loại trên
+          \emph{hai bo riêng}: thêm cổng trên cùng bo không nhanh hơn.
+    \item \bad{Cái giá}: cổng bỏ sót $\approx$30\% luồng tấn công (recall thực
+          đo 69,6\%); p95 $\approx$7\,giây vì mỗi lô PySpark mất vài giây.
   \end{itemize}
-  \takeaway{Lúc đỉnh tải, nút cổng chỉ dùng \good{4,6\%} CPU so với
-  \bad{90,8\%} ở nút phân loại $\rightarrow$ tách pipeline là mặc định khuyến nghị.}
-  \note{Bảng cốt lõi của pha B. Chỉ rõ chế độ B là bằng chứng phản chứng: thêm
-  bo mạch mà không tách vai trò thì gần như không được gì. Chế độ C nhanh nhất về
-  trung bình nhưng lệch $\pm$26 luồng/giây và phụ thuộc Spark master trên máy chủ.
-  Năng lượng là mức toàn bo mạch trên mỗi luồng: ở tải này phần công suất tích
-  cực nằm dưới ngưỡng nhiễu của tegrastats. Ảnh Grafana đỉnh tải ở slide Q11.}
+  \note{Đây là số đo lại (30/9) sau khi phát hiện cách đo cũ chỉ đếm phán quyết
+  trong cửa sổ tải: số cũ 62,5 luồng/giây và 95,8\% bỏ qua thực chất là
+  $1 - 2{,}6/62{,}5$, tức năng lực bộ phân loại chia tổng số phán quyết. Lần đo
+  mới theo dõi từng luồng đã gửi đến khi có phán quyết. Không có cổng, recall
+  thực đo 100\% (212 luồng tấn công). Một nút + cổng: quy tắc 10 giây xếp nó ở mức 1,9 chỉ vì một lần lặp mất 10,6 giây; ở mức gửi 3 luồng/giây nó cho 2,4--2,5 như một nút. Cụm Spark: ở mức 20, một lần lặp theo kịp (17,1), lần kia thì không, nên chỉ biết khoảng 9--17. Năng lượng là công suất toàn bo chia tốc
+  độ phán quyết.}
 \end{frame}
 
 
 \begin{frame}{KQ7 --- Cái giá của việc đồng nhất một stack}
   Phục vụ suy luận bằng Spark để \emph{đồng nhất với pha huấn luyện phân tán}.
-  Cùng mô hình, cùng 29 đặc trưng, cùng một bo mạch:
+  \emph{Cùng một} rừng 200 cây, cùng 30 đặc trưng, cùng bo mạch, lô 10 luồng ---
+  ba engine cho dự đoán \key{trùng nhau 100\%}:
   \vspace{0.6em}
   \centering\small
   \fitwidth{%
-  \begin{tabular}{lcccc}
+  \begin{tabular}{lccc}
     \toprule
-    Nền tảng suy luận & Thông lượng (luồng/giây) & p95 (ms) & RAM (\%) & Năng lượng (mJ/suy luận) \\
+    Engine suy luận & Thông lượng (luồng/giây) & p95 một lô (ms) & Năng lượng (mJ/luồng) \\
     \midrule
-    PySpark (đang triển khai) & 22,6   & 532  & 24,3 & 71,6 \\
-    scikit-learn              & 204,4  & 49,8 & 13,3 & 2,91 \\
-    \textbf{ONNX Runtime}     & \num{7870,8} & \num{1,1} & 15,7 & \num{0,06} \\
+    PySpark (đang triển khai) & 1,4    & 7515 & 1506 \\
+    NumPy                     & 54,8   & 194  & 11,3 \\
+    \textbf{ONNX Runtime}     & \good{10.092} & \good{1,2} & \good{0,087} \\
     \bottomrule
   \end{tabular}
   }
-  \takeaway{ONNX Runtime đạt thông lượng gấp \num{$\approx$348 lần} bản PySpark
-  đang triển khai. Luận văn báo cáo con số này như một \emph{mục tiêu cho bước
-  tiếp theo} --- xuất mô hình sang ONNX/TensorRT cho pha triển khai biên, giữ
-  Spark cho pha huấn luyện.}
+  \takeaway{ONNX Runtime nhanh gấp \num{$\approx$7.200 lần} PySpark trên cùng mô
+  hình. Nút thắt của mọi chế độ ở KQ6 là engine PySpark, không phải mô hình
+  $\rightarrow$ bước tiếp theo: xuất sang ONNX/TensorRT cho pha biên, giữ Spark
+  cho pha huấn luyện.}
   \note{Chủ động trình bày điểm yếu này: tự định lượng chi phí của lựa chọn
-  thiết kế thay vì né tránh.}
+  thiết kế thay vì né tránh. Mỗi lần gọi PySpark tốn chi phí cố định vài giây
+  bất kể lô lớn hay nhỏ.}
 \end{frame}
 
 % =====================================================================
@@ -569,9 +574,10 @@
     Bagging chỉ 0,9966 --- thua, mà huấn luyện lâu gấp 4 lần.
   \end{block}
   \begin{block}{RQ3 --- Pipeline Spark có khả thi trên cụm thiết bị biên?}
-    \good{Khả thi, với điều kiện tách vai trò.} Thông lượng \num{2,6 $\rightarrow$
-    62,5} luồng/giây ở p95 $\approx$13\,ms; năng lượng \num{2,5 $\rightarrow$
-    0,18\,J} mỗi luồng.
+    \good{Khả thi cho cảnh báo gần thời gian thực, với điều kiện tách vai trò.}
+    Năng lực \num{2,5 $\rightarrow$ 22,4} luồng/giây (gấp 9), năng lượng
+    \num{3,04 $\rightarrow$ 0,60\,J} mỗi phán quyết; đổi lại recall tấn công
+    69,6\% và p95 $\approx$7\,giây.
   \end{block}
   \note{Slide quan trọng nhất với hội đồng. Trả lời thẳng, kể cả câu trả lời
   ``không'' cho RQ2. RQ1: Random Forest đạt 0,9955. Với cùng số đặc trưng, SHAP vượt
@@ -643,7 +649,7 @@
 
 \begin{frame}{Công trình khoa học từ luận văn}
   \begin{enumerate}
-    \item Thai Nguyen Vu, \textbf{Dung Van Bui}, Nhut Tri Do, Van Du Nguyen,
+    \item Thai Nguyen Vu, \textbf{Bui Van Dung}, Tri Nhut Do, Van Du Nguyen,
       \emph{``A Comparison of Dimensionality Reduction and Feature Selection for
       Network Intrusion Detection on Apache Spark ML with a Leakage-Aware
       Evaluation Pipeline''}, Hội thảo quốc gia Nghiên cứu cơ bản và ứng dụng
@@ -909,7 +915,7 @@
   \fitwidth{%
   \begin{tabular}{lcccc}
     \toprule
-    Ứng viên (SHAP Top-30) & Thông lượng & p95 & CPU & RAM \\
+    Ứng viên (giai đoạn chọn) & Thông lượng & p95 & CPU & RAM \\
                            & (mẫu/giây)  & (ms) & (\%) & (\%) \\
     \midrule
     \textbf{Random Forest} & \num{26,8} & \num{397} & \num{35,2} & 27,5 \\
@@ -933,8 +939,9 @@
   ra nạp được trên ARM64, không cần thư viện native mà tích hợp XGBoost của
   Spark đòi hỏi --- nhưng lý do đó áp dụng cho cả Decision Tree, nên nó chỉ
   giải thích ``không phải XGBoost''. Cái phân định RF với DT là ba chỉ số vận
-  hành trong bảng. Vector đầu vào có 29 đặc trưng: destination\_port nằm trong
-  xếp hạng SHAP nhưng bị loại vì rò rỉ nhãn.}
+  hành trong bảng. Bảng này đo ở giai đoạn chọn mô hình, với danh sách đặc
+  trưng trước khi loại trừ rò rỉ. Mô hình triển khai đã huấn luyện lại trên
+  SHAP Top-30 loại trừ rò rỉ (30 đặc trưng, F1 0,9959).}
 \end{frame}
 
 \begin{frame}[label=bk-modes]{Q8 --- Ba chế độ triển khai và môi trường đo}
@@ -1042,13 +1049,11 @@
   \\[0.2em]\footnotesize
   Recall tấn công (trái) và tỷ lệ báo động giả (phải) theo tỷ lệ bỏ qua tại
   cổng. Nâng tỷ lệ bỏ qua giúp giảm tải Spark nhưng đánh đổi bằng recall.
-  \note{Nếu được hỏi vì sao tỷ lệ bỏ qua thực đo (95,8\% ở chế độ A, 97,9\% ở
-  chế độ C) cao hơn mọi điểm trên đường cong này: hai con số khác phạm vi tính.
-  Đường cong tính trên tập kiểm tra đã loại trùng lặp mức đặc trưng (khoảng 85\%
-  benign), còn số thực đo tính trên luồng phát lại tuần tự từ CSV gốc CICIDS2017,
-  vốn còn nguyên các luồng trùng lặp (phần lớn là benign) nên tỷ lệ benign trong
-  cửa sổ đo cao hơn. Cùng ngưỡng nhưng khác thành phần lưu lượng thì tỷ lệ bỏ qua
-  khác nhau, nên số thực đo không phải một điểm nằm trên đường cong.}
+  \note{Điểm triển khai: quantile 0,995 trên tập kiểm định benign --- cổng
+  chuyển tiếp 68,1\% luồng tấn công, chuyển nhầm 0,49\% benign, bỏ qua 89,4\%.
+  Luồng phát lại lấy ngẫu nhiên từ chính tập kiểm tra, nên số thực đo (bỏ qua
+  88,8\%, recall 69,6\%) khớp với điểm này trên đường cong. Hạ xuống quantile
+  0,90 thì recall cổng lên 84,5\% nhưng chuyển nhầm 10\% benign.}
 \end{frame}
 
 \begin{frame}[label=bk-portmodels]{Q13 --- Rò rỉ cổng đích phụ thuộc họ mô hình}
@@ -1085,7 +1090,7 @@
       \includegraphics[width=\textwidth]{grafana_peak_load.png}
     \end{column}
     \begin{column}{0.35\textwidth}
-      Tại đỉnh tải, chế độ tách pipeline:
+      Tại đỉnh tải, chế độ tách pipeline (lượt chạy trước, mô hình cũ):
       \begin{itemize}
         \item nút cổng: \good{4,6\% CPU}
         \item nút phân loại: \bad{90,8\% CPU}

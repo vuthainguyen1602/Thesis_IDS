@@ -123,6 +123,10 @@ papers/soict2026/results/benchmarks/*
 !papers/soict2026/results/benchmarks/benchmark_energy_rf.json
 !papers/soict2026/results/benchmarks/benchmark_engines_results.json
 !papers/soict2026/results/benchmarks/summary.csv
+# The 2026-09-30 re-measurement (retrained models, queue-aware metrics, capacity
+# sweep, energy, same-forest engine comparison): 352 KB of board measurements.
+!papers/soict2026/results/remeasure_20260930/
+!papers/soict2026/results/remeasure_20260930/**
 
 # Regenerable LaTeX previews / backups / scratch notes
 *_preview.pdf

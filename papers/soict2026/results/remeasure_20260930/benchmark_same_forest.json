@@ -1,0 +1,45 @@
+{
+  "engines": [
+    {
+      "engine": "spark",
+      "samples": 1000,
+      "batch_size": 10,
+      "throughput_rps": 1.4,
+      "latency_batch_p50_ms": 7133.92,
+      "latency_batch_p95_ms": 7514.98,
+      "idle_power_w": 4.77,
+      "avg_power_w": 6.88,
+      "active_power_w": 2.11,
+      "energy_active_per_inference_mj": 1506.39
+    },
+    {
+      "engine": "numpy",
+      "samples": 1000,
+      "batch_size": 10,
+      "throughput_rps": 54.8,
+      "latency_batch_p50_ms": 181.89,
+      "latency_batch_p95_ms": 194.46,
+      "idle_power_w": 4.53,
+      "avg_power_w": 5.15,
+      "active_power_w": 0.62,
+      "energy_active_per_inference_mj": 11.33
+    },
+    {
+      "engine": "onnx",
+      "samples": 1000,
+      "batch_size": 10,
+      "throughput_rps": 9086.0,
+      "latency_batch_p50_ms": 1.05,
+      "latency_batch_p95_ms": 1.48,
+      "idle_power_w": null,
+      "avg_power_w": null,
+      "active_power_w": null,
+      "energy_active_per_inference_mj": null
+    }
+  ],
+  "agreement_pct": {
+    "spark_vs_numpy": 100.0,
+    "spark_vs_onnx": 100.0,
+    "numpy_vs_onnx": 100.0
+  }
+}

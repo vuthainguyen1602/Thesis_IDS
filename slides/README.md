@@ -1,21 +1,23 @@
 # Slides
 
-Four Beamer decks built from the same results as the manuscripts and the thesis.
-`fair2026_vi/` is a translation of `fair2026/`: same frames, same numbers, so a change
-to one belongs in the other. Vietnamese runs longer than English, so its dense frames
-carry a smaller font rather than less content.
+Five Beamer decks built from the same results as the manuscripts and the thesis.
+The English decks are the conference talks. The Vietnamese conference decks are
+not translations: they cover more of each paper, one message per slide in plain
+language, with the statistics and caveats in the speaker notes and backup slides.
+Numbers must match the manuscripts in every deck.
 
 | Deck | Language | Length | Output PDF |
 |---|---|---|---|
-| `soict2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/SOICT2026_slides.pdf` |
+| `soict2026/` | English | ~7:30 (9 talk slides + 3 section pages + references + 5 backup = 20 pages) | `output/pdfs/SOICT2026_slides.pdf` |
+| `soict2026_vi/` | Vietnamese | ~11 min, detailed (12 talk slides + 3 section pages + references + 5 backup = 22 pages) | `output/pdfs/SOICT2026_slides_vi.pdf` |
 | `fair2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/FAIR2026_slides.pdf` |
-| `fair2026_vi/` | Vietnamese | same deck, same 19 pages — FAIR is a domestic conference, so the talk can be given in either language | `output/pdfs/FAIR2026_slides_vi.pdf` |
+| `fair2026_vi/` | Vietnamese | ~10 min, detailed (11 talk slides + 3 section pages + references + 10 backup = 27 pages) | `output/pdfs/FAIR2026_slides_vi.pdf` |
 | `defense/` | Vietnamese | 15 min (16 talk slides + 5 section pages + title/outline/refs/thanks + backup index + 14 backup frames for 14 questions = 40 pages) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
 
 ## Building
 
 ```bash
-./build_slides.sh                 # all four decks
+./build_slides.sh                 # all five decks
 ./build_slides.sh defense         # one deck
 NOTES=1 ./build_slides.sh         # also build the *_notes.pdf versions
 ```
@@ -36,6 +38,8 @@ font fallback chain (TeX Gyre Heros → Helvetica Neue → Arial → TeX Gyre Te
 ## Speaker notes
 
 Every content frame carries a `\note{}` with what to say and what to emphasise.
+In `fair2026_vi` each note has two parts: `\say` is a script that can be read
+almost verbatim, `\ifasked` holds the detail to use only if a question comes.
 `NOTES=1` builds a two-screen PDF (slide left, notes right) for presenter mode
 in a PDF viewer that supports it. The plain PDF is unaffected.
 
@@ -52,9 +56,9 @@ show up in the rendered PDF:
   number gets printed on top of the last line. After editing, check the log:
   `grep "Overfull \\\\vbox" <deck>/main.log`. A few points of overrun stay
   invisible; past ~11 pt the footer starts colliding with the last line and that
-  frame needs a line or two cut. All four decks are currently under that bar —
-  the worst entries are ~10.8 pt on `fair2026_vi`'s *Kết quả 2* frame and ~10.6 pt
-  on the two *Key references* frames — so treat a new entry above ~11 pt as
+  frame needs a line or two cut. The FAIR decks are currently under that bar —
+  the worst entry is ~7.2 pt on `fair2026`'s *Result 3* frame and `fair2026_vi`
+  has none — so treat a new entry above ~11 pt as
   something you introduced. The Vietnamese deck sits closest to the bar because
   Vietnamese sets longer than English at the same font size.
 

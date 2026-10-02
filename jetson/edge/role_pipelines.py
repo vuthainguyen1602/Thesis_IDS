@@ -16,8 +16,10 @@ from config import (
     ANOMALY_MODEL_PATH,
     ANOMALY_SCALER_PATH,
     ANOMALY_THRESHOLD_PATH,
+    ANOMALY_FEATURES_PATH,
     FEATURES_PATH,
     EDGE_BATCH_SIZE,
+    EDGE_BATCH_MAX_WAIT_S,
     EDGE_NODE_ID,
     EDGE_NODE_ROLE,
     EDGE_ENGINE,
@@ -64,6 +66,25 @@ def create_spark_session():
     return spark
 
 
+def iter_batches(consumer, batch_size, max_wait_s, is_running):
+    """Yield lists of message values: full batches, or a partial batch once its
+    oldest message has waited max_wait_s. Iterating the consumer directly would
+    only ever release full batches."""
+    buffer, oldest = [], None
+    while is_running():
+        records = consumer.poll(timeout_ms=100, max_records=batch_size - len(buffer))
+        for messages in records.values():
+            for message in messages:
+                if not buffer:
+                    oldest = time.time()
+                buffer.append(message.value)
+        if buffer and (len(buffer) >= batch_size or time.time() - oldest >= max_wait_s):
+            yield buffer
+            buffer, oldest = [], None
+    if buffer:
+        yield buffer
+
+
 class FullPipeline(PipelineBase):
     """Complete IDS pipeline. Use the same KAFKA_GROUP_ID on multiple nodes for horizontal scaling."""
 
@@ -82,7 +103,7 @@ class FullPipeline(PipelineBase):
         if ANOMALY_ENABLED:
             try:
                 self.anomaly = AnomalyScorer(
-                    features_path=FEATURES_PATH,
+                    features_path=ANOMALY_FEATURES_PATH,
                     model_path=ANOMALY_MODEL_PATH,
                     scaler_path=ANOMALY_SCALER_PATH,
                     threshold_path=ANOMALY_THRESHOLD_PATH,
@@ -196,7 +217,8 @@ class FullPipeline(PipelineBase):
                     ):
                         pred = int(pred)
                         confidence = float(confidence)
-                        raw_features = {"route": f"{EDGE_ENGINE}_classifier"}
+                        raw_features = {"route": f"{EDGE_ENGINE}_classifier",
+                                        "sent_ts": msg.get("_timestamp"), "row": msg.get("_row")}
                         if self.anomaly is not None and anomaly_scores is not None and anomaly_flags is not None:
                             raw_features.update({
                                 "anomaly_score": float(score),
@@ -227,6 +249,7 @@ class FullPipeline(PipelineBase):
                             inference_time_ms=avg_time,
                             raw_features={
                                 "route": "anomaly_gate_only",
+                                "sent_ts": msg.get("_timestamp"), "row": msg.get("_row"),
                                 "anomaly_score": s,
                                 "anomaly_flag": False,
                                 "anomaly_threshold": thr,
@@ -241,11 +264,9 @@ class FullPipeline(PipelineBase):
         total_processed = 0
         batch_buffer = []
         try:
-            for message in self.consumer:
-                if not self.running:
-                    break
-                batch_buffer.append(message.value)
-                if len(batch_buffer) >= self.BATCH_SIZE:
+            for batch_buffer in iter_batches(self.consumer, self.BATCH_SIZE,
+                                             EDGE_BATCH_MAX_WAIT_S, lambda: self.running):
+                if batch_buffer:
                     stats = self.process_batch(batch_buffer)
                     total_processed += stats["batch_size"]
                     batch_buffer = []
@@ -288,7 +309,7 @@ class AnomalyGatePipeline(PipelineBase):
         super().__init__()
 
         self.anomaly = AnomalyScorer(
-            features_path=FEATURES_PATH,
+            features_path=ANOMALY_FEATURES_PATH,
             model_path=ANOMALY_MODEL_PATH,
             scaler_path=ANOMALY_SCALER_PATH,
             threshold_path=ANOMALY_THRESHOLD_PATH,
@@ -337,6 +358,7 @@ class AnomalyGatePipeline(PipelineBase):
                     inference_time_ms=per_item_ms,
                     raw_features={
                         "route": "anomaly_gate_only",
+                        "sent_ts": msg.get("_timestamp"), "row": msg.get("_row"),
                         "anomaly_score": score,
                         "anomaly_flag": False,
                         "anomaly_threshold": thr,
@@ -352,11 +374,9 @@ class AnomalyGatePipeline(PipelineBase):
         total_processed = 0
         batch_buffer = []
         try:
-            for message in self.consumer:
-                if not self.running:
-                    break
-                batch_buffer.append(message.value)
-                if len(batch_buffer) >= self.BATCH_SIZE:
+            for batch_buffer in iter_batches(self.consumer, self.BATCH_SIZE,
+                                             EDGE_BATCH_MAX_WAIT_S, lambda: self.running):
+                if batch_buffer:
                     stats = self.process_batch(batch_buffer)
                     total_processed += stats["batch_size"]
                     batch_buffer = []
@@ -450,6 +470,7 @@ class ClassifierPipeline(PipelineBase):
                         "route": f"{EDGE_ENGINE}_classifier",
                         "anomaly_score": msg.get("_anomaly_score"),
                         "source_node": msg.get("_source_node"),
+                        "sent_ts": msg.get("_timestamp"), "row": msg.get("_row"),
                     }
                     self._store_prediction(
                         timestamp=timestamp + (i * 1e-6),
@@ -468,11 +489,9 @@ class ClassifierPipeline(PipelineBase):
         total_processed = 0
         batch_buffer = []
         try:
-            for message in self.consumer:
-                if not self.running:
-                    break
-                batch_buffer.append(message.value)
-                if len(batch_buffer) >= self.BATCH_SIZE:
+            for batch_buffer in iter_batches(self.consumer, self.BATCH_SIZE,
+                                             EDGE_BATCH_MAX_WAIT_S, lambda: self.running):
+                if batch_buffer:
                     stats = self.process_batch(batch_buffer)
                     total_processed += stats["batch_size"]
                     batch_buffer = []

@@ -1,0 +1,6 @@
+mode,boards,send_rps,drain_s,avg_power_w,active_power_w,j_per_verdict,active_mj_per_verdict,e2e_p50_ms,e2e_p95_ms,run
+single,1,2.0,5.7,6.08,1.57,3.04,785.0,4323.4,7868.5,run_single_20260930_085604.json
+horizontal,2,3.9,6.6,12.49,2.58,3.2,661.5,4424.6,8394.5,run_horizontal_20260930_090020.json
+single_gate,1,2.0,1.4,6.07,1.55,3.04,775.0,4115.9,8061.3,run_single_gate_20260930_090445.json
+split,2,18.4,6.4,11.01,1.53,0.6,83.2,665.5,5551.8,run_split_20260930_090902.json
+spark_cluster,2,9.5,3.1,10.92,1.37,1.15,144.2,769.0,6393.8,run_spark_cluster_20260930_091327.json

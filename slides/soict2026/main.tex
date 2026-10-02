@@ -3,13 +3,15 @@
 % Paper: papers/soict2026/manuscript/main.tex
 % Compile: ./compile.sh   (XeLaTeX; notes version via NOTES=1 ./compile.sh)
 %
-% TIMING PLAN (7:00 total, ~30 s buffer). Three section pages sit between
+% TIMING PLAN (~7:30 total). Three section pages sit between
 % the parts; they are not frame-numbered and cost ~5 s each to click past.
 %   Title .......................... 0:20
 %   I   Problem, contributions ..... 1:25   (2 slides)
 %   II  Architecture, modes ........ 1:40   (2 slides)
-%   III Results, conclusion ........ 3:20   (4 slides)
-% Slides 10+ are BACKUP for Q&A and are not part of the 7 minutes.
+%   III Results, conclusion ........ 3:55   (5 slides)
+% About 7:30 in total with Result 3 (the gate trade-off). If held strictly
+% to 7:00, skip Result 2 (the Grafana view) and say its one-line conclusion.
+% Slides after the references are BACKUP for Q&A.
 % Speaker notes live in \note{} — build them with NOTES=1.
 % =====================================================================
 \documentclass[aspectratio=169, 11pt]{beamer}
@@ -17,6 +19,7 @@
 \centeredtitles
 
 \graphicspath{%
+  {../../papers/soict2026/results/remeasure_20260930/}%
   {../../papers/soict2026/results/benchmarks/}%
   {../../papers/soict2026/figures/}%
   {../../results/ml_08_anomaly_gate/}%
@@ -37,7 +40,7 @@
 \maketitle
 \note{Good morning. I will show what a second edge board actually buys you
 when you split an ML intrusion detector across two Jetson Orin Nano Super
-devices. Seven minutes, three results.}
+devices. Seven minutes, four results.}
 
 % ---------------------------------------------------------------- 0:50
 % =====================================================================
@@ -117,15 +120,15 @@ devices. Seven minutes, three results.}
     \node[mtr] (out) at (0,-6.0)   {Performance metrics $\rightarrow$ InfluxDB $\rightarrow$ Grafana \quad$|$\quad
         Alerts: Email (Mailtrap) / Slack};
     \draw[arr] (pc.south -| j1) -- node[lbl]{network-flow topic} (j1.north);
-    \draw[arr] (j1.east) -- node[lbl]{suspicious-flow topic\\ ($\approx$4\% of flows, mode A)} (j2.west);
+    \draw[arr] (j1.east) -- node[lbl]{suspicious-flow topic\\ ($\approx$11\% of flows)} (j2.west);
     \draw[arr] (j2.north) -- node[lbl]{results\\ $\rightarrow$ PostgreSQL} (pc.south -| j2);
     \draw[dsh] (j1.south) -- (out.north -| j1);
     \draw[dsh] (j2.south) -- (out.north -| j2);
   \end{tikzpicture}}
   \\[0.15em]
-  \footnotesize The gate's MSE threshold is calibrated \emph{offline} on a
-  held-out benign validation split --- committed before evaluation, never tuned
-  on the test set.
+  \footnotesize The gate scores all 77 features; its threshold is fixed
+  \emph{offline} on benign validation data, never on the test set. Batches of
+  20, or after 1\,s.
   \\[0.2em]
   {\tiny\textcolor{gray!55!black}{CICIDS2017: Sharafaldin et al., ICISSP 2018
   $\cdot$ Kafka: Kreps et al., NetDB 2011 $\cdot$ Spark: Zaharia et al.,
@@ -136,34 +139,34 @@ devices. Seven minutes, three results.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
-\begin{frame}{Three deployment modes, one workload}
+\begin{frame}{Deployment modes and what we measure}
   \begin{columns}[T]
     \begin{column}{0.58\textwidth}
-      \begin{description}
-        \item[Single node] full pipeline in one process --- the reference.
+      \begin{description}\small
+        \item[Single node] full pipeline on one board, gate off or on.
         \item[A: Pipeline split] gate on \#1, classifier on \#2 (our design).
-        \item[B: Horizontal] both boards run the \emph{full} role, sharing a
-              Kafka consumer group.
+        \item[B: Horizontal] both boards run the full role (gate off).
         \item[C: Spark cluster] host as master, both boards as workers.
       \end{description}
-      \vspace{0.4em}
-      \footnotesize Throughput is counted as \key{final verdicts per second}
-      --- a flow is decided at the gate \emph{or} at the classifier --- so
-      forwarded flows are never double-counted.
+      \vspace{0.3em}
+      \footnotesize \key{Every flow is followed from send to verdict}, queueing
+      included. \key{Sustained capacity}: the highest rate at which every flow
+      gets its verdict within 10\,s of the load.
     \end{column}
     \begin{column}{0.40\textwidth}
       \begin{block}{Setup}
         \footnotesize
         2$\times$ Jetson Orin Nano Super\\ (6-core A78AE, 8\,GB, $\approx$67\,TOPS)\\[0.3em]
         PySpark 3.4.1, Kafka 3.5, Wi-Fi LAN\\[0.3em]
-        CICIDS2017 replay at 100 flows/s\\[0.3em]
-        $\geq$3 repetitions, warmup excluded\\[0.3em]
-        Energy via \texttt{tegrastats}, idle subtracted
+        10{,}000 test-split flows, 15\% attacks\\[0.3em]
+        Rate sweep 1--40 flows/s, 2 runs each\\[0.3em]
+        Energy via \texttt{tegrastats}
       \end{block}
     \end{column}
   \end{columns}
-  \note{Four configurations, identical workload. The verdict-per-second
-  definition is what makes the modes comparable.}
+  \note{Latency is measured from the moment a flow is sent to the moment its
+  verdict is written, so time spent waiting in a queue counts. A fresh Kafka
+  consumer group per run, so no run inherits another's backlog.}
 \end{frame}
 
 % ---------------------------------------------------------------- 1:20
@@ -171,48 +174,45 @@ devices. Seven minutes, three results.}
 \section{III.\ RESULTS AND CONCLUSION}
 % =====================================================================
 
-\begin{frame}{Result 1: splitting the pipeline buys 24$\times$ throughput}
-  \centering
-  \small
-  \fitwidth{%
-  \begin{tabular}{lcccc}
-    \toprule
-    Mode & Throughput & p95 latency & Gate skip & Energy/verdict \\
-         & (flows/s)  & (ms)        & (\%)      & (mJ) \\
-    \midrule
-    Single node        & 2.60 $\pm$ 0.41 & 12.3 $\pm$ 3.0  & (inline) & 2490 \\
-    \textbf{A: Pipeline split} & \num{62.5 $\pm$ 0.6}  & \num{13.1 $\pm$ 2.6}  & \num{95.8} & \num{178} \\
-    B: Horizontal      & 5.9 $\pm$ 1.4   & 21.6 $\pm$ 19.2 & (inline) & 2250 \\
-    C: Spark cluster   & 90.0 $\pm$ 25.6 & 23.9 $\pm$ 17.8 & 97.9     & 119 \\
-    \bottomrule
-  \end{tabular}
-  }
-
-  \par\vspace{0.2em}
-  \raggedright\footnotesize
+\begin{frame}{Result 1: splitting the pipeline sustains 9$\times$ the load}
   \begin{columns}[T]
-    \begin{column}{0.49\textwidth}
-      \begin{itemize}
-        \item \good{A: $24\times$ throughput at unchanged p95} --- the gate
-              absorbs 95.8\% of benign traffic.
-        \item \bad{B stays Spark-bound} ($\approx$2.3$\times$): every node still classifies.
-      \end{itemize}
+    \begin{column}{0.58\textwidth}
+      \centering\small
+      \fitwidth{%
+      \begin{tabular}{lccc}
+        \toprule
+        Mode & Flows/s & e2e p95 (s) & J / verdict \\
+        \midrule
+        Single node         & 2.5            & 11.3          & 3.04 \\
+        Single node + gate  & $\approx$2.5   & 7.8           & 3.04 \\
+        B: Horizontal       & 3.3            & 8.2           & 3.20 \\
+        C: Spark cluster    & 9--17          & 5.2           & 1.15 \\
+        \textbf{A: Split}   & \num{22.4}     & \num{7.1}     & \num{0.60} \\
+        \bottomrule
+      \end{tabular}
+      }
+      \\[0.3em]
+      \raggedright\scriptsize
+      \textbf{Flows/s}: sustained, every flow done within 10\,s.
+      \textbf{e2e p95}: send to verdict, queueing included.
     \end{column}
-    \begin{column}{0.49\textwidth}
-      \begin{itemize}
-        \item C is fastest on average but swings by $\pm$25.6 flows/s and needs the host master.
-        \item Energy amortized over 24--35$\times$ more verdicts:
-              \good{$\approx$2.5\,J $\rightarrow$ 0.12--0.18\,J}.
+    \begin{column}{0.39\textwidth}
+      \begin{itemize}\small
+        \setlength{\itemsep}{0.4em}
+        \item \good{Split: 9$\times$ a single node, 5$\times$ less energy per
+              verdict.}
+        \item \bad{The same gate on the same board gains nothing}: the second
+              board is what pays.
+        \item Tail latency is seconds: one PySpark batch takes seconds.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{\textbf{Pipeline split is the recommended default} --- the highest
-  throughput at the tightest run-to-run spread; cluster mode is for models that
-  exceed single-node memory.}
-  \note{This is the core table. Twenty-four times, at the same p95. Mode B
-  proves the gain comes from role separation, not from adding a board. Energy
-  is total-board per verdict: the active power delta was below the tegrastats
-  noise floor at this load.}
+  \takeaway{\textbf{Pipeline split is the recommended default}: highest
+  sustained load at the lowest energy per verdict.}
+  \note{Single node and horizontal run with the gate off, as in the submitted
+  version. Energy is measured at each mode's sustained rate: 2.0, 2.0, 3.9,
+  9.5 and 18.4 flows per second. Gate skip is about 89 percent in every gated
+  mode. Median latency in split mode is about one second. Single node plus gate: the 10 second rule puts it at 1.9 only because one repeat drained in 10.6 seconds; at 3 flows per second it delivers 2.4 to 2.5 like the single node. Spark cluster: at 20 flows per second one repeat kept up at 17.1 and the other did not, so its capacity is only known to lie between about 9 and 17.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35
@@ -223,7 +223,7 @@ devices. Seven minutes, three results.}
       \includegraphics[width=\textwidth]{grafana_peak_load.png}
     \end{column}
     \begin{column}{0.35\textwidth}
-      At peak load, split mode:
+      At peak load, split mode\\{\scriptsize (earlier run, previous model)}:
       \begin{itemize}
         \item gate node: \good{4.6\% CPU}
         \item classifier node: \bad{90.8\% CPU}
@@ -238,29 +238,70 @@ devices. Seven minutes, three results.}
   filter, not a fixed point --- backup slide has the operating curve.}
 \end{frame}
 
+% ---------------------------------------------------------------- 0:35
+\begin{frame}{Result 3: what the gate lets through}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \centering\small
+      \fitwidth{%
+      \begin{tabular}{lccc}
+        \toprule
+        Gate threshold & Attacks & False & Flows \\
+        (benign quantile) & forwarded & alarms & skipped \\
+        \midrule
+        0.99              & 72.4\% & 0.99\% & 88.3\% \\
+        \textbf{0.995 (deployed)} & \num{68.1\%} & \num{0.49\%} & 89.4\% \\
+        0.999             & 39.8\% & 0.09\% & 94.0\% \\
+        \bottomrule
+      \end{tabular}
+      }
+      \\[0.3em]
+      \raggedright\scriptsize Offline, CICIDS2017 test split; gate on all 77
+      features. Streamed live: 69.6\% of 1{,}261 attack flows caught.
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \begin{itemize}\small
+        \setlength{\itemsep}{0.4em}
+        \item A flow the gate skips is final: \bad{about 30\% of attack flows}
+              never reach the classifier.
+        \item On the classifier's 30 features the gate would forward only
+              44.8\%.
+        \item The operator picks the point that fits the budget.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \takeaway{The capacity gain is paid for in recall: the gate is a
+  \key{tunable trade-off}, not a free filter.}
+  \note{Numbers from results/ml\_08\_anomaly\_gate/gate\_operating\_points.csv;
+  the deployed threshold is quantile 0.995. Without the gate, every attack flow
+  in the replay was caught, so the loss is the gate's.}
+\end{frame}
+
 % ---------------------------------------------------------------- 0:45
-\begin{frame}{Result 3: the price of one unified stack}
+\begin{frame}{Result 4: the price of one unified stack}
   We serve with Spark for \emph{consistency with distributed training}.
-  What does that cost? Same forest, same 29 deployed features, same board:
+  What does that cost? The \emph{deployed forest}, exported, same board:
   \vspace{0.5em}
   \centering
   \small
   \fitwidth{%
-  \begin{tabular}{lcccc}
+  \begin{tabular}{lccc}
     \toprule
-    Engine & Throughput (flows/s) & p95 (ms) & RAM (\%) & Energy/inf.\ (mJ, active) \\
+    Engine & Flows/s & Batch p95 (ms) & mJ per flow \\
     \midrule
-    PySpark (deployed) & 22.6   & 532  & 24.3 & 71.6 \\
-    scikit-learn       & 204.4  & 49.8 & 13.3 & 2.91 \\
-    \textbf{ONNX Runtime} & \num{7870.8} & \num{1.1} & 15.7 & \num{0.06} \\
+    PySpark (deployed) & 1.4      & 7515  & 1506 \\
+    NumPy              & 54.8     & 194   & 11.3 \\
+    \textbf{ONNX Runtime} & \num{10{,}092} & \num{1.2} & \num{0.087} \\
     \bottomrule
   \end{tabular}
   }
-  \takeaway{ONNX Runtime sustains \num{$348\times$} the deployed PySpark
-  throughput. We report this as a \emph{target for the next iteration} ---
-  export to ONNX/TensorRT for serving; keep Spark for training.}
-  \note{The JVM costs us three orders of magnitude, and that sets the
-  roadmap.}
+  \\[0.2em]{\scriptsize Identical predictions on every flow. mJ per flow: energy
+  above the board's idle power.}
+  \takeaway{ONNX Runtime serves the same forest \num{$\approx$7{,}200$\times$}
+  faster. Target for the next iteration: \key{train on Spark, serve with
+  ONNX/TensorRT}.}
+  \note{The JVM costs us more than three orders of magnitude, and that sets
+  the roadmap. Batch size 10.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -271,37 +312,37 @@ devices. Seven minutes, three results.}
       \begin{itemize}
         \item A reproducible distributed edge IDS: Kafka $+$ PySpark on a
               Jetson Orin Nano Super cluster.
-        \item Splitting gate and classifier across boards:
-              \good{2.6 $\rightarrow$ 62.5 flows/s} at p95 $\approx$13\,ms,
-              gate skipping 95.8\%.
-        \item Energy per verdict: \good{2.5\,J $\rightarrow$ 0.18\,J}.
+        \item Gate and classifier on separate boards:
+              \good{2.5 $\rightarrow$ 22.4 flows/s} sustained, e2e p95
+              $\approx$7\,s.
+        \item Energy per verdict: \good{3.0\,J $\rightarrow$ 0.60\,J}.
+        \item ONNX serves the same forest $\approx$7{,}200$\times$ faster.
       \end{itemize}
     \end{column}
     \begin{column}{0.44\textwidth}
       \textbf{Limitations}
       \begin{itemize}\footnotesize
-        \item Two-node lab cluster over Wi-Fi; CICIDS2017 replay, not live traffic.
-        \item The $\approx$67-TOPS GPU is unused by the CPU-only pipeline.
-        \item Evasive traffic untested.
+        \item Two-node lab cluster over Wi-Fi; replayed traffic.
+        \item Gate skips $\approx$30\% of attack flows.
+        \item GPU unused (CPU-only pipeline); evasion untested.
       \end{itemize}
       \textbf{Next}
       \begin{itemize}\footnotesize
-        \item TensorRT/ONNX in the streaming path.
-        \item Live traffic; federated retraining under drift.
+        \item ONNX/TensorRT serving; live traffic; retraining under drift.
       \end{itemize}
     \end{column}
   \end{columns}
   \vfill
   \centering
   \key{Thank you --- questions?}
-  \note{Recap the three numbers: twenty-four times, thirteen milliseconds,
-  ninety-six percent skipped. Then stop talking.}
+  \note{Recap: nine times the load, five times less energy per verdict, and
+  the price, about thirty percent of attacks skipped by the gate.}
 \end{frame}
 
 % ---------------------------------------------------------------- 7:00
 \begin{frame}{Key references}
   \begin{itemize}\footnotesize
-    \setlength{\itemsep}{0.15em}
+    \setlength{\itemsep}{0em}
     \item[{[1]}] Sharafaldin, I., Lashkari, A.\,H. \& Ghorbani, A.\,A.
           \emph{Toward generating a new intrusion detection dataset and
           intrusion traffic characterization}. ICISSP 2018.
@@ -339,14 +380,12 @@ devices. Seven minutes, three results.}
   Backup slides
 \end{frame}
 
-\begin{frame}{Backup: deployment-mode comparison chart}
+\begin{frame}{Backup: sustained capacity and energy per mode}
   \centering
-  \IfFileExists{../../papers/soict2026/results/benchmarks/edge_modes.png}
-    {\includegraphics[height=0.72\textheight, width=\textwidth, keepaspectratio]{edge_modes.png}}
-    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
-      \texttt{edge\_modes.png} --- run \texttt{plot\_edge\_modes.py}\vspace{1.5cm}}}}
+  \includegraphics[height=0.70\textheight, width=\textwidth, keepaspectratio]{edge_capacity.png}
   \\[0.2em]
-  \footnotesize Verdict throughput (left) and p95 latency (right).
+  \footnotesize Sustained verdicts/s with every flow done within 10\,s (left);
+  energy per verdict at that rate (right).
 \end{frame}
 
 \begin{frame}{Backup: the gate is an operating curve, not a point}
@@ -377,11 +416,11 @@ devices. Seven minutes, three results.}
   }
   \\[0.4em]
   \raggedright\footnotesize
-  We deploy \key{SHAP Top-30 with Random Forest} (offline F1 0.9955): a native
-  Spark ML estimator, so the exported \texttt{PipelineModel} loads on ARM64
-  without the native libraries Spark's XGBoost integration needs. The input
-  vector has \key{29} features --- \texttt{destination\_port} is in the SHAP
-  ranking but excluded as label-leaking.
+  We deploy \key{SHAP Top-30 with Random Forest} (exported model: test F1
+  0.9959, 30 features): a native Spark ML estimator, so the
+  \texttt{PipelineModel} loads on ARM64 without the native libraries Spark's
+  XGBoost integration needs. The SHAP ranking is computed after
+  \texttt{destination\_port} is removed.
   \\ $^{\dagger}$Distributed saving under-reports size; true size $\approx$2.5\,MB.
 \end{frame}
 
@@ -396,16 +435,16 @@ devices. Seven minutes, three results.}
 \begin{frame}{Backup: measurement protocol}
   \begin{itemize}\small
     \item Host-side orchestration starts pipeline roles on the Jetsons over
-          SSH, drives the load, collects per-node logs.
-    \item $\geq$3 repetitions per configuration; warmup traffic \emph{excluded}
-          from the measured window (no JVM/JIT inflation of early batches).
-    \item Metric queries aligned to the exact load window, not a trailing range.
-    \item Latency percentiles per node over \emph{raw per-flow} samples;
-          cluster p95 is conservatively the \emph{worst node's} p95.
-    \item End-to-end send-to-verdict latency from producer timestamps under
-          NTP-synchronized clocks (excludes DB-write cost).
-    \item Energy: \texttt{tegrastats}, 30\,s idle baseline then load window;
-          two-node modes sum both boards.
+          SSH, drives the load, collects every verdict.
+    \item Each verdict stores the flow's send time and replay row: latency is
+          send to verdict, \emph{queueing included}; skip ratio and attack
+          recall come from the flows themselves.
+    \item Rate sweep per mode; a rate is sustained when every flow sent in the
+          45\,s window gets its verdict within 10\,s after it. 2 runs per rate.
+    \item Fresh Kafka consumer group per run, so no run inherits a backlog.
+    \item Tiers batch 20 flows or flush after 1\,s.
+    \item Energy: \texttt{tegrastats}, 30\,s idle baseline then load at the
+          sustained rate; two-node modes sum both boards.
   \end{itemize}
 \end{frame}
 

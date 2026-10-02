@@ -1,0 +1,98 @@
+\documentclass[10pt,a4paper,landscape]{article}
+\usepackage[margin=1.6cm]{geometry}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage{tabularx,booktabs,xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{enumitem,multicol}
+\setlist{nosep,leftmargin=1.4em}
+\hypersetup{colorlinks=true,urlcolor=blue!60!black}
+\renewcommand{\arraystretch}{1.25}
+\pagestyle{plain}
+
+\begin{document}
+
+\begin{center}
+  {\Large\bfseries Đề xuất nghiên cứu: phát hiện xâm nhập few-shot với đánh giá loại trừ rò rỉ}\\[3pt]
+  {\small Bản nháp ngày 30/9/2026. Các kết quả kỳ vọng dưới đây là \emph{giả thuyết}, chỉ khẳng định sau khi đo.}
+\end{center}
+
+\section*{1. Tên bài đề xuất}
+\begin{itemize}
+  \item \textbf{Tiếng Anh:} \emph{How Few Is Enough? A Leakage-Aware Benchmark of Few-Shot Intrusion Detection Across CIC-IDS2017 and CSE-CIC-IDS2018}
+  \item \textbf{Tiếng Việt:} \emph{Phát hiện xâm nhập với ít nhãn: đánh giá loại trừ rò rỉ dữ liệu cho học few-shot trên CICIDS2017 và CSE-CIC-IDS2018}
+\end{itemize}
+
+\section*{2. Hướng nghiên cứu và động lực}
+Tổng quan năm 2026 về few-shot cho IDS (bài 1 trong bảng) ghi nhận 21 nghiên cứu, phần lớn dùng 5 mẫu trở xuống mỗi lớp, CICIDS2017 và CSE-CIC-IDS2018 là hai bộ dữ liệu phổ biến nhất, và việc thiếu tham số lẫn mã nguồn khiến khó tái lập, khó so sánh. Một số bài báo cáo độ chính xác 10-shot khoảng 99\% trên hai bộ này. Hướng đề xuất \emph{không} chế thêm một mô hình meta-learning, mà xây một \textbf{benchmark few-shot trung thực} trên nền pipeline sẵn có của luận văn: khử trùng lặp ở mức đặc trưng, bỏ cột cổng, thí nghiệm liên bộ dữ liệu 2017~$\leftrightarrow$~2018 và báo cáo phân phối qua nhiều lượt chạy (kết quả liên bộ đã cho thấy dao động hai chế độ). Kết quả đã có làm điểm xuất phát: căn chỉnh không nhãn (chuẩn hóa theo miền, CORAL) đưa F1 về 0, trong khi 1\% nhãn miền đích (khoảng 19 nghìn luồng, \emph{không} phải few-shot) đưa F1 lên 0,92--0,99.
+
+\section*{3. Câu hỏi nghiên cứu}
+\begin{enumerate}[label=\textbf{RQ\arabic*}]
+  \item Các kết quả few-shot đã công bố có còn đứng vững khi loại rò rỉ (trùng lặp luồng, cột cổng) không?
+  \item Cần bao nhiêu nhãn là đủ? Đường cong F1 theo số mẫu có nhãn mỗi lớp $K$, từ 1 mẫu đến 1\%.
+  \item Meta-learning (ProtoNet, triplet/Siamese, MAML) có thật sự hơn các cách đơn giản không: Random Forest/XGBoost trên $K$ mẫu, hoặc giữ mô hình nguồn và chỉ chỉnh lại ngưỡng bằng $K$ mẫu?
+  \item Few-shot có giúp được khi chuyển sang mạng mới (liên bộ dữ liệu 2017~$\rightarrow$~2018 và ngược lại) không?
+  \item Few-shot có bắt được một họ tấn công chưa từng thấy khi chỉ có $K$ mẫu của họ đó không?
+\end{enumerate}
+
+\section*{4. Các bước thực hiện (khoảng 8--9 tuần, bán thời gian)}
+\begin{multicols}{2}
+\begin{enumerate}[label=\textbf{B\arabic*.}]
+  \item \textbf{Khảo sát tài liệu (1 tuần).} Lập bảng 21 nghiên cứu trong bài tổng quan: bộ dữ liệu, $K$, có khử trùng lặp/bỏ cột cổng không, có mã nguồn không. Chọn 2--3 phương pháp có mã nguồn để tái lập. Kiểm tra đã có ai làm few-shot với đánh giá loại trừ rò rỉ chưa, \emph{trước khi} khẳng định tính mới.
+  \item \textbf{Giao thức đánh giá (1 tuần).} Dùng lại tiền xử lý của luận văn. Bộ lấy mẫu $K$-shot chỉ lấy từ tập huấn luyện miền đích; tập kiểm tra đích không bao giờ bị đụng tới. $K \in \{1, 5, 10, 20, 50, 100, 500\}$ cộng mốc 1\%. Mỗi cấu hình 20--30 hạt giống, báo cáo trung vị và khoảng tứ phân vị.
+  \item \textbf{Phương pháp cơ sở đơn giản (1 tuần).} RF/XGBoost chỉ trên $K$ mẫu đích; mô hình nguồn cộng $K$ mẫu đích; \textbf{mô hình nguồn giữ nguyên, chỉ chỉnh ngưỡng bằng $K$ mẫu} (giả thuyết mới, xuất phát từ việc CORAL cải thiện AUC-PR nhưng hỏng ngưỡng 0,5); CORAL cộng chỉnh ngưỡng.
+  \item \textbf{Phương pháp few-shot (2 tuần).} Tái lập ProtoNet, triplet và MAML trên cùng giao thức, chạy cả phiên bản có rò rỉ (như bài gốc) và đã loại rò rỉ; chênh lệch là mức thổi phồng.
+  \item \textbf{Tấn công chưa từng thấy (1 tuần).} Lần lượt giấu từng họ tấn công khỏi huấn luyện, chỉ đưa $K$ mẫu của họ đó vào; đo recall trên họ bị giấu và tỷ lệ báo động giả trên benign.
+  \item \textbf{(Tuỳ chọn) Triển khai biên (vài ngày).} Xuất mô hình tốt nhất sang ONNX, đo chi phí suy luận và chi phí thích nghi với $K$ mẫu trên Jetson. Giữ đóng góp tách bạch với bài ONNX-EdgeIDS.
+  \item \textbf{Viết bài (2 tuần).} Công bố mã nguồn, danh sách hạt giống và chỉ số của từng mẫu $K$-shot để giải quyết đúng điểm yếu tái lập.
+\end{enumerate}
+\end{multicols}
+
+\section*{5. Kết quả kỳ vọng (giả thuyết)}
+\begin{itemize}
+  \item \textbf{Mức thổi phồng do rò rỉ trong few-shot:} độ chính xác của các phương pháp đã công bố thay đổi thế nào khi khử trùng lặp và bỏ cột cổng. Nếu mức giảm lớn, đây là đóng góp chính.
+  \item \textbf{Đường cong nhãn cho IDS:} từ mức $K$ nào F1 tiệm cận mức cùng bộ; hiện đã biết 1\% cho F1 0,92--0,99.
+  \item \textbf{Phương pháp đơn giản có thể đủ tốt:} nếu chỉnh ngưỡng bằng $K$ mẫu hoặc RF trên $K$ mẫu theo kịp meta-learning, đó là kết luận thực dụng.
+  \item \textbf{Độ dao động giữa các hạt giống:} báo cáo phân phối kết quả, vì ở $K$ nhỏ kết quả có thể dao động hai chế độ.
+  \item \textbf{Sản phẩm đi kèm:} mã nguồn và giao thức mở để người khác so sánh được.
+\end{itemize}
+
+\section*{6. Rủi ro}
+\begin{itemize}
+  \item Bước B1 có thể phát hiện đã có bài làm few-shot với đánh giá loại trừ rò rỉ; khi đó chuyển trọng tâm sang phần liên bộ dữ liệu và chỉnh ngưỡng.
+  \item Tái lập MAML hoặc ProtoNet có thể không ra đúng số của bài gốc; nếu vậy thì ghi rõ trong bài chứ không che đi.
+\end{itemize}
+
+\newpage
+\section*{7. Tài liệu tham khảo}
+{\small $\star$: nên đọc trước. Chỉ bài 1 và 2 đã được đọc tóm tắt; các bài khác cần kiểm tra lại thông tin trước khi trích dẫn. Link bấm được.}\par\medskip
+
+\small
+\noindent\begin{tabularx}{\textwidth}{@{}c X c l p{8.2cm}@{}}
+\toprule
+\textbf{\#} & \textbf{Bài báo} & \textbf{Năm} & \textbf{Nhóm} & \textbf{Link} \\
+\midrule
+1$\star$ & Roszeitis, Jüttner, Buchmann. \emph{Few-Shot Learning for Network Intrusion Detection: Methods, Datasets, and Performance} (tổng quan PRISMA, 21 nghiên cứu 2022--2026) & 2026 & Tổng quan & \url{https://arxiv.org/abs/2609.11275} \\
+2$\star$ & Wilkie, Hindy, Tachtatzis, Bures, Atkinson. \emph{Few-Shot Network Intrusion Detection Using Online Triplet Mining} (khoảng 10 mẫu tấn công mỗi lớp) & 2026 & Few-shot mới & \url{https://arxiv.org/abs/2605.17530} \\
+3 & \emph{Explainable attention based few shot LSTM for intrusion detection in imbalanced cyber physical system networks}. Scientific Reports & 2026 & Few-shot mới & \url{https://www.nature.com/articles/s41598-026-38668-4} \\
+4 & \emph{Evaluating meta-learning strategies for zero-day intrusion detection under data scarcity} (MAML và ProtoNet) & 2026 & Few-shot mới & \url{https://pubmed.ncbi.nlm.nih.gov/42469304/} \\
+5 & \emph{Adversarially robust few-shot learning for AI-enabled attack mitigation in the Internet of Things}. Cluster Computing & 2026 & Few-shot mới & \url{https://link.springer.com/article/10.1007/s10586-026-06528-5} \\
+\midrule
+6 & Hindy và cộng sự. \emph{Leveraging Siamese Networks for One-Shot Intrusion Detection Model}. J.\ Intelligent Information Systems & 2023 & Phương pháp IDS & \url{https://arxiv.org/abs/2006.15343} \\
+7 & Xu và cộng sự. \emph{A Method of Few-Shot Network Intrusion Detection Based on Meta-Learning Framework}. IEEE & chưa xác nhận & Phương pháp IDS & \url{https://ieeexplore.ieee.org/document/9083983/} \\
+8 & \emph{A few-shot network intrusion detection method based on mutual centralized learning}. Scientific Reports & 2025 & Phương pháp IDS & \url{https://www.nature.com/articles/s41598-025-93185-0} \\
+9$\star$ & \emph{Few-shot network intrusion detection method based on multi-domain fusion and cross-attention}. PLOS One (10-shot $\approx$99\% trên CICIDS2017/2018: ứng viên để kiểm tra rò rỉ) & chưa xác nhận & Phương pháp IDS & \url{https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0327161} \\
+10 & \emph{MACML: Marrying attention and convolution-based meta-learning method for few-shot IoT intrusion detection}. PLOS One & chưa xác nhận & Phương pháp IDS & \url{https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0331065} \\
+11 & \emph{Few-Shot Class-Incremental Learning for Network Intrusion Detection Systems}. IEEE & chưa xác nhận & Phương pháp IDS & \url{https://ieeexplore.ieee.org/document/10720176/} \\
+\midrule
+12$\star$ & Snell, Swersky, Zemel. \emph{Prototypical Networks for Few-shot Learning}. NeurIPS & 2017 & Thuật toán gốc & \url{https://arxiv.org/abs/1703.05175} \\
+13$\star$ & Finn, Abbeel, Levine. \emph{Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks}. ICML & 2017 & Thuật toán gốc & \url{https://arxiv.org/abs/1703.03400} \\
+14 & Sun, Feng, Saenko. \emph{Return of Frustratingly Easy Domain Adaptation} (CORAL). AAAI & 2016 & Thuật toán gốc & \url{https://arxiv.org/abs/1511.05547} \\
+\midrule
+15$\star$ & Arp và cộng sự. \emph{Dos and Don'ts of Machine Learning in Computer Security}. USENIX Security & 2022 & Rò rỉ dữ liệu & \url{https://arxiv.org/abs/2010.09470} \\
+16 & Engelen, Rimmer, Joosen. \emph{Troubleshooting an Intrusion Detection Dataset: the CICIDS2017 Case Study}. IEEE SPW & 2021 & Rò rỉ dữ liệu & \url{https://ieeexplore.ieee.org/document/9474286/} \\
+\bottomrule
+\end{tabularx}
+
+\end{document}

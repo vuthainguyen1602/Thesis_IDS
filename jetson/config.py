@@ -52,6 +52,12 @@ ANOMALY_THRESHOLD_PATH = os.getenv(
     "ANOMALY_THRESHOLD_PATH",
     os.path.join(os.path.dirname(__file__), "model", "anomaly_threshold.json"),
 )
+# The gate is an unsupervised anomaly detector, so it scores all leak-free
+# numeric features; the classifier uses its own SHAP subset (FEATURES_PATH).
+ANOMALY_FEATURES_PATH = os.getenv(
+    "ANOMALY_FEATURES_PATH",
+    os.path.join(os.path.dirname(__file__), "model", "anomaly_feature_columns.json"),
+)
 
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
 POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
@@ -79,6 +85,10 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
 DATA_CSV_PATH = os.getenv("DATA_CSV_PATH", "")
 SEND_RATE = int(os.getenv("SEND_RATE", "100"))
 EDGE_BATCH_SIZE = int(os.getenv("EDGE_BATCH_SIZE", "20"))
+# A batch is processed when it is full OR its oldest flow has waited this long.
+# Without the time limit a tier that sees few flows (the classifier behind the
+# gate gets ~11% of traffic) can hold a partial batch of attacks indefinitely.
+EDGE_BATCH_MAX_WAIT_S = float(os.getenv("EDGE_BATCH_MAX_WAIT_S", "1.0"))
 SPARK_MASTER = os.getenv("SPARK_MASTER", "")
 if not SPARK_MASTER:
     SPARK_MASTER = os.getenv("SPARK_MASTER_URL", "")
@@ -94,19 +104,40 @@ SPARK_WORKER_CORES = os.getenv("SPARK_WORKER_CORES", "2")
 METRICS_PUSH_INTERVAL = int(os.getenv("METRICS_PUSH_INTERVAL", "10"))
 ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "60"))
 
-# NOTE: destination_port was removed — it is now excluded from training as a
-# label-leakage feature (see shared_utils._leaky_port_cols). After re-running
-# the SHAP selection (ml_06) on the leak-free feature set, regenerate this list
-# from shap_feature_importance.csv so it again holds the true Top-30 and stays
-# in sync with the exported model.
+# Fallback copy of the leakage-free SHAP Top-30 (results/ml_06_feature_selection_shap/
+# shap_feature_importance.csv, port columns excluded before ranking). The exported
+# model's own list lives in model/feature_columns.json and wins when present;
+# the export scripts read the CSV directly, so this copy only matters on a board
+# that has no feature_columns.json.
 SHAP_TOP_FEATURES = [
-    "flow_duration", "total_fwd_packets", "total_backward_packets",
-    "total_length_of_fwd_packets", "total_length_of_bwd_packets",
-    "fwd_packet_length_max", "fwd_packet_length_min", "fwd_packet_length_mean",
-    "bwd_packet_length_max", "bwd_packet_length_mean", "bwd_packet_length_std",
-    "flow_bytes_s", "flow_packets_s", "flow_iat_mean", "flow_iat_std",
-    "flow_iat_max", "flow_iat_min", "fwd_iat_total", "fwd_iat_mean",
-    "bwd_iat_total", "bwd_iat_mean", "fwd_psh_flags", "bwd_packets_s",
-    "min_packet_length", "max_packet_length", "packet_length_mean",
-    "packet_length_std", "packet_length_variance", "average_packet_size",
+    "bwd_packet_length_std",
+    "init_win_bytes_backward",
+    "init_win_bytes_forward",
+    "bwd_packet_length_mean",
+    "fwd_packet_length_max",
+    "average_packet_size",
+    "bwd_packets_s",
+    "bwd_packet_length_min",
+    "idle_min",
+    "packet_length_std",
+    "fwd_header_length34",
+    "total_fwd_packets",
+    "total_length_of_bwd_packets",
+    "fin_flag_count",
+    "min_seg_size_forward",
+    "fwd_iat_min",
+    "flow_iat_min",
+    "fwd_packet_length_mean",
+    "bwd_packet_length_max",
+    "fwd_iat_std",
+    "avg_bwd_segment_size",
+    "total_backward_packets",
+    "act_data_pkt_fwd",
+    "idle_max",
+    "total_length_of_fwd_packets",
+    "flow_iat_max",
+    "active_min",
+    "fwd_iat_mean",
+    "psh_flag_count",
+    "fwd_iat_max",
 ]

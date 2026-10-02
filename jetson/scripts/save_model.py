@@ -23,28 +23,25 @@ MODEL_DIR = os.path.join(PROJECT_ROOT, "model")
 MODEL_PATH = os.path.join(MODEL_DIR, "ids_pipeline_model")
 FEATURES_PATH = os.path.join(MODEL_DIR, "feature_columns.json")
 
-# NOTE: destination_port removed — excluded from training as a label-leakage
-# feature (shared_utils._leaky_port_cols). Regenerate this list from the SHAP
-# ranking (ml_06) after re-running experiments on the leak-free feature set.
-# save_model already guards with `if f in feature_cols`, so any stale entry is
-# dropped automatically, but keep the list in sync for an honest Top-30.
-SHAP_TOP_FEATURES = [
-    "flow_duration", "total_fwd_packets", "total_backward_packets",
-    "total_length_of_fwd_packets", "total_length_of_bwd_packets",
-    "fwd_packet_length_max", "fwd_packet_length_min", "fwd_packet_length_mean",
-    "bwd_packet_length_max", "bwd_packet_length_mean", "bwd_packet_length_std",
-    "flow_bytes_s", "flow_packets_s", "flow_iat_mean", "flow_iat_std",
-    "flow_iat_max", "flow_iat_min", "fwd_iat_total", "fwd_iat_mean",
-    "bwd_iat_total", "bwd_iat_mean", "fwd_psh_flags", "bwd_packets_s",
-    "min_packet_length", "max_packet_length", "packet_length_mean",
-    "packet_length_std", "packet_length_variance", "average_packet_size",
-]
+def _shap_top_features(k: int = 30) -> list:
+    """Leakage-free SHAP Top-k, read from the ml_06 ranking so the exported model
+    cannot drift from the feature set the offline study selected."""
+    import csv
+    path = os.path.join(THESIS_ROOT, "results", "ml_06_feature_selection_shap",
+                        "shap_feature_importance.csv")
+    leaky = {"destination_port", "source_port", "src_port", "dst_port"}
+    with open(path) as fh:
+        ranked = [r["feature"] for r in csv.DictReader(fh)]
+    return [f for f in ranked if f not in leaky][:k]
+
+
+SHAP_TOP_FEATURES = _shap_top_features()
 
 
 def main():
     os.environ.setdefault("IDS_ALLOW_LOCAL_SPARK", "1")
     print("\n" + "=" * 60)
-    print("  SAVE PYSPARK MODEL FOR RASPBERRY PI DEPLOYMENT")
+    print("  SAVE PYSPARK MODEL FOR JETSON DEPLOYMENT")
     print("=" * 60 + "\n")
 
     spark = create_spark_session("IDS_SaveModel")
@@ -70,11 +67,11 @@ def main():
         label_col="label_binary",
         num_features=len(selected_features),
     )
-    best_model = classifiers["Decision Tree"]
+    best_model = classifiers["Random Forest"]
 
     pipeline = Pipeline(stages=[assembler, scaler, best_model])
 
-    print("\n  Training Decision Tree pipeline...")
+    print("\n  Training Random Forest pipeline...")
     from shared_utils import add_class_weights
     train_df = add_class_weights(train_df)  # weightCol-aware model needs this
     model = pipeline.fit(train_df)
