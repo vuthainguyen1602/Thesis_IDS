@@ -24,7 +24,7 @@ Máy chủ MacBook chỉ đảm nhận vai trò \textit{master} điều phối c
 % Giá trị điền vào lấy từ các tệp results/*/...csv tương ứng.
 
 \vspace{1em}
-Bảng~\ref{tab:model_parameters} tóm tắt bộ tham số cố định của các mô hình. Bộ tham số này được chọn từ trước, dựa trên các nghiên cứu gần đây và thực nghiệm sơ bộ, và dùng chung cho Kịch bản 1 và 2. Nhờ vậy khác biệt quan sát được giữa các phương pháp giảm chiều phản ánh đúng bản thân phương pháp, thay vì mức độ tinh chỉnh riêng từng mô hình. Riêng Kịch bản 3 tinh chỉnh lại bốn mô hình (Random Forest, Decision Tree, \ac{gbt}, Logistic Regression) bằng Grid Search kết hợp kiểm định chéo.
+Bảng~\ref{tab:model_parameters} tóm tắt bộ tham số cố định của các mô hình. Bộ tham số này được chọn từ trước, dựa trên các nghiên cứu gần đây và thực nghiệm sơ bộ, và dùng chung cho Kịch bản 1 và 2. Nhờ vậy khác biệt quan sát được giữa các phương pháp giảm chiều phản ánh đúng bản thân phương pháp, thay vì mức độ tinh chỉnh riêng từng mô hình. Riêng Kịch bản 3 tinh chỉnh lại bốn mô hình (Random Forest, Decision Tree, \ac{gbt}, Logistic Regression) bằng Grid Search kết hợp kiểm định chéo. Trong các bảng kết quả của chương, giá trị in đậm là giá trị tốt nhất trong cột (với bảng chia nhóm dòng: tốt nhất trong từng nhóm), trừ khi chú thích bảng nêu khác.
 
 \begin{table}[htbp]
 \centering
@@ -142,11 +142,11 @@ Logistic Regression    & 0{,}9288 & 0{,}6937 & 0{,}9422 & 0{,}7991 & 0{,}9859 & 
 \ac{nb}            & 0{,}3163 & 0{,}1793 & 0{,}9933 & 0{,}3038 & 0{,}8829 & 0{,}6364 \\
 Random Forest          & 0{,}9985 & 0{,}9939 & 0{,}9960 & 0{,}9949 & 0{,}9999 & 0{,}9997 \\
 \ac{gbt}                    & 0{,}9980 & 0{,}9900 & 0{,}9965 & 0{,}9932 & 0{,}9998 & 0{,}9991 \\
-\ac{xgb}                & 0{,}9991 & 0{,}9950 & 0{,}9993 & 0{,}9971 & 1{,}0000 & 0{,}9999 \\
+\ac{xgb}                & \textbf{0{,}9991} & 0{,}9950 & \textbf{0{,}9993} & \textbf{0{,}9971} & \textbf{1{,}0000} & \textbf{0{,}9999} \\
 MLP                    & 0{,}9900 & 0{,}9844 & 0{,}9487 & 0{,}9662 & 0{,}9984 & 0{,}9936 \\
 \midrule
-\textbf{Hybrid Bagging}   & 0{,}9990 & 0{,}9950 & 0{,}9984 & 0{,}9967 & 1{,}0000 & 0{,}9999 \\
-\textbf{Soft Voting}  & 0{,}9991 & 0{,}9952 & 0{,}9985 & 0{,}9969 & 1{,}0000 & 0{,}9999 \\
+\textbf{Hybrid Bagging}   & 0{,}9990 & 0{,}9950 & 0{,}9984 & 0{,}9967 & \textbf{1{,}0000} & \textbf{0{,}9999} \\
+\textbf{Soft Voting}  & \textbf{0{,}9991} & \textbf{0{,}9952} & 0{,}9985 & 0{,}9969 & \textbf{1{,}0000} & \textbf{0{,}9999} \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -176,9 +176,9 @@ Bảng~\ref{tab:summary_comparison} so sánh bốn cấu hình. Mô hình đại
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
 \toprule
 \textbf{Phương pháp} & \textbf{\shortstack{Số đặc\\trưng}} & \textbf{\shortstack{Mô hình\\tốt nhất}} & \textbf{F1-Score} & \textbf{\shortstack{Huấn luyện\\(s)}} & \textbf{\shortstack{Dung lượng\\(MB)}} \\ \midrule
-Baseline (Toàn bộ) & 77 & \ac{xgb} & 0{,}9971 & 4615{,}5 & 2{,}32 \\
+Baseline (Toàn bộ) & 77 & \ac{xgb} & \textbf{0{,}9971} & 4615{,}5 & 2{,}32 \\
 \ac{rf} Importance & 30 & \ac{xgb} & 0{,}9922 & 1295{,}1 & 2{,}52 \\
-\ac{shap} Importance & 30 & \ac{xgb} & 0{,}9970 & 1226{,}1 & 0{,}003$^{\dagger}$ \\
+\ac{shap} Importance & 30 & \ac{xgb} & 0{,}9970 & \textbf{1226{,}1} & 0{,}003$^{\dagger}$ \\
 \ac{pca} (k=40) & 40 & \ac{xgb} & 0{,}9939 & 1444{,}8 & 3{,}82 \\ \bottomrule
 \end{tabular*}
 
@@ -197,7 +197,7 @@ Bảng~\ref{tab:rf_vs_shap} so sánh trực tiếp hai cách chọn 30 đặc tr
 \toprule
 \textbf{Thuật toán} & \textbf{F1 (\ac{rf} Top-30)} & \textbf{F1 (\ac{shap} Top-30)} & \textbf{Chênh lệch tương đối (\%)} \\ \midrule
 Random Forest & 0{,}9879 & 0{,}9955 & +0{,}77 \\
-\ac{xgb} & 0{,}9922 & 0{,}9970 & +0{,}48 \\
+\ac{xgb} & \textbf{0{,}9922} & \textbf{0{,}9970} & +0{,}48 \\
 \ac{gbt} & 0{,}9844 & 0{,}9918 & +0{,}75 \\
 Decision Tree & 0{,}9835 & 0{,}9948 & +1{,}15 \\ \bottomrule
 \end{tabular*}
@@ -218,17 +218,18 @@ Kết quả ở Bảng~\ref{tab:exp2_ml_metrics}. Sau tinh chỉnh, ba mô hình
 \midrule
 Decision Tree          & 0{,}9987 & 0{,}9977 & 0{,}9936 & 0{,}9957 & 0{,}9994 & 0{,}9980 \\
 Logistic Regression    & 0{,}9541 & 0{,}9787 & 0{,}7094 & 0{,}8226 & 0{,}9749 & 0{,}9371 \\
-\ac{svm} (LinearSVC)        & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
-\ac{nb}            & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
-Random Forest          & 0{,}9986 & 0{,}9985 & 0{,}9922 & 0{,}9953 & 0{,}9999 & 0{,}9997 \\
+\ac{svm} (LinearSVC)$^{\ddagger}$ & 0{,}9199 & 0{,}6650 & 0{,}9395 & 0{,}7788 & 0{,}9843 & 0{,}9485 \\
+\ac{nb}$^{\ddagger}$ & 0{,}3163 & 0{,}1793 & 0{,}9933 & 0{,}3038 & 0{,}8829 & 0{,}6364 \\
+Random Forest          & 0{,}9986 & \textbf{0{,}9985} & 0{,}9922 & 0{,}9953 & 0{,}9999 & 0{,}9997 \\
 \ac{gbt}                    & 0{,}9985 & 0{,}9979 & 0{,}9924 & 0{,}9951 & 0{,}9999 & 0{,}9993 \\
-\ac{xgb}                & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
-MLP                    & \multicolumn{6}{c}{giữ cấu hình cố định (xem Bảng~\ref{tab:exp0_ml_metrics})} \\
+\ac{xgb}$^{\ddagger}$ & \textbf{0{,}9991} & 0{,}9950 & \textbf{0{,}9993} & \textbf{0{,}9971} & \textbf{1{,}0000} & \textbf{0{,}9999} \\
+MLP$^{\ddagger}$ & 0{,}9900 & 0{,}9844 & 0{,}9487 & 0{,}9662 & 0{,}9984 & 0{,}9936 \\
 \midrule
 \textbf{Hybrid Bagging}   & 0{,}9986 & 0{,}9956 & 0{,}9949 & 0{,}9953 & 0{,}9999 & 0{,}9998 \\
-\textbf{Soft Voting}  & 0{,}9988 & 0{,}9985 & 0{,}9932 & 0{,}9958 & 1{,}0000 & 0{,}9998 \\
+\textbf{Soft Voting}  & 0{,}9988 & \textbf{0{,}9985} & 0{,}9932 & 0{,}9958 & \textbf{1{,}0000} & 0{,}9998 \\
 \bottomrule
 \end{tabular*}
+\tabnote{$^{\ddagger}$Giữ bộ tham số cố định (Bảng~\ref{tab:model_parameters}), không tinh chỉnh; số liệu là của Kịch bản 1 (Bảng~\ref{tab:exp0_ml_metrics}) ghi lại để tiện so sánh trong cùng bảng.}
 \end{table}
 
 \subsection{Phân tích khả năng giải thích với \ac{shap}}
@@ -320,16 +321,16 @@ Kết quả trong Bảng~\ref{tab:exp0_system_performance} cho thấy:
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
 \toprule
 \textbf{Thuật toán} & \textbf{\shortstack{Huấn luyện\\(s)}} & \textbf{\shortstack{Dự đoán\\(s)}} & \textbf{\shortstack{Kích thước\\(MB)}} \\ \midrule
-Decision Tree          & 33{,}4   & 6{,}1  & 0{,}0004 \\
+Decision Tree          & 33{,}4   & 6{,}1  & \textbf{0{,}0004} \\
 Logistic Regression    & 49{,}2   & 5{,}4  & 0{,}009 \\
 \ac{svm} (LinearSVC)        & 224{,}3  & 5{,}4  & 0{,}002 \\
-\ac{nb}            & 8{,}2    & 5{,}2  & 0{,}012 \\
+\ac{nb}            & \textbf{8{,}2} & \textbf{5{,}2} & 0{,}012 \\
 Random Forest          & 610{,}3  & 18{,}6 & 3{,}69 \\
 \ac{gbt}                    & 1346{,}8 & 8{,}9  & 0{,}92 \\
 \ac{xgb}                & 4615{,}5 & 9{,}0  & 2{,}32 \\
-MLP                    & 314{,}7  & 8{,}0  & 0{,}0004 \\ \midrule
+MLP                    & 314{,}7  & 8{,}0  & \textbf{0{,}0004} \\ \midrule
 \textbf{Hybrid Bagging}   & 11934{,}5 & 36{,}4 & 7{,}24 \\
-\textbf{Soft Voting}  & \textbf{--} & 25{,}6 & \textbf{--} \\ \bottomrule
+\textbf{Soft Voting}  & -- & 25{,}6 & -- \\ \bottomrule
 \end{tabular*}
 \end{table}
 \begin{itemize}
@@ -358,7 +359,7 @@ Kết quả là $p_{\text{TOST}} = 3{,}9 \times 10^{-6}$: hai cấu hình tươn
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcccc@{}}
 \toprule
 \textbf{Phương pháp} & \textbf{Mô hình} & \textbf{\shortstack{F1 (mean $\pm$\\CI95 $t$)}} & \textbf{\shortstack{CI95\\Nadeau--Bengio}} & \textbf{\shortstack{$p$\\(ghép cặp)}} & \textbf{Cohen's $d$} \\ \midrule
-Baseline (toàn bộ) & \ac{xgb} & 0{,}99734 $\pm$ 0{,}00007 & [0{,}99722; 0{,}99746] & \multirow{2}{*}{0{,}031} & \multirow{2}{*}{1{,}94} \\
+Baseline (toàn bộ) & \ac{xgb} & \textbf{0{,}99734 $\pm$ 0{,}00007} & [0{,}99722; 0{,}99746] & \multirow{2}{*}{0{,}031} & \multirow{2}{*}{1{,}94} \\
 \ac{shap} Top-30 & \ac{xgb} & 0{,}99720 $\pm$ 0{,}00009 & [0{,}99705; 0{,}99736] & & \\ \bottomrule
 \end{tabular*}
 \end{table}
@@ -374,9 +375,9 @@ Mô hình đại diện của mỗi phương pháp được đánh giá lại tr
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
 \toprule
 \textbf{Phương pháp} & \textbf{Mô hình} & \textbf{F1 (holdout)} & \textbf{AUC-\ac{pr}} \\ \midrule
-Baseline & \ac{xgb} & 0{,}9971 & 0{,}9999 \\
+Baseline & \ac{xgb} & \textbf{0{,}9971} & \textbf{0{,}9999} \\
 \ac{rf} Top-30 & \ac{xgb} & 0{,}9921 & 0{,}9998 \\
-\ac{shap} Top-30 & \ac{xgb} & 0{,}9969 & 0{,}9999 \\
+\ac{shap} Top-30 & \ac{xgb} & 0{,}9969 & \textbf{0{,}9999} \\
 \ac{pca} & \ac{xgb} & 0{,}9939 & 0{,}9998 \\ \bottomrule
 \end{tabular*}
 \end{table}
@@ -472,10 +473,10 @@ Vì vậy Bảng~\ref{tab:cross_dataset} ghi khoảng giá trị và số lượ
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}llcc@{}}
 \toprule
 \textbf{Chiều} & \textbf{Cấu hình} & \textbf{F1} & \textbf{AUC-\ac{pr}} \\ \midrule
-\multirow{3}{*}{2017 $\rightarrow$ 2018} & Không thích ứng & 0{,}2978 & 0{,}5261 \\
+\multirow{3}{*}{2017 $\rightarrow$ 2018} & Không thích ứng & \textbf{0{,}2978} & \textbf{0{,}5261} \\
  & Chuẩn hóa theo miền & 0{,}0000 & 0{,}3169 \\
  & CORAL & 0{,}0000 & 0{,}2015 \\ \midrule
-\multirow{3}{*}{2018 $\rightarrow$ 2017} & Không thích ứng & 0{,}0575 & 0{,}1791 \\
+\multirow{3}{*}{2018 $\rightarrow$ 2017} & Không thích ứng & \textbf{0{,}0575} & 0{,}1791 \\
  & Chuẩn hóa theo miền & 0{,}0000 & 0{,}1068 \\
  & CORAL & 0{,}0000 & \textbf{0{,}2496} \\ \bottomrule
 \end{tabular*}
@@ -500,10 +501,10 @@ Hai cấu hình được so sánh: gộp dữ liệu nguồn với 1\% nhãn đ�
 \multirow{3}{*}{2017 $\rightarrow$ 2018}
  & Không thích ứng & 0 & 0{,}2939 & 0{,}1749 \\
  & Nguồn $+$ 1\% nhãn đích & 19.276 & 0{,}8034 & 0{,}6750 \\
- & \textbf{Chỉ 1\% nhãn đích} & 19.276 & \textbf{0{,}9223} & 0{,}9198 \\ \midrule
+ & \textbf{Chỉ 1\% nhãn đích} & 19.276 & \textbf{0{,}9223} & \textbf{0{,}9198} \\ \midrule
 \multirow{3}{*}{2018 $\rightarrow$ 2017}
  & Không thích ứng & 0 & 0{,}0574 & 0{,}0322 \\
- & Nguồn $+$ 1\% nhãn đích & 18.011 & 0{,}9607 & 0{,}9853 \\
+ & Nguồn $+$ 1\% nhãn đích & 18.011 & 0{,}9607 & \textbf{0{,}9853} \\
  & \textbf{Chỉ 1\% nhãn đích} & 18.011 & \textbf{0{,}9897} & 0{,}9849 \\ \bottomrule
 \end{tabular*}
 \tabnote{1\% được lấy từ tập huấn luyện của miền đích, không lấy từ tập kiểm tra. Dòng ``không thích ứng'' lấy từ chính lượt chạy này nên ba dòng so sánh được với nhau. Lượt này thuộc nhóm cao (F1 0{,}2939). Kết luận không phụ thuộc vào mức đó: F1 sau khi có 1\% nhãn vẫn cao gấp khoảng ba lần giá trị khác bộ cao nhất quan sát được (0{,}3009).}
@@ -769,9 +770,9 @@ Bảng~\ref{tab:edge_training} trình bày kết quả huấn luyện và đánh
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
 \textbf{Mô hình} & \textbf{F1-Score} & \textbf{Accuracy} & \textbf{Thời gian huấn luyện (s)} & \textbf{Kích thước (MB)} \\ \midrule
-Decision Tree    & 0{,}9814 & 0{,}9943 & 24{,}4  & 0{,}046 \\
+Decision Tree    & 0{,}9814 & 0{,}9943 & \textbf{24{,}4} & \textbf{0{,}046} \\
 \ac{gbt}              & 0{,}9753 & 0{,}9925 & 341{,}8 & 0{,}865 \\
-Random Forest    & 0{,}9826 & 0{,}9947 & 687{,}3 & 4{,}427 \\
+Random Forest    & \textbf{0{,}9826} & \textbf{0{,}9947} & 687{,}3 & 4{,}427 \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -792,9 +793,9 @@ Bảng~\ref{tab:edge_benchmark} trình bày kết quả đo hiệu năng (benchm
 \toprule
 \textbf{Mô hình} & \textbf{Thông lượng} & \textbf{Độ trễ suy luận (ms)} & \textbf{CPU} & \textbf{RAM} & \textbf{Kích thước} \\
                   & \textbf{(mẫu/giây)} & \textbf{p50 / p95 / p99} & \textbf{(\%)} & \textbf{(\%)} & \textbf{(MB)} \\ \midrule
-Decision Tree     & 22{,}0 & 441 / 537 / -- & 46{,}4 & 21{,}9 & 0{,}046 \\
+Decision Tree     & 22{,}0 & 441 / 537 / -- & 46{,}4 & \textbf{21{,}9} & \textbf{0{,}046} \\
 \ac{gbt}               & 24{,}3 & 414 / 439 / -- & 40{,}9 & 24{,}0 & 0{,}865 \\
-Random Forest     & 26{,}8 & 378 / 397 / -- & 35{,}2 & 27{,}5 & 4{,}427 \\
+Random Forest     & \textbf{26{,}8} & \textbf{378 / 397 / --} & \textbf{35{,}2} & 27{,}5 & 4{,}427 \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -851,7 +852,7 @@ Luận văn triển khai mô hình dưới dạng \texttt{PipelineModel} của S
 \textbf{Engine} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ một lô\\p95 (ms)}} & \textbf{\shortstack{Năng lượng hoạt động\\/luồng (mJ)}} \\ \midrule
 PySpark (triển khai) & 1{,}4 & 7515 & 1506 \\
 NumPy                & 54{,}8 & 194 & 11{,}3 \\
-ONNX Runtime         & 10.092 & 1{,}2 & 0{,}087 \\
+ONNX Runtime         & \textbf{10.092} & \textbf{1{,}2} & \textbf{0{,}087} \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -866,14 +867,15 @@ Ngoài việc so sánh engine trên một nút, luận văn đánh giá ba chế
 \centering
 \caption[Điểm vận hành duy trì được của từng chế độ triển khai]{Điểm vận hành duy trì được của từng chế độ triển khai trên cụm 2 Jetson Orin Nano Super}
 \label{tab:edge_modes}
-\small
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccccc@{}}
 \toprule
 \textbf{Chế độ} & \textbf{Số bo} & \textbf{\shortstack{Năng lực duy trì\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ đầu cuối\\p50 / p95 (s)}} & \textbf{\shortstack{Bỏ qua\\tại cổng (\%)}} & \textbf{\shortstack{Năng lượng\\/phán quyết (J)}} \\ \midrule
 Một nút, không cổng       & 1 & 2{,}5  & 5{,}9 / 11{,}3 & --      & 3{,}04 \\
 Một nút + cổng            & 1 & 1{,}9$^{*}$  & 3{,}8 / 7{,}8  & 89{,}0 & 3{,}04 \\
 B: Horizontal, không cổng & 2 & 3{,}3  & 4{,}1 / 8{,}2  & --      & 3{,}20 \\
-C: Spark cluster          & 2 & $\geq$8{,}7$^{\dagger}$  & 0{,}7 / 5{,}2  & 88{,}6 & 1{,}15 \\
+C: Spark cluster          & 2 & $\geq$8{,}7$^{\dagger}$  & \textbf{0{,}7 / 5{,}2}  & 88{,}6 & 1{,}15 \\
 \textbf{A: Pipeline split} & 2 & \textbf{22{,}4} & 1{,}0 / 7{,}1 & 88{,}8 & \textbf{0{,}60} \\ \bottomrule
 \end{tabular*}
 
