@@ -39,8 +39,8 @@
   {../../results/ml_11_cross_dataset/}%
 }
 
-\title{Giảm chiều và chọn lọc đặc trưng cho phát hiện xâm nhập mạng trên Apache Spark ML}
-\subtitle{\ldots với quy trình đánh giá loại rò rỉ dữ liệu}
+\title{Giảm chiều và lựa chọn đặc trưng cho phát hiện xâm nhập mạng trên Apache Spark ML}
+\subtitle{\ldots với quy trình đánh giá chống rò rỉ dữ liệu}
 \author{\textbf{Nguyễn Vũ Thái}\inst{1} \and Bùi Văn Dũng\inst{2} \and Đỗ Trí Nhựt\inst{2} \and Nguyễn Văn Dũ\inst{3}}
 \institute{\scriptsize
            \inst{1}Phân hiệu tại TP.\ Hồ Chí Minh, Trường Đại học Giao thông Vận tải, TP.\ Hồ Chí Minh, Việt Nam \\
@@ -54,49 +54,51 @@
 \maketitle
 \note{\say Kính chào quý thầy cô và các anh chị. Tôi là Nguyễn Vũ Thái, xin
 trình bày bài báo về giảm đặc trưng cho phát hiện xâm nhập mạng trên Spark ML.
-Cả bài xoay quanh một ý: trên CICIDS2017, F1 gần như tuyệt đối thường nói về
-cách đánh giá nhiều hơn là về mô hình.}
+Cả bài xoay quanh một ý: trên CICIDS2017, điểm F1 gần 1 thường phản ánh
+cách đánh giá hơn là chất lượng mô hình.}
 
 % =====================================================================
 \section{I.\ VẤN ĐỀ VÀ ĐÓNG GÓP}
 % =====================================================================
 
 % ---------------------------------------------------------------- 0:45
-\begin{frame}{F1 gần như tuyệt đối trên CICIDS2017: cần kiểm chứng}
+\begin{frame}{F1 trên 0,99 với CICIDS2017: điểm đó có đáng tin không?}
   \begin{columns}[T]
-    \begin{column}{0.55\textwidth}
+    \begin{column}{0.58\textwidth}
       \textbf{Hai câu hỏi}
       \begin{enumerate}
-        \item \key{Có cần đủ $\approx$80 đặc trưng không?}\\
-              {\small Càng nhiều đặc trưng càng tốn tính toán, khó chạy trên
+        \item \key{Cần cả $\approx$80 đặc trưng không?}\\
+              {\small Nhiều đặc trưng thì tốn tính toán, khó chạy trên
               thiết bị biên.}
         \item \key{Điểm cao có đáng tin không?}\\
-              {\small Hai lỗi khiến điểm cao hơn thực tế:}
+              {\small Hai dạng \key{rò rỉ dữ liệu} làm điểm cao hơn thực tế:}
               \begin{itemize}\small
                 \item Cổng đích: mỗi loại tấn công nhắm vào một số cổng cố định,
                       nên \bad{cổng gần như tiết lộ nhãn}.
-                \item Luồng trùng nhau nằm ở \emph{cả} tập huấn luyện
-                      \emph{lẫn} tập kiểm tra: mô hình \bad{đã gặp dữ liệu kiểm tra từ trước}.
+                \item Luồng trùng lặp ở \emph{cả hai} tập: mô hình \bad{đã
+                      thấy dữ liệu kiểm tra khi huấn luyện}.
               \end{itemize}
       \end{enumerate}
     \end{column}
-    \begin{column}{0.40\textwidth}
+    \begin{column}{0.38\textwidth}
       \begin{alertblock}{Bài báo này}
-        Sửa cách đánh giá cho đúng \emph{trước}, rồi mới so sánh các cách
-        giảm đặc trưng.
+        Sửa quy trình đánh giá \emph{trước}, rồi mới so sánh các phương
+        pháp giảm đặc trưng.
       \end{alertblock}
       \begin{exampleblock}{Thông điệp}
-        \key{Đo thế nào} quan trọng không kém \emph{phương pháp nào thắng}.
+        \key{Đánh giá đúng cách} quan trọng không kém \emph{chọn đúng phương pháp}.
       \end{exampleblock}
     \end{column}
   \end{columns}
   \note{\say Bài báo xuất phát từ hai câu hỏi. Thứ nhất, mỗi luồng mạng có
   khoảng 80 đặc trưng, có cần dùng hết không, vì càng nhiều thì càng tốn và
   càng khó chạy trên thiết bị biên. Thứ hai, rất nhiều bài đạt F1 trên 0,99 với
-  bộ dữ liệu này, điểm đó có đáng tin không. Có hai lỗi khiến điểm cao hơn thực tế. Một
+  bộ dữ liệu này, điểm đó có đáng tin không. Có hai dạng rò rỉ dữ liệu khiến
+  điểm cao hơn thực tế. Rò rỉ dữ liệu, nói đơn giản, là mô hình được biết
+  trước thứ mà khi triển khai thật nó không có. Một
   là cổng đích: trong bộ dữ liệu, mỗi loại tấn công nhắm vào một số cổng cố định, nên cổng gần như tiết lộ nhãn. Hai là luồng trùng nhau nằm ở cả tập huấn luyện
-  lẫn tập kiểm tra, mô hình xem như đã gặp dữ liệu kiểm tra từ trước. Vì vậy chúng tôi sửa cách
-  đánh giá trước, rồi mới so sánh các cách giảm đặc trưng.
+  lẫn tập kiểm tra, mô hình xem như đã thấy dữ liệu kiểm tra từ lúc huấn luyện. Vì vậy chúng
+  tôi sửa quy trình đánh giá trước, rồi mới so sánh các phương pháp giảm đặc trưng.
   \ifasked Rò rỉ dữ liệu là khi thông tin không có lúc triển khai lọt vào huấn
   luyện hoặc đánh giá. Cột cổng đích trong dữ liệu là
   \texttt{destination\_port}.}
@@ -106,20 +108,20 @@ cách đánh giá nhiều hơn là về mô hình.}
 \begin{frame}{Các đóng góp}
   \begin{enumerate}
     \setlength{\itemsep}{0.35em}
-    \item So sánh \key{4 cách giảm đặc trưng} (giữ hết, RF Importance, SHAP,
-          PCA) trên \emph{cùng} 8 thuật toán Spark ML.
-    \item \key{Quy trình đánh giá chống rò rỉ}: bỏ cổng, bỏ luồng trùng trước
-          khi chia, không dùng tập kiểm tra để chọn bất cứ thứ gì.
-    \item \key{Kiểm định thống kê} thay vì chỉ so sánh điểm số.
-    \item Đánh giá những gì điểm tổng thường che khuất: \key{từng loại tấn công}, và
-          khi \key{đổi sang bộ dữ liệu khác}.
-    \item Chọn cấu hình \key{hợp với thiết bị biên} Jetson Orin Nano Super.
+    \item So sánh \key{4 phương pháp giảm đặc trưng} (giữ toàn bộ, RF
+          Importance, SHAP, PCA) trên \emph{cùng} 8 thuật toán Spark ML.
+    \item \key{Quy trình đánh giá chống rò rỉ}: bỏ cổng đích, bỏ luồng trùng
+          lặp trước khi chia dữ liệu, tập kiểm tra chỉ dùng một lần ở cuối.
+    \item \key{Kiểm định thống kê} để kết luận, thay vì chỉ so sánh điểm số.
+    \item Đánh giá hai khía cạnh mà điểm F1 tổng che khuất: \key{từng loại
+          tấn công} và \key{đổi sang bộ dữ liệu khác}.
+    \item Chọn cấu hình \key{phù hợp thiết bị biên} Jetson Orin Nano Super.
   \end{enumerate}
-  \note{\say Bài báo có năm đóng góp. Một, so sánh bốn cách giảm đặc trưng
+  \note{\say Bài báo có năm đóng góp. Một, so sánh bốn phương pháp giảm đặc trưng
   trên cùng tám thuật toán, cùng một quy trình. Hai, quy trình đánh giá chống
   rò rỉ. Ba, dùng kiểm định thống kê để kết luận, không chỉ so sánh điểm số. Bốn,
   đánh giá những gì điểm tổng thường che khuất: từng loại tấn công, và khi đổi sang bộ
-  dữ liệu khác. Năm, chọn cấu hình hợp với thiết bị biên. Điểm đáng nói là mục
+  dữ liệu khác. Năm, chọn cấu hình phù hợp thiết bị biên. Điểm mới là mục
   hai đến bốn ít khi được làm cùng nhau trong các bài về CICIDS2017.}
 \end{frame}
 
@@ -140,11 +142,11 @@ cách đánh giá nhiều hơn là về mô hình.}
         ed/.style={box, draw=accGreen!80!black, fill=accGreen!10},
         arr/.style={-{Stealth[length=2mm]}, semithick}]
         \node[box] (raw)  {CICIDS2017: 8 tệp CSV, $\approx$2,8 triệu luồng};
-        \node[hl, below=of raw] (prep) {\textbf{Bỏ cổng} $\cdot$ \textbf{bỏ luồng trùng}};
+        \node[hl, below=of raw] (prep) {\textbf{Bỏ cổng đích} $\cdot$ \textbf{bỏ luồng trùng lặp}};
         \node[box, below=of prep] (split) {Chia 80\% huấn luyện / 20\% kiểm tra};
-        \node[box, below=of split] (strat) {\textbf{4 cách giảm đặc trưng}: giữ hết $|$ RF $|$ SHAP $|$ PCA};
-        \node[box, below=of strat] (clf) {8 thuật toán Spark ML $+$ 2 mô hình tổ hợp};
-        \node[hl, below=of clf] (val) {\textbf{Chọn mô hình trên tập validation} $\cdot$ kiểm định thống kê};
+        \node[box, below=of split] (strat) {\textbf{4 phương pháp giảm đặc trưng}: toàn bộ $|$ RF $|$ SHAP $|$ PCA};
+        \node[box, below=of strat] (clf) {8 thuật toán Spark ML $+$ 2 mô hình ensemble};
+        \node[hl, below=of clf] (val) {\textbf{Chọn mô hình trên tập kiểm định (validation)}};
         \node[ed, below=of val] (edge) {SHAP Top-30 $\rightarrow$ Jetson Orin Nano Super};
         \draw[arr] (raw)--(prep); \draw[arr] (prep)--(split); \draw[arr] (split)--(strat);
         \draw[arr] (strat)--(clf); \draw[arr] (clf)--(val); \draw[arr] (val)--(edge);
@@ -152,44 +154,46 @@ cách đánh giá nhiều hơn là về mô hình.}
     \end{column}
     \begin{column}{0.47\textwidth}
       \begin{itemize}
-        \item Bỏ cổng: mô hình không suy ra được \bad{loại tấn công từ số
-              cổng}.
-        \item Bỏ trùng \emph{trước} khi chia: không luồng nào ở cả hai tập.
+        \item Bỏ cổng đích: mô hình không thể \bad{suy ra loại tấn công
+              từ số cổng}.
+        \item Bỏ trùng lặp \emph{trước} khi chia: không luồng nào ở cả
+              hai tập.
         \item Xếp hạng đặc trưng chỉ tính trên \emph{tập huấn luyện}.
-        \item Chọn mô hình trên \emph{tập validation}. Tập kiểm tra
-              \bad{chỉ dùng một lần}, ở cuối.
-        \item Siêu tham số \key{cố định từ trước}, dùng chung cho cả 4
-              cách.
+        \item Chọn mô hình trên \emph{tập kiểm định} (validation). Tập kiểm
+              tra \bad{chỉ dùng một lần}, ở cuối.
+        \item Siêu tham số \key{cố định từ trước}, dùng chung cả 4
+              phương pháp.
       \end{itemize}
     \end{column}
   \end{columns}
-  \note{\say Đây là quy trình, đi từ trên xuống. Hai khối đỏ là chỗ chặn rò
+  \note{\say Đây là quy trình, đi từ trên xuống. Hai khối đỏ là hai bước chặn rò
   rỉ. Trước khi chia dữ liệu, chúng tôi bỏ cổng và bỏ luồng trùng, nên không
-  luồng nào nằm ở cả hai tập. Sau đó áp dụng bốn cách giảm đặc trưng, huấn
-  luyện tám thuật toán. Bảng xếp hạng đặc trưng chỉ tính trên tập huấn luyện.
-  Chọn mô hình thì dùng tập validation. Tập kiểm tra chỉ dùng một lần, ở cuối.
-  Siêu tham số được cố định từ trước và dùng chung cho cả bốn cách, nên khác
+  luồng nào nằm ở cả hai tập. Sau đó áp dụng bốn phương pháp giảm đặc trưng,
+  huấn luyện tám thuật toán. Bảng xếp hạng đặc trưng chỉ tính trên tập huấn
+  luyện. Chọn mô hình thì dùng tập kiểm định, tức tập validation tách từ tập
+  huấn luyện. Tập kiểm tra chỉ dùng một lần, ở cuối.
+  Siêu tham số được cố định từ trước và dùng chung cho cả bốn phương pháp, nên khác
   biệt là do phương pháp chứ không do tinh chỉnh.
   Cuối cùng, cấu hình SHAP 30 đặc trưng được đưa xuống thiết bị biên.
-  \ifasked Tập validation tách 20\% từ tập huấn luyện. Bốn cấu hình so sánh
-  được cố định từ trước (giữ hết, RF Top-30, SHAP Top-30, PCA $k{=}40$), siêu
+  \ifasked Tập kiểm định tách 20\% từ tập huấn luyện. Bốn cấu hình so sánh
+  được cố định từ trước (toàn bộ 77, RF Top-30, SHAP Top-30, PCA $k{=}40$), siêu
   tham số dùng chung, nên khác biệt phản ánh phương pháp chứ không phải việc
   tinh chỉnh.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:50
-\begin{frame}{Bỏ luồng trùng, nhưng phải bỏ cho đúng}
+\begin{frame}{Loại bỏ luồng trùng lặp: phải làm đúng cách}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
       \begin{itemize}
         \setlength{\itemsep}{0.4em}
         \item Nhiều luồng \key{giống hệt nhau} ở mọi đặc trưng
-              $\rightarrow$ chỉ giữ \emph{một} bản.
-        \item Có nhóm giống hệt nhau mà \bad{nhãn lại khác nhau} (vừa Benign
-              vừa Attack), một lỗi đã biết của CICIDS2017.
-        \item Nhóm như vậy \bad{bỏ cả nhóm}: \num{270 nhóm, 44.260 dòng}.
-        \item Nếu giữ ngẫu nhiên một dòng, \emph{mỗi lần chạy ra một bộ dữ
-              liệu khác}. Bỏ cả nhóm thì kết quả luôn như nhau.
+              $\rightarrow$ chỉ giữ lại \emph{một} luồng.
+        \item Có những nhóm giống hệt nhau nhưng \bad{nhãn khác nhau} (vừa
+              Benign vừa Attack): lỗi đã biết của CICIDS2017.
+        \item Nhóm như vậy được \bad{bỏ cả nhóm}: \num{270 nhóm, 44.260 luồng}.
+        \item Nếu giữ ngẫu nhiên một luồng thì \emph{mỗi lần chạy cho một bộ
+              dữ liệu khác}. Bỏ cả nhóm thì kết quả tái lập được.
       \end{itemize}
     \end{column}
     \begin{column}{0.44\textwidth}
@@ -217,7 +221,7 @@ cách đánh giá nhiều hơn là về mô hình.}
   hệt nhau ở mọi đặc trưng thì chỉ giữ một bản. Nhưng có những nhóm giống hệt
   nhau mà nhãn lại khác nhau, vừa bình thường vừa tấn công. Đây là lỗi đã biết
   của CICIDS2017. Với nhóm như vậy chúng tôi bỏ cả nhóm: 270 nhóm, hơn 44 nghìn
-  dòng. Lý do là nếu giữ ngẫu nhiên một dòng thì mỗi lần chạy ra một bộ dữ
+  luồng. Lý do là nếu giữ ngẫu nhiên một luồng thì mỗi lần chạy ra một bộ dữ
   liệu khác. Sau khi làm sạch còn 77 đặc trưng, khoảng 1,8 triệu luồng huấn
   luyện và 450 nghìn luồng kiểm tra.
   \ifasked Cột bị bỏ: destination\_port, source\_port, protocol và các cột định
@@ -239,16 +243,16 @@ cách đánh giá nhiều hơn là về mô hình.}
       \fitwidth{%
       \begin{tabular}{lccc}
         \toprule
-        Cách giảm & Đặc trưng & F1 & Phút huấn luyện \\
+        Phương pháp & Số đặc trưng & F1 & Huấn luyện (phút) \\
         \midrule
-        Giữ hết              & 77          & 0,9971       & 77 \\
+        Toàn bộ              & 77          & 0,9971       & 77 \\
         \textbf{SHAP Top-30} & \num{30}    & \num{0,9970} & \num{20} \\
         PCA $k{=}40$         & 40          & 0,9939       & 24 \\
         RF Top-30            & 30          & 0,9922       & 22 \\
         \bottomrule
       \end{tabular}
       }
-      \\[0.3em]{\scriptsize XGBoost, một lần chạy trên cách chia train/test gốc.}
+      \\[0.3em]{\scriptsize XGBoost, một lần chạy trên cách chia huấn luyện/kiểm tra gốc.}
     \end{column}
     \begin{column}{0.37\textwidth}
       \begin{itemize}
@@ -256,14 +260,14 @@ cách đánh giá nhiều hơn là về mô hình.}
         \item SHAP giữ \good{30/77 đặc trưng}, F1 gần như không đổi, huấn
               luyện \good{nhanh gấp 3,8 lần}.
         \item Cùng 30 đặc trưng, \key{SHAP chọn tốt hơn RF}.
-        \item PCA cần 40 thành phần và \bad{không giải thích được}.
+        \item PCA cần 40 thành phần, F1 thấp hơn và \bad{không giải thích được}.
       \end{itemize}
     \end{column}
   \end{columns}
   \takeaway{Chọn \key{SHAP Top-30}: ít đặc trưng, huấn luyện nhanh, giải thích
   được.}
-  \note{\say Kết quả đầu tiên. Bảng này là XGBoost với bốn cách giảm đặc
-  trưng. Giữ hết 77 đặc trưng thì F1 là 0,9971. SHAP chỉ giữ 30 đặc trưng mà F1
+  \note{\say Kết quả đầu tiên. Bảng này là XGBoost với bốn phương pháp giảm
+  đặc trưng. Dùng toàn bộ 77 đặc trưng thì F1 là 0,9971. SHAP chỉ giữ 30 đặc trưng mà F1
   vẫn 0,9970, và thời gian huấn luyện giảm từ 77 phút xuống 20 phút, tức nhanh
   gấp 3,8 lần. Cùng chọn 30 đặc trưng thì SHAP cho F1 cao hơn RF, 0,9970 so với
   0,9922. PCA thì cần 40 thành phần, điểm thấp hơn, và không giải thích được.
@@ -275,7 +279,7 @@ cách đánh giá nhiều hơn là về mô hình.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:50
-\begin{frame}{Kết quả 2: cổng đích làm tăng điểm, mức độ tùy mô hình}
+\begin{frame}{Kết quả 2: cổng đích làm tăng điểm, mức tăng tùy mô hình}
   \begin{columns}[T]
     \begin{column}{0.60\textwidth}
       \centering
@@ -291,24 +295,24 @@ cách đánh giá nhiều hơn là về mô hình.}
       \end{tabular}
       }
       \\[0.3em]{\scriptsize Mỗi thuật toán huấn luyện hai lần trên cùng một cách
-      chia dữ liệu: bỏ cổng và giữ cổng.}
+      chia dữ liệu: một lần bỏ cổng đích, một lần giữ.}
     \end{column}
     \begin{column}{0.37\textwidth}
       \begin{itemize}
         \setlength{\itemsep}{0.4em}
-        \item \key{Mô hình cây} hầu như không cần cổng.
-        \item \bad{Mô hình tuyến tính} dựa vào cổng nhiều, \bad{gấp hơn 20
-              lần} mô hình cây.
+        \item \key{Mô hình cây} hầu như không cần cổng đích.
+        \item \bad{Mô hình tuyến tính} dựa vào cổng đích nhiều: F1 tăng
+              \bad{gấp hơn 20 lần} so với mô hình cây.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Đo rò rỉ trên \emph{một} mô hình không nói được gì cho mô hình khác.
-  Mọi kết quả sau đều đã bỏ cổng.}
+  \takeaway{Mức rò rỉ đo trên \emph{một} mô hình không suy ra được cho mô hình
+  khác. Mọi kết quả sau đây đều đã bỏ cổng đích.}
   \note{\say Kết quả thứ hai: cổng đích làm tăng điểm đến mức nào. Mỗi thuật
   toán được huấn luyện hai lần, một lần bỏ cổng và một lần giữ cổng. Với bốn mô
   hình cây, giữ cổng chỉ tăng F1 chưa tới 0,002. Với hai mô hình tuyến tính thì
   tăng khoảng 0,04, tức gấp hơn 20 lần. Bài học là đo rò rỉ trên một mô hình
-  thì không nói được gì cho mô hình khác. Từ đây trở đi, mọi kết quả đều đã bỏ
+  thì không suy ra được cho mô hình khác. Từ đây trở đi, mọi kết quả đều đã bỏ
   cổng.
   \ifasked Số từng thuật toán ở slide dự phòng. Mô hình cây dựng lại được cùng
   ranh giới từ thống kê hành vi của luồng. Mô hình tuyến tính không làm được,
@@ -318,7 +322,7 @@ cách đánh giá nhiều hơn là về mô hình.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:55
-\begin{frame}{Kết quả 3: giữ 77 hay 30 đặc trưng thì cũng như nhau}
+\begin{frame}{Kết quả 3: 77 hay 30 đặc trưng, F1 tương đương về mặt thống kê}
   \begin{columns}[T]
     \begin{column}{0.47\textwidth}
       \centering\small
@@ -327,22 +331,23 @@ cách đánh giá nhiều hơn là về mô hình.}
         \toprule
         XGBoost & F1 trung bình \\
         \midrule
-        Giữ hết 77 đặc trưng & 0,99734 \\
+        Toàn bộ 77 đặc trưng & 0,99734 \\
         SHAP Top-30          & 0,99720 \\
         \midrule
         \textbf{Chênh lệch}  & \textbf{$\approx$0,0001} \\
         \bottomrule
       \end{tabular}
       }
-      \\[0.2em]\raggedright{\scriptsize Trung bình 6 lần chạy, nên lệch chút ít so với Kết quả 1.}
+      \\[0.2em]\raggedright{\scriptsize Trung bình 6 lần chạy, nên khác nhẹ so với Kết quả 1 (một lần chạy).}
     \end{column}
     \begin{column}{0.50\textwidth}
       \begin{itemize}
         \setlength{\itemsep}{0.4em}
-        \item Lặp lại với \key{6 cách chia dữ liệu khác nhau}, so từng cặp.
-        \item Không chỉ hỏi ``có khác không'' mà \key{chứng minh} hai bên
-              tương đương (kiểm định TOST).
-        \item Kết quả: chênh lệch thật \good{nhỏ hơn 0,00023 F1}.
+        \item Chạy lại \key{6 lần} với 6 cách chia dữ liệu; hai cấu hình
+              luôn dùng cùng cách chia.
+        \item \key{Kiểm định tương đương} (TOST): hỏi trực tiếp ``hai bên
+              có giống nhau không'', thay vì chỉ hỏi ``có khác nhau không''.
+        \item Kết luận: tương đương, chênh lệch thực sự \good{dưới 0,00023 F1}.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -353,7 +358,7 @@ cách đánh giá nhiều hơn là về mô hình.}
   hai cấu hình dùng cùng một cách chia. F1 trung bình chênh nhau khoảng 0,0001.
   Chúng tôi không dừng ở câu hỏi hai bên có khác nhau không, mà kiểm định trực
   tiếp rằng hai bên tương đương, bằng kiểm định TOST. Kết quả là chênh lệch
-  thật nhỏ hơn 0,00023 F1. Vì hai bên tương đương, chúng tôi chọn SHAP Top-30:
+  thực sự nhỏ hơn 0,00023 F1. Vì hai bên tương đương, chúng tôi chọn SHAP Top-30:
   ít đặc trưng hơn và giải thích được.
   \ifasked TOST ở mức ý nghĩa 5\%. Kiểm định hoán vị ghép cặp liệt kê đủ $2^6$ tổ hợp dấu cho
   $p = 0{,}031$, đúng sàn phân giải $2/2^6$, Cohen's $d \approx 1{,}94$. Một
@@ -382,24 +387,24 @@ cách đánh giá nhiều hơn là về mô hình.}
         \bottomrule
       \end{tabular}
       }
-      \\[0.3em]{\scriptsize Random Forest, đủ 77 đặc trưng, phân loại theo từng
-      loại tấn công.}
+      \\[0.3em]{\scriptsize Random Forest, 77 đặc trưng. Tỉ lệ phát hiện = recall.}
     \end{column}
     \begin{column}{0.43\textwidth}
       \begin{itemize}
         \setlength{\itemsep}{0.4em}
-        \item Tính theo số mẫu: F1 = \good{0,998}.
-        \item Tính đều cho từng loại: F1 = \bad{0,806}.
-        \item \textbf{Nhầm loại nhưng vẫn phát hiện}: \good{76\% XSS} vẫn bị báo là
-              tấn công.
-        \item \textbf{Bỏ sót}: cả 6 SQL Injection và \bad{54\% Bot} bị phân loại là bình thường.
+        \item F1 chung (weighted): \good{0,998}.
+        \item F1 trung bình lớp (macro): \bad{0,806}.
+        \item \textbf{Nhầm loại, vẫn phát hiện}: \good{76\% XSS} vẫn bị báo
+              là tấn công.
+        \item \textbf{Bỏ sót}: cả 6 SQL Injection và \bad{54\% Bot} bị xếp
+              vào bình thường.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Loại càng ít mẫu thì càng dễ bị bỏ sót, mà điểm tổng không cho thấy
+  \takeaway{Lớp càng ít mẫu càng dễ bị bỏ sót, và điểm tổng không phản ánh
   điều đó.}
   \note{\say Đến đây mới chỉ hỏi có tấn công hay không. Khi hỏi là loại tấn
-  công nào thì bức tranh khác hẳn. Điểm tổng vẫn là 0,998, nhưng nếu tính trung
+  công nào thì kết quả khác hẳn. Điểm tổng vẫn là 0,998, nhưng nếu tính trung
   bình đều cho từng lớp thì chỉ còn 0,806. Lý do là các lớp hiếm. Bot chỉ phát hiện được 46\%. XSS gần 3\%. SQL Injection có 6 mẫu, không phát hiện được mẫu nào. Có
   hai kiểu sai cần phân biệt. Kiểu ít nghiêm trọng là nhầm loại nhưng vẫn phát hiện: 76\% XSS vẫn
   bị báo là tấn công. Kiểu nghiêm trọng là bỏ sót: cả 6 SQL Injection và 54\%
@@ -435,7 +440,7 @@ cách đánh giá nhiều hơn là về mô hình.}
       \vspace{0.5em}
 
       \raggedright\small
-      Mô hình \bad{bỏ sót gần hết} tấn công của mạng mới: chỉ phát hiện được khoảng 7\% và 3\%.
+      Mô hình \bad{bỏ sót gần hết} tấn công của mạng mới: chỉ phát hiện được khoảng 7\% và 3\% số tấn công.
     \end{column}
     \begin{column}{0.53\textwidth}
       \centering
@@ -460,9 +465,9 @@ cách đánh giá nhiều hơn là về mô hình.}
         \node[accBlue, font=\scriptsize\bfseries] at (0.245,0.6) {7 lần};
       \end{tikzpicture}\\[0.3em]
       \raggedright\small
-      Cùng mã, cùng dữ liệu mà F1 \key{rơi vào hai cụm}. Một lần chạy
-      \bad{không đủ tin cậy} $\rightarrow$ báo cả 18 lần và so bằng
-      \key{AUC-PR}.
+      Cùng mã, cùng dữ liệu mà F1 \key{rơi vào hai cụm tách biệt}. Một lần
+      chạy \bad{không đủ tin cậy} $\rightarrow$ báo cả 18 lần và so sánh
+      bằng \key{AUC-PR}.
     \end{column}
   \end{columns}
   \takeaway{Điểm cao trên một bộ dữ liệu \bad{không đảm bảo} hoạt động tốt trên mạng
@@ -473,30 +478,31 @@ cách đánh giá nhiều hơn là về mô hình.}
   sót gần hết tấn công của mạng mới. Hình bên phải cho thấy thêm một điều.
   Chúng tôi chạy 18 lần, cùng mã, cùng dữ liệu, và F1 rơi vào hai cụm tách
   hẳn nhau: 11 lần thấp, 7 lần cao, không lần nào ở giữa. Vì vậy báo một lần
-  chạy là không đủ tin cậy. Chúng tôi báo cả 18 lần, và so sánh bằng AUC-PR.
+  chạy là không đủ tin cậy. Chúng tôi báo cả 18 lần, và so sánh thêm bằng
+  AUC-PR, là điểm xếp hạng không phụ thuộc ngưỡng, nên ổn định hơn F1.
   \ifasked AUC-PR không phụ thuộc ngưỡng, giảm từ 0,9997 xuống 0,4849 (trung bình
   18 lần) và từ 0,9679 xuống 0,1926. Recall 0,073 / 0,030, precision 0,772 /
-  0,272: mô hình bỏ sót chứ không cảnh báo tràn lan. Hai cụm có AUC-PR như nhau
+  0,272: mô hình bỏ sót chứ không báo động giả nhiều. Hai cụm có AUC-PR như nhau
   (Welch $|t| = 1{,}3$): thứ hạng không đổi, chỉ có ngưỡng 0,5 cắt qua một cụm
-  luồng gần giống nhau. Năm hạt giống chạy lại, hai lần đổi cụm. Nguyên nhân
+  luồng gần giống nhau. Năm seed chạy lại, hai lần đổi cụm. Nguyên nhân
   dịch chuyển: khác phiên bản CICFlowMeter, cấu hình mạng, công cụ tấn công.
   Xem slide dự phòng.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:55
-\begin{frame}{Kết quả 6: học lại với 1\% nhãn của mạng mới là đủ}
+\begin{frame}{Kết quả 6: gán nhãn 1\% dữ liệu mạng mới rồi huấn luyện lại là đủ}
   \begin{columns}[T]
     \begin{column}{0.58\textwidth}
       \centering\footnotesize
       \fitwidth{%
       \begin{tabular}{lcc}
         \toprule
-        Cách làm (F1) & 2017$\to$2018 & 2018$\to$2017 \\
+        Phương pháp (F1) & 2017$\to$2018 & 2018$\to$2017 \\
         \midrule
-        Không làm gì                         & 0,03--0,30 & 0,05 \\
-        Căn chỉnh không nhãn {\scriptsize(CORAL)} & \bad{0} & \bad{0} \\
+        Dùng trực tiếp mô hình cũ            & 0,03--0,30 & 0,05 \\
+        Chỉnh phân phối, không nhãn {\scriptsize(CORAL)} & \bad{0} & \bad{0} \\
         \midrule
-        Học lại với \textbf{1\%} nhãn mạng mới & \good{0,92} & \good{0,99} \\
+        Huấn luyện lại, \textbf{1\%} nhãn mạng mới & \good{0,92} & \good{0,99} \\
         1\% đó $+$ toàn bộ dữ liệu cũ        & 0,80 & 0,96 \\
         \bottomrule
       \end{tabular}
@@ -505,19 +511,20 @@ cách đánh giá nhiều hơn là về mô hình.}
     \begin{column}{0.39\textwidth}
       \begin{itemize}
         \setlength{\itemsep}{0.4em}
-        \item Căn chỉnh dữ liệu mà không có nhãn thì \bad{không khắc phục được}:
+        \item Chỉ chỉnh phân phối, không nhãn: \bad{không hiệu quả}, vì
               khác biệt nằm ở chính hành vi tấn công.
-        \item Khoảng \key{19 nghìn luồng có nhãn} là đủ.
-        \item Thêm dữ liệu cũ vào \bad{làm kết quả giảm}.
+        \item Chỉ cần khoảng \key{19 nghìn luồng có nhãn}.
+        \item Gộp thêm dữ liệu cũ \bad{làm F1 giảm}.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Chuyển mô hình sang mạng mới cần \key{thích ứng miền}. Cách ít tốn kém nhất ở
-  đây là gán nhãn một ít lưu lượng của chính mạng đó.}
+  \takeaway{Sang mạng mới cần \key{thích ứng miền} (domain adaptation). Cách
+  ít tốn kém nhất ở đây: gán nhãn một phần nhỏ lưu lượng của chính mạng đó.}
   \note{\say Vậy làm gì để mô hình hoạt động được trên mạng mới? Chúng tôi thử hai
-  hướng. Hướng thứ nhất không cần nhãn: căn chỉnh lại dữ liệu của mạng mới cho
-  giống dữ liệu cũ. Kết quả là F1 về 0 ở cả hai chiều. Hướng thứ hai: gán nhãn
-  1\% dữ liệu của mạng mới, khoảng 19 nghìn luồng, rồi học lại. F1 lên 0,92 và
+  hướng. Hướng thứ nhất không cần nhãn: chỉ chỉnh phân phối dữ liệu của mạng
+  mới cho giống dữ liệu cũ, gọi là căn chỉnh, ở đây dùng CORAL. Kết quả là F1
+  về 0 ở cả hai chiều. Hướng thứ hai: gán nhãn
+  1\% dữ liệu của mạng mới, khoảng 19 nghìn luồng, rồi huấn luyện lại. F1 lên 0,92 và
   0,99. Một điểm đáng chú ý: gộp thêm toàn bộ dữ liệu cũ vào thì kết quả lại giảm.
   Tức là muốn chuyển mô hình sang mạng mới, cách ít tốn kém nhất ở đây là gán nhãn một
   ít lưu lượng của chính mạng đó.
@@ -532,27 +539,27 @@ cách đánh giá nhiều hơn là về mô hình.}
 % ---------------------------------------------------------------- 0:40
 \begin{frame}{Kết luận}
   \begin{columns}[T]
-    \begin{column}{0.56\textwidth}
-      \textbf{Những gì đã chỉ ra}
+    \begin{column}{0.52\textwidth}
+      \textbf{Kết quả chính}
       \begin{itemize}\small
         \setlength{\itemsep}{0.3em}
-        \item Bỏ \good{60\% đặc trưng} (SHAP Top-30) mà F1 không đổi, \emph{đã kiểm định}.
-        \item Điểm tổng cao \bad{che khuất tấn công hiếm}.
+        \item Bỏ \good{60\% đặc trưng} (SHAP Top-30) mà F1 không đổi, \emph{có kiểm định thống kê}.
+        \item Điểm F1 tổng cao \bad{che khuất tấn công hiếm}.
         \item Đổi bộ dữ liệu thì \bad{điểm giảm mạnh}, và F1 của một lần chạy không đủ tin cậy.
-        \item Mạng mới: \key{gán nhãn một ít dữ liệu} thì được, căn chỉnh
-              không nhãn thì không.
+        \item Mạng mới: \key{gán nhãn một phần nhỏ dữ liệu} là đủ; căn
+              chỉnh không nhãn thì không.
       \end{itemize}
     \end{column}
-    \begin{column}{0.40\textwidth}
+    \begin{column}{0.44\textwidth}
       \textbf{Bài học}
       \begin{itemize}\small
-        \item \key{Đo thế nào} quan trọng không kém phương pháp nào thắng.
+        \item \key{Đánh giá đúng cách} quan trọng không kém chọn đúng phương pháp.
       \end{itemize}
-      \textbf{Hướng tiếp theo}
+      \textbf{Hướng phát triển}
       \begin{itemize}\small
-        \item Đo riêng tác động của bước bỏ luồng trùng.
+        \item Đo riêng tác động của bước bỏ trùng lặp.
         \item Toàn bộ CSE-CIC-IDS2018 và các bộ mới hơn.
-        \item Tập SHAP Top-30 có dùng được cho bộ khác?
+        \item Bộ 30 đặc trưng SHAP có dùng được cho bộ dữ liệu khác?
       \end{itemize}
     \end{column}
   \end{columns}
@@ -561,8 +568,8 @@ cách đánh giá nhiều hơn là về mô hình.}
   \note{\say Tóm lại có bốn điều. Một, bỏ được 60\% đặc trưng mà F1 không đổi,
   và điều này đã được kiểm định. Hai, điểm tổng cao che khuất các loại tấn công
   hiếm. Ba, đổi bộ dữ liệu thì điểm giảm mạnh, và F1 của một lần chạy không đủ tin cậy.
-  Bốn, với mạng mới, gán nhãn một ít dữ liệu thì được, căn chỉnh không nhãn thì
-  không. Bài học chung: đo thế nào quan trọng không kém phương pháp nào thắng.
+  Bốn, với mạng mới, gán nhãn một phần nhỏ dữ liệu là đủ, còn căn chỉnh không
+  nhãn thì không. Bài học chung: đánh giá đúng cách quan trọng không kém chọn đúng phương pháp.
   Xin cảm ơn quý thầy cô, kính mời câu hỏi.
   \ifasked Các bộ mới hơn: RoEduNet, CIC-IoT. Tăng số lần lặp bằng kiểm định
   chéo lồng cũng là hướng củng cố.}
@@ -582,13 +589,13 @@ cách đánh giá nhiều hơn là về mô hình.}
           \hfill{\key{mâu thuẫn nhãn}}
     \item[{[3]}] Arp, D. et al. \emph{Dos and Don'ts of Machine Learning in Computer
           Security}. USENIX Security 2022.
-          \hfill{\key{bẫy rò rỉ}}
+          \hfill{\key{rò rỉ}}
     \item[{[4]}] Lundberg, S.\,M. \& Lee, S.-I. \emph{A unified approach to
           interpreting model predictions}. NeurIPS 2017.
           \hfill{\key{SHAP}}
     \item[{[5]}] Nadeau, C. \& Bengio, Y. \emph{Inference for the Generalization
-          Error}. Machine Learning 52(3), 2003.
-          \hfill{\key{CI hiệu chỉnh}}
+          Error}. Mach.\ Learn.\ 52(3), 2003.
+          \hfill{\key{khoảng tin cậy}}
     \item[{[6]}] D'hooge, L. et al. \emph{Inter-dataset generalization strength of
           supervised machine learning methods for intrusion detection}.
           J.\ Information Security and Applications 54, 2020.
@@ -597,7 +604,7 @@ cách đánh giá nhiều hơn là về mô hình.}
           sets}. HotCloud 2010.
           \hfill{\key{Spark ML}}
     \item[{[8]}] CIC \& CSE. \emph{CSE-CIC-IDS2018 dataset}. 2018.
-          \hfill{\key{đích liên bộ dữ liệu}}
+          \hfill{\key{bộ dữ liệu thứ hai}}
     \item[{[9]}] Schuirmann, D.\,J. \emph{A comparison of the two one-sided tests
           procedure and the power approach for assessing the equivalence of
           average bioavailability}. J.\ Pharmacokinetics and
@@ -622,7 +629,7 @@ cách đánh giá nhiều hơn là về mô hình.}
   \centering
   \begin{tabular}{lccc}
     \toprule
-    F1 & RF chọn & SHAP chọn & Chênh \\
+    Thuật toán (F1) & RF Top-30 & SHAP Top-30 & Chênh lệch \\
     \midrule
     Random Forest & 0,9879 & 0,9955 & \good{$+$0,008} \\
     XGBoost       & 0,9922 & 0,9970 & \good{$+$0,005} \\
@@ -638,7 +645,7 @@ cách đánh giá nhiều hơn là về mô hình.}
   \centering\small
   \begin{tabular}{lccc}
     \toprule
-    Thuật toán & Bỏ cổng & Giữ cổng & Chênh \\
+    Thuật toán & Bỏ cổng đích & Giữ cổng đích & Chênh lệch \\
     \midrule
     SVM (LinearSVC)     & 0,7859 & 0,8274 & \bad{$+$0,0415} \\
     Logistic Regression & 0,7986 & 0,8381 & \bad{$+$0,0395} \\
@@ -659,7 +666,7 @@ cách đánh giá nhiều hơn là về mô hình.}
     {\includegraphics[height=0.74\textheight, width=\textwidth, keepaspectratio]{confusion_matrix.png}}
     {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
       \texttt{confusion\_matrix.png}\vspace{1.5cm}}}}
-  \\[0.2em]\footnotesize Random Forest, đủ 77 đặc trưng. Mỗi hàng chuẩn hóa theo
+  \\[0.2em]\footnotesize Random Forest, toàn bộ 77 đặc trưng. Mỗi hàng chuẩn hóa theo
   số mẫu thật của lớp đó.
 \end{frame}
 
@@ -672,7 +679,7 @@ cách đánh giá nhiều hơn là về mô hình.}
         \toprule
         XGBoost & F1 $\pm$ CI95 ($t$) & CI95 (N--B) \\
         \midrule
-        Giữ hết     & 0,99734 $\pm$ 0,00007 & $\pm$ 0,00012 \\
+        Toàn bộ 77  & 0,99734 $\pm$ 0,00007 & $\pm$ 0,00012 \\
         SHAP Top-30 & 0,99720 $\pm$ 0,00009 & $\pm$ 0,00015 \\
         \midrule
         \multicolumn{3}{c}{hoán vị ghép cặp $p = 0{,}031$,\ Cohen's $d \approx 1{,}94$} \\
@@ -697,7 +704,7 @@ cách đánh giá nhiều hơn là về mô hình.}
     \begin{column}{0.50\textwidth}
       \begin{itemize}\footnotesize
         \item $N{=}6$ lần lấy mẫu lại ghép cặp: phương sai phản ánh việc lấy
-              mẫu dữ liệu, không chỉ hạt giống.
+              mẫu dữ liệu, không chỉ seed ngẫu nhiên.
         \item Hoán vị hai phía, liệt kê đủ $2^6$ tổ hợp dấu: $p$ nhỏ nhất là
               $2/2^6 \approx 0{,}031$, nên $N \geq 6$ là bắt buộc.
         \item Các lần lấy mẫu chồng nhau phá vỡ tính độc lập của $t$, nên dùng
@@ -727,7 +734,7 @@ cách đánh giá nhiều hơn là về mô hình.}
       \end{tabular}
       }
       \\[0.3em]
-      \scriptsize 18 lần chạy cùng mã và dữ liệu (13 hạt giống, 5 hạt giống
+      \scriptsize 18 lần chạy cùng mã và dữ liệu (13 seed, trong đó 5 seed
       chạy hai lần).
     \end{column}
     \begin{column}{0.50\textwidth}
@@ -736,7 +743,7 @@ cách đánh giá nhiều hơn là về mô hình.}
               1/18 lần chạy.
         \item AUC-PR hai cụm không khác nhau (Welch $|t|{=}1{,}3$): thứ hạng
               không đổi, chỉ ngưỡng 0,5 cắt qua một cụm luồng gần giống nhau.
-        \item 5 hạt giống chạy lại: 3 giữ cụm, 2 đổi cụm.
+        \item 5 seed chạy lại: 3 giữ cụm, 2 đổi cụm.
         \item Refit scaler, CORAL: F1 bằng 0 trong cả 3 lần. CORAL nâng AUC-PR
               2018$\to$2017 từ 0,179 lên 0,250.
       \end{itemize}
@@ -744,13 +751,13 @@ cách đánh giá nhiều hơn là về mô hình.}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Dự phòng: bản đồ nhiệt F1, phương pháp $\times$ thuật toán}
+\begin{frame}{Dự phòng: heatmap F1, phương pháp $\times$ thuật toán}
   \centering
   \IfFileExists{../../results/ml_07_cross_method_comparison/f1_heatmap.png}
     {\includegraphics[height=0.74\textheight, width=\textwidth, keepaspectratio]{f1_heatmap.png}}
     {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
       \texttt{f1\_heatmap.png}\vspace{1.5cm}}}}
-  \\[0.2em]\footnotesize Nhị phân, đã bỏ cổng. 8 thuật toán $\times$ 4 phương pháp.
+  \\[0.2em]\footnotesize Phân loại nhị phân, đã bỏ cổng đích. 8 thuật toán $\times$ 4 phương pháp.
 \end{frame}
 
 \begin{frame}{Dự phòng: siêu tham số, cố định từ trước}
@@ -809,13 +816,13 @@ cách đánh giá nhiều hơn là về mô hình.}
           liệt kê đầy đủ hai phía chặn $p$ ở mức $2/2^N$, nên $N{=}6$ \emph{vừa
           đủ} chạm 0,05. Kết luận tương đương không dựa vào $p$ đó mà dựa vào
           TOST, trên cùng sai số Nadeau--Bengio đã tính đến việc các lần lấy
-          mẫu chồng nhau. F1 liên bộ không tất định giữa các lượt, nên được báo
+          mẫu chồng nhau. F1 liên bộ dữ liệu không tất định giữa các lượt chạy, nên được báo
           trên 18 lượt. Kiểm định chéo lồng với $N$ lớn hơn là hướng củng cố
           tiếp theo.
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Dự phòng: quy kết đặc trưng bằng SHAP}
+\begin{frame}{Dự phòng: mức đóng góp của từng đặc trưng theo SHAP}
   \centering
   \IfFileExists{../../results/ml_06_feature_selection_shap/shap_summary_beeswarm.png}
     {\includegraphics[height=0.68\textheight, width=\textwidth, keepaspectratio]{shap_summary_beeswarm.png}}
