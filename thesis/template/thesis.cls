@@ -145,8 +145,7 @@
 
 \RequirePackage[maxcitenames=2, mincitenames=1, backend=biber,
 sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
-\DefineBibliographyStrings{english}{andothers={và các cộng sự}}
-\DefineBibliographyStrings{english}{and={và}}
+% Tài liệu tham khảo giữ nguyên tiếng Anh (ngôn ngữ gốc của tài liệu): không dịch "and" / "et al.".
 %\DefineBibliographyStrings{english}{pages={trang}}
 %\DefineBibliographyStrings{english}{in={trong}}
 \addbibresource{bibliography.bib}
