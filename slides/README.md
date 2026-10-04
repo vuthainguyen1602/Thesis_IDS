@@ -113,3 +113,15 @@ The decks pull PNGs straight from `results/` and `papers/soict2026/`, so they
 stay in sync when the pipeline is re-run. Figures that may not exist yet are
 wrapped in `\IfFileExists` and degrade to a labelled placeholder box instead of
 failing the build.
+
+## PowerPoint export
+
+```bash
+python3 slides/pdf2pptx.py slides/fair2026_vi/main.pdf output/pdfs/FAIR2026_slides_vi.pptx --last 17   # drop the backup slides
+```
+
+`pdf2pptx.py` renders each PDF page as a full-bleed 300 dpi image on a 16:9
+slide (needs `pdftoppm`, `pdftohtml` from poppler and `python-pptx`). If the
+deck's `main_notes.pdf` sits next to `main.pdf`, the note text of each page is
+copied into the PowerPoint speaker notes, so build with `NOTES=1` first. The
+slides are images, not editable text; edit the `.tex` and re-export.
