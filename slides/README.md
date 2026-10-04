@@ -11,7 +11,7 @@ Numbers must match the manuscripts in every deck.
 | `soict2026/` | English | ~7:30 (9 talk slides + 3 section pages + references + 5 backup = 20 pages) | `output/pdfs/SOICT2026_slides.pdf` |
 | `soict2026_vi/` | Vietnamese | ~11 min, detailed (12 talk slides + 3 section pages + references + 5 backup = 22 pages) | `output/pdfs/SOICT2026_slides_vi.pdf` |
 | `fair2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/FAIR2026_slides.pdf` |
-| `fair2026_vi/` | Vietnamese | ~10 min, detailed (11 talk slides + 3 section pages + references + 10 backup = 27 pages) | `output/pdfs/FAIR2026_slides_vi.pdf` |
+| `fair2026_vi/` | Vietnamese | ~10 min, detailed (outline + 11 talk slides + 3 section pages + references + 10 backup = 28 pages) | `output/pdfs/FAIR2026_slides_vi.pdf` |
 | `defense/` | Vietnamese | 15 min (16 talk slides + 5 section pages + title/outline/refs/thanks + backup index + 14 backup frames for 14 questions = 40 pages) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
 
 ## Building
@@ -76,9 +76,17 @@ overflows the line.
 
 Backup slides sit after `\appendix`, where `appendixnumberbeamer` restarts the
 count, and metropolis' section page carries no footline at all, so neither
-inflates the denominator: the fraction runs `1/9 … 9/9` in the paper decks
-(8 talk slides + references) and `1/18 … 18/18` in the defense deck. Section
-titles are Roman-numbered and upper-case in all four decks.
+inflates the denominator: the fraction runs `1/9 … 9/9` in the English paper
+decks (8 talk slides + references) and `1/18 … 18/18` in the defense deck.
+Section titles are Roman-numbered and upper-case in all decks.
+
+`fair2026_vi` departs from this on purpose: it opens with a *Nội dung trình
+bày* outline slide, its section pages are numbered and carry a footline
+(`\AtBeginSection{\frame[c]{\sectionpage}}` overrides metropolis'
+`[plain,noframenumbering]`), and the footer's left side names the current
+section via `\secfooter`, which is set immediately *before* each `\section`
+so the section page itself already shows the new name. Its fraction therefore
+runs `1/16 … 16/16`.
 
 The defense deck opens its backup section with a **clickable index** keyed by
 the question a committee member is likely to ask, so the right slide is one

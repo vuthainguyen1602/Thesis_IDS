@@ -12,6 +12,7 @@
 % KẾ HOẠCH THỜI GIAN (tổng ~10:00). Ba trang phân mục nằm giữa các phần, không
 % được đánh số khung và mất ~5 s mỗi trang để bấm qua.
 %   Trang bìa ...................... 0:20
+%   Nội dung trình bày ............. 0:15
 %   I   Vấn đề, đóng góp ........... 1:20   (2 slide)
 %   II  Quy trình, dữ liệu ......... 1:40   (2 slide)
 %   III Kết quả, kết luận .......... 6:30   (7 slide)
@@ -29,6 +30,14 @@
 % Hai phần của ghi chú người trình bày.
 \newcommand{\say}{\textbf{Nói:} }
 \newcommand{\ifasked}{\par\smallskip\textbf{Nếu bị hỏi:} }
+
+% Đánh số và định vị: trang phân mục cũng được đánh số và có footer (metropolis
+% mặc định để chúng [plain,noframenumbering]); footer trái ghi mục đang trình
+% bày, đặt bằng \secfooter ngay TRƯỚC mỗi \section để trang phân mục nhận
+% đúng tên. Trang bìa vẫn không đánh số, nên đếm bắt đầu từ slide Nội dung.
+\newcommand{\secfooter}{}
+\AtBeginDocument{\setbeamertemplate{frame footer}{\secfooter}}
+\AtBeginSection{\frame[c]{\sectionpage}}
 
 \graphicspath{%
   {../../results/ml_07_cross_method_comparison/}%
@@ -57,7 +66,28 @@ trình bày bài báo về giảm đặc trưng cho phát hiện xâm nhập m�
 Cả bài xoay quanh một ý: trên CICIDS2017, điểm F1 gần 1 thường phản ánh
 cách đánh giá hơn là chất lượng mô hình.}
 
+% ---------------------------------------------------------------- 0:15
+\begin{frame}{Nội dung trình bày}
+  \vfill
+  % Số La Mã, khớp với trang phân mục. Beamer đặt nhãn qua template, không
+  % qua \labelenumi.
+  \setbeamertemplate{enumerate item}{\textbf{\Roman{enumi}.}}
+  \begin{enumerate}
+    \setlength{\itemsep}{1.1em}
+    \item \textbf{VẤN ĐỀ VÀ ĐÓNG GÓP}\\
+          {\small Vì sao điểm F1 trên 0,99 chưa chắc đáng tin.}
+    \item \textbf{QUY TRÌNH ĐÁNH GIÁ}\\
+          {\small Làm sạch dữ liệu và chặn rò rỉ ở từng bước.}
+    \item \textbf{KẾT QUẢ VÀ KẾT LUẬN}\\
+          {\small Sáu kết quả, từ giảm đặc trưng đến chuyển sang mạng khác.}
+  \end{enumerate}
+  \vfill
+  \note{\say Bài trình bày gồm ba phần: vấn đề và đóng góp, quy trình đánh
+  giá, rồi sáu kết quả và kết luận. Phần kết quả chiếm nhiều thời gian nhất.}
+\end{frame}
+
 % =====================================================================
+\renewcommand{\secfooter}{I. Vấn đề và đóng góp}
 \section{I.\ VẤN ĐỀ VÀ ĐÓNG GÓP}
 % =====================================================================
 
@@ -126,6 +156,7 @@ cách đánh giá hơn là chất lượng mô hình.}
 \end{frame}
 
 % =====================================================================
+\renewcommand{\secfooter}{II. Quy trình đánh giá}
 \section{II.\ QUY TRÌNH ĐÁNH GIÁ}
 % =====================================================================
 
@@ -232,6 +263,7 @@ cách đánh giá hơn là chất lượng mô hình.}
 \end{frame}
 
 % =====================================================================
+\renewcommand{\secfooter}{III. Kết quả và kết luận}
 \section{III.\ KẾT QUẢ VÀ KẾT LUẬN}
 % =====================================================================
 
@@ -620,10 +652,14 @@ cách đánh giá hơn là chất lượng mô hình.}
 
 % =====================================================================
 \appendix
+\renewcommand{\secfooter}{Dự phòng}
 
+% Footer tắt trên nền xanh: số trang màu xám sẽ không đọc được.
+{\setbeamertemplate{footline}{}
 \begin{frame}[standout]
   Slide dự phòng
 \end{frame}
+}
 
 \begin{frame}{Dự phòng: RF và SHAP khi cùng chọn 30 đặc trưng}
   \centering
