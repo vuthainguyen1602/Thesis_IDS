@@ -356,7 +356,7 @@ cách đánh giá hơn là chất lượng mô hình.}
 % ---------------------------------------------------------------- 0:55
 \begin{frame}{Kết quả 3: 77 hay 30 đặc trưng, F1 tương đương về mặt thống kê}
   \begin{columns}[T]
-    \begin{column}{0.40\textwidth}
+    \begin{column}{0.36\textwidth}
       \centering\small
       \fitwidth{%
       \begin{tabular}{lc}
@@ -365,30 +365,44 @@ cách đánh giá hơn là chất lượng mô hình.}
         \midrule
         Toàn bộ 77 đặc trưng & 0,99734 \\
         SHAP Top-30          & 0,99720 \\
-        \textbf{Chênh lệch}  & \textbf{$\approx$0,0001} \\
         \midrule
-        Kiểm định hoán vị ghép cặp & $p = 0{,}031$ \\
-        Kiểm định tương đương (TOST) & \good{$p = 3{,}9\times10^{-6}$} \\
+        \textbf{Chênh lệch}  & \textbf{$\approx$0,0001} \\
         \bottomrule
       \end{tabular}
       }
-      \\[0.2em]\raggedright{\scriptsize Trung bình 6 lần chạy, nên khác nhẹ
-      so với Kết quả 1 (một lần chạy).}
+      \par\medskip\raggedright\scriptsize
+      6 lần chạy, hai bên dùng chung cách chia nên so được theo từng cặp.
+      \par\smallskip
+      Kiểm định khác biệt không chứng minh được hai bên \emph{giống nhau},
+      nên thêm kiểm định tương đương (TOST).
     \end{column}
-    \begin{column}{0.58\textwidth}
-      \footnotesize
-      \textbf{Kiểm định hoán vị ghép cặp}: hai bên \emph{có khác nhau} không?
+    \begin{column}{0.62\textwidth}
+      \centering
+      % Đơn vị trục: 1e-4 F1. Khoảng tin cậy 90% (Nadeau--Bengio) của chênh
+      % lệch ghép cặp: [0,46; 2,30], trung bình 1,38. Nguồn:
+      % results/ml_07_cross_method_comparison/statistical_validity_multiseed.csv
+      \begin{tikzpicture}[x=0.38cm, y=1cm, font=\scriptsize]
+        \fill[accGreen!18] (-10,0) rectangle (10,1.1);
+        \draw[accGreen, thick] (-10,0) -- (-10,1.1) (10,0) -- (10,1.1);
+        \node[accGreen!70!black, font=\scriptsize\bfseries, above] at (0,1.1)
+          {Vùng tương đương: $\pm$0,001 F1, chọn trước khi chạy};
+        \draw[-{Latex[length=2mm]}] (-11,0) -- (11,0);
+        \foreach \x/\l in {-10/{$-$0,001}, 0/{0 (không khác)}, 10/{+0,001}}
+          \draw (\x,0.08) -- (\x,-0.08) node[below] {\l};
+        \draw[dashed, gray] (0,0) -- (0,1.1);
+        \draw[very thick, accBlue] (0.46,0.55) -- (2.30,0.55);
+        \draw[very thick, accBlue] (0.46,0.45) -- (0.46,0.65) (2.30,0.45) -- (2.30,0.65);
+        \fill[accBlue] (1.38,0.55) circle (2.2pt);
+        \draw[-{Latex[length=1.6mm]}, accBlue] (-3.2,0.55) node[left, align=right]
+          {chênh lệch thật\\0,00005--0,00023} -- (0.25,0.55);
+      \end{tikzpicture}
+      \par\medskip\raggedright\footnotesize
       \begin{itemize}
-        \item Chọn vì: 6 lần chạy, hai bên dùng chung cách chia nên so theo
-              cặp; tính chính xác với chỉ 6 cặp.
-        \item $p = 0{,}031 < 0{,}05$: có khác, nhưng chỉ $\approx$0,0001 F1.
-      \end{itemize}
-      \smallskip
-      \textbf{TOST}: chênh lệch có nằm trong $\pm$0,001 F1 (chọn trước) không?
-      \begin{itemize}
-        \item Chọn vì: kiểm định trên không chứng minh được hai bên
-              \emph{giống nhau}.
-        \item $p = 3{,}9\times10^{-6}$: tương đương, chênh lệch \good{dưới 0,00023 F1}.
+        \setlength{\itemsep}{0.25em}
+        \item \textbf{Lệch khỏi 0}: có khác, nhưng rất nhỏ.\\
+              {\scriptsize Kiểm định hoán vị ghép cặp, $p = 0{,}031$.}
+        \item \textbf{Nằm gọn trong vùng xanh}: \good{tương đương}.\\
+              {\scriptsize TOST, $p = 3{,}9\times10^{-6}$.}
       \end{itemize}
     \end{column}
   \end{columns}
@@ -402,7 +416,8 @@ cách đánh giá hơn là chất lượng mô hình.}
   Kiểm định này không trả lời được câu hai bên có giống nhau không, nên chúng
   tôi dùng thêm kiểm định tương đương TOST, với biên cộng trừ 0,001 F1 chọn
   trước khi chạy. p bằng 3,9 nhân 10 mũ trừ 6, nên hai bên tương đương, chênh
-  lệch thực sự nhỏ hơn 0,00023 F1. Vì vậy chúng tôi chọn SHAP Top-30: ít đặc
+  lệch thực sự nhỏ hơn 0,00023 F1. Trên hình, đoạn xanh dương là chênh
+  lệch thật: lệch khỏi 0 một chút, nhưng nằm gọn trong vùng xanh lá. Vì vậy chúng tôi chọn SHAP Top-30: ít đặc
   trưng hơn và giải thích được.
   \ifasked $p = 0{,}031$ là đúng sàn phân giải $2/2^6$ của kiểm định hoán vị
   hai phía liệt kê đủ $2^6$ tổ hợp dấu, nên cần $N \geq 6$. Cohen's
