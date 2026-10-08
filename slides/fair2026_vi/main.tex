@@ -27,14 +27,13 @@
 \input{../common/preamble.tex}
 \usepackage{array}
 
-% Slide kết quả viết dạng hỏi--đáp: người trình bày đọc câu hỏi và câu trả
-% lời, cột số liệu để chỉ vào khi cần.
-\newcolumntype{Q}[1]{>{\raggedright\arraybackslash}p{#1\textwidth}}
-\newcommand{\qahead}{\toprule
-  \textbf{Câu hỏi} & \textbf{Trả lời} & \textbf{Số liệu} \\ \midrule}
-% Dạng xếp dọc cho cột hẹp: \qa{số}{câu hỏi}{trả lời}{số liệu}
-\newcommand{\qa}[4]{\par\smallskip\noindent\key{#1.}~\textbf{#2}\par
-  \noindent$\rightarrow$~#3~#4\par}
+% Ô số lớn cho slide kết quả: \stat{màu}{số}{nhãn}{giải thích}. Số tô màu
+% và nhãn nằm cùng dòng, giải thích ở dòng dưới; rộng bằng cột chứa nó.
+\newcommand{\stat}[4]{%
+  \colorbox{#1!8}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep\relax}
+    \raggedright{\Large\bfseries\color{#1}#2}\enspace{\small\bfseries #3}\par
+    \vspace{0.1em}{\footnotesize #4}
+  \end{minipage}}\par\smallskip}
 % Ô kết luận: \card{màu}{số lớn}{nhãn}{giải thích}
 \newcommand{\card}[4]{%
   \colorbox{#1!8}{\begin{minipage}[t][1.65cm][t]{0.455\textwidth}
@@ -305,13 +304,12 @@ cách đánh giá hơn là chất lượng mô hình.}
     \end{column}
     \begin{column}{0.45\textwidth}
       \footnotesize
-      \qa{1}{Bỏ 47 đặc trưng, F1 có giảm?}{Gần như không:}
-        {0,9971 $\to$ 0,9970.}
-      \qa{2}{Huấn luyện có nhanh hơn?}{\good{Nhanh gấp 3,8 lần}:}
+      \stat{accGreen}{30/77}{đặc trưng giữ lại}
+        {F1 0,9971 $\to$ 0,9970, gần như không đổi.}
+      \stat{accGreen}{3,8$\times$}{huấn luyện nhanh hơn}
         {77 phút $\to$ 20 phút.}
-      \qa{3}{Cách chọn đặc trưng nào tốt nhất?}{\key{SHAP}:}
-        {cùng 30 đặc trưng, SHAP 0,9970, RF 0,9922. PCA 0,9939 và
-        \bad{không giải thích được}.}
+      \stat{accBlue}{SHAP $>$ RF}{khi cùng chọn 30}
+        {0,9970 so với 0,9922. PCA 0,9939, \bad{không giải thích được}.}
     \end{column}
   \end{columns}
   \takeaway{Chọn \key{SHAP Top-30}: ít đặc trưng, huấn luyện nhanh, giải thích
@@ -330,26 +328,32 @@ cách đánh giá hơn là chất lượng mô hình.}
 
 % ---------------------------------------------------------------- 0:50
 \begin{frame}{Kết quả 2: cổng đích làm tăng điểm, mức tăng tùy mô hình}
-  \centering\small
-  Mỗi thuật toán huấn luyện hai lần trên cùng một cách chia dữ liệu: một lần
-  bỏ cổng đích, một lần giữ. So F1 hai lần đó.
-  \par\medskip
-  \fitwidth{%
-  \begin{tabular}{@{}Q{0.34}Q{0.2}Q{0.43}@{}}
-    \qahead
-    \key{1.} Mô hình cây có dựa vào cổng đích?
-      & Hầu như không.
-      & F1 tăng dưới 0,002 {\color{gray}(DT, RF, GBT, XGBoost)} \\
-    \key{2.} Mô hình tuyến tính thì sao?
-      & \bad{Dựa nhiều.}
-      & F1 tăng khoảng 0,04, \bad{gấp hơn 20 lần} mô hình cây
-        {\color{gray}(LR, SVM)}. MLP, Naive Bayes ở giữa: 0,005 và 0,011 \\
-    \key{3.} Chỉ đo rò rỉ trên Random Forest có đủ không?
-      & \bad{Không.}
-      & RF chỉ tăng 0,001, trông như không đáng kể, nhưng LR, SVM tăng 0,04 \\
-    \bottomrule
-  \end{tabular}
-  }
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \centering\small
+      \fitwidth{%
+      \begin{tabular}{lc}
+        \toprule
+        Nhóm mô hình & F1 tăng khi giữ cổng \\
+        \midrule
+        Cây (DT, RF, GBT, XGBoost) & dưới 0,002 \\
+        MLP, Naive Bayes           & 0,005 và 0,011 \\
+        Tuyến tính (LR, SVM)       & \bad{khoảng 0,04} \\
+        \bottomrule
+      \end{tabular}
+      }
+      \\[0.3em]{\scriptsize Mỗi thuật toán huấn luyện hai lần trên cùng một
+      cách chia dữ liệu: một lần bỏ cổng đích, một lần giữ.}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \stat{accGreen}{$<$0,002}{mô hình cây}
+        {Hầu như không dựa vào cổng đích.}
+      \stat{accRed}{$\approx$0,04}{mô hình tuyến tính}
+        {Dựa nhiều: gấp hơn 20 lần mô hình cây.}
+      \stat{accRed}{0,001}{nếu chỉ đo trên RF}
+        {Trông như không đáng kể, nhưng LR, SVM tăng 0,04.}
+    \end{column}
+  \end{columns}
   \takeaway{Rò rỉ phải đo trên \emph{từng} mô hình. Mọi kết quả sau đây đều đã
   bỏ cổng đích.}
   \note{\say Kết quả thứ hai: cổng đích làm tăng điểm bao nhiêu. Mỗi thuật toán
@@ -407,27 +411,18 @@ cách đánh giá hơn là chất lượng mô hình.}
     \end{column}
   \end{columns}
   \par\smallskip
-  {\centering\scriptsize
-  \fitwidth{%
-  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.29\textwidth}>{\raggedright\arraybackslash}p{0.17\textwidth}>{\raggedright\arraybackslash}p{0.51\textwidth}@{}}
-    \toprule
-    \textbf{Câu hỏi} & \textbf{Trả lời} & \textbf{Số liệu} {\color{gray}(phép thống kê)} \\
-    \midrule
-    \key{1.} Số đo có chắc không?
-      & Chắc, sai số nhỏ.
-      & $\pm$0,00012 và $\pm$0,00015 {\color{gray}(CI95 Nadeau--Bengio: tính
-        cả việc 6 lần chạy dùng chung dữ liệu)} \\
-    \key{2.} Hai bên có khác nhau không?
-      & Có, nhưng rất nhỏ.
-      & $p = 0{,}031$, mức nhỏ nhất với 6 cặp; $d \approx 1{,}94$ do 6 lần
-        chạy rất sát {\color{gray}(hoán vị ghép cặp)} \\
-    \key{3.} Coi như nhau được không?
-      & \good{Được.}
-      & $p = 3{,}9\times10^{-6}$ {\color{gray}(TOST: phép 2 không trả lời được
-        câu này)} \\
-    \bottomrule
-  \end{tabular}
-  }\par}
+  \begin{minipage}[t]{0.32\textwidth}
+    \stat{accBlue}{$\pm$0,00012}{sai số}
+      {77 đặc trưng; SHAP Top-30 $\pm$0,00015 {\color{gray}(CI95 Nadeau--Bengio)}.}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.32\textwidth}
+    \stat{accRed}{$p{=}0{,}031$}{có khác}
+      {Nhưng chỉ $\approx$0,0001. $d \approx 1{,}94$ vì 6 lần chạy rất sát {\color{gray}(hoán vị ghép cặp)}.}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.32\textwidth}
+    \stat{accGreen}{$p{=}3{,}9{\times}10^{-6}$}{}
+      {\good{Tương đương} {\color{gray}(TOST, biên $\pm$0,001 F1)}.}
+  \end{minipage}
   \takeaway{30 đặc trưng tốt ngang 77, nên chọn \key{SHAP Top-30}: gọn hơn, giải thích được.}
   \note{\say Kết quả 1 chỉ là một lần chạy, nên chúng tôi chạy lại 6 lần. F1
   hai bên chênh khoảng 0,0001. Chúng tôi trả lời ba câu hỏi. Một, số đo có
@@ -469,12 +464,12 @@ cách đánh giá hơn là chất lượng mô hình.}
     \end{column}
     \begin{column}{0.47\textwidth}
       \footnotesize
-      \qa{1}{Điểm tổng có phản ánh đúng không?}{\bad{Không.}}
-        {F1 chung 0,998, nhưng tính đều từng lớp chỉ còn 0,806.}
-      \qa{2}{Lớp nào bị bỏ sót?}{\bad{Lớp hiếm.}}
-        {Cả 6 SQL Injection và 54\% Bot bị xếp vào bình thường.}
-      \qa{3}{XSS chỉ 2,70\%, có phải bỏ sót không?}{Phần lớn không:}
-        {76\% XSS vẫn bị báo là tấn công, chỉ nhầm sang loại khác.}
+      \stat{accRed}{0,998 $\to$ 0,806}{}
+        {Khi tính đều từng lớp: điểm tổng che khuất lớp hiếm.}
+      \stat{accRed}{6/6}{SQL Injection bị bỏ sót}
+        {Cùng 54\% Bot bị xếp vào bình thường.}
+      \stat{accBlue}{76\%}{XSS vẫn bị báo là tấn công}
+        {Chỉ nhầm loại, không bỏ sót.}
     \end{column}
   \end{columns}
   \takeaway{Lớp càng ít mẫu càng dễ bị bỏ sót, và điểm tổng không phản ánh
@@ -513,9 +508,8 @@ cách đánh giá hơn là chất lượng mô hình.}
       }
       \\[0.1em]{\scriptsize 2017 = CICIDS2017, 2018 = CSE-CIC-IDS2018.}
       \raggedright\footnotesize
-      \qa{1}{Sang mạng khác còn tốt không?}{\bad{Không.}}
-        {F1 0,995 $\to$ 0,03--0,30; 0,925 $\to$ 0,05.}
-      \qa{2}{Sai kiểu gì?}{\bad{Bỏ sót}:}{chỉ bắt được 7\% và 3\% tấn công.}
+      \stat{accRed}{0,995 $\to$ 0,03--0,30}{}
+        {Chiều ngược lại: 0,925 $\to$ 0,05.}
     \end{column}
     \begin{column}{0.50\textwidth}
       \centering
@@ -540,9 +534,10 @@ cách đánh giá hơn là chất lượng mô hình.}
         \node[accBlue, font=\scriptsize\bfseries] at (0.245,0.6) {7 lần};
       \end{tikzpicture}
       \par\raggedright\footnotesize
-      \qa{3}{Một lần chạy có đủ tin không?}{\bad{Không.}}
-        {Cùng mã, cùng dữ liệu, F1 rơi vào hai cụm. Báo cả 18 lần, so
-        thêm bằng \key{AUC-PR}.}
+      \stat{accRed}{7\% / 3\%}{tấn công bắt được}
+        {Mô hình bỏ sót gần hết.}
+      \stat{accBlue}{11 + 7}{lần chạy, hai cụm F1}
+        {Một lần chạy không đủ tin: báo cả 18 lần, so thêm bằng \key{AUC-PR}.}
     \end{column}
   \end{columns}
   \takeaway{Điểm cao trên một bộ dữ liệu \bad{không đảm bảo} hoạt động tốt trên mạng
@@ -586,12 +581,12 @@ cách đánh giá hơn là chất lượng mô hình.}
     \end{column}
     \begin{column}{0.45\textwidth}
       \footnotesize
-      \qa{1}{Không cần nhãn, chỉ chỉnh phân phối?}{\bad{Không được}:}
-        {F1 về 0 cả hai chiều, vì khác biệt nằm ở hành vi tấn công.}
-      \qa{2}{Cần bao nhiêu dữ liệu có nhãn của mạng mới?}{\good{Rất ít, 1\%}:}
-        {khoảng 19 nghìn luồng, F1 lên 0,92 và 0,99.}
-      \qa{3}{Gộp thêm dữ liệu cũ có tốt hơn?}{\bad{Không, kém hơn}:}
-        {F1 còn 0,80 và 0,96.}
+      \stat{accRed}{F1 = 0}{khi chỉ chỉnh phân phối}
+        {Không nhãn (CORAL): khác biệt nằm ở hành vi tấn công.}
+      \stat{accGreen}{1\%}{dữ liệu có nhãn là đủ}
+        {$\approx$19 nghìn luồng: F1 lên 0,92 và 0,99.}
+      \stat{accRed}{0,80 / 0,96}{khi gộp dữ liệu cũ}
+        {Kém hơn chỉ dùng 1\% của mạng mới.}
     \end{column}
   \end{columns}
   \takeaway{Sang mạng mới, cách rẻ nhất: \key{gán nhãn 1\%} lưu lượng của

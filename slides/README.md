@@ -58,7 +58,7 @@ show up in the rendered PDF:
   invisible; past ~11 pt the footer starts colliding with the last line and that
   frame needs a line or two cut. The FAIR decks are currently under that bar —
   the worst entry is ~7.2 pt on `fair2026`'s *Result 3* frame and `fair2026_vi`
-  peaks at ~7.5 pt on its *Kết quả 3* frame — so treat a new entry above ~11 pt as
+  peaks at ~10.4 pt on its *Kết quả 5* frame (right column, still clear of the footer) — so treat a new entry above ~11 pt as
   something you introduced. The Vietnamese deck sits closest to the bar because
   Vietnamese sets longer than English at the same font size.
 
