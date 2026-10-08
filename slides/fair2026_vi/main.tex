@@ -381,19 +381,34 @@ cách đánh giá hơn là chất lượng mô hình.}
     \key{1.} Chạy lại \textbf{6 lần}, mỗi lần một cách chia dữ liệu.
       & 77 đặc trưng \textbf{0,99734}, SHAP Top-30 \textbf{0,99720}: chênh
         $\approx$\textbf{0,0001}. \\
-    \addlinespace[0.3em]
+    \addlinespace[0.1em]
     \key{2.} Đo \textbf{sai số} của F1 {\color{gray}(CI95 Nadeau--Bengio)}.
       & $\pm$0,00012 và $\pm$0,00015: \good{rất nhỏ}. \\
-    \addlinespace[0.3em]
+    \addlinespace[0.1em]
     \key{3.} Hai bên \textbf{có khác nhau không?}
       {\color{gray}(hoán vị ghép cặp)}
       & $p = 0{,}031$: \bad{có khác, nhưng chỉ 0,0001}. Là $p$ nhỏ nhất có
         thể với 6 cặp; $d \approx 1{,}94$ vì 6 lần chạy rất sát. \\
-    \addlinespace[0.3em]
+    \addlinespace[0.1em]
     \key{4.} Hai bên \textbf{có coi như nhau được không?} Cho phép chênh
       $\pm$0,001 F1, đặt trước {\color{gray}(TOST)}
-      & $p = 3{,}9\times10^{-6}$: \good{tương đương}. Chênh thật chỉ
-        0,00005--0,00023. \\
+      & $p = 3{,}9\times10^{-6}$: \good{tương đương}. Chênh thật 0,00005--0,00023:\newline
+        % Đơn vị trục: 1e-4 F1. Khoảng tin cậy 90% (Nadeau--Bengio) của chênh
+        % lệch ghép cặp: [0,46; 2,30], trung bình 1,38. Nguồn:
+        % results/ml_07_cross_method_comparison/statistical_validity_multiseed.csv
+        \begin{tikzpicture}[x=0.25cm, y=0.42cm, font=\tiny, baseline=(current bounding box.north)]
+          \fill[accGreen!18] (-10,0) rectangle (10,1);
+          \draw[accGreen, thick] (-10,0) -- (-10,1) (10,0) -- (10,1);
+          \draw[-{Latex[length=1.4mm]}] (-11,0) -- (11,0);
+          \foreach \x/\l in {-10/{$-$0,001}, 0/0, 10/{+0,001}}
+            \draw (\x,0.1) -- (\x,-0.1) node[below, inner sep=1pt] {\l};
+          \draw[dashed, gray] (0,0) -- (0,1);
+          \draw[very thick, accBlue] (0.46,0.5) -- (2.30,0.5);
+          \draw[accBlue] (0.46,0.32) -- (0.46,0.68) (2.30,0.32) -- (2.30,0.68);
+          \fill[accBlue] (1.38,0.5) circle (1.6pt);
+          \node[accBlue, right] at (2.6,0.5) {chênh thật};
+          \node[accGreen!70!black, left] at (-0.4,0.5) {vùng cho phép};
+        \end{tikzpicture} \\
     \bottomrule
   \end{tabular}
   }
@@ -402,8 +417,9 @@ cách đánh giá hơn là chất lượng mô hình.}
   chạy lại 6 lần với 6 cách chia dữ liệu: F1 hai bên chênh khoảng 0,0001. Hai,
   đo sai số của F1: chỉ khoảng cộng trừ 0,0001, rất nhỏ. Ba, kiểm tra hai bên
   có khác nhau không: có, nhưng chỉ 0,0001. Bốn, kiểm tra hai bên có coi như
-  nhau được không, với mức chênh cho phép cộng trừ 0,001 đặt trước: được,
-  chênh lệch thật nằm gọn trong mức đó. Vì vậy chọn SHAP Top-30: ít đặc trưng
+  nhau được không, với mức chênh cho phép cộng trừ 0,001 đặt trước: được.
+  Hình nhỏ: vùng xanh lá là mức cho phép, đoạn xanh dương là chênh lệch thật,
+  nằm gọn trong đó. Vì vậy chọn SHAP Top-30: ít đặc trưng
   hơn mà tốt ngang, lại giải thích được.
   \ifasked Phép 1: các lần chạy dùng chung dữ liệu nên khoảng tin cậy thông
   thường hẹp quá, Nadeau--Bengio hiệu chỉnh việc đó. Phép 2: kiểm định hoán vị
