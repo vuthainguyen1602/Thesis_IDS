@@ -25,6 +25,7 @@
 % =====================================================================
 \documentclass[aspectratio=169, 11pt]{beamer}
 \input{../common/preamble.tex}
+\usepackage{array}
 \centeredtitles
 
 % Hai phần của ghi chú người trình bày.
@@ -361,7 +362,7 @@ cách đánh giá hơn là chất lượng mô hình.}
       \fitwidth{%
       \begin{tabular}{lc}
         \toprule
-        XGBoost & F1 trung bình \\
+        XGBoost, $N{=}6$ lần chạy & F1 trung bình \\
         \midrule
         Toàn bộ 77 đặc trưng & 0,99734 \\
         SHAP Top-30          & 0,99720 \\
@@ -370,18 +371,13 @@ cách đánh giá hơn là chất lượng mô hình.}
         \bottomrule
       \end{tabular}
       }
-      \par\medskip\raggedright\scriptsize
-      6 lần chạy, hai bên dùng chung cách chia nên so được theo từng cặp.
-      \par\smallskip
-      Kiểm định khác biệt không chứng minh được hai bên \emph{giống nhau},
-      nên thêm kiểm định tương đương (TOST).
     \end{column}
     \begin{column}{0.62\textwidth}
       \centering
       % Đơn vị trục: 1e-4 F1. Khoảng tin cậy 90% (Nadeau--Bengio) của chênh
       % lệch ghép cặp: [0,46; 2,30], trung bình 1,38. Nguồn:
       % results/ml_07_cross_method_comparison/statistical_validity_multiseed.csv
-      \begin{tikzpicture}[x=0.38cm, y=1cm, font=\scriptsize]
+      \begin{tikzpicture}[x=0.36cm, y=0.75cm, font=\scriptsize]
         \fill[accGreen!18] (-10,0) rectangle (10,1.1);
         \draw[accGreen, thick] (-10,0) -- (-10,1.1) (10,0) -- (10,1.1);
         \node[accGreen!70!black, font=\scriptsize\bfseries, above] at (0,1.1)
@@ -396,28 +392,40 @@ cách đánh giá hơn là chất lượng mô hình.}
         \draw[-{Latex[length=1.6mm]}, accBlue] (-3.2,0.55) node[left, align=right]
           {chênh lệch thật\\0,00005--0,00023} -- (0.25,0.55);
       \end{tikzpicture}
-      \par\medskip\raggedright\footnotesize
-      \begin{itemize}
-        \setlength{\itemsep}{0.25em}
-        \item \textbf{Lệch khỏi 0}: có khác, nhưng rất nhỏ.\\
-              {\scriptsize Kiểm định hoán vị ghép cặp, $p = 0{,}031$.}
-        \item \textbf{Nằm gọn trong vùng xanh}: \good{tương đương}.\\
-              {\scriptsize TOST, $p = 3{,}9\times10^{-6}$.}
-      \end{itemize}
     \end{column}
   \end{columns}
+  \par\smallskip
+  {\centering\scriptsize
+  \fitwidth{%
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.47\textwidth}>{\raggedright\arraybackslash}p{0.28\textwidth}@{}}
+    \toprule
+    \textbf{Phép thống kê} & \textbf{Dùng để làm gì, vì sao chọn} & \textbf{Kết quả} \\
+    \midrule
+    \key{1.} CI95 Nadeau--Bengio
+      & Sai số của F1. Các lần chạy dùng chung dữ liệu, CI thường hẹp quá.
+      & $\pm$0,00012 và $\pm$0,00015 \\
+    \key{2.} Hoán vị ghép cặp
+      & Có \emph{khác} không? So theo cặp, chính xác với chỉ 6 cặp.
+      & $p = 0{,}031$, $d \approx 1{,}94$: có khác, rất nhỏ \\
+    \key{3.} TOST (tương đương)
+      & Có \emph{tương đương} không? Phép 2 không chứng minh được.
+      & \good{$p = 3{,}9\times10^{-6}$}: tương đương \\
+    \bottomrule
+  \end{tabular}
+  }\par}
   \takeaway{Khác biệt không đáng kể: chọn \key{SHAP Top-30}, ít đặc trưng, giải thích được.}
   \note{\say Ở kết quả 1, hai con số 0,9971 và 0,9970 chỉ là một lần chạy. Để
   chắc chắn, chúng tôi lặp lại với sáu cách chia dữ liệu khác nhau, mỗi lần cả
   hai cấu hình dùng cùng một cách chia. F1 trung bình chênh nhau khoảng 0,0001.
-  Chúng tôi dùng hai kiểm định. Kiểm định hoán vị ghép cặp hỏi hai bên có khác
-  nhau không; nó so từng cặp và tính chính xác được với chỉ sáu cặp. Kết quả
-  p bằng 0,031, tức là có khác biệt, nhưng khác biệt chỉ khoảng 0,0001 F1.
-  Kiểm định này không trả lời được câu hai bên có giống nhau không, nên chúng
-  tôi dùng thêm kiểm định tương đương TOST, với biên cộng trừ 0,001 F1 chọn
-  trước khi chạy. p bằng 3,9 nhân 10 mũ trừ 6, nên hai bên tương đương, chênh
-  lệch thực sự nhỏ hơn 0,00023 F1. Trên hình, đoạn xanh dương là chênh
-  lệch thật: lệch khỏi 0 một chút, nhưng nằm gọn trong vùng xanh lá. Vì vậy chúng tôi chọn SHAP Top-30: ít đặc
+  Chúng tôi dùng ba phép thống kê, bảng dưới. Một, khoảng tin cậy hiệu chỉnh
+  Nadeau--Bengio, vì các lần chạy dùng chung dữ liệu nên khoảng tin cậy thông
+  thường hẹp quá; kết quả cộng trừ 0,00012 và 0,00015. Hai, kiểm định hoán vị
+  ghép cặp hỏi hai bên có khác nhau không: p bằng 0,031, có khác nhưng rất nhỏ.
+  Ba, phép này không chứng minh được hai bên giống nhau, nên chúng tôi dùng
+  kiểm định tương đương TOST với biên cộng trừ 0,001 F1 chọn trước: p bằng 3,9
+  nhân 10 mũ trừ 6, tức là tương đương. Trên hình, đoạn xanh dương là chênh
+  lệch thật, từ 0,00005 đến 0,00023: lệch khỏi 0 một chút nhưng nằm gọn trong
+  vùng xanh lá. Vì vậy chúng tôi chọn SHAP Top-30: ít đặc
   trưng hơn và giải thích được.
   \ifasked $p = 0{,}031$ là đúng sàn phân giải $2/2^6$ của kiểm định hoán vị
   hai phía liệt kê đủ $2^6$ tổ hợp dấu, nên cần $N \geq 6$. Cohen's
