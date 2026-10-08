@@ -35,6 +35,13 @@
 % Dạng xếp dọc cho cột hẹp: \qa{số}{câu hỏi}{trả lời}{số liệu}
 \newcommand{\qa}[4]{\par\smallskip\noindent\key{#1.}~\textbf{#2}\par
   \noindent$\rightarrow$~#3~#4\par}
+% Ô kết luận: \card{màu}{số lớn}{nhãn}{giải thích}
+\newcommand{\card}[4]{%
+  \colorbox{#1!8}{\begin{minipage}[t][1.65cm][t]{0.455\textwidth}
+    \raggedright\vspace{0.1em}{\LARGE\bfseries\color{#1}#2}\par\vspace{0.1em}
+    {\small\bfseries #3}\par\vspace{0.05em}
+    {\footnotesize #4}
+  \end{minipage}}}
 \centeredtitles
 
 % Hai phần của ghi chú người trình bày.
@@ -601,43 +608,30 @@ cách đánh giá hơn là chất lượng mô hình.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
-\begin{frame}{Kết luận}
-  \centering\footnotesize
-  \fitwidth{%
-  \begin{tabular}{@{}Q{0.36}Q{0.17}Q{0.44}@{}}
-    \qahead
-    \key{1.} Bỏ bớt đặc trưng được không?
-      & \good{Được, bỏ 60\%.}
-      & Tương đương 77 đặc trưng (TOST), nhanh gấp 3,8 lần \\
-    \key{2.} Điểm tổng cao có đủ tin?
-      & \bad{Không.}
-      & F1 chung 0,998, tính đều từng lớp 0,806 \\
-    \key{3.} Sang mạng khác dùng được không?
-      & \bad{Không.}
-      & F1 0,995 $\to$ 0,03--0,30; 1 lần chạy không đủ tin \\
-    \key{4.} Vậy sang mạng mới làm gì?
-      & \key{Gán nhãn 1\%.}
-      & $\approx$19 nghìn luồng: F1 0,92 và 0,99 \\
-    \bottomrule
-  \end{tabular}
-  }
+\begin{frame}[t]{Kết luận}
+  \centering
+  \card{accGreen}{60\%}{đặc trưng bỏ được}
+    {F1 không đổi (đã kiểm định), nhanh 3,8 lần.}\hfill
+  \card{accRed}{0,998 $\to$ 0,806}{khi tính đều từng loại tấn công}
+    {Điểm tổng cao che khuất các tấn công hiếm.}
+  \par\smallskip
+  \card{accRed}{0,995 $\to$ 0,03--0,30}{khi sang mạng khác}
+    {Mô hình bỏ sót gần hết tấn công.}\hfill
+  \card{accGreen}{1\%}{nhãn của mạng mới là đủ}
+    {$\approx$19 nghìn luồng: F1 lên 0,92 và 0,99.}
   \takeaway{Bài học: \key{đánh giá đúng cách} quan trọng không kém chọn đúng
   phương pháp.}
-  \par\smallskip\raggedright\scriptsize
-  \textbf{Hướng tiếp theo:} đo riêng bước bỏ trùng lặp; toàn bộ CSE-CIC-IDS2018
-  và bộ mới hơn; thử 30 đặc trưng SHAP trên bộ khác.
-  \par\vfill
-  \centering\small\key{Xin cảm ơn. Kính mời câu hỏi}
-  \note{\say Tóm lại, bốn câu hỏi. Một, bỏ bớt đặc trưng được không? Được: bỏ
-  60\%, SHAP Top-30 tương đương 77 đặc trưng về mặt thống kê, và huấn luyện
-  nhanh gấp 3,8 lần. Hai, điểm tổng cao có đủ tin không? Không: điểm chung
-  0,998, nhưng tính đều từng lớp chỉ 0,806.
-  Ba, sang mạng khác mô hình còn dùng được không? Không: F1 rơi xuống 0,03 đến
-  0,30, và một lần chạy không đủ tin. Bốn, vậy sang mạng mới làm gì? Gán nhãn
-  1\% dữ liệu của mạng đó rồi huấn luyện lại, F1 lên 0,92 và 0,99. Bài học
-  chung: đánh giá đúng cách quan trọng không kém chọn đúng phương pháp. Xin cảm
-  ơn quý thầy cô, kính mời câu hỏi.
-  \ifasked Các bộ mới hơn: RoEduNet, CIC-IoT. Tăng số lần lặp bằng kiểm định
+  \par\medskip\centering\key{Xin cảm ơn. Kính mời câu hỏi}
+  \note{\say Tóm lại có bốn con số cần nhớ. Một, 60\%: bỏ được 60\% đặc trưng
+  mà F1 vẫn tương đương, huấn luyện nhanh gấp 3,8 lần. Hai, từ 0,998 xuống
+  0,806: điểm tổng cao che khuất các tấn công hiếm. Ba, từ 0,995 xuống còn 0,03 đến 0,30:
+  sang mạng khác, mô hình bỏ sót gần hết tấn công. Bốn, 1\%: gán nhãn 1\% dữ
+  liệu của mạng mới là đủ để huấn luyện lại. Bài học chung: đánh giá đúng cách
+  quan trọng không kém chọn đúng phương pháp. Xin cảm ơn quý thầy cô, kính mời
+  câu hỏi.
+  \ifasked Hướng tiếp theo: đo riêng tác động của bước bỏ trùng lặp; toàn bộ
+  CSE-CIC-IDS2018 và các bộ mới hơn (RoEduNet, CIC-IoT); thử bộ 30 đặc trưng
+  SHAP trên bộ dữ liệu khác. Tăng số lần lặp bằng kiểm định
   chéo lồng cũng là hướng củng cố.}
 \end{frame}
 
