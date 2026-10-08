@@ -26,6 +26,15 @@
 \documentclass[aspectratio=169, 11pt]{beamer}
 \input{../common/preamble.tex}
 \usepackage{array}
+
+% Slide kết quả viết dạng hỏi--đáp: người trình bày đọc câu hỏi và câu trả
+% lời, cột số liệu để chỉ vào khi cần.
+\newcolumntype{Q}[1]{>{\raggedright\arraybackslash}p{#1\textwidth}}
+\newcommand{\qahead}{\toprule
+  \textbf{Câu hỏi} & \textbf{Trả lời} & \textbf{Số liệu} \\ \midrule}
+% Dạng xếp dọc cho cột hẹp: \qa{số}{câu hỏi}{trả lời}{số liệu}
+\newcommand{\qa}[4]{\par\smallskip\noindent\key{#1.}~\textbf{#2}\par
+  \noindent$\rightarrow$~#3~#4\par}
 \centeredtitles
 
 % Hai phần của ghi chú người trình bày.
@@ -271,12 +280,12 @@ cách đánh giá hơn là chất lượng mô hình.}
 % ---------------------------------------------------------------- 0:55
 \begin{frame}{Kết quả 1: bỏ 60\% đặc trưng, F1 gần như không đổi}
   \begin{columns}[T]
-    \begin{column}{0.60\textwidth}
-      \centering
+    \begin{column}{0.52\textwidth}
+      \centering\footnotesize
       \fitwidth{%
       \begin{tabular}{lccc}
         \toprule
-        Phương pháp & Số đặc trưng & F1 & Huấn luyện (phút) \\
+        Phương pháp & Đặc trưng & F1 & Phút \\
         \midrule
         Toàn bộ              & 77          & 0,9971       & 77 \\
         \textbf{SHAP Top-30} & \num{30}    & \num{0,9970} & \num{20} \\
@@ -285,26 +294,27 @@ cách đánh giá hơn là chất lượng mô hình.}
         \bottomrule
       \end{tabular}
       }
-      \\[0.3em]{\scriptsize XGBoost, một lần chạy trên cách chia huấn luyện/kiểm tra gốc.}
+      \\[0.3em]{\scriptsize XGBoost, một lần chạy. Phút = thời gian huấn luyện.}
     \end{column}
-    \begin{column}{0.37\textwidth}
-      \begin{itemize}
-        \setlength{\itemsep}{0.4em}
-        \item SHAP giữ \good{30/77 đặc trưng}, F1 gần như không đổi, huấn
-              luyện \good{nhanh gấp 3,8 lần}.
-        \item Cùng 30 đặc trưng, \key{SHAP chọn tốt hơn RF}.
-        \item PCA cần 40 thành phần, F1 thấp hơn và \bad{không giải thích được}.
-      \end{itemize}
+    \begin{column}{0.45\textwidth}
+      \footnotesize
+      \qa{1}{Bỏ 47 đặc trưng, F1 có giảm?}{Gần như không:}
+        {0,9971 $\to$ 0,9970.}
+      \qa{2}{Huấn luyện có nhanh hơn?}{\good{Nhanh gấp 3,8 lần}:}
+        {77 phút $\to$ 20 phút.}
+      \qa{3}{Cách chọn đặc trưng nào tốt nhất?}{\key{SHAP}:}
+        {cùng 30 đặc trưng, SHAP 0,9970, RF 0,9922. PCA 0,9939 và
+        \bad{không giải thích được}.}
     \end{column}
   \end{columns}
   \takeaway{Chọn \key{SHAP Top-30}: ít đặc trưng, huấn luyện nhanh, giải thích
   được.}
-  \note{\say Kết quả đầu tiên. Bảng này là XGBoost với bốn phương pháp giảm
-  đặc trưng. Dùng toàn bộ 77 đặc trưng thì F1 là 0,9971. SHAP chỉ giữ 30 đặc trưng mà F1
-  vẫn 0,9970, và thời gian huấn luyện giảm từ 77 phút xuống 20 phút, tức nhanh
-  gấp 3,8 lần. Cùng chọn 30 đặc trưng thì SHAP cho F1 cao hơn RF, 0,9970 so với
-  0,9922. PCA thì cần 40 thành phần, điểm thấp hơn, và không giải thích được.
-  Vậy SHAP Top-30 là cấu hình chúng tôi chọn.
+  \note{\say Kết quả đầu tiên, trên XGBoost. Ba câu hỏi. Một, bỏ 47 trên 77
+  đặc trưng thì F1 có giảm không? Gần như không: 0,9971 xuống 0,9970. Hai,
+  huấn luyện có nhanh hơn không? Có, từ 77 phút còn 20 phút, nhanh gấp 3,8 lần.
+  Ba, chọn đặc trưng cách nào tốt nhất? SHAP: cùng 30 đặc trưng, SHAP được
+  0,9970, RF chỉ 0,9922. PCA cần 40 thành phần, điểm thấp hơn và không giải
+  thích được. Vậy chúng tôi chọn SHAP Top-30.
   \ifasked SHAP hơn RF ở cả bốn thuật toán cây, xem slide dự phòng. Thời gian
   huấn luyện chính xác là 4615,5 s và 1226,1 s, giảm khoảng 73\%. PCA dùng
   $k{=}40$ vì nó trích xuất chứ không chọn lọc: mỗi thành phần chỉ mang một
@@ -313,40 +323,34 @@ cách đánh giá hơn là chất lượng mô hình.}
 
 % ---------------------------------------------------------------- 0:50
 \begin{frame}{Kết quả 2: cổng đích làm tăng điểm, mức tăng tùy mô hình}
-  \begin{columns}[T]
-    \begin{column}{0.60\textwidth}
-      \centering
-      \fitwidth{%
-      \begin{tabular}{lc}
-        \toprule
-        Nhóm mô hình & F1 tăng khi giữ cổng \\
-        \midrule
-        Cây (4 thuật toán)        & dưới 0,002 \\
-        MLP, Naive Bayes          & 0,005 và 0,011 \\
-        Tuyến tính (LR, SVM)      & \bad{khoảng 0,04} \\
-        \bottomrule
-      \end{tabular}
-      }
-      \\[0.3em]{\scriptsize Mỗi thuật toán huấn luyện hai lần trên cùng một cách
-      chia dữ liệu: một lần bỏ cổng đích, một lần giữ.}
-    \end{column}
-    \begin{column}{0.37\textwidth}
-      \begin{itemize}
-        \setlength{\itemsep}{0.4em}
-        \item \key{Mô hình cây} hầu như không cần cổng đích.
-        \item \bad{Mô hình tuyến tính} dựa vào cổng đích nhiều: F1 tăng
-              \bad{gấp hơn 20 lần} so với mô hình cây.
-      \end{itemize}
-    \end{column}
-  \end{columns}
-  \takeaway{Mức rò rỉ đo trên \emph{một} mô hình không suy ra được cho mô hình
-  khác. Mọi kết quả sau đây đều đã bỏ cổng đích.}
-  \note{\say Kết quả thứ hai: cổng đích làm tăng điểm đến mức nào. Mỗi thuật
-  toán được huấn luyện hai lần, một lần bỏ cổng và một lần giữ cổng. Với bốn mô
-  hình cây, giữ cổng chỉ tăng F1 chưa tới 0,002. Với hai mô hình tuyến tính thì
-  tăng khoảng 0,04, tức gấp hơn 20 lần. Bài học là đo rò rỉ trên một mô hình
-  thì không suy ra được cho mô hình khác. Từ đây trở đi, mọi kết quả đều đã bỏ
-  cổng.
+  \centering\small
+  Mỗi thuật toán huấn luyện hai lần trên cùng một cách chia dữ liệu: một lần
+  bỏ cổng đích, một lần giữ. So F1 hai lần đó.
+  \par\medskip
+  \fitwidth{%
+  \begin{tabular}{@{}Q{0.34}Q{0.2}Q{0.43}@{}}
+    \qahead
+    \key{1.} Mô hình cây có dựa vào cổng đích?
+      & Hầu như không.
+      & F1 tăng dưới 0,002 {\color{gray}(DT, RF, GBT, XGBoost)} \\
+    \key{2.} Mô hình tuyến tính thì sao?
+      & \bad{Dựa nhiều.}
+      & F1 tăng khoảng 0,04, \bad{gấp hơn 20 lần} mô hình cây
+        {\color{gray}(LR, SVM)}. MLP, Naive Bayes ở giữa: 0,005 và 0,011 \\
+    \key{3.} Đo trên một mô hình có đủ?
+      & \bad{Không.}
+      & Bản nộp đầu chỉ đo Random Forest: tăng 0,001, tưởng như không đáng kể \\
+    \bottomrule
+  \end{tabular}
+  }
+  \takeaway{Rò rỉ phải đo trên \emph{từng} mô hình. Mọi kết quả sau đây đều đã
+  bỏ cổng đích.}
+  \note{\say Kết quả thứ hai: cổng đích làm tăng điểm bao nhiêu. Mỗi thuật toán
+  được huấn luyện hai lần, bỏ cổng và giữ cổng. Một, mô hình cây có dựa vào cổng
+  không? Hầu như không, F1 tăng chưa tới 0,002. Hai, mô hình tuyến tính thì sao?
+  Dựa nhiều, tăng khoảng 0,04, gấp hơn 20 lần. Ba, đo trên một mô hình có đủ
+  không? Không: nếu chỉ đo Random Forest như bản nộp đầu, ta thấy tăng 0,001 và
+  tưởng rò rỉ không đáng kể. Từ đây trở đi, mọi kết quả đều đã bỏ cổng.
   \ifasked Số từng thuật toán ở slide dự phòng. Mô hình cây dựng lại được cùng
   ranh giới từ thống kê hành vi của luồng. Mô hình tuyến tính không làm được,
   nên dựa vào cổng như một định danh dịch vụ. Bản nộp ban đầu chỉ đo trên Random
@@ -437,7 +441,7 @@ cách đánh giá hơn là chất lượng mô hình.}
 % ---------------------------------------------------------------- 0:55
 \begin{frame}{Kết quả 4: điểm tổng 0,998 che khuất các loại tấn công hiếm}
   \begin{columns}[T]
-    \begin{column}{0.54\textwidth}
+    \begin{column}{0.50\textwidth}
       \centering\small
       \fitwidth{%
       \begin{tabular}{lcc}
@@ -455,26 +459,24 @@ cách đánh giá hơn là chất lượng mô hình.}
       }
       \\[0.3em]{\scriptsize Random Forest, 77 đặc trưng. Tỉ lệ phát hiện = recall.}
     \end{column}
-    \begin{column}{0.43\textwidth}
-      \begin{itemize}
-        \setlength{\itemsep}{0.4em}
-        \item F1 chung (weighted): \good{0,998}.
-        \item F1 trung bình lớp (macro): \bad{0,806}.
-        \item \textbf{Nhầm loại, vẫn phát hiện}: \good{76\% XSS} vẫn bị báo
-              là tấn công.
-        \item \textbf{Bỏ sót}: cả 6 SQL Injection và \bad{54\% Bot} bị xếp
-              vào bình thường.
-      \end{itemize}
+    \begin{column}{0.47\textwidth}
+      \footnotesize
+      \qa{1}{Điểm tổng có phản ánh đúng không?}{\bad{Không.}}
+        {F1 chung 0,998, nhưng tính đều từng lớp chỉ còn 0,806.}
+      \qa{2}{Lớp nào bị bỏ sót?}{\bad{Lớp hiếm.}}
+        {Cả 6 SQL Injection và 54\% Bot bị xếp vào bình thường.}
+      \qa{3}{XSS chỉ 2,70\%, có phải bỏ sót không?}{Phần lớn không:}
+        {76\% XSS vẫn bị báo là tấn công, chỉ nhầm sang loại khác.}
     \end{column}
   \end{columns}
   \takeaway{Lớp càng ít mẫu càng dễ bị bỏ sót, và điểm tổng không phản ánh
   điều đó.}
-  \note{\say Đến đây mới chỉ hỏi có tấn công hay không. Khi hỏi là loại tấn
-  công nào thì kết quả khác hẳn. Điểm tổng vẫn là 0,998, nhưng nếu tính trung
-  bình đều cho từng lớp thì chỉ còn 0,806. Lý do là các lớp hiếm. Bot chỉ phát hiện được 46\%. XSS gần 3\%. SQL Injection có 6 mẫu, không phát hiện được mẫu nào. Có
-  hai kiểu sai cần phân biệt. Kiểu ít nghiêm trọng là nhầm loại nhưng vẫn phát hiện: 76\% XSS vẫn
-  bị báo là tấn công. Kiểu nghiêm trọng là bỏ sót: cả 6 SQL Injection và 54\%
-  Bot bị phân loại là bình thường.
+  \note{\say Đến đây mới chỉ hỏi có tấn công hay không. Giờ hỏi là loại tấn
+  công nào. Một, điểm tổng có phản ánh đúng không? Không: điểm chung là 0,998,
+  nhưng tính đều cho từng lớp thì chỉ còn 0,806. Hai, lớp nào bị bỏ sót? Các
+  lớp hiếm: cả 6 mẫu SQL Injection và 54\% Bot bị xếp là bình thường. Ba, XSS
+  chỉ phát hiện đúng 2,7\%, có phải bỏ sót không? Phần lớn không: 76\% XSS vẫn
+  bị báo là tấn công, chỉ nhầm sang loại khác. Bỏ sót mới là lỗi nghiêm trọng.
   \ifasked Tỉ lệ phát hiện là recall. Mô hình là Random Forest dùng đủ 77 đặc trưng. So sánh các cách
   giảm đặc trưng ở chế độ đa lớp là hướng tiếp theo. 0,998 là weighted-F1, 0,806 là macro-F1. Ma trận nhầm lẫn ở slide dự phòng. XSS: 81/111 mẫu bị dự đoán là Web
   Brute Force. Bot 158/290 và 27\% Brute Force bị dự đoán là Benign. Nguyên nhân
@@ -486,7 +488,7 @@ cách đánh giá hơn là chất lượng mô hình.}
 % ---------------------------------------------------------------- 1:05
 \begin{frame}{Kết quả 5: đổi sang bộ dữ liệu khác, điểm số giảm mạnh}
   \begin{columns}[T]
-    \begin{column}{0.44\textwidth}
+    \begin{column}{0.47\textwidth}
       \centering\footnotesize
       \fitwidth{%
       \begin{tabular}{lcc}
@@ -501,14 +503,13 @@ cách đánh giá hơn là chất lượng mô hình.}
         \bottomrule
       \end{tabular}
       }
-      \\[0.2em]
-      \scriptsize 2017 = CICIDS2017, 2018 = CSE-CIC-IDS2018.
-      \vspace{0.5em}
-
-      \raggedright\small
-      Mô hình \bad{bỏ sót gần hết} tấn công của mạng mới: chỉ phát hiện được khoảng 7\% và 3\% số tấn công.
+      \\[0.1em]{\scriptsize 2017 = CICIDS2017, 2018 = CSE-CIC-IDS2018.}
+      \raggedright\footnotesize
+      \qa{1}{Sang mạng khác còn tốt không?}{\bad{Không.}}
+        {F1 0,995 $\to$ 0,03--0,30; 0,925 $\to$ 0,05.}
+      \qa{2}{Sai kiểu gì?}{\bad{Bỏ sót}:}{chỉ bắt được 7\% và 3\% tấn công.}
     \end{column}
-    \begin{column}{0.53\textwidth}
+    \begin{column}{0.50\textwidth}
       \centering
       \textbf{\small F1 chiều 2017 $\to$ 2018 qua 18 lần chạy}\\[0.3em]
       \begin{tikzpicture}[x=19cm, y=1cm, font=\scriptsize]
@@ -529,23 +530,22 @@ cách đánh giá hơn là chất lượng mô hình.}
             \fill[accBlue] (\x,{0.18*\k-0.07}) circle (0.075cm);
         \node[accRed, font=\scriptsize\bfseries] at (0.05,1.55) {11 lần};
         \node[accBlue, font=\scriptsize\bfseries] at (0.245,0.6) {7 lần};
-      \end{tikzpicture}\\[0.3em]
-      \raggedright\small
-      Cùng mã, cùng dữ liệu mà F1 \key{rơi vào hai cụm tách biệt}. Một lần
-      chạy \bad{không đủ tin cậy} $\rightarrow$ báo cả 18 lần và so sánh
-      bằng \key{AUC-PR}.
+      \end{tikzpicture}
+      \par\raggedright\footnotesize
+      \qa{3}{Một lần chạy có đủ tin không?}{\bad{Không.}}
+        {Cùng mã, cùng dữ liệu, F1 rơi vào hai cụm. Báo cả 18 lần, so
+        thêm bằng \key{AUC-PR}.}
     \end{column}
   \end{columns}
   \takeaway{Điểm cao trên một bộ dữ liệu \bad{không đảm bảo} hoạt động tốt trên mạng
   khác.}
-  \note{\say Đây là kết quả quan trọng nhất. Huấn luyện và kiểm tra trên cùng
-  một bộ thì F1 là 0,995. Nhưng huấn luyện trên bộ 2017 rồi kiểm tra trên bộ
-  2018 thì F1 chỉ còn từ 0,03 đến 0,30. Chiều ngược lại còn 0,05. Mô hình bỏ
-  sót gần hết tấn công của mạng mới. Hình bên phải cho thấy thêm một điều.
-  Chúng tôi chạy 18 lần, cùng mã, cùng dữ liệu, và F1 rơi vào hai cụm tách
-  hẳn nhau: 11 lần thấp, 7 lần cao, không lần nào ở giữa. Vì vậy báo một lần
-  chạy là không đủ tin cậy. Chúng tôi báo cả 18 lần, và so sánh thêm bằng
-  AUC-PR, là điểm xếp hạng không phụ thuộc ngưỡng, nên ổn định hơn F1.
+  \note{\say Đây là kết quả quan trọng nhất. Một, sang mạng khác mô hình còn
+  tốt không? Không: cùng bộ thì F1 là 0,995, sang bộ 2018 chỉ còn 0,03 đến 0,30.
+  Chiều ngược lại, 0,925 còn 0,05. Hai, mô hình sai kiểu gì? Bỏ sót: chỉ phát
+  hiện được 7\% và 3\% số tấn công. Ba, một lần chạy có đủ tin không? Không.
+  Hình bên phải: 18 lần chạy cùng mã, cùng dữ liệu, F1 rơi vào hai cụm, 11 lần
+  thấp, 7 lần cao, không lần nào ở giữa. Nên chúng tôi báo cả 18 lần và so
+  sánh thêm bằng AUC-PR, là điểm không phụ thuộc ngưỡng nên ổn định hơn F1.
   \ifasked AUC-PR không phụ thuộc ngưỡng, giảm từ 0,9997 xuống 0,4849 (trung bình
   18 lần) và từ 0,9679 xuống 0,1926. Recall 0,073 / 0,030, precision 0,772 /
   0,272: mô hình bỏ sót chứ không báo động giả nhiều. Hai cụm có AUC-PR như nhau
@@ -558,42 +558,40 @@ cách đánh giá hơn là chất lượng mô hình.}
 % ---------------------------------------------------------------- 0:55
 \begin{frame}{Kết quả 6: gán nhãn 1\% dữ liệu mạng mới rồi huấn luyện lại là đủ}
   \begin{columns}[T]
-    \begin{column}{0.58\textwidth}
+    \begin{column}{0.52\textwidth}
       \centering\footnotesize
       \fitwidth{%
       \begin{tabular}{lcc}
         \toprule
-        Phương pháp (F1) & 2017$\to$2018 & 2018$\to$2017 \\
+        Cách làm (F1) & 2017$\to$2018 & 2018$\to$2017 \\
         \midrule
-        Dùng trực tiếp mô hình cũ            & 0,03--0,30 & 0,05 \\
-        Chỉnh phân phối, không nhãn {\scriptsize(CORAL)} & \bad{0} & \bad{0} \\
+        Dùng mô hình cũ            & 0,03--0,30 & 0,05 \\
+        Chỉnh phân phối {\scriptsize(CORAL)} & \bad{0} & \bad{0} \\
         \midrule
-        Huấn luyện lại, \textbf{1\%} nhãn mạng mới & \good{0,92} & \good{0,99} \\
-        1\% đó $+$ toàn bộ dữ liệu cũ        & 0,80 & 0,96 \\
+        Huấn luyện lại, \textbf{1\%} nhãn & \good{0,92} & \good{0,99} \\
+        1\% nhãn $+$ dữ liệu cũ        & 0,80 & 0,96 \\
         \bottomrule
       \end{tabular}
       }
     \end{column}
-    \begin{column}{0.39\textwidth}
-      \begin{itemize}
-        \setlength{\itemsep}{0.4em}
-        \item Chỉ chỉnh phân phối, không nhãn: \bad{không hiệu quả}, vì
-              khác biệt nằm ở chính hành vi tấn công.
-        \item Chỉ cần khoảng \key{19 nghìn luồng có nhãn}.
-        \item Gộp thêm dữ liệu cũ \bad{làm F1 giảm}.
-      \end{itemize}
+    \begin{column}{0.45\textwidth}
+      \footnotesize
+      \qa{1}{Không cần nhãn, chỉ chỉnh phân phối?}{\bad{Không được}:}
+        {F1 về 0 cả hai chiều, vì khác biệt nằm ở hành vi tấn công.}
+      \qa{2}{Gán nhãn thì cần bao nhiêu?}{\good{Rất ít, 1\%}:}
+        {khoảng 19 nghìn luồng, F1 lên 0,92 và 0,99.}
+      \qa{3}{Gộp thêm dữ liệu cũ có tốt hơn?}{\bad{Không, kém hơn}:}
+        {F1 còn 0,80 và 0,96.}
     \end{column}
   \end{columns}
-  \takeaway{Sang mạng mới cần \key{thích ứng miền} (domain adaptation). Cách
-  ít tốn kém nhất ở đây: gán nhãn một phần nhỏ lưu lượng của chính mạng đó.}
-  \note{\say Vậy làm gì để mô hình hoạt động được trên mạng mới? Chúng tôi thử hai
-  hướng. Hướng thứ nhất không cần nhãn: chỉ chỉnh phân phối dữ liệu của mạng
-  mới cho giống dữ liệu cũ, gọi là căn chỉnh, ở đây dùng CORAL. Kết quả là F1
-  về 0 ở cả hai chiều. Hướng thứ hai: gán nhãn
-  1\% dữ liệu của mạng mới, khoảng 19 nghìn luồng, rồi huấn luyện lại. F1 lên 0,92 và
-  0,99. Một điểm đáng chú ý: gộp thêm toàn bộ dữ liệu cũ vào thì kết quả lại giảm.
-  Tức là muốn chuyển mô hình sang mạng mới, cách ít tốn kém nhất ở đây là gán nhãn một
-  ít lưu lượng của chính mạng đó.
+  \takeaway{Sang mạng mới, cách rẻ nhất: \key{gán nhãn 1\%} lưu lượng của
+  chính mạng đó rồi huấn luyện lại.}
+  \note{\say Vậy làm sao cho mô hình chạy được trên mạng mới? Một, chỉ chỉnh
+  phân phối dữ liệu cho giống dữ liệu cũ, không cần nhãn, có được không? Không:
+  F1 về 0 ở cả hai chiều. Hai, nếu gán nhãn thì cần bao nhiêu? Rất ít: 1\%,
+  khoảng 19 nghìn luồng, huấn luyện lại thì F1 lên 0,92 và 0,99. Ba, gộp thêm
+  toàn bộ dữ liệu cũ có tốt hơn không? Không, lại kém hơn: 0,80 và 0,96. Vậy
+  cách rẻ nhất là gán nhãn một ít lưu lượng của chính mạng mới.
   \ifasked Refit scaler và CORAL không cần nhãn, không huấn luyện lại, và cho F1
   bằng 0 ở cả hai chiều, trong cả 3 lần chạy: dịch chuyển nằm ở phân phối có
   điều kiện, không chỉ ở trung bình và hiệp phương sai. CORAL vẫn nâng AUC-PR
