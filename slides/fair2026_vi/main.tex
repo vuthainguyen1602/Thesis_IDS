@@ -389,50 +389,48 @@ cách đánh giá hơn là chất lượng mô hình.}
         \draw[very thick, accBlue] (0.46,0.55) -- (2.30,0.55);
         \draw[very thick, accBlue] (0.46,0.45) -- (0.46,0.65) (2.30,0.45) -- (2.30,0.65);
         \fill[accBlue] (1.38,0.55) circle (2.2pt);
-        \draw[-{Latex[length=1.6mm]}, accBlue] (-3.2,0.55) node[left, align=right]
-          {chênh lệch thật\\0,00005--0,00023} -- (0.25,0.55);
+        \draw[-{Latex[length=1.6mm]}, accBlue] (-1.2,0.55) node[left, align=right, inner sep=1pt]
+          {chênh lệch thật\\0,00005--0,00023} -- (0.3,0.55);
       \end{tikzpicture}
     \end{column}
   \end{columns}
   \par\smallskip
   {\centering\scriptsize
   \fitwidth{%
-  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.23\textwidth}>{\raggedright\arraybackslash}p{0.33\textwidth}>{\raggedright\arraybackslash}p{0.41\textwidth}@{}}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.29\textwidth}>{\raggedright\arraybackslash}p{0.17\textwidth}>{\raggedright\arraybackslash}p{0.51\textwidth}@{}}
     \toprule
-    \textbf{Phép thống kê} & \textbf{Dùng để làm gì, vì sao chọn} & \textbf{Kết quả} \\
+    \textbf{Câu hỏi} & \textbf{Trả lời} & \textbf{Số liệu} {\color{gray}(phép thống kê)} \\
     \midrule
-    \key{1.} CI95 Nadeau--Bengio
-      & Sai số F1. Các lần chạy chung dữ liệu, CI thường hẹp quá.
-      & $\pm$0,00012 và $\pm$0,00015 \\
-    \key{2.} Hoán vị ghép cặp
-      & Có \emph{khác} không? So theo cặp, chính xác với 6 cặp.
-      & $p = 0{,}031$ (mức nhỏ nhất với 6 cặp): có khác, rất nhỏ.
-        $d \approx 1{,}94$ lớn do 6 lần chạy rất sát. \\
-    \key{3.} TOST (tương đương)
-      & Có \emph{tương đương} không? Phép 2 không trả lời được.
-      & \good{$p = 3{,}9\times10^{-6}$}: tương đương \\
+    \key{1.} Số đo có chắc không?
+      & Chắc, sai số nhỏ.
+      & $\pm$0,00012 và $\pm$0,00015 {\color{gray}(CI95 Nadeau--Bengio: tính
+        cả việc 6 lần chạy dùng chung dữ liệu)} \\
+    \key{2.} Hai bên có khác nhau không?
+      & Có, nhưng rất nhỏ.
+      & $p = 0{,}031$, mức nhỏ nhất với 6 cặp; $d \approx 1{,}94$ do 6 lần
+        chạy rất sát {\color{gray}(hoán vị ghép cặp)} \\
+    \key{3.} Coi như nhau được không?
+      & \good{Được.}
+      & $p = 3{,}9\times10^{-6}$ {\color{gray}(TOST: phép 2 không trả lời được
+        câu này)} \\
     \bottomrule
   \end{tabular}
   }\par}
-  \takeaway{Khác biệt không đáng kể: chọn \key{SHAP Top-30}, ít đặc trưng, giải thích được.}
-  \note{\say Ở kết quả 1, hai con số 0,9971 và 0,9970 chỉ là một lần chạy. Để
-  chắc chắn, chúng tôi lặp lại với sáu cách chia dữ liệu khác nhau, mỗi lần cả
-  hai cấu hình dùng cùng một cách chia. F1 trung bình chênh nhau khoảng 0,0001.
-  Chúng tôi dùng ba phép thống kê, bảng dưới. Một, khoảng tin cậy hiệu chỉnh
-  Nadeau--Bengio, vì các lần chạy dùng chung dữ liệu nên khoảng tin cậy thông
-  thường hẹp quá; kết quả cộng trừ 0,00012 và 0,00015. Hai, kiểm định hoán vị
-  ghép cặp hỏi hai bên có khác nhau không: p bằng 0,031, có khác nhưng rất nhỏ.
-  Ba, phép này không chứng minh được hai bên giống nhau, nên chúng tôi dùng
-  kiểm định tương đương TOST với biên cộng trừ 0,001 F1 chọn trước: p bằng 3,9
-  nhân 10 mũ trừ 6, tức là tương đương. Trên hình, đoạn xanh dương là chênh
-  lệch thật, từ 0,00005 đến 0,00023: lệch khỏi 0 một chút nhưng nằm gọn trong
-  vùng xanh lá. Vì vậy chúng tôi chọn SHAP Top-30: ít đặc
-  trưng hơn và giải thích được.
-  \ifasked $p = 0{,}031$ là đúng sàn phân giải $2/2^6$ của kiểm định hoán vị
-  hai phía liệt kê đủ $2^6$ tổ hợp dấu, nên cần $N \geq 6$. Cohen's
-  $d \approx 1{,}94$ lớn vì phương sai giữa các lần chạy rất nhỏ, không phải
-  vì chênh lệch lớn. TOST dùng sai số hiệu chỉnh Nadeau--Bengio vì các lần
-  lấy mẫu chồng nhau; biên nhỏ nhất chứng minh được ở $\alpha = 0{,}05$ là
+  \takeaway{30 đặc trưng tốt ngang 77, nên chọn \key{SHAP Top-30}: gọn hơn, giải thích được.}
+  \note{\say Kết quả 1 chỉ là một lần chạy, nên chúng tôi chạy lại 6 lần. F1
+  hai bên chênh khoảng 0,0001. Chúng tôi trả lời ba câu hỏi. Một, số đo có
+  chắc không? Chắc, sai số chỉ khoảng cộng trừ 0,0001. Hai, hai bên có khác
+  nhau không? Có, nhưng rất nhỏ. Ba, có coi như nhau được không? Được. Nhìn
+  hình: vùng xanh lá là mức chênh cộng trừ 0,001 mà chúng tôi chấp nhận, đặt
+  trước khi chạy. Đoạn xanh dương là chênh lệch thật, nằm gọn trong đó. Vì vậy
+  chọn SHAP Top-30: ít đặc trưng hơn mà tốt ngang, lại giải thích được.
+  \ifasked Phép 1: các lần chạy dùng chung dữ liệu nên khoảng tin cậy thông
+  thường hẹp quá, Nadeau--Bengio hiệu chỉnh việc đó. Phép 2: kiểm định hoán vị
+  hai phía liệt kê đủ $2^6$ tổ hợp dấu, nên $p$ nhỏ nhất là $2/2^6 = 0{,}031$,
+  cần $N \geq 6$. Cohen's $d \approx 1{,}94$ lớn vì phương sai giữa các lần
+  chạy rất nhỏ, không phải vì chênh lệch lớn. Phép 3: $p$ của phép 2 không
+  chứng minh được hai bên giống nhau, nên dùng TOST với biên $\pm$0,001 F1 trên
+  sai số Nadeau--Bengio; biên nhỏ nhất chứng minh được ở $\alpha = 0{,}05$ là
   $\pm2{,}3\times10^{-4}$. Xem slide dự phòng.}
 \end{frame}
 
