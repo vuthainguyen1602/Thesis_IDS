@@ -602,39 +602,41 @@ cách đánh giá hơn là chất lượng mô hình.}
 
 % ---------------------------------------------------------------- 0:40
 \begin{frame}{Kết luận}
-  \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \textbf{Kết quả chính}
-      \begin{itemize}\small
-        \setlength{\itemsep}{0.3em}
-        \item Bỏ \good{60\% đặc trưng} (SHAP Top-30) mà F1 không đổi, \emph{có kiểm định thống kê}.
-        \item Điểm F1 tổng cao \bad{che khuất tấn công hiếm}.
-        \item Đổi bộ dữ liệu thì \bad{điểm giảm mạnh}, và F1 của một lần chạy không đủ tin cậy.
-        \item Mạng mới: \key{gán nhãn một phần nhỏ dữ liệu} là đủ; căn
-              chỉnh không nhãn thì không.
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.44\textwidth}
-      \textbf{Bài học}
-      \begin{itemize}\small
-        \item \key{Đánh giá đúng cách} quan trọng không kém chọn đúng phương pháp.
-      \end{itemize}
-      \textbf{Hướng phát triển}
-      \begin{itemize}\small
-        \item Đo riêng tác động của bước bỏ trùng lặp.
-        \item Toàn bộ CSE-CIC-IDS2018 và các bộ mới hơn.
-        \item Bộ 30 đặc trưng SHAP có dùng được cho bộ dữ liệu khác?
-      \end{itemize}
-    \end{column}
-  \end{columns}
-  \vfill
-  \centering \key{Xin cảm ơn. Kính mời câu hỏi}
-  \note{\say Tóm lại có bốn điều. Một, bỏ được 60\% đặc trưng mà F1 không đổi,
-  và điều này đã được kiểm định. Hai, điểm tổng cao che khuất các loại tấn công
-  hiếm. Ba, đổi bộ dữ liệu thì điểm giảm mạnh, và F1 của một lần chạy không đủ tin cậy.
-  Bốn, với mạng mới, gán nhãn một phần nhỏ dữ liệu là đủ, còn căn chỉnh không
-  nhãn thì không. Bài học chung: đánh giá đúng cách quan trọng không kém chọn đúng phương pháp.
-  Xin cảm ơn quý thầy cô, kính mời câu hỏi.
+  \centering\footnotesize
+  \fitwidth{%
+  \begin{tabular}{@{}Q{0.36}Q{0.17}Q{0.44}@{}}
+    \qahead
+    \key{1.} Bỏ bớt đặc trưng được không?
+      & \good{Được, bỏ 60\%.}
+      & Tương đương 77 đặc trưng (TOST), nhanh gấp 3,8 lần \\
+    \key{2.} Điểm tổng cao có đủ tin?
+      & \bad{Không.}
+      & F1 chung 0,998, tính đều từng lớp 0,806 \\
+    \key{3.} Sang mạng khác dùng được không?
+      & \bad{Không.}
+      & F1 0,995 $\to$ 0,03--0,30; 1 lần chạy không đủ tin \\
+    \key{4.} Vậy sang mạng mới làm gì?
+      & \key{Gán nhãn 1\%.}
+      & $\approx$19 nghìn luồng: F1 0,92 và 0,99 \\
+    \bottomrule
+  \end{tabular}
+  }
+  \takeaway{Bài học: \key{đánh giá đúng cách} quan trọng không kém chọn đúng
+  phương pháp.}
+  \par\smallskip\raggedright\scriptsize
+  \textbf{Hướng tiếp theo:} đo riêng bước bỏ trùng lặp; toàn bộ CSE-CIC-IDS2018
+  và bộ mới hơn; thử 30 đặc trưng SHAP trên bộ khác.
+  \par\vfill
+  \centering\small\key{Xin cảm ơn. Kính mời câu hỏi}
+  \note{\say Tóm lại, bốn câu hỏi. Một, bỏ bớt đặc trưng được không? Được: bỏ
+  60\%, SHAP Top-30 tương đương 77 đặc trưng về mặt thống kê, và huấn luyện
+  nhanh gấp 3,8 lần. Hai, điểm tổng cao có đủ tin không? Không: điểm chung
+  0,998, nhưng tính đều từng lớp chỉ 0,806.
+  Ba, sang mạng khác mô hình còn dùng được không? Không: F1 rơi xuống 0,03 đến
+  0,30, và một lần chạy không đủ tin. Bốn, vậy sang mạng mới làm gì? Gán nhãn
+  1\% dữ liệu của mạng đó rồi huấn luyện lại, F1 lên 0,92 và 0,99. Bài học
+  chung: đánh giá đúng cách quan trọng không kém chọn đúng phương pháp. Xin cảm
+  ơn quý thầy cô, kính mời câu hỏi.
   \ifasked Các bộ mới hơn: RoEduNet, CIC-IoT. Tăng số lần lặp bằng kiểm định
   chéo lồng cũng là hướng củng cố.}
 \end{frame}
