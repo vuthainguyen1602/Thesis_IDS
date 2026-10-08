@@ -356,7 +356,7 @@ cách đánh giá hơn là chất lượng mô hình.}
 % ---------------------------------------------------------------- 0:55
 \begin{frame}{Kết quả 3: 77 hay 30 đặc trưng, F1 tương đương về mặt thống kê}
   \begin{columns}[T]
-    \begin{column}{0.47\textwidth}
+    \begin{column}{0.40\textwidth}
       \centering\small
       \fitwidth{%
       \begin{tabular}{lc}
@@ -365,38 +365,50 @@ cách đánh giá hơn là chất lượng mô hình.}
         \midrule
         Toàn bộ 77 đặc trưng & 0,99734 \\
         SHAP Top-30          & 0,99720 \\
-        \midrule
         \textbf{Chênh lệch}  & \textbf{$\approx$0,0001} \\
+        \midrule
+        Kiểm định hoán vị ghép cặp & $p = 0{,}031$ \\
+        Kiểm định tương đương (TOST) & \good{$p = 3{,}9\times10^{-6}$} \\
         \bottomrule
       \end{tabular}
       }
-      \\[0.2em]\raggedright{\scriptsize Trung bình 6 lần chạy, nên khác nhẹ so với Kết quả 1 (một lần chạy).}
+      \\[0.2em]\raggedright{\scriptsize Trung bình 6 lần chạy, nên khác nhẹ
+      so với Kết quả 1 (một lần chạy).}
     \end{column}
-    \begin{column}{0.50\textwidth}
+    \begin{column}{0.58\textwidth}
+      \footnotesize
+      \textbf{Kiểm định hoán vị ghép cặp}: hai bên \emph{có khác nhau} không?
       \begin{itemize}
-        \setlength{\itemsep}{0.4em}
-        \item Chạy lại \key{6 lần} với 6 cách chia dữ liệu; hai cấu hình
-              luôn dùng cùng cách chia.
-        \item \key{Kiểm định tương đương} (TOST): hỏi trực tiếp ``hai bên
-              có giống nhau không'', thay vì chỉ hỏi ``có khác nhau không''.
-        \item Kết luận: tương đương, chênh lệch thực sự \good{dưới 0,00023 F1}.
+        \item Chọn vì: 6 lần chạy, hai bên dùng chung cách chia nên so theo
+              cặp; tính chính xác với chỉ 6 cặp.
+        \item $p = 0{,}031 < 0{,}05$: có khác, nhưng chỉ $\approx$0,0001 F1.
+      \end{itemize}
+      \smallskip
+      \textbf{TOST}: chênh lệch có nằm trong $\pm$0,001 F1 (chọn trước) không?
+      \begin{itemize}
+        \item Chọn vì: kiểm định trên không chứng minh được hai bên
+              \emph{giống nhau}.
+        \item $p = 3{,}9\times10^{-6}$: tương đương, chênh lệch \good{dưới 0,00023 F1}.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Hai cấu hình tương đương, nên chọn \key{SHAP Top-30}: ít đặc trưng
-  hơn và giải thích được.}
+  \takeaway{Khác biệt không đáng kể: chọn \key{SHAP Top-30}, ít đặc trưng, giải thích được.}
   \note{\say Ở kết quả 1, hai con số 0,9971 và 0,9970 chỉ là một lần chạy. Để
   chắc chắn, chúng tôi lặp lại với sáu cách chia dữ liệu khác nhau, mỗi lần cả
   hai cấu hình dùng cùng một cách chia. F1 trung bình chênh nhau khoảng 0,0001.
-  Chúng tôi không dừng ở câu hỏi hai bên có khác nhau không, mà kiểm định trực
-  tiếp rằng hai bên tương đương, bằng kiểm định TOST. Kết quả là chênh lệch
-  thực sự nhỏ hơn 0,00023 F1. Vì hai bên tương đương, chúng tôi chọn SHAP Top-30:
-  ít đặc trưng hơn và giải thích được.
-  \ifasked TOST ở mức ý nghĩa 5\%. Kiểm định hoán vị ghép cặp liệt kê đủ $2^6$ tổ hợp dấu cho
-  $p = 0{,}031$, đúng sàn phân giải $2/2^6$, Cohen's $d \approx 1{,}94$. Một
-  $p$ như vậy không chứng minh được tương đương, nên dùng TOST với biên
-  $\pm0{,}001$ F1 khai báo trước, trên sai số hiệu chỉnh Nadeau--Bengio:
-  $p_{\text{TOST}} = 3{,}9\times10^{-6}$, biên nhỏ nhất chứng minh được là
+  Chúng tôi dùng hai kiểm định. Kiểm định hoán vị ghép cặp hỏi hai bên có khác
+  nhau không; nó so từng cặp và tính chính xác được với chỉ sáu cặp. Kết quả
+  p bằng 0,031, tức là có khác biệt, nhưng khác biệt chỉ khoảng 0,0001 F1.
+  Kiểm định này không trả lời được câu hai bên có giống nhau không, nên chúng
+  tôi dùng thêm kiểm định tương đương TOST, với biên cộng trừ 0,001 F1 chọn
+  trước khi chạy. p bằng 3,9 nhân 10 mũ trừ 6, nên hai bên tương đương, chênh
+  lệch thực sự nhỏ hơn 0,00023 F1. Vì vậy chúng tôi chọn SHAP Top-30: ít đặc
+  trưng hơn và giải thích được.
+  \ifasked $p = 0{,}031$ là đúng sàn phân giải $2/2^6$ của kiểm định hoán vị
+  hai phía liệt kê đủ $2^6$ tổ hợp dấu, nên cần $N \geq 6$. Cohen's
+  $d \approx 1{,}94$ lớn vì phương sai giữa các lần chạy rất nhỏ, không phải
+  vì chênh lệch lớn. TOST dùng sai số hiệu chỉnh Nadeau--Bengio vì các lần
+  lấy mẫu chồng nhau; biên nhỏ nhất chứng minh được ở $\alpha = 0{,}05$ là
   $\pm2{,}3\times10^{-4}$. Xem slide dự phòng.}
 \end{frame}
 
