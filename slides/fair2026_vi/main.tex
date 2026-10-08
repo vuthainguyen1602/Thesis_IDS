@@ -344,9 +344,9 @@ cách đánh giá hơn là chất lượng mô hình.}
       & \bad{Dựa nhiều.}
       & F1 tăng khoảng 0,04, \bad{gấp hơn 20 lần} mô hình cây
         {\color{gray}(LR, SVM)}. MLP, Naive Bayes ở giữa: 0,005 và 0,011 \\
-    \key{3.} Đo trên một mô hình có đủ?
+    \key{3.} Chỉ đo rò rỉ trên Random Forest có đủ không?
       & \bad{Không.}
-      & Bản nộp đầu chỉ đo Random Forest: tăng 0,001, tưởng như không đáng kể \\
+      & RF chỉ tăng 0,001, trông như không đáng kể, nhưng LR, SVM tăng 0,04 \\
     \bottomrule
   \end{tabular}
   }
@@ -355,9 +355,10 @@ cách đánh giá hơn là chất lượng mô hình.}
   \note{\say Kết quả thứ hai: cổng đích làm tăng điểm bao nhiêu. Mỗi thuật toán
   được huấn luyện hai lần, bỏ cổng và giữ cổng. Một, mô hình cây có dựa vào cổng
   không? Hầu như không, F1 tăng chưa tới 0,002. Hai, mô hình tuyến tính thì sao?
-  Dựa nhiều, tăng khoảng 0,04, gấp hơn 20 lần. Ba, đo trên một mô hình có đủ
-  không? Không: nếu chỉ đo Random Forest như bản nộp đầu, ta thấy tăng 0,001 và
-  tưởng rò rỉ không đáng kể. Từ đây trở đi, mọi kết quả đều đã bỏ cổng.
+  Dựa nhiều, tăng khoảng 0,04, gấp hơn 20 lần. Ba, chỉ đo rò rỉ trên Random
+  Forest có đủ không? Không. Bản nộp đầu chỉ đo trên Random Forest: F1 tăng
+  0,001, trông như cổng đích không ảnh hưởng gì. Nhưng LR và SVM tăng 0,04. Nên
+  rò rỉ phải đo trên từng mô hình. Từ đây trở đi, mọi kết quả đều đã bỏ cổng.
   \ifasked Số từng thuật toán ở slide dự phòng. Mô hình cây dựng lại được cùng
   ranh giới từ thống kê hành vi của luồng. Mô hình tuyến tính không làm được,
   nên dựa vào cổng như một định danh dịch vụ. Bản nộp ban đầu chỉ đo trên Random
