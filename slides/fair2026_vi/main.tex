@@ -581,8 +581,8 @@ cách đánh giá hơn là chất lượng mô hình.}
         \bottomrule
       \end{tabular}
       }
-      \\[0.3em]{\scriptsize 1\% = 1\% dữ liệu \emph{có nhãn} của mạng mới,
-      khoảng 19 nghìn luồng.}
+      \\[0.3em]{\scriptsize Mạng mới = bộ dữ liệu còn lại (2017 $\leftrightarrow$
+      2018). 1\% = 1\% dữ liệu \emph{có nhãn} của mạng mới, khoảng 19 nghìn luồng.}
     \end{column}
     \begin{column}{0.45\textwidth}
       \footnotesize
@@ -611,7 +611,10 @@ cách đánh giá hơn là chất lượng mô hình.}
   có sẵn của bộ dữ liệu, lấy 1\% tập huấn luyện của bộ đích, mô phỏng việc
   chuyên viên gán nhãn; mô hình được huấn luyện lại từ đầu chỉ trên phần đó,
   không tinh chỉnh mô hình cũ. Ngoài thực tế, 19 nghìn luồng vẫn là khối lượng
-  gán nhãn đáng kể nếu làm tay.}
+  gán nhãn đáng kể nếu làm tay. ``Mạng mới'' là bộ dữ liệu đích: CSE-CIC-IDS2018
+  khi huấn luyện trên CICIDS2017, và ngược lại. Cả hai đều là testbed trong
+  phòng thí nghiệm của CIC, không phải lưu lượng của một mạng doanh nghiệp thật,
+  nên kết quả 1\% mới được chứng minh giữa hai testbed này.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
