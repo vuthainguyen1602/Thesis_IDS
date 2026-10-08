@@ -576,17 +576,19 @@ cách đánh giá hơn là chất lượng mô hình.}
         Dùng mô hình cũ            & 0,03--0,30 & 0,05 \\
         Chỉnh phân phối {\scriptsize(CORAL)} & \bad{0} & \bad{0} \\
         \midrule
-        Huấn luyện lại, \textbf{1\%} nhãn & \good{0,92} & \good{0,99} \\
-        1\% nhãn $+$ dữ liệu cũ        & 0,80 & 0,96 \\
+        Huấn luyện lại trên \textbf{1\%} & \good{0,92} & \good{0,99} \\
+        1\% đó $+$ dữ liệu cũ        & 0,80 & 0,96 \\
         \bottomrule
       \end{tabular}
       }
+      \\[0.3em]{\scriptsize 1\% = 1\% dữ liệu \emph{có nhãn} của mạng mới,
+      khoảng 19 nghìn luồng.}
     \end{column}
     \begin{column}{0.45\textwidth}
       \footnotesize
       \qa{1}{Không cần nhãn, chỉ chỉnh phân phối?}{\bad{Không được}:}
         {F1 về 0 cả hai chiều, vì khác biệt nằm ở hành vi tấn công.}
-      \qa{2}{Gán nhãn thì cần bao nhiêu?}{\good{Rất ít, 1\%}:}
+      \qa{2}{Cần bao nhiêu dữ liệu có nhãn của mạng mới?}{\good{Rất ít, 1\%}:}
         {khoảng 19 nghìn luồng, F1 lên 0,92 và 0,99.}
       \qa{3}{Gộp thêm dữ liệu cũ có tốt hơn?}{\bad{Không, kém hơn}:}
         {F1 còn 0,80 và 0,96.}
@@ -596,7 +598,7 @@ cách đánh giá hơn là chất lượng mô hình.}
   chính mạng đó rồi huấn luyện lại.}
   \note{\say Vậy làm sao cho mô hình chạy được trên mạng mới? Một, chỉ chỉnh
   phân phối dữ liệu cho giống dữ liệu cũ, không cần nhãn, có được không? Không:
-  F1 về 0 ở cả hai chiều. Hai, nếu gán nhãn thì cần bao nhiêu? Rất ít: 1\%,
+  F1 về 0 ở cả hai chiều. Hai, cần bao nhiêu dữ liệu có nhãn của mạng mới? Rất ít: 1\%,
   khoảng 19 nghìn luồng, huấn luyện lại thì F1 lên 0,92 và 0,99. Ba, gộp thêm
   toàn bộ dữ liệu cũ có tốt hơn không? Không, lại kém hơn: 0,80 và 0,96. Vậy
   cách rẻ nhất là gán nhãn một ít lưu lượng của chính mạng mới.
@@ -605,7 +607,11 @@ cách đánh giá hơn là chất lượng mô hình.}
   điều kiện, không chỉ ở trung bình và hiệp phương sai. CORAL vẫn nâng AUC-PR
   chiều 2018$\to$2017 từ 0,179 lên 0,250: thứ hạng tốt lên nhưng ngưỡng 0,5 học
   từ dữ liệu cũ không còn đúng, nên thích ứng phải chỉnh cả ngưỡng. 1\% là
-  19.276 luồng (chiều ngược lại 18.011).}
+  19.276 luồng (chiều ngược lại 18.011). Trong thí nghiệm, nhãn lấy từ nhãn
+  có sẵn của bộ dữ liệu, lấy 1\% tập huấn luyện của bộ đích, mô phỏng việc
+  chuyên viên gán nhãn; mô hình được huấn luyện lại từ đầu chỉ trên phần đó,
+  không tinh chỉnh mô hình cũ. Ngoài thực tế, 19 nghìn luồng vẫn là khối lượng
+  gán nhãn đáng kể nếu làm tay.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -618,7 +624,7 @@ cách đánh giá hơn là chất lượng mô hình.}
   \par\smallskip
   \card{accRed}{0,995 $\to$ 0,03--0,30}{khi sang mạng khác}
     {Mô hình bỏ sót gần hết tấn công.}\hfill
-  \card{accGreen}{1\%}{nhãn của mạng mới là đủ}
+  \card{accGreen}{1\%}{dữ liệu có nhãn của mạng mới là đủ}
     {$\approx$19 nghìn luồng: F1 lên 0,92 và 0,99.}
   \takeaway{Bài học: \key{đánh giá đúng cách} quan trọng không kém chọn đúng
   phương pháp.}
@@ -626,8 +632,8 @@ cách đánh giá hơn là chất lượng mô hình.}
   \note{\say Tóm lại có bốn con số cần nhớ. Một, 60\%: bỏ được 60\% đặc trưng
   mà F1 vẫn tương đương, huấn luyện nhanh gấp 3,8 lần. Hai, từ 0,998 xuống
   0,806: điểm tổng cao che khuất các tấn công hiếm. Ba, từ 0,995 xuống còn 0,03 đến 0,30:
-  sang mạng khác, mô hình bỏ sót gần hết tấn công. Bốn, 1\%: gán nhãn 1\% dữ
-  liệu của mạng mới là đủ để huấn luyện lại. Bài học chung: đánh giá đúng cách
+  sang mạng khác, mô hình bỏ sót gần hết tấn công. Bốn, 1\%: chỉ cần 1\% dữ
+  liệu có nhãn của mạng mới, khoảng 19 nghìn luồng, để huấn luyện lại. Bài học chung: đánh giá đúng cách
   quan trọng không kém chọn đúng phương pháp. Xin cảm ơn quý thầy cô, kính mời
   câu hỏi.
   \ifasked Hướng tiếp theo: đo riêng tác động của bước bỏ trùng lặp; toàn bộ
