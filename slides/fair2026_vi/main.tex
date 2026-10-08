@@ -27,12 +27,12 @@
 \input{../common/preamble.tex}
 \usepackage{array}
 
-% Ô số lớn cho slide kết quả: \stat{màu}{số}{nhãn}{giải thích}. Số tô màu
+% Ô số lớn cho slide kết quả: \stat[căn]{màu}{số}{nhãn}{giải thích}. Số tô màu
 % và nhãn nằm cùng dòng, giải thích ở dòng dưới; rộng bằng cột chứa nó.
-\newcommand{\stat}[4]{%
-  \colorbox{#1!8}{\begin{minipage}{\dimexpr\linewidth-2\fboxsep\relax}
-    \raggedright{\Large\bfseries\color{#1}#2}\enspace{\small\bfseries #3}\par
-    \vspace{0.1em}{\footnotesize #4}
+\newcommand{\stat}[5][c]{%
+  \colorbox{#2!8}{\begin{minipage}[#1]{\dimexpr\linewidth-2\fboxsep\relax}
+    \raggedright{\Large\bfseries\color{#2}#3}\enspace{\small\bfseries #4}\par
+    \vspace{0.1em}{\footnotesize #5}
   \end{minipage}}\par\smallskip}
 % Ô kết luận: \card{màu}{số lớn}{nhãn}{giải thích}
 \newcommand{\card}[4]{%
@@ -412,15 +412,15 @@ cách đánh giá hơn là chất lượng mô hình.}
   \end{columns}
   \par\smallskip
   \begin{minipage}[t]{0.32\textwidth}
-    \stat{accBlue}{$\pm$0,00012}{sai số}
+    \stat[t]{accBlue}{$\pm$0,00012}{sai số}
       {77 đặc trưng; SHAP Top-30 $\pm$0,00015 {\color{gray}(CI95 Nadeau--Bengio)}.}
   \end{minipage}\hfill
   \begin{minipage}[t]{0.32\textwidth}
-    \stat{accRed}{$p{=}0{,}031$}{có khác}
-      {Nhưng chỉ $\approx$0,0001. $d \approx 1{,}94$ vì 6 lần chạy rất sát {\color{gray}(hoán vị ghép cặp)}.}
+    \stat[t]{accRed}{$p{=}0{,}031$}{có khác}
+      {Nhưng chỉ $\approx$0,0001. Là $p$ nhỏ nhất có thể với 6 cặp. $d \approx 1{,}94$ vì 6 lần chạy rất sát {\color{gray}(hoán vị ghép cặp)}.}
   \end{minipage}\hfill
   \begin{minipage}[t]{0.32\textwidth}
-    \stat{accGreen}{$p{=}3{,}9{\times}10^{-6}$}{}
+    \stat[t]{accGreen}{$p{=}3{,}9{\times}10^{-6}$}{}
       {\good{Tương đương} {\color{gray}(TOST, biên $\pm$0,001 F1)}.}
   \end{minipage}
   \takeaway{30 đặc trưng tốt ngang 77, nên chọn \key{SHAP Top-30}: gọn hơn, giải thích được.}
