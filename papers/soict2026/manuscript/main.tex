@@ -1,12 +1,6 @@
 % SOICT 2026 — Springer LNCS template (English)
-% Finalized submission-ready manuscript.
-% Compile: ./compile.sh
-%
-% RESULT PLACEHOLDERS: empirical numbers are wrapped in \ph{...}. Fill them from
-% papers/soict2026/results/benchmarks/summary.csv (edge benchmarks) and from the
-% LEAK-FREE Exp7 run (results/ml_07_cross_method_comparison/cross_method_summary.csv).
-% Do NOT reuse the legacy F1=1.000 numbers: they came from a configuration with
-% destination_port leakage and feature-level duplicate flows, both now removed.
+% Self-contained: class, style, bibliography and figures all live in this folder.
+% Compile: ./compile.sh (XeLaTeX)
 %
 \documentclass[runningheads]{llncs}
 
@@ -14,7 +8,14 @@
 \usepackage{polyglossia}
 \setdefaultlanguage{english}
 \setotherlanguage{vietnamese}
-\input{../../../papers/latex/fonts-xelatex-vi.tex}
+% TeX Gyre Termes is a Times-compatible font that ships with TeX Live / MacTeX,
+% covers Vietnamese, and needs no MS-Office fonts -> builds on any machine.
+% If TeX Gyre Termes is missing (e.g. BasicTeX without the tex-gyre package),
+% fall back to macOS' built-in Times New Roman instead of silently dropping to
+% nullfont (which produces blank pages).
+\IfFontExistsTF{TeX Gyre Termes}
+  {\setmainfont{TeX Gyre Termes}[Ligatures=TeX]}
+  {\setmainfont{Times New Roman}[Ligatures=TeX]}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{amsmath}
@@ -27,7 +28,6 @@
 \usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta, shapes.geometric, fit, backgrounds, calc}
 
-\newcommand{\ph}[1]{{\color{gray}\textit{[#1]}}}
 % Table notes: symbol legends go BELOW the table (caption stays a single descriptive
 % sentence). The minipage cancels the surrounding \centering so notes set justified.
 \newcommand{\tabnote}[1]{%
@@ -50,7 +50,7 @@
 % No-op fallback: \babelshorthandoff is a babel command, undefined under polyglossia.
 \providecommand{\babelshorthandoff}[1]{}
 
-\graphicspath{{../../../results/ml_07_cross_method_comparison/}{../../../results/ml_08_anomaly_gate/}{../../../papers/soict2026/results/remeasure_20260930/}{../../../papers/soict2026/results/benchmarks/}{../figures/}}
+\graphicspath{{figures/}}
 
 \begin{document}
 
@@ -113,7 +113,29 @@ We address all three at once. A practical edge IDS must decide \emph{which} mode
 
 \textbf{Evaluation protocol.} A parallel line of work questions how faithfully offline scores transfer to deployment. Arp et al.~\cite{arp2022dosdonts} catalog recurring pitfalls in security ML, and Lanvin et al.~\cite{lanvin2023errors} document labeling and duplication errors in CICIDS2017~\cite{sharafaldin2018toward} that measurably inflate reported performance; Sarhan et al.~\cite{sarhan2022explainable} similarly show that the choice of standard feature set shapes both generalizability and explainability. Our companion ML study responds by selecting a leakage-free SHAP Top-30 model~\cite{lundberg2017unified}, and the present paper deploys exactly that model, so the operational numbers reported here do not belong to a configuration that would fail a stricter offline audit. Concept drift~\cite{gama2014survey} lies outside the present scope and motivates the retraining direction we outline in the conclusion. Table~\ref{tab:related-work} positions our system against representative related work along the five axes above: multi-node role separation, streaming ingest, joint energy and latency reporting, leakage-aware model selection, and open code.
 
-\input{../../../papers/latex/related_work_table_soict.tex}
+\begin{table}[htbp]
+  \caption{Capability comparison with prior edge IDS deployments.}
+  \label{tab:related-work}
+  \centering
+  \small
+  \resizebox{\textwidth}{!}{%
+  \begin{tabular}{l l c c c c c}
+    \toprule
+    \textbf{Reference} & \textbf{Platform} & \textbf{\shortstack{Multi-node\\roles}} & \textbf{\shortstack{Streaming\\ingest}} & \textbf{\shortstack{Energy \&\\p95 latency}} & \textbf{\shortstack{Leakage-aware\\model}} & \textbf{\shortstack{Open\\code}} \\
+    \midrule
+    Sforzin et al.~\cite{sforzin2016rpids} & Raspberry Pi & No & No & --- & --- & --- \\
+    L{\'o}pez-Mart{\'i}n et al.~\cite{lopez2017autoencoder} & GPU server & No & No & --- & --- & --- \\
+    Nguyen et al.~\cite{nguyen2019diot} & IoT gateways & Federated & No & --- & --- & --- \\
+    Hasan et al.~\cite{hasan2025iiot} & 1$\times$ Jetson Nano & No & No & --- & --- & --- \\
+    Chithra Rani et al.~\cite{baalaji2025ensemble} & 1$\times$ Jetson Nano & No & No & --- & --- & --- \\
+    Nasir et al.~\cite{asghar2026hedid} & Edge-like (simulated) & No & No & --- & --- & --- \\
+    \textbf{The proposed system} & \textbf{2$\times$ Jetson Orin Nano S.} & \textbf{Yes} & \textbf{Yes (Kafka)} & \textbf{Yes} & \textbf{Yes} & \textbf{Yes} \\
+    \bottomrule
+  \end{tabular}%
+  }
+
+  \tabnote{``---'': not reported or not applicable.}
+\end{table}
 
 \section{System Architecture}
 
@@ -385,11 +407,7 @@ A host-side script starts the pipeline roles on the Jetsons over SSH, drives the
 
 \begin{figure}[htbp]
   \centering
-  \IfFileExists{../../../results/ml_08_anomaly_gate/gate_operating_points.png}{%
-    \includegraphics[width=\textwidth]{gate_operating_points.png}%
-  }{%
-    \fbox{\parbox{0.74\textwidth}{\centering\vspace{1.2cm}\ph{Gate operating curve --- run ml\_08\_anomaly\_gate\_autoencoder.py}\vspace{1.2cm}}}%
-  }
+  \includegraphics[width=\textwidth]{gate_operating_points.png}
   \caption{Anomaly-gate operating curve: attack recall (left) and false-positive rate (right) vs.\ gate-skip ratio.}
   \label{fig:gate}
 \end{figure}
@@ -411,7 +429,7 @@ We presented a reproducible distributed edge IDS for Jetson Orin Nano Super clus
 The authors declare that they have no competing interests.
 \end{credits}
 
-\bibliographystyle{../../latex/splncs04}
-\bibliography{references,../../latex/related_work}
+\bibliographystyle{splncs04}
+\bibliography{references}
 
 \end{document}
