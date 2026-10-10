@@ -38,7 +38,7 @@ The system supports **3 distributed modes** (all on Mac + 2 Jetson):
 | Mode | Description | When to use |
 |------|-------------|-------------|
 | **A. Pipeline split** | Jetson #1 = anomaly gate, Jetson #2 = classifier | Offload Spark; default / recommended |
-| **B. Horizontal scaling** | Both Jetsons run the full pipeline in one consumer group | Maximize throughput |
+| **B. Horizontal scaling** | Both Jetsons run the full pipeline in one consumer group | Redundancy; adds little capacity (3.3 vs 2.5 flows/s on one node, gate off) |
 | **C. Spark cluster** | Mac = Spark master, both Jetsons = workers | Distributed Spark inference / training |
 
 ---
@@ -144,7 +144,7 @@ cp .env.jetson-horizontal.example .env
 EDGE_NODE_ROLE=full python edge/kafka_consumer.py
 ```
 
-Kafka splits the partitions across the two consumers → roughly double the throughput.
+Kafka splits the partitions across the two consumers, but each board still scores its share with PySpark, so capacity barely moves: 3.3 flows/s against 2.5 on one node (gate off, 2026-09-30 re-measurement in `papers/soict2026/results/remeasure_20260930/`). Use it for redundancy; for capacity use Mode A.
 
 ---
 
