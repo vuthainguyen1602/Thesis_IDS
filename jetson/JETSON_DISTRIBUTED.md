@@ -224,56 +224,67 @@ Configuration variables in `config.py`:
 ## Notes for the thesis
 
 - **Mode A** clearly demonstrates the distributed pipeline-split architecture (edge computing).
-- Compare 1-node vs 2-node latency/throughput with
-  `scripts/benchmark_distributed.py run --mode single|split|horizontal|spark_cluster`
-  (then `merge`), or `./papers/soict2026/run_benchmarks.sh run`. `scripts/benchmark.py`
-  is a single-node micro-benchmark and cannot compare modes.
+- Compare modes with the capacity sweep, `./papers/soict2026/run_capacity_sweep.sh`
+  (run on the Mac; see the measurement notes below). `scripts/benchmark.py` is a
+  single-node micro-benchmark and cannot compare modes.
 - Filter Grafana panels by the `host` tag to visualize each Jetson.
 - Use the PostgreSQL `node_id` column to analyze load distribution across nodes.
 
-### Measurement notes (latency & energy)
+### Measurement notes (capacity, latency & energy)
 
-- **End-to-end latency** (send → verdict) is computed from the producer's
-  `_timestamp`; for the absolute value to be meaningful the **sender host and
-  both Jetson nodes must share an NTP-synced clock** (e.g. `sudo timedatectl
-  set-ntp true` on all hosts). Relative comparisons across modes hold even
-  without NTP. Each node also reports inference-only latency separately.
-- **Latency percentiles** (p50/p95/p99) are computed by each node from its raw
-  per-flow samples; the cluster p95 is the **worst node's** p95 — never a
-  percentile of per-host mean latencies.
-- **Raw latency logs (required for the paper numbers):** set
-  `RAW_LATENCY_LOG=~/ids_raw_latency_$(hostname).csv` on each node **before**
-  starting the pipelines. Window-level p95s pushed to InfluxDB are for
-  dashboards only; the *run-level* p95 is computed by the orchestrator from
-  these raw CSVs restricted to the exact load window
-  (`benchmark_distributed.py collect --raw-latency-glob '.../ids_raw_latency_*.csv'`).
-  Without them, `collect` falls back to an InfluxDB approximation and labels it
-  `DO_NOT_PUBLISH`.
-- **Per-node energy during a distributed run:** on each Jetson run
-  `./papers/soict2026/run_benchmarks.sh node-power` (measures a 30 s idle
-  baseline first, then samples tegrastats through the load window). The paper's
-  per-mode figure is the **sum of the participating boards' average total-board
-  power ÷ verdict throughput** — Mode A: (4.61 W gate + 6.54 W classifier) /
-  62.5 verdicts/s ≈ 178 mJ. Active (idle-subtracted) power is *not* usable at
-  this load: it came out at 0.00–0.07 W per node, below the tegrastats noise
-  floor.
-- **Repetitions & warmup:** `run` defaults to 5 repeats with real warmup
-  traffic excluded from the measured window; `merge` writes
-  `summary_mean_std.csv` per mode. Do a load sweep (`BENCHMARK_RATE=50|100|200`)
-  so throughput/latency are reported relative to saturation.
-- **Pipeline throughput** is counted as **final verdicts/s from Postgres**
-  within the load window — never the sum of per-node rates, which double-counts
-  forwarded flows in Mode A.
-- **Energy** is reported both raw and **idle-subtracted (active)** per node via
-  `tegrastats`. Which one is comparable depends on the load: the single-node
-  engine benchmark saturates the board, so it publishes **active** energy per
-  inference (71.6 mJ for PySpark). The distributed modes run at 100 flows/s,
-  where the active delta sinks below the sampling noise, so the mode table
-  publishes **total-board** energy per verdict instead — a measure of how well a
-  mode amortizes board idle power, not the model's own cost.
-- **Inference-engine baseline:** `scripts/benchmark_engines.py` runs the same
-  RandomForest / SHAP Top-30 model through scikit-learn and ONNX Runtime
-  (`pip install skl2onnx onnxruntime` to enable ONNX) and reports the same
-  metrics as `benchmark.py` (Spark). This quantifies the JVM/Spark overhead;
-  Spark is kept for train-serve consistency, sklearn/ONNX motivate a future
-  export path. Example: `python scripts/benchmark_engines.py --samples 5000`.
+The numbers in the SOICT paper and the thesis come from the queue-aware
+re-measurement of 2026-09-29/30 (`papers/soict2026/results/remeasure_20260930/`,
+whose README lists what was wrong with the earlier method). The older files in
+`papers/soict2026/results/benchmarks/` (62.5 verdicts/s, 95.8% gate skip) are
+superseded.
+
+- **Follow every flow sent, not the verdicts written in the window.** Each
+  verdict stores the flow's send timestamp and replay row.
+  `papers/soict2026/analyze_runs.py` uses them to follow every flow sent in the
+  load window to its verdict, wherever it lands. It reports per repeat: flows
+  sent and completed, send-to-verdict p50/p95 *with queueing included*,
+  `drain_s` (last verdict minus window end), sustained verdict rate, gate-skip
+  ratio and live attack recall. Counting verdicts written inside the window
+  hides the backlog of a stage that cannot keep up and inflates the skip ratio.
+- **Sustained capacity** is the highest offered rate at which every repeat
+  drained within 10 s of the window's end (about one PySpark batch on a Jetson).
+  `papers/soict2026/run_capacity_sweep.sh` raises the rate per mode (45 s load,
+  15 s warm-up, 2 repeats) and stops at the first rate that fails;
+  `RATES_<mode>="..."` overrides a mode's rate list. `spark_cluster` needs the
+  Spark master and workers up, so it is not in the default `MODES`.
+- **Fresh Kafka consumer group per run.** `run_dist_bench.sh` tags the group
+  IDs with the run time, so no run consumes flows a previous run left unread.
+- **The sender runs below its target** (about 80 flows/s when asked for 100).
+  Report the measured `send_rps`, not the requested rate.
+- **Clocks:** end-to-end latency compares the Mac's send time with a Jetson's
+  verdict time, so all three hosts must be NTP-synced (`sudo timedatectl
+  set-ntp true`). Record `chronyc tracking` (or `timedatectl timesync-status`)
+  on each board before a sweep, together with a ping RTT to the Mac.
+- **Energy per verdict** is measured in a separate window at the sustained
+  rate: `run_dist_bench.sh <mode>` without `NO_ENERGY=1` runs `node-power` on
+  the active board(s) (30 s idle baseline, then `tegrastats` through the load)
+  and writes `power_<node>_<ts>.json`. J/verdict is the summed average
+  total-board power of the participating boards divided by the verdict rate.
+  `energy_at_sustained_rate.csv` collects one such run per mode by hand; no
+  script writes it. At these loads active (idle-subtracted) power rises by only
+  about 1.5 W, so the table reports total-board energy.
+- **Results at the sustained rate (2026-09-30):**
+
+  | Mode | Boards | Sustained (flows/s) | e2e p50 / p95 (s) | J / verdict |
+  |---|---|---|---|---|
+  | Single node, gate off | 1 | 2.5 | 5.9 / 11.3 | 3.04 |
+  | Single node + gate | 1 | 1.9 (2.4–2.5 at 3/s, one repeat drained in 10.6 s) | 3.8 / 7.8 | 3.04 |
+  | B: Horizontal, gate off | 2 | 3.3 | 4.1 / 8.2 | 3.20 |
+  | C: Spark cluster | 2 | ≥ 8.7 (≈9–17) | 0.7 / 5.2 | 1.15 |
+  | A: Pipeline split | 2 | 22.4 | 1.0 / 7.1 | 0.60 |
+
+  The gate skips about 89% of flows; live attack recall is 69.6% in split mode
+  against 100% with the gate off. `papers/soict2026/plot_capacity.py` draws
+  `edge_capacity.png` from the sweep CSVs and the energy CSV.
+- **Inference-engine baseline:** `scripts/benchmark_same_forest.py` serves the
+  *deployed* forest through the edge's own Spark, NumPy and ONNX engines and
+  checks that they agree prediction by prediction
+  (`python scripts/benchmark_same_forest.py --samples 1000 --batch-size 10`).
+  On Jetson #2 at batch 10: PySpark 1.4 flows/s, NumPy 54.8, ONNX Runtime
+  10,092, identical predictions. `scripts/benchmark_engines.py` trains its own
+  scikit-learn forest, so it does not measure the deployed model.
