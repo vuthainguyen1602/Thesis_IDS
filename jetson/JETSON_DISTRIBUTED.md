@@ -19,18 +19,18 @@ Check the Mac IP with `ipconfig getifaddr en0` — it must match `MAC_IP` in `cl
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                          Mac (host)                             │
-│  Docker: Kafka, PostgreSQL, InfluxDB, Grafana                   │
-│  data_sender.py → topic: ids-network-flow                       │
-└───────────────┬───────────────────────────────┬─────────────────┘
-                │                               │
-     ┌──────────┴──────────┐         ┌──────────┴──────────┐
-     │  Jetson Orin Nano #1 │         │  Jetson Orin Nano #2 │
-     │  (anomaly_gate)      │────────▶│  (classifier)        │
-     │  sklearn AE filter   │  Kafka  │  PySpark model       │
-     └──────────────────────┘         └──────────────────────┘
-              ids-suspicious-flow
+┌───────────────────────────────────────────────────────────────────┐
+│                             Mac (host)                            │
+│  Docker: Kafka, PostgreSQL, InfluxDB, Grafana                     │
+│  data_sender.py → topic: ids-network-flow                         │
+└───────────────┬───────────────────────────────────┬───────────────┘
+                │                                   │
+  ┌─────────────┴─────────────┐       ┌─────────────┴─────────────┐
+  │ Jetson Orin Nano Super #1 │       │ Jetson Orin Nano Super #2 │
+  │ (anomaly_gate)            │──────▶│ (classifier)              │
+  │ sklearn AE filter         │ Kafka │ PySpark model             │
+  └───────────────────────────┘       └───────────────────────────┘
+                         ids-suspicious-flow
 ```
 
 The system supports **3 distributed modes** (all on Mac + 2 Jetson):
