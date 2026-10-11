@@ -11,7 +11,7 @@ Numbers must match the manuscripts in every deck.
 | `soict2026/` | English | ~7:30 (9 talk slides + 3 section pages + references + 5 backup = 20 pages) | `output/pdfs/SOICT2026_slides.pdf` |
 | `soict2026_vi/` | Vietnamese | ~11 min, detailed (12 talk slides + 3 section pages + references + 5 backup = 22 pages) | `output/pdfs/SOICT2026_slides_vi.pdf` |
 | `fair2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/FAIR2026_slides.pdf` |
-| `fair2026_vi/` | Vietnamese | ~10 min, detailed (11 talk slides + 3 section pages + references + 10 backup = 27 pages) | `output/pdfs/FAIR2026_slides_vi.pdf` |
+| `fair2026_vi/` | Vietnamese | ~10 min, detailed (outline + 11 talk slides + 3 section pages + references + 10 backup = 28 pages) | `output/pdfs/FAIR2026_slides_vi.pdf` |
 | `defense/` | Vietnamese | 15 min (16 talk slides + 5 section pages + title/outline/refs/thanks + backup index + 14 backup frames for 14 questions = 40 pages) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
 
 ## Building
@@ -58,7 +58,7 @@ show up in the rendered PDF:
   invisible; past ~11 pt the footer starts colliding with the last line and that
   frame needs a line or two cut. The FAIR decks are currently under that bar —
   the worst entry is ~7.2 pt on `fair2026`'s *Result 3* frame and `fair2026_vi`
-  has none — so treat a new entry above ~11 pt as
+  peaks at ~10.4 pt on its *Kết quả 5* frame (right column, still clear of the footer) — so treat a new entry above ~11 pt as
   something you introduced. The Vietnamese deck sits closest to the bar because
   Vietnamese sets longer than English at the same font size.
 
@@ -76,9 +76,17 @@ overflows the line.
 
 Backup slides sit after `\appendix`, where `appendixnumberbeamer` restarts the
 count, and metropolis' section page carries no footline at all, so neither
-inflates the denominator: the fraction runs `1/9 … 9/9` in the paper decks
-(8 talk slides + references) and `1/18 … 18/18` in the defense deck. Section
-titles are Roman-numbered and upper-case in all four decks.
+inflates the denominator: the fraction runs `1/9 … 9/9` in the English paper
+decks (8 talk slides + references) and `1/18 … 18/18` in the defense deck.
+Section titles are Roman-numbered and upper-case in all decks.
+
+`fair2026_vi` departs from this on purpose: it opens with a *Nội dung trình
+bày* outline slide, its section pages are numbered and carry a footline
+(`\AtBeginSection{\frame[c]{\sectionpage}}` overrides metropolis'
+`[plain,noframenumbering]`), and the footer's left side names the current
+section via `\secfooter`, which is set immediately *before* each `\section`
+so the section page itself already shows the new name. Its fraction therefore
+runs `1/16 … 16/16`.
 
 The defense deck opens its backup section with a **clickable index** keyed by
 the question a committee member is likely to ask, so the right slide is one
@@ -105,3 +113,15 @@ The decks pull PNGs straight from `results/` and `papers/soict2026/`, so they
 stay in sync when the pipeline is re-run. Figures that may not exist yet are
 wrapped in `\IfFileExists` and degrade to a labelled placeholder box instead of
 failing the build.
+
+## PowerPoint export
+
+```bash
+python3 slides/pdf2pptx.py slides/fair2026_vi/main.pdf output/pdfs/FAIR2026_slides_vi.pptx --last 17 --dpi 600   # drop the backup slides
+```
+
+`pdf2pptx.py` renders each PDF page as a full-bleed image (300 dpi by default; 600 keeps footnote-size text sharp on a full-HD or Retina screen) on a 16:9
+slide (needs `pdftoppm`, `pdftohtml` from poppler and `python-pptx`). If the
+deck's `main_notes.pdf` sits next to `main.pdf`, the note text of each page is
+copied into the PowerPoint speaker notes, so build with `NOTES=1` first. The
+slides are images, not editable text; edit the `.tex` and re-export.

@@ -19,8 +19,11 @@ set -uo pipefail
 
 # ---- cluster config (from cluster/spark_cluster.env) ----
 MAC_IP=${MAC_IP:-$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1)}  # the Mac's DHCP address changes
-J1=192.168.1.50            # jetson-nano-1
-J2=192.168.1.204           # jetson-nano-2
+J1=${J1:-192.168.1.81}    # jetson-nano-1 (was 192.168.1.50 until 2026-10)
+J2=${J2:-192.168.1.39}     # jetson-nano-2 (was 192.168.1.204 until 2026-10)
+# known_hosts still files the boards' keys under their old IPs
+J1_KEY=192.168.1.50; J2_KEY=192.168.1.204
+hka() { case $1 in "$J1") echo "-o HostKeyAlias=$J1_KEY" ;; "$J2") echo "-o HostKeyAlias=$J2_KEY" ;; esac; }
 U=bvdung
 JROOT=/home/$U/Thesis_IDS/jetson
 SSH="ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o ServerAliveInterval=30 -o ServerAliveCountMax=10"
@@ -62,7 +65,7 @@ PY
 stop_all() {
   echo "[stop] killing consumers + power monitors on both Jetsons"
   for H in $J1 $J2; do
-    $SSH $U@$H "pkill -f kafka_consumer.py 2>/dev/null; pkill -f 'benchmark_distributed.py node-power' 2>/dev/null; true"
+    $SSH $(hka $H) $U@$H "pkill -f kafka_consumer.py 2>/dev/null; pkill -f 'benchmark_distributed.py node-power' 2>/dev/null; true"
   done
   sleep 3
 }
@@ -75,7 +78,7 @@ start_pipe() {
   echo "[start] $id role=$role alert=$alert spark=${sm:-local[*]} on $host"
   # Background the ssh CLIENT locally so a lingering channel can never block us;
   # the remote pipeline is nohup+detached so it survives the ssh client exiting.
-  $SSH -n $U@$host "cd $JROOT && source venv/bin/activate && \
+  $SSH $(hka $host) -n $U@$host "cd $JROOT && source venv/bin/activate && \
     $REMOTE_ENV ${EXTRA_REMOTE_ENV:-} $spark RAW_LATENCY_LOG=\$HOME/ids_raw_latency_${id}.csv \
     EDGE_NODE_ID=$id EDGE_NODE_ROLE=$role ALERT_ENABLED=$alert \
     nohup python edge/kafka_consumer.py > \$HOME/edge_${id}.log 2>&1 </dev/null &" &
@@ -89,7 +92,7 @@ energy_window() {
   local pd=$((DUR + 30))          # sampling window must cover the DUR-second load
   echo "[energy] node-power on: $* (idle 30s + sample ${pd}s)"
   for spec in "$@"; do IFS=: read -r host id role <<<"$spec"
-    $SSH -n $U@$host "cd $JROOT && source venv/bin/activate && \
+    $SSH $(hka $host) -n $U@$host "cd $JROOT && source venv/bin/activate && \
       EDGE_NODE_ID=$id EDGE_NODE_ROLE=$role nohup python scripts/benchmark_distributed.py node-power \
       --duration $pd --idle-seconds 30 --output \$HOME/power_${id}_${T}.json \
       > \$HOME/power_${id}.log 2>&1 </dev/null &" &
@@ -107,8 +110,8 @@ sync_logs() {  # T  active-hosts...
   local T=$1; shift
   for H in "$@"; do
     echo "[sync] pulling raw latency + power JSON from $H"
-    scp -o StrictHostKeyChecking=accept-new "$U@$H:~/ids_raw_latency_*.csv" "$OUT/" 2>/dev/null || true
-    scp -o StrictHostKeyChecking=accept-new "$U@$H:~/power_*_${T}.json"      "$OUT/" 2>/dev/null || true
+    scp -o StrictHostKeyChecking=accept-new $(hka $H) "$U@$H:~/ids_raw_latency_*.csv" "$OUT/" 2>/dev/null || true
+    scp -o StrictHostKeyChecking=accept-new $(hka $H) "$U@$H:~/power_*_${T}.json"      "$OUT/" 2>/dev/null || true
   done
 }
 

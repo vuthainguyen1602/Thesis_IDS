@@ -152,7 +152,7 @@ sleep 3
 **Step 2 — Each Jetson: start worker** (SSH into **each** device separately)
 
 ```bash
-# On Jetson #1 (192.168.1.50) — also kills zombie ML drivers
+# On Jetson #1 (192.168.1.81) — also kills zombie ML drivers
 export SPARK_HOME=$(python3 -c "import pyspark; print(pyspark.__path__[0])")
 unset SPARK_MASTER SPARK_HOME
 $SPARK_HOME/sbin/stop-worker.sh 2>/dev/null || true
@@ -164,7 +164,7 @@ source cluster/load_cluster_env.sh
 # Expect: [OK] Worker started  →  spark://<MAC_IP>:7077 (4 cores, 5g)
 ```
 
-Repeat the same block on **Jetson #2** (`192.168.1.204`). Commands are identical; only the SSH target differs.
+Repeat the same block on **Jetson #2** (`192.168.1.39`). Commands are identical; only the SSH target differs.
 
 **Step 3 — Mac: health check**
 
@@ -565,7 +565,7 @@ Each experiment generates under `results/<experiment_name>/`:
 
 ### Cluster mode (Mac + 2 Jetsons)
 
-Training via `./cluster/run_ml_remote.sh` writes output on **Jetson #1** (`192.168.1.50`):
+Training via `./cluster/run_ml_remote.sh` writes output on **Jetson #1** (`192.168.1.81`):
 
 ```
 ~/Thesis_IDS/results/ml_01_baseline/
@@ -592,8 +592,8 @@ Then collect paper/thesis artifacts:
 
 **Split deployment (lab IPs):**
 - **Mac** (`192.168.1.165`): Spark master, Docker (Kafka, PostgreSQL, InfluxDB, Grafana), `ml_00`, `save_model.py`
-- **Jetson #1** (`192.168.1.50`): Spark worker, PySpark ML driver, `results/`, edge `anomaly_gate`
-- **Jetson #2** (`192.168.1.204`): Spark worker, edge `classifier`
+- **Jetson #1** (`192.168.1.81`): Spark worker, PySpark ML driver, `results/`, edge `anomaly_gate`
+- **Jetson #2** (`192.168.1.39`): Spark worker, edge `classifier`
 
 Jetson **does not need Docker** — set `.env` `KAFKA_BOOTSTRAP_SERVERS`, `POSTGRES_HOST`, `INFLUXDB_URL` to **MAC_IP**.
 

@@ -1,0 +1,31 @@
+{
+  "engines": [
+    {
+      "engine": "spark",
+      "samples": 10000,
+      "batch_size": 1000,
+      "throughput_rps": 134.5,
+      "latency_batch_p50_ms": 7426.56,
+      "latency_batch_p95_ms": 7862.99,
+      "idle_power_w": 4.82,
+      "avg_power_w": 6.92,
+      "active_power_w": 2.1,
+      "energy_active_per_inference_mj": 15.638
+    },
+    {
+      "engine": "onnx",
+      "samples": 10000,
+      "batch_size": 1000,
+      "throughput_rps": 25163.0,
+      "latency_batch_p50_ms": 36.73,
+      "latency_batch_p95_ms": 53.7,
+      "idle_power_w": 4.61,
+      "avg_power_w": 5.28,
+      "active_power_w": 0.67,
+      "energy_active_per_inference_mj": 0.027
+    }
+  ],
+  "agreement_pct": {
+    "spark_vs_onnx": 100.0
+  }
+}
