@@ -19,6 +19,7 @@
 
 \graphicspath{%
   {../../papers/soict2026/results/remeasure_20260930/}%
+  {../../papers/soict2026/results/batch_sweep_20261011/}%
   {../../papers/soict2026/results/benchmarks/}%
   {../../papers/soict2026/figures/}%
   {../../results/ml_08_anomaly_gate/}%
@@ -355,12 +356,17 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
     \bottomrule
   \end{tabular}
   }
-  \\[0.2em]{\scriptsize Ba bộ máy cho dự đoán giống nhau 100\%. mJ mỗi luồng:
-  năng lượng tăng thêm so với lúc bo nghỉ.}
+  \\[0.2em]{\scriptsize Lô 10 luồng, như khi triển khai; ba bộ máy cho dự đoán
+  giống nhau 100\%. mJ mỗi luồng: năng lượng tăng thêm so với lúc bo nghỉ. Mỗi
+  lần gọi Spark tốn $\approx$7\,giây với mọi lô tới 1.000 luồng, nên ở lô 10.000
+  khoảng cách chỉ còn $\approx$27 lần (slide dự phòng).}
   \takeaway{ONNX nhanh gấp \num{khoảng 7.200 lần} PySpark. Hướng tiếp theo:
   \key{huấn luyện bằng Spark, suy luận bằng ONNX/TensorRT}.}
   \note{Dùng Spark để suy luận là để cùng một bộ công cụ vừa huấn luyện trên
-  cụm vừa chạy trên thiết bị. Cái giá là JVM. Đo ở lô 10 luồng.}
+  cụm vừa chạy trên thiết bị. Cái giá là JVM. Đo ở lô 10 luồng. Nếu được hỏi
+  lô lớn hơn có khắc phục được không: mỗi lần gọi Spark tốn khoảng bảy giây dù
+  lô lớn hay nhỏ, nên ở lô mười nghìn luồng khoảng cách còn khoảng 27 lần,
+  nhưng ở 20 luồng mỗi giây phải chờ tám phút mới gom đủ một lô như vậy.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -442,6 +448,16 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
   \\[0.2em]
   \footnotesize Số phán quyết mỗi giây chịu được, mọi luồng xong trong 10 giây
   (trái); năng lượng mỗi phán quyết ở mức tải đó (phải).
+\end{frame}
+
+\begin{frame}{Dự phòng: Spark tốn ở mỗi lần gọi, không phải ở các cây}
+  \centering
+  \includegraphics[height=0.62\textheight, width=\textwidth, keepaspectratio]{batch_sweep_vi.png}
+  \\[0.2em]
+  \footnotesize Cùng khu rừng, cùng bo, lô từ 10 tới 10.000 luồng. Một lần gọi
+  PySpark mất 7,1--7,4\,giây tới lô 1.000 và 9,5\,giây ở lô 10.000; ONNX bão
+  hòa quanh 28.000 luồng/giây. Khoảng cách giảm từ $\approx$7.200 lần (lô 10)
+  xuống $\approx$27 lần (lô 10.000).
 \end{frame}
 
 \begin{frame}{Dự phòng: đường cong vận hành của cổng lọc}
