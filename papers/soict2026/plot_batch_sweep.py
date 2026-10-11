@@ -9,7 +9,7 @@ to return energy; the short ONNX runs in batch_<n>.json are only used to check
 that Spark and ONNX agree.
 
     python papers/soict2026/plot_batch_sweep.py
-    python papers/soict2026/plot_batch_sweep.py --vi thesis/img/batch_sweep_vi.png
+    python papers/soict2026/plot_batch_sweep.py --vi thesis/img/batch_sweep_vi.png --two-rows
 """
 import argparse
 import glob
@@ -50,6 +50,8 @@ def load() -> pd.DataFrame:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--vi", metavar="OUT", help="Vietnamese labels, written to OUT")
+    ap.add_argument("--two-rows", action="store_true",
+                    help="two panels on top, one centred below (legible at A4 text width)")
     args = ap.parse_args()
     lang = "vi" if args.vi else "en"
     df = load()
@@ -58,7 +60,12 @@ def main():
     print(table.round(3))
     table.to_csv(os.path.join(D, "batch_sweep_table.csv"))
 
-    fig, axes = plt.subplots(1, 3, figsize=(11, 3.3))
+    if args.two_rows:
+        fig = plt.figure(figsize=(8, 6.2))
+        gs = fig.add_gridspec(2, 4)
+        axes = [fig.add_subplot(gs[0, 0:2]), fig.add_subplot(gs[0, 2:4]), fig.add_subplot(gs[1, 1:3])]
+    else:
+        fig, axes = plt.subplots(1, 3, figsize=(11, 3.3))
     cols = ("batch_p50_s", "throughput_rps", "energy_active_per_inference_mj")
     for ax, col, title in zip(axes, cols, TITLES[lang]):
         for eng in ("spark", "onnx"):
