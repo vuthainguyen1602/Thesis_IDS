@@ -20,8 +20,8 @@ Step-by-step for **distributed cluster mode** (Mac + 2× Jetson Orin Nano Super 
 | Node | IP | Role |
 |------|-----|------|
 | Mac | `192.168.1.165` | Spark Master, Docker, sync/pull |
-| Jetson #1 | `192.168.1.50` | Worker + ML driver, `results/` |
-| Jetson #2 | `192.168.1.204` | Worker, edge classifier |
+| Jetson #1 | `192.168.1.81` | Worker + ML driver, `results/` |
+| Jetson #2 | `192.168.1.39` | Worker, edge classifier |
 
 ---
 
@@ -79,7 +79,7 @@ sleep 3
 ### Step 2 — Jetson #1: start worker
 
 ```bash
-ssh <user>@192.168.1.50
+ssh <user>@192.168.1.81
 
 export SPARK_HOME=$(python3 -c "import pyspark; print(pyspark.__path__[0])")
 unset SPARK_MASTER
@@ -102,7 +102,7 @@ Expected output:
 
 ### Step 3 — Jetson #2: start worker
 
-Same commands as Step 2, but SSH to `192.168.1.204`.
+Same commands as Step 2, but SSH to `192.168.1.39`.
 
 ### Step 4 — Mac: verify cluster
 
@@ -118,7 +118,7 @@ Open http://192.168.1.165:8080 — expect:
 Connectivity check from Jetson:
 
 ```bash
-ssh <user>@192.168.1.50 "ping -c 2 192.168.1.165 && nc -zv 192.168.1.165 7077"
+ssh <user>@192.168.1.81 "ping -c 2 192.168.1.165 && nc -zv 192.168.1.165 7077"
 ```
 
 ### Step 5 — Mac: run everything (one command)
