@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Record the live Grafana edge dashboard as timestamped frames with headless Chrome.
+"""Record a live web page (by default the Grafana edge dashboard) as timestamped frames.
 
 Logs in with Grafana's basic auth (the local Docker stack's admin account, see
 jetson/docker-compose.yml), opens the dashboard in kiosk mode on a rolling
@@ -26,6 +26,11 @@ def main():
     ap.add_argument("--seconds", type=float, required=True)
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--fps", type=float, default=2.0)
+    ap.add_argument("--url", default=DASH, help="page to record (default: the Grafana edge dashboard)")
+    ap.add_argument("--reload-every", type=float, default=0,
+                    help="reload the page every N seconds (pages without auto-refresh, e.g. Spark UI)")
+    ap.add_argument("--until-file", default=None,
+                    help="stop early once this file exists (e.g. when a training job ends)")
     ap.add_argument("--user", default=os.environ.get("GRAFANA_USER", "admin"))
     ap.add_argument("--password", default=os.environ.get("GRAFANA_PASSWORD", "admin"))
     args = ap.parse_args()
@@ -39,16 +44,22 @@ def main():
         ctx = browser.new_context(viewport={"width": 1920, "height": 1080},
                                   extra_http_headers={"Authorization": f"Basic {token}"})
         page = ctx.new_page()
-        page.goto(DASH, wait_until="networkidle")
+        page.goto(args.url, wait_until="networkidle")
         start = time.time()
         print(f"[rec] recording from {start:.0f} for {args.seconds:.0f}s", flush=True)
         i = 0
-        while time.time() - start < args.seconds:
-            t = time.time()
-            page.screenshot(path=os.path.join(frames, f"{i:05d}.png"))
-            stamps.append(t)
-            i += 1
-            time.sleep(max(0.0, 1.0 / args.fps - (time.time() - t)))
+        try:
+            while time.time() - start < args.seconds and not (
+                    args.until_file and os.path.exists(args.until_file)):
+                t = time.time()
+                page.screenshot(path=os.path.join(frames, f"{i:05d}.png"))
+                stamps.append(t)
+                i += 1
+                time.sleep(max(0.0, 1.0 / args.fps - (time.time() - t)))
+                if args.reload_every and i % int(args.reload_every * args.fps) == 0:
+                    page.reload(wait_until="domcontentloaded")
+        except Exception as e:  # e.g. the recorded page went away (job UI after the job ends)
+            print(f"[rec] stopped: {e}", flush=True)
         browser.close()
     # ffconcat with per-frame durations taken from the real capture times
     with open(os.path.join(args.out_dir, "frames.txt"), "w") as f:

@@ -33,6 +33,7 @@ TITLES = {
     "5": "Bước 5 · Phát lại luồng CICIDS2017 qua Kafka — log trực tiếp trên hai Jetson",
     "grafana": "Kết quả · Bảng điều khiển Grafana theo dõi hệ thống theo thời gian thực",
     "6": "Bước 6 · Dừng hệ thống (Ctrl+C): thống kê cuối của từng nút",
+    "7": "Bước 7 · Kiểm chứng: đối chiếu từng phán quyết đã lưu với nhãn thật của CICIDS2017",
 }
 GRAFANA_CAPTION = ("Thông lượng phán quyết, số tấn công phát hiện, độ trễ suy luận, CPU/RAM từng Jetson "
                    "và cảnh báo mới nhất được cập nhật trực tiếp")
@@ -287,8 +288,11 @@ def main():
         if e["kind"] in ("cmd", "out"):
             panes[e["pane"]].add(e)
     grafana_scene(r, args.dir, tr["t0"], mark["send_start"] + args.live_seconds, mark["record_end"])
-    s, end = schedule(until_shutdown(steps_between("6", "__end__")), cap=0.8)
+    s, end = schedule(until_shutdown(steps_between("6", "7")), cap=0.8)
     terminal_scene(r, TITLES["6"], panes, three, s, end, 17, hold=5)
+    if any(e["kind"] == "step" and e["text"] == "7" for e in ev):
+        s, end = schedule(steps_between("7", "__end__"), cap=1.0)
+        terminal_scene(r, TITLES["7"], panes, full, s, end, 20, hold=8)
     r.close()
     print(f"[render] {out} ({r.frames / FPS:.0f} s)")
 

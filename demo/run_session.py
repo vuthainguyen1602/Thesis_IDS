@@ -81,6 +81,45 @@ def start_node(tr, pane, host, exports, launch, ready):
     return p, th, ev
 
 
+def mark_time(tr, name):
+    return next(e["t"] for e in tr.events if e["kind"] == "mark" and e["text"] == name)
+
+
+def verify_step(tr, t_from, t_to):
+    """Step 7: count the stored verdicts, then check them against the replay labels."""
+    tr.add("host", "step", "7")
+    sql = ("SELECT raw_features->>'route' AS route, prediction, count(*) FROM predictions "
+           f"WHERE (raw_features->>'sent_ts')::float BETWEEN {t_from:.0f} AND {t_to:.0f} "
+           "GROUP BY 1, 2 ORDER BY 1, 2;")
+    run_host(tr, f'docker exec ids-postgres psql -U ids -d ids_edge -c "{sql}"',
+             ["docker", "exec", "ids-postgres", "psql", "-U", "ids", "-d", "ids_edge", "-c", sql])
+    run_host(tr, f"python ../demo/verify_run.py --from {t_from:.0f} --to {t_to:.0f}",
+             ["python", os.path.join(ROOT, "demo", "verify_run.py"),
+              "--from", f"{t_from:.0f}", "--to", f"{t_to:.0f}"])
+
+
+def append_verify(session_dir):
+    """Add step 7 to an existing session's transcript (run after the fact)."""
+    path = os.path.join(session_dir, "transcript.json")
+    data = json.load(open(path))
+    tr = Transcript()
+    tr.t0, tr.events = data["t0"], data["events"]
+    tr.events = [e for e in tr.events if not (e["kind"] == "step" and e["text"] == "7")]
+    last = tr.events[-1]["t"]
+    t_from = tr.t0 + mark_time(tr, "send_start") - 1
+    t_to = tr.t0 + mark_time(tr, "send_end") + 1
+    start = len(tr.events)
+    verify_step(tr, t_from, t_to)
+    # the step ran later; keep its own pacing but place it right after the session
+    shift = tr.events[start]["t"] - (last + 1.0)
+    for e in tr.events[start:]:
+        e["t"] = round(e["t"] - shift, 3)
+    data["events"] = tr.events
+    data["meta"]["verify_appended_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    json.dump(data, open(path, "w"), ensure_ascii=False, indent=1)
+    print(f"[session] step 7 appended to {path}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -89,7 +128,11 @@ def main():
     ap.add_argument("--rate", type=int, default=15)
     ap.add_argument("--send-seconds", type=float, default=150)
     ap.add_argument("--tail-seconds", type=float, default=40)
+    ap.add_argument("--append-verify", action="store_true",
+                    help="only add step 7 (verification) to the session in --out")
     args = ap.parse_args()
+    if args.append_verify:
+        return append_verify(args.out)
     os.makedirs(args.out, exist_ok=True)
 
     mac_ip = subprocess.run(["ipconfig", "getifaddr", "en0"], capture_output=True,
@@ -165,6 +208,7 @@ def main():
         node[1].join(60)
         node[0].terminate()
 
+    verify_step(tr, tr.t0 + mark_time(tr, "send_start") - 1, tr.t0 + mark_time(tr, "send_end") + 1)
     tr.save(os.path.join(args.out, "transcript.json"),
             {"mac_ip": mac_ip, "j1": args.j1, "j2": args.j2, "rate": args.rate,
              "send_seconds": args.send_seconds})
