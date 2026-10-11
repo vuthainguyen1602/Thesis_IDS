@@ -1,0 +1,46 @@
+=== onnx energy, batch 10, 1000 rows x 270 ===
+[0;93m2026-10-11 17:22:00.410455652 [W:onnxruntime:Default, device_discovery.cc:164 DiscoverDevicesForPlatform] GPU device discovery failed: device_discovery.cc:89 ReadFileContents Failed to open file: "/sys/class/drm/card1/device/vendor"[m
+[OK] ONNX model loaded from /home/bvdung/Thesis_IDS/jetson/model/ids_rf.onnx
+  Providers: ['CPUExecutionProvider'] | features: 30
+[OK] Feature columns loaded: 30 features
+{'engine': 'onnx', 'samples': 270000, 'batch_size': 10, 'throughput_rps': 10159.5, 'latency_batch_p50_ms': 0.99, 'latency_batch_p95_ms': 1.15, 'idle_power_w': 4.65, 'avg_power_w': 5.47, 'active_power_w': 0.82, 'energy_active_per_inference_mj': 0.081}
+prediction agreement (%): {}
+[OK] -> results/batch_sweep_20261011/batch_10_onnx_energy.json
+=== onnx energy, batch 100, 2000 rows x 335 ===
+[0;93m2026-10-11 17:22:32.748970327 [W:onnxruntime:Default, device_discovery.cc:164 DiscoverDevicesForPlatform] GPU device discovery failed: device_discovery.cc:89 ReadFileContents Failed to open file: "/sys/class/drm/card1/device/vendor"[m
+[OK] ONNX model loaded from /home/bvdung/Thesis_IDS/jetson/model/ids_rf.onnx
+  Providers: ['CPUExecutionProvider'] | features: 30
+[OK] Feature columns loaded: 30 features
+{'engine': 'onnx', 'samples': 670000, 'batch_size': 100, 'throughput_rps': 25987.3, 'latency_batch_p50_ms': 3.68, 'latency_batch_p95_ms': 4.18, 'idle_power_w': 4.68, 'avg_power_w': 7.45, 'active_power_w': 2.77, 'energy_active_per_inference_mj': 0.107}
+prediction agreement (%): {}
+[OK] -> results/batch_sweep_20261011/batch_100_onnx_energy.json
+=== onnx energy, batch 1000, 10000 rows x 120 ===
+[0;93m2026-10-11 17:23:04.667931182 [W:onnxruntime:Default, device_discovery.cc:164 DiscoverDevicesForPlatform] GPU device discovery failed: device_discovery.cc:89 ReadFileContents Failed to open file: "/sys/class/drm/card1/device/vendor"[m
+[OK] ONNX model loaded from /home/bvdung/Thesis_IDS/jetson/model/ids_rf.onnx
+  Providers: ['CPUExecutionProvider'] | features: 30
+[OK] Feature columns loaded: 30 features
+{'engine': 'onnx', 'samples': 1200000, 'batch_size': 1000, 'throughput_rps': 27280.5, 'latency_batch_p50_ms': 36.3, 'latency_batch_p95_ms': 38.43, 'idle_power_w': 4.71, 'avg_power_w': 6.48, 'active_power_w': 1.77, 'energy_active_per_inference_mj': 0.065}
+prediction agreement (%): {}
+[OK] -> results/batch_sweep_20261011/batch_1000_onnx_energy.json
+=== onnx energy, batch 10000, 10000 rows x 120 ===
+[0;93m2026-10-11 17:23:54.843239069 [W:onnxruntime:Default, device_discovery.cc:164 DiscoverDevicesForPlatform] GPU device discovery failed: device_discovery.cc:89 ReadFileContents Failed to open file: "/sys/class/drm/card1/device/vendor"[m
+[OK] ONNX model loaded from /home/bvdung/Thesis_IDS/jetson/model/ids_rf.onnx
+  Providers: ['CPUExecutionProvider'] | features: 30
+[OK] Feature columns loaded: 30 features
+{'engine': 'onnx', 'samples': 1200000, 'batch_size': 10000, 'throughput_rps': 28588.7, 'latency_batch_p50_ms': 347.35, 'latency_batch_p95_ms': 357.31, 'idle_power_w': 4.6, 'avg_power_w': 5.72, 'active_power_w': 1.12, 'energy_active_per_inference_mj': 0.039}
+prediction agreement (%): {}
+[OK] -> results/batch_sweep_20261011/batch_10000_onnx_energy.json
+engine,batch_size,samples,throughput_rps,latency_batch_p50_ms,latency_batch_p95_ms,energy_active_per_inference_mj
+onnx,10,1000,9146.7,1.06,1.34,None
+onnx,10,270000,10159.5,0.99,1.15,0.081
+onnx,100,2000,22358.7,3.81,6.43,None
+onnx,100,670000,25987.3,3.68,4.18,0.107
+onnx,1000,10000,25163.0,36.73,53.7,0.027
+onnx,1000,1200000,27280.5,36.3,38.43,0.065
+onnx,10000,50000,27847.5,354.34,376.95,0.029
+onnx,10000,1200000,28588.7,347.35,357.31,0.039
+spark,10,1000,1.4,7086.35,7439.78,1428.59
+spark,100,2000,14.2,7137.96,7399.05,143.835
+spark,1000,10000,134.5,7426.56,7862.99,15.638
+spark,10000,50000,1046.0,9498.08,10161.1,1.997
+

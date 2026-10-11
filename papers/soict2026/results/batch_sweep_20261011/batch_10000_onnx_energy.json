@@ -1,0 +1,17 @@
+{
+  "engines": [
+    {
+      "engine": "onnx",
+      "samples": 1200000,
+      "batch_size": 10000,
+      "throughput_rps": 28588.7,
+      "latency_batch_p50_ms": 347.35,
+      "latency_batch_p95_ms": 357.31,
+      "idle_power_w": 4.6,
+      "avg_power_w": 5.72,
+      "active_power_w": 1.12,
+      "energy_active_per_inference_mj": 0.039
+    }
+  ],
+  "agreement_pct": {}
+}

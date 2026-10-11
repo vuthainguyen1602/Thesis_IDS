@@ -1,0 +1,7 @@
+,batch_p50_s,batch_p50_s,throughput_rps,throughput_rps,energy_active_per_inference_mj,energy_active_per_inference_mj
+engine,onnx,spark,onnx,spark,onnx,spark
+batch_size,,,,,,
+10,0.00099,7.08635,10159.5,1.4,0.081,1428.59
+100,0.00368,7.13796,25987.3,14.2,0.107,143.835
+1000,0.0363,7.42656,27280.5,134.5,0.065,15.638
+10000,0.34735000000000005,9.49808,28588.7,1046.0,0.039,1.997
