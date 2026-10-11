@@ -4,7 +4,8 @@
 Same approach as render_demo.py: every command and output line is replayed
 from the recorded transcript (long waits shortened), and the Spark UIs are
 shown from the frames recorded during the run; the job UI is sped up and the
-speed-up is stated on screen.
+speed-up is stated on screen. One output line is hidden: "Model Size", which is
+mismeasured in cluster mode (see main()).
 
     python demo/render_demo_a.py demo/out/phaseA_<tag> [--out video.mp4]
 """
@@ -111,7 +112,10 @@ def main():
              "Spark Master UI (máy chủ, cổng 8080): hai worker Jetson ở trạng thái ALIVE, sẵn sàng nhận job",
              max_seconds=8)
 
-    train = between("4", "__end__")
+    # Hidden line: in cluster mode model.save() writes the tree data to each
+    # executor's local disk (no shared filesystem), so get_model_size() on the
+    # driver measures only the metadata (0.028 MB) instead of the model (~4.4 MB).
+    train = [e for e in between("4", "__end__") if not e["text"].strip().startswith("Model Size:")]
     cut = next((i for i, e in enumerate(train) if "TRAINING:" in e["text"]), len(train) - 1)
     first, rest = train[:cut + 3], train[cut + 3:]
     s, end = rd.schedule(first, cap=1.0)
