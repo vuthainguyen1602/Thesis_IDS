@@ -25,6 +25,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 D = os.path.join(HERE, "results", "batch_sweep_20261011")
 COLORS = {"spark": "#2a78d6", "onnx": "#eb6834"}
 LABELS = {"spark": "PySpark (deployed)", "onnx": "ONNX Runtime"}
+LABELS_VI = {"spark": "PySpark (đang triển khai)", "onnx": "ONNX Runtime"}
 TITLES = {"en": ("Time per batch, p50 (s)", "Throughput (flows/s)", "Active energy per flow (mJ)"),
           "vi": ("Thời gian mỗi batch, p50 (s)", "Thông lượng (luồng/s)", "Năng lượng mỗi luồng (mJ)")}
 XLABEL = {"en": "Batch size (flows)", "vi": "Kích thước batch (luồng)"}
@@ -63,7 +64,7 @@ def main():
         for eng in ("spark", "onnx"):
             g = df[df["engine"] == eng]
             ax.plot(g["batch_size"], g[col], marker="o", markersize=5, linewidth=2,
-                    color=COLORS[eng], label=LABELS[eng])
+                    color=COLORS[eng], label=(LABELS_VI if args.vi else LABELS)[eng])
         ax.set_xscale("log")
         ax.set_yscale("log")
         ax.set_title(title, fontsize=10)
