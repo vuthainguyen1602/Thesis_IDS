@@ -857,6 +857,15 @@ ONNX Runtime         & \textbf{10.092} & \textbf{1{,}2} & \textbf{0{,}087} \\
 \end{tabular*}
 \end{table}
 
+\textbf{Ảnh hưởng của kích thước lô.} Để kiểm chứng rằng chi phí của PySpark nằm ở mỗi lần gọi chứ không ở việc duyệt cây, cùng mô hình được chạy lại với lô 10, 100, 1.000 và 10.000 luồng (Hình~\ref{fig:batch_sweep}). Thời gian một lô qua PySpark gần như không đổi: 7{,}1\,s ở lô 10, 7{,}4\,s ở lô 1.000, và chỉ tăng lên 9{,}5\,s ở lô 10.000. Vì vậy thông lượng PySpark tăng gần đúng tỷ lệ với kích thước lô, từ 1{,}4 lên 1.046 luồng/giây, trong khi công suất hoạt động giữ ở 2{,}0--2{,}1\,W. ONNX Runtime bão hòa quanh 26.000--28.600 luồng/giây từ lô 100 trở lên. Do đó tỷ lệ $\approx$7.200 lần nêu trên gắn với lô 10, đúng cấu hình đang triển khai; ở lô 10.000 khoảng cách chỉ còn khoảng 27 lần. Hệ thống phát hiện xâm nhập dạng luồng lại không thể dùng lô lớn để bù: ở 20 luồng/giây, gom đủ 10.000 luồng mất hơn 8 phút. Năng lượng của ONNX dao động giữa các lượt đo đơn (0{,}04--0{,}11\,mJ/luồng) và không giảm đều theo kích thước lô, nên chỉ bậc độ lớn của nó có ý nghĩa.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{img/batch_sweep_vi.png}
+    \caption[Chi phí suy luận theo kích thước lô: PySpark và ONNX Runtime]{Thời gian mỗi lô (p50), thông lượng và năng lượng hoạt động mỗi luồng của cùng một rừng ngẫu nhiên qua PySpark và ONNX Runtime theo kích thước lô (Jetson~\#2, mỗi điểm một lượt đo, dự đoán trùng nhau 100\%; trục log)}
+    \label{fig:batch_sweep}
+\end{figure}
+
 \subsection{Kết quả ba chế độ triển khai phân tán}
 
 Ngoài việc so sánh engine trên một nút, luận văn đánh giá ba chế độ triển khai phân tán trên cụm hai Jetson Orin Nano Super, cùng hai cấu hình một nút làm cơ sở: một nút chạy toàn bộ pipeline không có cổng, và một nút chạy cả cổng lẫn bộ phân loại (Bảng~\ref{tab:edge_modes}). Ở chế độ B (mở rộng theo chiều ngang), mỗi nút chạy vai trò \texttt{full} không có cổng, đúng như cấu hình đã dùng trong các lượt đo trước.
