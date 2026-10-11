@@ -139,3 +139,6 @@ output/run_all_logs/
 *.bcf
 *.run.xml
 run_all_logs/
+
+# Demo recording frames and intermediate files (demo/record_demo.sh)
+demo/out/

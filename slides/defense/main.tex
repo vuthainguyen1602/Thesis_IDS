@@ -8,7 +8,8 @@
 %   I    Đặt vấn đề, mục tiêu, 3 RQ ......... 2,5 phút  (2 slide)
 %   II   Phương pháp ....................... 3   phút  (3 slide)
 %   III  Kết quả offline (FAIR) ............ 4,5 phút  (5 slide)
-%   IV   Kết quả triển khai biên (SOICT) ... 3   phút  (2 slide)
+%   IV   Kết quả triển khai biên (SOICT) ... 3   phút  (2 slide) + slide Demo
+%        (video 6 phút: chiếu đủ nếu được phép, hoặc trích đoạn, xem \note)
 %   V    Trả lời RQ và kết luận ............ 2   phút  (4 slide)
 % Các slide sau \appendix là DỰ PHÒNG cho phần hỏi đáp.
 % Ghi chú cho người trình bày nằm trong \note{} — dựng bằng NOTES=1.
@@ -565,6 +566,40 @@
   chỉ đi từ 7,1 lên 9,5 giây. Con số 7.200 lần gắn với lô 10, đúng cấu hình
   đang chạy. Nếu hội đồng hỏi sao không tăng lô: ở 20 luồng/giây phải chờ hơn
   8 phút mới gom đủ 10.000 luồng --- xem Q14.}
+\end{frame}
+
+\begin{frame}{Demo --- Hệ thống chạy thật trên cụm hai Jetson}
+  \footnotesize
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Video 1 · Pha A: huấn luyện phân tán (1:36)}
+      \begin{enumerate}
+        \item Spark Master + Worker trên hai Jetson
+        \item Random Forest, SHAP Top-30, \key{toàn bộ} 1,79 triệu mẫu
+        \item Spark UI: job chạy trên cả hai bo
+      \end{enumerate}
+      Kết quả: \good{F1 0,9957}, AUC-ROC 0,9999, huấn luyện 857\,s.\\[0.2em]
+      \href{run:../videos/LuanVan_demo_phaseA.mp4}{\key{$\blacktriangleright$ Mở video pha A}}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Video 2 · Pha B: triển khai biên (4:36)}
+      \begin{enumerate}
+        \item Hạ tầng Kafka/PostgreSQL/Grafana, cổng lọc (\#1), PySpark (\#2)
+        \item Phát lại CICIDS2017 $\rightarrow$ log trực tiếp $\rightarrow$ Grafana
+        \item Đối chiếu từng phán quyết với nhãn thật
+      \end{enumerate}
+      2.097 luồng: bỏ qua 88,8\%, \good{recall 68,9\%}, \good{0 báo động giả}.\\[0.2em]
+      \href{run:../videos/LuanVan_demo.mp4}{\key{$\blacktriangleright$ Mở video pha B}}
+    \end{column}
+  \end{columns}
+  \takeaway{Lệnh và kết quả ghi từ \key{một lần chạy thật} (11/10/2026); số liệu khớp KQ1 và KQ6.}
+  \note{Hai video dài khoảng 6 phút, vượt ngân sách 15 phút nếu chiếu hết. Nếu
+  hội đồng cho phép, chiếu đủ cả hai (lời thuyết minh: demo/LoiThuyetMinh.md).
+  Nếu thiếu giờ: pha A chiếu 0:37--1:36 (gửi job đến kết quả); pha B chiếu
+  0:58--1:44 (log trực tiếp) rồi tua đến 4:14--4:36 (thống kê cuối và kiểm
+  chứng). Link mở video chỉ chạy khi trình chiếu file trong output/pdfs/
+  (video nằm ở output/videos/); nếu trình xem PDF chặn link, mở video bằng tay.
+  Recall 68,9\% của demo khớp 69,6\% ở KQ6; F1 0,9957 khớp mô hình triển khai.}
 \end{frame}
 
 % =====================================================================
