@@ -47,7 +47,7 @@ COOL=${COOL:-120}
 DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$DIR/../.." && pwd)"
 MACJ="$ROOT/jetson"
-OUT="${OUT_DIR:-$DIR/results/benchmarks}"; mkdir -p "$OUT"
+OUT="${OUT_DIR:-$DIR/results/benchmarks}"; mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"  # absolute: python steps cd elsewhere
 CSV_ABS="$MACJ/sender/replay_cicids2017.csv"
 ts() { date +%Y%m%d_%H%M%S; }
 
