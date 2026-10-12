@@ -1,0 +1,14 @@
+{
+  "benchmark_type": "send",
+  "duration_s": 45,
+  "requested_rate_rps": 5,
+  "elapsed_s": 45.83,
+  "interrupted_after_timeout": false,
+  "rows_sent": 226,
+  "measured_rate_rps": 5.02,
+  "sender_stopped_by": "duration",
+  "csv_path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/sender/replay_cicids2017.csv",
+  "topic": "ids-network-flow",
+  "broker": "localhost:9092",
+  "timestamp": "2026-10-12T15:25:58.313935+00:00"
+}

@@ -1,0 +1,2 @@
+192.168.1.81: 1 temp=52468mC load=0.47 0.40 0.53 mem_used=832MB iwconfig=Bit Rate=175.5 Mb/s
+192.168.1.39: 1 temp=52187mC load=0.10 0.23 0.18 mem_used=2466MB iwconfig=Bit Rate=351 Mb/s

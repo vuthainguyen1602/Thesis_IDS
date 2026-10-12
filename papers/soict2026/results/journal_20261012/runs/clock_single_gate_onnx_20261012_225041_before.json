@@ -1,0 +1,37 @@
+{
+  "taken_at": 1791820260.737545,
+  "hosts": [
+    {
+      "host": "192.168.1.81",
+      "target": "bvdung@192.168.1.81",
+      "taken_at": 1791820246.310807,
+      "offset_s": 0.386059,
+      "error_bound_s": 0.001971,
+      "ssh_rtt_min_ms": 3.94,
+      "ssh_rtt_median_ms": 6.04,
+      "samples": 40,
+      "ping_rtt_min_ms": 3.5,
+      "ping_rtt_avg_ms": 5.974,
+      "ping_rtt_max_ms": 29.2,
+      "ping_rtt_stddev_ms": 5.364,
+      "ping_loss_pct": 0.0,
+      "ping_count": 20
+    },
+    {
+      "host": "192.168.1.39",
+      "target": "bvdung@192.168.1.39",
+      "taken_at": 1791820253.434135,
+      "offset_s": 0.385485,
+      "error_bound_s": 0.001784,
+      "ssh_rtt_min_ms": 3.57,
+      "ssh_rtt_median_ms": 4.79,
+      "samples": 40,
+      "ping_rtt_min_ms": 3.924,
+      "ping_rtt_avg_ms": 5.5,
+      "ping_rtt_max_ms": 13.949,
+      "ping_rtt_stddev_ms": 2.268,
+      "ping_loss_pct": 0.0,
+      "ping_count": 20
+    }
+  ]
+}
