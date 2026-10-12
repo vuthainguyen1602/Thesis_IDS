@@ -57,6 +57,19 @@ from config import (
 )
 
 
+# Deployment modes the orchestrator (papers/soict2026/run_dist_bench.sh) knows.
+# The name is a label stored with each run; the pipelines are started by the
+# orchestrator. "_1board" = gate and classifier as two processes on one board,
+# "_gate" = the full pipeline with the anomaly gate inline, "_onnx" = the
+# classifier runs on ONNX Runtime instead of PySpark.
+DEPLOY_MODES = [
+    "single", "single_gate", "split", "horizontal", "spark_cluster",
+    "split_1board", "horizontal_gate",
+    "single_onnx", "single_gate_onnx", "split_1board_onnx",
+    "split_onnx", "horizontal_onnx", "horizontal_gate_onnx",
+]
+
+
 def detect_device_name() -> str:
     env = os.getenv("EDGE_DEVICE_NAME")
     if env:
@@ -179,11 +192,16 @@ def send_kafka_traffic(duration_s: int, rate: int, csv_path: str | None, topic: 
         raise FileNotFoundError(f"CSV not found: {csv_path}. Set DATA_CSV_PATH in .env")
 
     sender = os.path.join(os.path.dirname(os.path.dirname(__file__)), "sender", "data_sender.py")
+    # The sender stops itself after --duration and loops the CSV when the
+    # window needs more rows than the file holds; its last line reports the
+    # rows actually sent (the analysis prefers that to max(row)+1).
     cmd = [
         sys.executable,
         sender,
         "--csv", csv_path,
         "--rate", str(rate),
+        "--duration", str(duration_s),
+        "--loop",
         "--broker", KAFKA_BOOTSTRAP_SERVERS,
         "--topic", topic,
     ]
@@ -191,20 +209,30 @@ def send_kafka_traffic(duration_s: int, rate: int, csv_path: str | None, topic: 
     start = time.time()
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     try:
-        proc.wait(timeout=duration_s)
+        out, _ = proc.communicate(timeout=duration_s + 30)
         interrupted = False
     except subprocess.TimeoutExpired:
         proc.terminate()
-        proc.wait(timeout=5)
+        out, _ = proc.communicate(timeout=10)
         interrupted = True
 
     elapsed = time.time() - start
+    sender_result = {}
+    for line in (out or "").splitlines():
+        if line.startswith("SENDER_RESULT "):
+            try:
+                sender_result = json.loads(line[len("SENDER_RESULT "):])
+            except json.JSONDecodeError:
+                pass
     return {
         "benchmark_type": "send",
         "duration_s": duration_s,
         "requested_rate_rps": rate,
         "elapsed_s": round(elapsed, 2),
         "interrupted_after_timeout": interrupted,
+        "rows_sent": sender_result.get("rows_sent"),
+        "measured_rate_rps": sender_result.get("rate_rps"),
+        "sender_stopped_by": sender_result.get("stopped_by"),
         "csv_path": csv_path,
         "topic": topic,
         "broker": KAFKA_BOOTSTRAP_SERVERS,
@@ -501,6 +529,25 @@ def collect_metrics(window_minutes: int, deploy_mode: str,
     }
 
 
+def clock_snapshot(n: int = 20) -> dict | None:
+    """Board-minus-sender clock offsets (scripts/clock_offset.py) for the
+    targets in CLOCK_TARGETS ("user@host[:hostkey_alias] ..."). Taken right
+    before and after every load window so the end-to-end latency can be
+    corrected per repeat; the sender host's clock has been seen to step by
+    0.2-0.5 s between windows."""
+    targets = os.getenv("CLOCK_TARGETS", "").split()
+    if not targets:
+        return None
+    script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "clock_offset.py")
+    try:
+        out = subprocess.run([sys.executable, script, "-n", str(n), "--ping", "0"] + targets,
+                             capture_output=True, text=True, timeout=120).stdout
+        return json.loads(out)
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError) as exc:
+        print(f"[WARN] clock snapshot failed: {exc}")
+        return None
+
+
 def run_end_to_end(
     deploy_mode: str,
     duration_s: int,
@@ -513,6 +560,7 @@ def run_end_to_end(
     # Warmup MUST be representative load, not an idle sleep: JVM/JIT and Spark
     # code paths only warm up under traffic. Warmup samples are excluded from
     # the measured window below (they fall before load_start).
+    clock_before = clock_snapshot()
     warmup_info = None
     if warmup_s > 0:
         print(f"\n[WARMUP] Sending {warmup_s}s of warmup traffic at {rate} flows/s "
@@ -526,6 +574,7 @@ def run_end_to_end(
     print(f"\n[WAIT] Draining metrics (load window "
           f"{epoch_to_rfc3339(load_start)} .. {epoch_to_rfc3339(load_end)})...")
     time.sleep(min(30, window_minutes * 10))
+    clock_after = clock_snapshot()
 
     collect_info = collect_metrics(
         window_minutes, deploy_mode,
@@ -539,6 +588,8 @@ def run_end_to_end(
         "send": send_info,
         "load_start_epoch": load_start,
         "load_end_epoch": load_end,
+        "clock_before": clock_before,
+        "clock_after": clock_after,
         "collect": collect_info,
         "timestamp": utc_now_iso(),
         "node_id": EDGE_NODE_ID,
@@ -709,6 +760,10 @@ def cmd_run(args: argparse.Namespace) -> None:
         payload["repeat_index"] = rep
         if args.repeats > 1 or not args.output:
             out = default_output_path(f"run_{args.mode}_rep{rep}")
+            if args.output:
+                # Keep every repeat next to the requested output file.
+                out = os.path.join(os.path.dirname(os.path.abspath(args.output)),
+                                   os.path.basename(out))
         else:
             out = args.output
         save_json(payload, out)
@@ -796,7 +851,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_collect.set_defaults(func=cmd_collect)
 
     p_run = sub.add_parser("run", help="Warmup (real load) + send + collect (distributed)")
-    p_run.add_argument("--mode", choices=["single", "single_gate", "split", "horizontal", "spark_cluster"], default="split")
+    p_run.add_argument("--mode", choices=DEPLOY_MODES, default="split")
     p_run.add_argument("--duration", type=int, default=60)
     p_run.add_argument("--rate", type=int, default=100)
     p_run.add_argument("--warmup", type=int, default=30,
