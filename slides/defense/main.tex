@@ -500,13 +500,13 @@
 \section{IV.\ KẾT QUẢ 2 --- TRIỂN KHAI PHÂN TÁN TRÊN CỤM BIÊN}
 % =====================================================================
 
-\begin{frame}{KQ6 --- Tách pipeline: năng lực gấp 9 lần một nút}
+\begin{frame}{KQ6 --- Tách pipeline: thông lượng gấp 9 lần một nút}
   \centering\footnotesize
   \fitwidth{%
   \begin{tabular}{lccccc}
     \toprule
     Chế độ & Số bo & Duy trì được & Độ trễ p50 / p95 & Bỏ qua ở cổng & Năng lượng \\
-           &       & (luồng/giây) & (giây)           & (\%)          & (J/phán quyết) \\
+           &       & (luồng/giây) & (giây)           & (\%)          & (J/dự đoán) \\
     \midrule
     Một nút, không cổng       & 1 & 2,5  & 5,9 / 11,3 & --   & 3,04 \\
     Một nút + cổng            & 1 & $\approx$2,5  & 3,8 / 7,8  & 89,0 & 3,04 \\
@@ -519,20 +519,20 @@
   \par\vspace{0.4em}
   \raggedright\small
   \begin{itemize}
-    \item \emph{Duy trì được} = tốc độ cao nhất mà \key{mọi luồng} đều có phán
-          quyết trong 10\,giây; độ trễ tính từ lúc gửi, \key{gồm cả thời gian
+    \item \emph{Duy trì được} = tốc độ cao nhất mà \key{mọi luồng} đều có kết
+          quả trong 10\,giây; độ trễ tính từ lúc gửi, \key{gồm cả thời gian
           xếp hàng}.
     \item \good{A gấp 9 lần một nút} --- nhờ đặt cổng và bộ phân loại trên
           \emph{hai bo riêng}: thêm cổng trên cùng bo không nhanh hơn.
     \item \bad{Cái giá}: cổng bỏ sót $\approx$30\% luồng tấn công (recall thực
           đo 69,6\%); p95 $\approx$7\,giây vì mỗi lô PySpark mất vài giây.
   \end{itemize}
-  \note{Đây là số đo lại (30/9) sau khi phát hiện cách đo cũ chỉ đếm phán quyết
+  \note{Đây là số đo lại (30/9) sau khi phát hiện cách đo cũ chỉ đếm dự đoán
   trong cửa sổ tải: số cũ 62,5 luồng/giây và 95,8\% bỏ qua thực chất là
-  $1 - 2{,}6/62{,}5$, tức năng lực bộ phân loại chia tổng số phán quyết. Lần đo
-  mới theo dõi từng luồng đã gửi đến khi có phán quyết. Không có cổng, recall
+  $1 - 2{,}6/62{,}5$, tức thông lượng bộ phân loại chia tổng số luồng. Lần đo
+  mới theo dõi từng luồng đã gửi đến khi có kết quả. Không có cổng, recall
   thực đo 100\% (212 luồng tấn công). Một nút + cổng: quy tắc 10 giây xếp nó ở mức 1,9 chỉ vì một lần lặp mất 10,6 giây; ở mức gửi 3 luồng/giây nó cho 2,4--2,5 như một nút. Cụm Spark: ở mức 20, một lần lặp theo kịp (17,1), lần kia thì không, nên chỉ biết khoảng 9--17. Năng lượng là công suất toàn bo chia tốc
-  độ phán quyết.}
+  độ dự đoán.}
 \end{frame}
 
 
@@ -586,7 +586,7 @@
       \begin{enumerate}
         \item Hạ tầng Kafka/PostgreSQL/Grafana, cổng lọc (\#1), PySpark (\#2)
         \item Phát lại CICIDS2017 $\rightarrow$ log trực tiếp $\rightarrow$ Grafana
-        \item Đối chiếu từng phán quyết với nhãn thật
+        \item Đối chiếu từng dự đoán với nhãn thật
       \end{enumerate}
       2.097 luồng: bỏ qua 88,8\%, \good{recall 68,9\%}, \good{0 báo động giả}.\\[0.2em]
       \href{run:../videos/LuanVan_demo.mp4}{\key{$\blacktriangleright$ Mở video pha B}}
@@ -617,8 +617,8 @@
   \end{block}
   \begin{block}{RQ3 --- Pipeline Spark có khả thi trên cụm thiết bị biên?}
     \good{Khả thi cho cảnh báo gần thời gian thực, với điều kiện tách vai trò.}
-    Năng lực \num{2,5 $\rightarrow$ 22,4} luồng/giây (gấp 9), năng lượng
-    \num{3,04 $\rightarrow$ 0,60\,J} mỗi phán quyết; đổi lại recall tấn công
+    Thông lượng \num{2,5 $\rightarrow$ 22,4} luồng/giây (gấp 9), năng lượng
+    \num{3,04 $\rightarrow$ 0,60\,J} mỗi dự đoán; đổi lại recall tấn công
     69,6\% và p95 $\approx$7\,giây.
   \end{block}
   \note{Slide quan trọng nhất với hội đồng. Trả lời thẳng, kể cả câu trả lời
@@ -973,7 +973,7 @@
   Random Forest\footnote{\tiny Breiman, \emph{Random Forests}, Machine Learning
   45(1), 2001.} thắng ở \key{cả ba chỉ số vận hành} quan trọng nhất với IDS thời
   gian thực, và có F1 cao nhất trong ba ứng viên (0,9955 ngoại tuyến). Với IDS,
-  \emph{độ trễ phán quyết là ràng buộc trực tiếp} --- mô hình nhỏ nhưng chậm hơn
+  \emph{độ trễ dự đoán là ràng buộc trực tiếp} --- mô hình nhỏ nhưng chậm hơn
   35\% về p95 sẽ kéo dài cửa sổ mà tấn công chưa bị chặn.
   \\[0.3em]
   Đánh đổi là bộ nhớ: 27,5\% RAM và 4,4\,MB so với 21,9\% và 0,05\,MB của
@@ -1157,7 +1157,7 @@
   trùng nhau 100\%. Một lần gọi PySpark mất 7,1--7,4\,giây tới lô 1.000 và
   9,5\,giây ở lô 10.000; ONNX bão hòa quanh 28.000 luồng/giây. Khoảng cách
   giảm từ $\approx$7.200 lần (lô 10) xuống $\approx$27 lần (lô 10.000).
-  \note{Năng lực của PySpark tăng gần đúng tỷ lệ với kích thước lô vì gần như
+  \note{Thông lượng của PySpark tăng gần đúng tỷ lệ với kích thước lô vì gần như
   toàn bộ 7 giây là chi phí cố định: JVM, lập kế hoạch, Py4J. Công suất hoạt
   động của Spark giữ 2,0--2,1\,W ở mọi lô. Năng lượng của ONNX dao động giữa
   các lượt đo đơn (0,04--0,11\,mJ/luồng), chỉ nên nói bậc độ lớn.}

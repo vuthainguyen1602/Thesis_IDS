@@ -30,8 +30,8 @@ LABELS_VI = {"single": "Một nút", "single_gate": "Một nút\n+ cổng",
              "split": "A: Tách\npipeline"}
 TITLES = {"en": ("Sustained verdicts/s (all flows done ≤10 s)",
                  "Energy per verdict (J), at the sustained rate"),
-          "vi": ("Phán quyết/giây duy trì được (mọi luồng xong ≤10 s)",
-                 "Năng lượng mỗi phán quyết (J) ở tốc độ duy trì")}
+          "vi": ("Dự đoán/giây duy trì được (mọi luồng xong ≤10 s)",
+                 "Năng lượng mỗi dự đoán (J) ở tốc độ duy trì")}
 
 
 def capacity_table() -> pd.DataFrame:
