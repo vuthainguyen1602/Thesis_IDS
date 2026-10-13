@@ -1,19 +1,28 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-# One-mode distributed-benchmark orchestrator for the SOICT edge table.
-# RUN THIS ON THE MAC. It manages both Jetson pipelines over SSH (key auth).
+# One-mode distributed-benchmark orchestrator for the SOICT edge table and the
+# journal extension. RUN THIS ON THE MAC. It manages both Jetson pipelines over
+# SSH (key auth).
 #
-#   ./run_dist_bench.sh single         # 1-node full pipeline (Jetson #2), gate OFF
-#   ./run_dist_bench.sh single_gate    # 1-node full pipeline with the gate inline
-#   ./run_dist_bench.sh split          # gate on #1 + classifier on #2
-#   ./run_dist_bench.sh horizontal     # both nodes full, same Kafka group
-#   ./run_dist_bench.sh spark_cluster  # Mac=master, both Jetsons=workers
-#   ./run_dist_bench.sh merge          # build summary.csv from all JSON
+#   ./run_dist_bench.sh single              # 1 board, full pipeline (Jetson #2), gate OFF
+#   ./run_dist_bench.sh single_gate         # 1 board, full pipeline with the gate inline
+#   ./run_dist_bench.sh split               # gate on #1 + classifier on #2
+#   ./run_dist_bench.sh split_1board        # gate + classifier as TWO processes on #2
+#   ./run_dist_bench.sh horizontal          # both boards full, same Kafka group, gate OFF
+#   ./run_dist_bench.sh horizontal_gate     # both boards full, gate inline
+#   ./run_dist_bench.sh spark_cluster       # Mac=master, both Jetsons=workers
+#   ./run_dist_bench.sh <mode>_onnx         # same placement, classifier on ONNX Runtime:
+#                                           #   single_onnx single_gate_onnx split_1board_onnx
+#                                           #   split_onnx horizontal_onnx horizontal_gate_onnx
+#   ./run_dist_bench.sh merge               # build summary.csv from all JSON
 #
-# Do ONE mode at a time, watch the output, then the next. After all four,
-# run 'merge'. Tunables (env): RATE=100 DUR=60 WARM=30 REP=5.
+# Do ONE mode at a time, watch the output, then the next. Tunables (env):
+# RATE=100 DUR=60 WARM=30 REP=5 COOL=120 NO_ENERGY=1 OUT_DIR=<results dir>.
+# Each mode records the board clocks' offset against the Mac and the ping RTT
+# before and after (clock_<mode>_<T>_{before,after}.json); analyze_runs.py
+# takes those off the end-to-end latency with --clock-json.
 # NOTE: run-level p95 here comes from the InfluxDB load-window (the code prints
-# a caveat). For raw-CSV p95 the raw logs are synced to results/benchmarks/.
+# a caveat). For raw-CSV p95 the raw logs are synced to the results dir.
 # ---------------------------------------------------------------------------
 set -uo pipefail
 
@@ -27,6 +36,8 @@ hka() { case $1 in "$J1") echo "-o HostKeyAlias=$J1_KEY" ;; "$J2") echo "-o Host
 U=bvdung
 JROOT=/home/$U/Thesis_IDS/jetson
 SSH="ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o ServerAliveInterval=30 -o ServerAliveCountMax=10"
+# benchmark_distributed.py snapshots these boards' clocks around every load window.
+export CLOCK_TARGETS="$U@$J1:$J1_KEY $U@$J2:$J2_KEY"
 
 # ---- tunables (fast draft defaults; raise REP/DUR for the final numbers) ----
 RATE=${RATE:-100}; DUR=${DUR:-45}; WARM=${WARM:-20}; REP=${REP:-3}
@@ -36,7 +47,7 @@ COOL=${COOL:-120}
 DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$DIR/../.." && pwd)"
 MACJ="$ROOT/jetson"
-OUT="$DIR/results/benchmarks"; mkdir -p "$OUT"
+OUT="${OUT_DIR:-$DIR/results/benchmarks}"; mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"  # absolute: python steps cd elsewhere
 CSV_ABS="$MACJ/sender/replay_cicids2017.csv"
 ts() { date +%Y%m%d_%H%M%S; }
 
@@ -70,12 +81,29 @@ stop_all() {
   sleep 3
 }
 
+# clock_snapshot T label  -> $OUT/clock_<mode>_<T>_<label>.json (both boards)
+clock_snapshot() {
+  local T=$1 label=$2
+  echo "[clock] board clock offsets + ping RTT ($label)"
+  local f="$OUT/clock_${MODE_NAME}_${T}_${label}.json"
+  ( cd "$MACJ" && python scripts/clock_offset.py -n 40 --ping 20 --out "$f" \
+      "$U@$J1:$J1_KEY" "$U@$J2:$J2_KEY" >/dev/null )
+  python - "$f" <<'PY'
+import json, sys
+for h in json.load(open(sys.argv[1]))["hosts"]:
+    print("  %s: offset %+.4f s (+/-%.1f ms)  ping %s ms avg / %s max, loss %s%%" % (
+        h["host"], h["offset_s"], h["error_bound_s"] * 1000,
+        h.get("ping_rtt_avg_ms", "?"), h.get("ping_rtt_max_ms", "?"), h.get("ping_loss_pct", "?")))
+PY
+}
+
 # start_pipe host node_id role alert [spark_master] [driver_host]
+# EXTRA_REMOTE_ENV (e.g. "ANOMALY_ENABLED=1 EDGE_ENGINE=onnx") is appended.
 start_pipe() {
   local host=$1 id=$2 role=$3 alert=$4 sm=${5-} dh=${6-}
   local spark="SPARK_MASTER="                         # empty -> local[*]
   [ -n "$sm" ] && spark="SPARK_MASTER=$sm SPARK_DRIVER_HOST=$dh"
-  echo "[start] $id role=$role alert=$alert spark=${sm:-local[*]} on $host"
+  echo "[start] $id role=$role alert=$alert spark=${sm:-local[*]} extra='${EXTRA_REMOTE_ENV:-}' on $host"
   # Background the ssh CLIENT locally so a lingering channel can never block us;
   # the remote pipeline is nohup+detached so it survives the ssh client exiting.
   $SSH $(hka $host) -n $U@$host "cd $JROOT && source venv/bin/activate && \
@@ -115,17 +143,40 @@ sync_logs() {  # T  active-hosts...
   done
 }
 
+# Which boards a mode uses (for the energy window and log sync).
+mode_boards() {
+  case "$1" in
+    single|single_gate|single_onnx|single_gate_onnx|split_1board|split_1board_onnx) echo "J2" ;;
+    split|split_onnx|spark_cluster|horizontal|horizontal_gate|horizontal_onnx|horizontal_gate_onnx) echo "J1 J2" ;;
+    *) echo "" ;;
+  esac
+}
+
 run_mode() {
-  local mode=$1 T; T=$(ts)
+  local mode=$1 T; T=$(ts); MODE_NAME=$mode
   ensure_mac_deps
   stop_all
+  clock_snapshot "$T" before
+  local ONNX=""; case "$mode" in *_onnx) ONNX="EDGE_ENGINE=onnx" ;; esac
   case "$mode" in
-    single)      start_pipe $J2 jetson-nano-2 full 1 ;;
-    single_gate) EXTRA_REMOTE_ENV="ANOMALY_ENABLED=1" start_pipe $J2 jetson-nano-2 full 1 ;;
-    split)       start_pipe $J1 jetson-nano-1 anomaly_gate 0
-                 start_pipe $J2 jetson-nano-2 classifier   1 ;;
-    horizontal)  start_pipe $J1 jetson-nano-1 full 1
-                 start_pipe $J2 jetson-nano-2 full 0 ;;
+    single|single_onnx)
+                 EXTRA_REMOTE_ENV="$ONNX" start_pipe $J2 jetson-nano-2 full 1 ;;
+    single_gate|single_gate_onnx)
+                 EXTRA_REMOTE_ENV="ANOMALY_ENABLED=1 $ONNX" start_pipe $J2 jetson-nano-2 full 1 ;;
+    split|split_onnx)
+                 start_pipe $J1 jetson-nano-1 anomaly_gate 0
+                 EXTRA_REMOTE_ENV="$ONNX" start_pipe $J2 jetson-nano-2 classifier 1 ;;
+    split_1board|split_1board_onnx)
+                 # Same pipeline split as `split`, but both tiers on Jetson #2 as
+                 # two processes; the node ids keep their metrics and raw logs apart.
+                 start_pipe $J2 jetson-nano-2-gate anomaly_gate 0
+                 EXTRA_REMOTE_ENV="$ONNX" start_pipe $J2 jetson-nano-2-clf classifier 1 ;;
+    horizontal|horizontal_onnx)
+                 EXTRA_REMOTE_ENV="$ONNX" start_pipe $J1 jetson-nano-1 full 1
+                 EXTRA_REMOTE_ENV="$ONNX" start_pipe $J2 jetson-nano-2 full 0 ;;
+    horizontal_gate|horizontal_gate_onnx)
+                 EXTRA_REMOTE_ENV="ANOMALY_ENABLED=1 $ONNX" start_pipe $J1 jetson-nano-1 full 1
+                 EXTRA_REMOTE_ENV="ANOMALY_ENABLED=1 $ONNX" start_pipe $J2 jetson-nano-2 full 0 ;;
     spark_cluster)
                  echo "[spark] start master on Mac + workers on Jetsons FIRST:"
                  echo "        (Mac)     ./cluster/start_master_mac.sh"
@@ -135,7 +186,10 @@ run_mode() {
                  start_pipe $J1 jetson-nano-1 anomaly_gate 0 ;;
     *) echo "unknown mode: $mode"; exit 1 ;;
   esac
-  echo "[wait] letting pipelines initialise (Spark ~15s) ..."; sleep 25
+  case "$mode" in
+    *_onnx) echo "[wait] letting pipelines initialise (ONNX, no Spark) ..."; sleep 15 ;;
+    *)      echo "[wait] letting pipelines initialise (Spark ~15s) ..."; sleep 25 ;;
+  esac
 
   # 1) throughput / latency / F1  (run sends its own warmup+load, REP repeats)
   echo "[run] throughput/latency, mode=$mode, repeats=$REP ..."
@@ -145,26 +199,33 @@ run_mode() {
 
   # 2) energy window (node-power on the active node(s)); NO_ENERGY=1 skips it for
   #    rate sweeps, where only throughput and latency are needed.
-  [ "${NO_ENERGY:-0}" = "1" ] && { stop_all; echo "[done] mode=$mode (no energy window)"; return; }
+  if [ "${NO_ENERGY:-0}" = "1" ]; then
+    clock_snapshot "$T" after; stop_all; echo "[done] mode=$mode (no energy window)"; return
+  fi
   case "$mode" in
-    single|single_gate) energy_window "$T" "$J2:jetson-nano-2:full" ; ACTIVE="$J2" ;;
-    split|spark_cluster)
+    single|single_gate|single_onnx|single_gate_onnx|split_1board|split_1board_onnx)
+                   energy_window "$T" "$J2:jetson-nano-2:full" ; ACTIVE="$J2" ;;
+    split|split_onnx|spark_cluster)
                    energy_window "$T" "$J1:jetson-nano-1:anomaly_gate" "$J2:jetson-nano-2:classifier"; ACTIVE="$J1 $J2" ;;
-    horizontal)    energy_window "$T" "$J1:jetson-nano-1:full" "$J2:jetson-nano-2:full"; ACTIVE="$J1 $J2" ;;
+    horizontal|horizontal_gate|horizontal_onnx|horizontal_gate_onnx)
+                   energy_window "$T" "$J1:jetson-nano-1:full" "$J2:jetson-nano-2:full"; ACTIVE="$J1 $J2" ;;
   esac
 
   sync_logs "$T" $ACTIVE
+  clock_snapshot "$T" after
   stop_all
   echo "[done] mode=$mode  ->  $OUT/run_${mode}_${T}.json (+ power_*_${T}.json)"
 }
 
 case "${1:-}" in
-  single|single_gate|split|horizontal|spark_cluster) run_mode "$1" ;;
+  single|single_gate|split|split_1board|horizontal|horizontal_gate|spark_cluster|\
+  single_onnx|single_gate_onnx|split_1board_onnx|split_onnx|horizontal_onnx|horizontal_gate_onnx)
+    run_mode "$1" ;;
   merge)
     ensure_mac_deps
     ( cd "$MACJ" && python scripts/benchmark_distributed.py merge \
         --input "$OUT/*.json" --output-csv "$OUT/summary.csv" )
     echo "[merge] -> $OUT/summary.csv" ;;
   *)
-    echo "Usage: $0 {single|single_gate|split|horizontal|spark_cluster|merge}"; exit 1 ;;
+    echo "Usage: $0 {single|single_gate|split|split_1board|horizontal|horizontal_gate|spark_cluster|<mode>_onnx|merge}"; exit 1 ;;
 esac

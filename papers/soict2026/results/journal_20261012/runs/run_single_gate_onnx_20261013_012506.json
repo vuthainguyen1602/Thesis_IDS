@@ -1,0 +1,135 @@
+{
+  "benchmark_type": "run",
+  "deploy_mode": "single_gate_onnx",
+  "warmup": {
+    "benchmark_type": "send",
+    "duration_s": 15,
+    "requested_rate_rps": 100,
+    "elapsed_s": 15.87,
+    "interrupted_after_timeout": false,
+    "rows_sent": 1501,
+    "measured_rate_rps": 100.04,
+    "sender_stopped_by": "duration",
+    "csv_path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/sender/replay_cicids2017.csv",
+    "topic": "ids-network-flow",
+    "broker": "localhost:9092",
+    "timestamp": "2026-10-12T18:26:04.757852+00:00"
+  },
+  "send": {
+    "benchmark_type": "send",
+    "duration_s": 45,
+    "requested_rate_rps": 100,
+    "elapsed_s": 45.79,
+    "interrupted_after_timeout": false,
+    "rows_sent": 4501,
+    "measured_rate_rps": 100.01,
+    "sender_stopped_by": "duration",
+    "csv_path": "/Users/thainguyenvu/Desktop/Thesis_IDS/jetson/sender/replay_cicids2017.csv",
+    "topic": "ids-network-flow",
+    "broker": "localhost:9092",
+    "timestamp": "2026-10-12T18:26:52.564035+00:00"
+  },
+  "load_start_epoch": 1791829566.768508,
+  "load_end_epoch": 1791829612.564283,
+  "clock_before": {
+    "taken_at": 1791829548.886014,
+    "hosts": [
+      {
+        "host": "192.168.1.81",
+        "target": "bvdung@192.168.1.81",
+        "taken_at": 1791829545.413269,
+        "offset_s": 0.225039,
+        "error_bound_s": 0.002194,
+        "ssh_rtt_min_ms": 4.39,
+        "ssh_rtt_median_ms": 5.07,
+        "samples": 20
+      },
+      {
+        "host": "192.168.1.39",
+        "target": "bvdung@192.168.1.39",
+        "taken_at": 1791829547.32554,
+        "offset_s": 0.222654,
+        "error_bound_s": 0.002095,
+        "ssh_rtt_min_ms": 4.19,
+        "ssh_rtt_median_ms": 4.98,
+        "samples": 20
+      }
+    ]
+  },
+  "clock_after": {
+    "taken_at": 1791829646.522771,
+    "hosts": [
+      {
+        "host": "192.168.1.81",
+        "target": "bvdung@192.168.1.81",
+        "taken_at": 1791829642.6326132,
+        "offset_s": 0.135606,
+        "error_bound_s": 0.002169,
+        "ssh_rtt_min_ms": 4.34,
+        "ssh_rtt_median_ms": 27.44,
+        "samples": 20
+      },
+      {
+        "host": "192.168.1.39",
+        "target": "bvdung@192.168.1.39",
+        "taken_at": 1791829645.02793,
+        "offset_s": 0.133392,
+        "error_bound_s": 0.001793,
+        "ssh_rtt_min_ms": 3.59,
+        "ssh_rtt_median_ms": 4.45,
+        "samples": 20
+      }
+    ]
+  },
+  "collect": {
+    "benchmark_type": "collect",
+    "deploy_mode": "single_gate_onnx",
+    "window_minutes": 5,
+    "load_start_epoch": 1791829566.768508,
+    "load_end_epoch": 1791829612.564283,
+    "timestamp": "2026-10-12T18:27:26.998075+00:00",
+    "gate_skip": {
+      "benign_skipped": 3992,
+      "total_gate_events": 4480,
+      "gate_skip_pct": 89.11
+    },
+    "final_throughput": {
+      "final_verdicts": 4480,
+      "window_s": 45.8,
+      "throughput_final_rps": 97.83
+    },
+    "raw_latency_per_node": {},
+    "nodes": [
+      {
+        "node_id": "jetson-nano-2",
+        "throughput_rps": 104.59,
+        "avg_latency_ms": 0.238,
+        "latency_p50_ms": 0.236,
+        "latency_p95_ms": 0.475,
+        "latency_p99_ms": 0.591,
+        "e2e_latency_avg_ms": 312.085,
+        "e2e_latency_p95_ms": 431.259,
+        "cpu_percent": 6.12,
+        "memory_percent": 40.28,
+        "cpu_temp_celsius": 52.02
+      }
+    ],
+    "aggregate": {
+      "throughput_final_rps": 97.83,
+      "throughput_rps_per_node_sum_DIAGNOSTIC_ONLY": 104.59,
+      "latency_avg_ms": 0.24,
+      "latency_p95_ms": 0.47,
+      "e2e_latency_avg_ms": 312.08,
+      "e2e_latency_p95_ms": 431.26,
+      "latency_source": "influx_window_p95_APPROXIMATION_DO_NOT_PUBLISH",
+      "latency_note": "run-level p95 = worst node's percentile over its RAW per-flow samples within [load_start, load_end]; e2e = send->verdict, assumes NTP-synced clocks"
+    },
+    "device": "unknown-device",
+    "local_cpu_percent": 79.6,
+    "local_memory_percent": 77.2
+  },
+  "timestamp": "2026-10-12T18:27:27.501725+00:00",
+  "node_id": "edge-node-1",
+  "role": "full",
+  "repeat_index": 0
+}

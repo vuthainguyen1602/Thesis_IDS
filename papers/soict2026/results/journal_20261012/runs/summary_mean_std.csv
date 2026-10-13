@@ -1,0 +1,10 @@
+mode,n_runs,throughput_rps_mean,throughput_rps_std,latency_p95_ms_mean,latency_p95_ms_std
+horizontal_gate,7,4.35,1.18,1127.67,404.16
+horizontal_gate_onnx,11,175.26,89.19,0.6,0.16
+horizontal_onnx,11,190.38,102.21,0.14,0.01
+single_gate_onnx,9,123.77,53.13,0.46,0.05
+single_onnx,7,101.75,48.07,0.13,0.01
+split_1board,9,15.74,8.95,1907.29,1259.29
+split_1board_onnx,7,97.26,47.58,0.24,0.01
+split_onnx,9,134.82,61.75,0.24,0.01
+unknown,98,,,,
