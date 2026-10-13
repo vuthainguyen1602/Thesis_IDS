@@ -87,7 +87,7 @@ Apache Spark bao gồm nhiều thành phần cốt lõi, mỗi thành phần đ�
 \end{itemize}
 
 \subsection{Kiến trúc của Apache Spark}
-Kiến trúc của Apache Spark được xây dựng theo mô hình master--worker trên nền tảng xử lý phân tán. Thành phần trung tâm là \textbf{Spark Driver}, chịu trách nhiệm điều phối quá trình thực thi ứng dụng, bao gồm việc lên lịch, phân phối tác vụ và giám sát tiến trình. Driver xây dựng một đồ thị phi chu trình có hướng (\textit{DAG} -- Directed Acyclic Graph) để xác định luồng thực thi công việc. Tổng quan kiến trúc master--worker được minh họa ở Hình~\ref{fig:spark-structure}.
+Kiến trúc của Apache Spark được xây dựng theo mô hình master--worker trên nền tảng xử lý phân tán. Thành phần trung tâm là \textbf{Spark Driver}, chịu trách nhiệm điều phối quá trình thực thi ứng dụng, bao gồm việc lên lịch, phân phối tác vụ và giám sát tiến trình. Driver xây dựng một đồ thị phi chu trình có hướng (\textit{DAG}, Directed Acyclic Graph) để xác định luồng thực thi công việc. Tổng quan kiến trúc master--worker được minh họa ở Hình~\ref{fig:spark-structure}.
 
 \vspace*{1ex}
     \begin{figure}[ht]
