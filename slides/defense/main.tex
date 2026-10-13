@@ -170,7 +170,7 @@
       {PHA OFFLINE --- cụm Spark (máy chủ master $+$ 2 Jetson worker)};
 
     \node[jst, below=2.8cm of p1] (e1) {Luồng Kafka};
-    \node[jst, right=0.7cm of e1] (e2) {Cổng bất thường\\ (Jetson \#1)};
+    \node[jst, right=0.7cm of e1] (e2) {Cổng lọc bất thường\\ (Jetson \#1)};
     \node[jst, right=0.7cm of e2] (e3) {Bộ phân loại PySpark\\ (Jetson \#2)};
     \node[jst, right=0.7cm of e3] (e4) {Thông lượng / độ trễ\\ CPU / RAM / năng lượng};
     \draw[arr] (e1)--(e2); \draw[arr] (e2)--(e3); \draw[arr] (e3)--(e4);
@@ -246,7 +246,7 @@
     \node[pc]  (pc)  at (0, 0.0)   {\textbf{Máy chủ điều phối (PC, Docker)}\\[2pt]
         Apache Kafka \;$|$\; PostgreSQL \;$|$\; InfluxDB \;$|$\; Grafana \;$|$\; bộ phát lại luồng CSV};
     \node[jet] (j1)  at (-4.7,-3.2) {\textbf{Jetson Orin Nano Super \#1}\\[2pt]
-        \key{Cổng phát hiện bất thường}\\[2pt] Autoencoder lọc bỏ lưu lượng bình thường};
+        \key{Cổng lọc bất thường}\\[2pt] Autoencoder lọc bỏ lưu lượng bình thường};
     \node[jet] (j2)  at ( 4.7,-3.2) {\textbf{Jetson Orin Nano Super \#2}\\[2pt]
         \key{Bộ phân loại}\\[2pt] PySpark \texttt{PipelineModel}\\ Benign / Attack};
     \node[mtr] (out) at (0,-6.0)   {Chỉ số hiệu năng $\rightarrow$ InfluxDB $\rightarrow$ Grafana
@@ -263,7 +263,7 @@
   \textbf{B} mở rộng ngang $\cdot$ \textbf{C} cụm Spark. Mốc tham chiếu là đơn
   nút. Thông lượng đếm \key{số luồng xử lý xong mỗi giây} --- mỗi luồng chỉ tính
   \emph{một lần}, tại nơi có kết luận.
-  \note{Chế độ B: cả hai nút chạy vai trò đầy đủ. Ngưỡng MSE của cổng hiệu
+  \note{Chế độ B: cả hai nút chạy vai trò đầy đủ. Ngưỡng MSE của cổng lọc hiệu
   chỉnh ngoại tuyến, chốt trước khi đánh giá, không tinh chỉnh trên tập kiểm
   tra. Luồng chỉ tính một lần nên luồng đi qua cả hai nút không bị đếm đôi.
   Môi trường đo chi tiết ở slide Q8.}
@@ -505,11 +505,11 @@
   \fitwidth{%
   \begin{tabular}{lccccc}
     \toprule
-    Chế độ & Số bo & Duy trì được & Độ trễ p50 / p95 & Bỏ qua ở cổng & Năng lượng \\
+    Chế độ & Số bo & Duy trì được & Độ trễ p50 / p95 & Bỏ qua ở cổng lọc & Năng lượng \\
            &       & (luồng/giây) & (giây)           & (\%)          & (J/dự đoán) \\
     \midrule
-    Một nút, không cổng       & 1 & 2,5  & 5,9 / 11,3 & --   & 3,04 \\
-    Một nút + cổng            & 1 & $\approx$2,5  & 3,8 / 7,8  & 89,0 & 3,04 \\
+    Một nút, không cổng lọc       & 1 & 2,5  & 5,9 / 11,3 & --   & 3,04 \\
+    Một nút + cổng lọc            & 1 & $\approx$2,5  & 3,8 / 7,8  & 89,0 & 3,04 \\
     B: Mở rộng ngang          & 2 & 3,3  & 4,1 / 8,2  & --   & 3,20 \\
     C: Cụm Spark              & 2 & 9--17  & 0,7 / 5,2  & 88,6 & 1,15 \\
     \textbf{A: Tách pipeline} & 2 & \good{22,4} & 1,0 / 7,1 & 88,8 & \good{0,60} \\
@@ -522,16 +522,16 @@
     \item \emph{Duy trì được} = tốc độ cao nhất mà \key{mọi luồng} đều có kết
           quả trong 10\,giây; độ trễ tính từ lúc gửi, \key{gồm cả thời gian
           xếp hàng}.
-    \item \good{A gấp 9 lần một nút} --- nhờ đặt cổng và bộ phân loại trên
-          \emph{hai bo riêng}: thêm cổng trên cùng bo không nhanh hơn.
-    \item \bad{Cái giá}: cổng bỏ sót $\approx$30\% luồng tấn công (recall thực
+    \item \good{A gấp 9 lần một nút} --- nhờ đặt cổng lọc và bộ phân loại trên
+          \emph{hai bo riêng}: thêm cổng lọc trên cùng bo không nhanh hơn.
+    \item \bad{Cái giá}: cổng lọc bỏ sót $\approx$30\% luồng tấn công (recall thực
           đo 69,6\%); p95 $\approx$7\,giây vì mỗi lô PySpark mất vài giây.
   \end{itemize}
   \note{Đây là số đo lại (30/9) sau khi phát hiện cách đo cũ chỉ đếm dự đoán
   trong cửa sổ tải: số cũ 62,5 luồng/giây và 95,8\% bỏ qua thực chất là
   $1 - 2{,}6/62{,}5$, tức thông lượng bộ phân loại chia tổng số luồng. Lần đo
-  mới theo dõi từng luồng đã gửi đến khi có kết quả. Không có cổng, recall
-  thực đo 100\% (212 luồng tấn công). Một nút + cổng: quy tắc 10 giây xếp nó ở mức 1,9 chỉ vì một lần lặp mất 10,6 giây; ở mức gửi 3 luồng/giây nó cho 2,4--2,5 như một nút. Cụm Spark: ở mức 20, một lần lặp theo kịp (17,1), lần kia thì không, nên chỉ biết khoảng 9--17. Năng lượng là công suất toàn bo chia tốc
+  mới theo dõi từng luồng đã gửi đến khi có kết quả. Không có cổng lọc, recall
+  thực đo 100\% (212 luồng tấn công). Một nút + cổng lọc: quy tắc 10 giây xếp nó ở mức 1,9 chỉ vì một lần lặp mất 10,6 giây; ở tốc độ gửi 3 luồng/giây nó cho 2,4--2,5 như một nút. Cụm Spark: ở mức 20, một lần lặp theo kịp (17,1), lần kia thì không, nên chỉ biết khoảng 9--17. Năng lượng là công suất toàn bo chia tốc
   độ dự đoán.}
 \end{frame}
 
@@ -647,7 +647,7 @@
       \begin{itemize}
         \item \key{Pipeline IDS hoàn chỉnh trên Apache Spark}, từ tiền xử lý đến
               suy luận thời gian thực.
-        \item \key{Kiến trúc hai tầng trên cụm biên}: cổng bất thường $+$ phân
+        \item \key{Kiến trúc hai tầng trên cụm biên}: cổng lọc bất thường $+$ phân
               lớp PySpark, nối bằng Kafka.
         \item \key{Đo đạc vận hành đầy đủ}, kể cả năng lượng mỗi luồng.
       \end{itemize}
@@ -677,7 +677,7 @@
         \item \key{Lớp tấn công hiếm}: cân bằng có chủ đích, kiến trúc phân tầng.
         \item \key{Dữ liệu IoT chuyên biệt}: Bot-IoT, TON\_IoT, CIC-IoT-2023.
         \item \key{ONNX/TensorRT}, khai thác GPU Jetson.
-        \item \key{Bền vững đối kháng}: hai bề mặt mới do cổng tạo ra.
+        \item \key{Bền vững đối kháng}: hai bề mặt mới do cổng lọc tạo ra.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -794,7 +794,7 @@
               \hyperlink{bk-cluster}{\key{Cụm huấn luyện}}
         \item[\key{Q9}] Cách đo thông lượng, độ trễ, năng lượng
               $\rightarrow$ \hyperlink{bk-protocol}{\key{Giao thức đo}}
-        \item[\key{Q10}] Ngưỡng cổng, đánh đổi recall
+        \item[\key{Q10}] Ngưỡng cổng lọc, đánh đổi recall
               $\rightarrow$ \hyperlink{bk-gate}{\key{Đường cong vận hành}}
         \item[\key{Q11}] Bằng chứng chạy thực tế
               $\rightarrow$ \hyperlink{bk-grafana}{\key{Grafana đỉnh tải}}
@@ -993,7 +993,7 @@
     \begin{column}{0.55\textwidth}
       \begin{description}\small
         \item[Đơn nút] toàn bộ pipeline trong một tiến trình --- mốc tham chiếu.
-        \item[A: Tách pipeline] cổng trên \#1, phân loại trên \#2
+        \item[A: Tách pipeline] cổng lọc trên \#1, phân loại trên \#2
               (\key{thiết kế đề xuất}).
         \item[B: Mở rộng ngang] cả hai nút chạy \emph{vai trò đầy đủ}, chia tải
               qua Kafka consumer group.
@@ -1001,7 +1001,7 @@
       \end{description}
       \vspace{0.2em}
       \footnotesize Thông lượng đếm \key{số luồng xử lý xong mỗi giây}: mỗi luồng
-      tính \emph{một lần}, ở cổng nếu bị bỏ qua, ở bộ phân loại nếu được chuyển
+      tính \emph{một lần}, ở cổng lọc nếu bị bỏ qua, ở bộ phân loại nếu được chuyển
       tiếp --- luồng qua cả hai nút không bị đếm hai lần.
     \end{column}
     \begin{column}{0.43\textwidth}
@@ -1085,19 +1085,19 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}[label=bk-gate]{Q10 --- Cổng bất thường là một \emph{đường cong vận hành}}
+\begin{frame}[label=bk-gate]{Q10 --- Cổng lọc bất thường là một \emph{đường cong vận hành}}
   \centering
   \IfFileExists{../../results/ml_08_anomaly_gate/gate_operating_points.png}
     {\includegraphics[height=0.68\textheight, width=\textwidth, keepaspectratio]{gate_operating_points.png}}
     {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}\texttt{gate\_operating\_points.png}\vspace{1.5cm}}}}
   \\[0.2em]\footnotesize
   Recall tấn công (trái) và tỷ lệ báo động giả (phải) theo tỷ lệ bỏ qua tại
-  cổng. Nâng tỷ lệ bỏ qua giúp giảm tải Spark nhưng đánh đổi bằng recall.
-  \note{Điểm triển khai: quantile 0,995 trên tập kiểm định benign --- cổng
+  cổng lọc. Nâng tỷ lệ bỏ qua giúp giảm tải Spark nhưng đánh đổi bằng recall.
+  \note{Điểm triển khai: quantile 0,995 trên tập kiểm định benign --- cổng lọc
   chuyển tiếp 68,1\% luồng tấn công, chuyển nhầm 0,49\% benign, bỏ qua 89,4\%.
   Luồng phát lại lấy ngẫu nhiên từ chính tập kiểm tra, nên số thực đo (bỏ qua
   88,8\%, recall 69,6\%) khớp với điểm này trên đường cong. Hạ xuống quantile
-  0,90 thì recall cổng lên 84,5\% nhưng chuyển nhầm 10\% benign.}
+  0,90 thì recall cổng lọc lên 84,5\% nhưng chuyển nhầm 10\% benign.}
 \end{frame}
 
 \begin{frame}[label=bk-portmodels]{Q13 --- Rò rỉ cổng đích phụ thuộc họ mô hình}
@@ -1105,7 +1105,7 @@
   \fitwidth{%
   \begin{tabular}{lccc}
     \toprule
-    Thuật toán & F1 (loại cổng) & F1 (giữ cổng) & $\Delta$F1 \\
+    Thuật toán & F1 (loại cổng đích) & F1 (giữ cổng đích) & $\Delta$F1 \\
     \midrule
     SVM (LinearSVC)        & 0,7859 & 0,8274 & \bad{$+$0,0415} \\
     Logistic Regression    & 0,7986 & 0,8381 & \bad{$+$0,0395} \\
@@ -1136,7 +1136,7 @@
     \begin{column}{0.35\textwidth}
       Tại đỉnh tải, chế độ tách pipeline (lượt chạy trước, mô hình cũ):
       \begin{itemize}
-        \item nút cổng: \good{4,6\% CPU}
+        \item nút cổng lọc: \good{4,6\% CPU}
         \item nút phân loại: \bad{90,8\% CPU}
       \end{itemize}
       \vspace{0.5em}
@@ -1168,7 +1168,7 @@
     \item \textbf{Cải thiện độ nhạy cho lớp tấn công hiếm.} Xử lý mất cân bằng
           có chủ đích (undersampling/SMOTE áp dụng \emph{sau} khi chia tập),
           focal loss, hạ ngưỡng quyết định theo lớp; \key{kiến trúc phân tầng} ---
-          tận dụng chính thiết kế cổng hai tầng: tầng nhị phân ở biên giữ recall
+          tận dụng chính thiết kế hai tầng có cổng lọc: tầng nhị phân ở biên giữ recall
           tổng, còn bộ định danh loại chỉ huấn luyện trên \emph{luồng tấn công},
           huấn luyện lại ngoại tuyến mà không đụng hệ thống đang chạy; thêm
           \key{đặc trưng chuỗi thời gian theo host} cho beaconing C\&C.
@@ -1179,7 +1179,7 @@
           luận ONNX vào pipeline streaming, tăng tốc bằng TensorRT trên GPU
           Jetson; đo độ trễ đầu cuối đầy đủ.
     \item \textbf{Bền vững trước tấn công đối kháng.} Đặc biệt hai bề mặt tấn
-          công mới do cổng tạo ra: giả dạng lưu lượng bình thường để vượt cổng,
+          công mới do cổng lọc tạo ra: giả dạng lưu lượng bình thường để vượt cổng lọc,
           và cố ý tạo sai số tái tạo cao để dồn tải lên nút phân loại.
   \end{itemize}
   \note{Mỗi hướng phát triển ứng với một hạn chế ở slide trước.}

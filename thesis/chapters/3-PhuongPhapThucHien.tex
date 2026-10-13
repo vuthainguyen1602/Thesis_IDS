@@ -167,7 +167,7 @@ Ba biện pháp bảo đảm thông tin của tập kiểm tra không lọt vào
 \begin{itemize}
     \item \textbf{Biến đổi đặc trưng}: \texttt{StandardScaler}, \ac{pca} và việc xếp hạng đặc trưng (RF Importance, \ac{shap}) đều được fit chỉ trên tập huấn luyện $D_{\text{train}}$ rồi transform lên tập kiểm tra.
     \item \textbf{Chọn mô hình}: việc chọn Top-3 mô hình thành phần cho các ensemble, chọn mô hình đại diện mỗi phương pháp và chọn cặp phương pháp đưa vào kiểm định thống kê (Chương~\ref{c:thucnghiemdanhgia}) đều thực hiện trên một tập kiểm định (validation) tách từ tập huấn luyện theo tỷ lệ 80/20 (\texttt{seed}=42). Các mô hình cơ sở được huấn luyện trên phần còn lại.
-    \item \textbf{Chọn ngưỡng}: ngưỡng của cổng phát hiện bất thường (Chương~4) chỉ được chọn trên 10\% lưu lượng benign tách từ tập huấn luyện (\texttt{seed}=42).
+    \item \textbf{Chọn ngưỡng}: ngưỡng của cổng lọc bất thường (Chương~4) chỉ được chọn trên 10\% lưu lượng benign tách từ tập huấn luyện (\texttt{seed}=42).
 \end{itemize}
 
 Toàn bộ quy trình phân chia được minh họa ở Hình~\ref{fig:data_split}.
@@ -539,7 +539,7 @@ Quy trình này bảo đảm chọn được tổ hợp siêu tham số tốt nh
 
 \pagebreak
 \section{Triển khai biên}
-Mô hình tốt nhất sau đánh giá được đóng gói thành \texttt{PipelineModel} và triển khai trên một cụm \emph{hai} thiết bị biên NVIDIA Jetson Orin Nano Super (CPU ARM 64-bit + GPU NVIDIA), tách vai trò: Jetson~\#1 chạy cổng phát hiện bất thường (autoencoder) để lọc lưu lượng bình thường, Jetson~\#2 chạy bộ phân loại PySpark trên các luồng nghi vấn. Mô hình sau khi huấn luyện trên cụm được chuyển sang thiết bị biên bằng \ac{scp}. Quy trình suy luận thời gian thực theo chuỗi: Kafka Consumer nhận dữ liệu mạng (topic \texttt{ids-network-flow}), cổng bất thường chuyển tiếp luồng nghi vấn sang \texttt{ids-suspicious-flow}, PySpark Streaming (micro-batch) xử lý và trích xuất đặc trưng, kết quả dự đoán ghi vào PostgreSQL phục vụ trực quan hóa trên Grafana và kích hoạt cảnh báo khi phát hiện bất thường. Hệ thống hỗ trợ ba chế độ: tách pipeline (pipeline split), mở rộng theo chiều ngang (horizontal scaling) và cụm Spark (Spark cluster). Thông số phần cứng chi tiết của thiết bị biên được trình bày trong Bảng~\ref{tab:hardware}.
+Mô hình tốt nhất sau đánh giá được đóng gói thành \texttt{PipelineModel} và triển khai trên một cụm \emph{hai} thiết bị biên NVIDIA Jetson Orin Nano Super (CPU ARM 64-bit + GPU NVIDIA), tách vai trò: Jetson~\#1 chạy cổng lọc bất thường (autoencoder) để lọc lưu lượng bình thường, Jetson~\#2 chạy bộ phân loại PySpark trên các luồng nghi vấn. Mô hình sau khi huấn luyện trên cụm được chuyển sang thiết bị biên bằng \ac{scp}. Quy trình suy luận thời gian thực theo chuỗi: Kafka Consumer nhận dữ liệu mạng (topic \texttt{ids-network-flow}), cổng lọc bất thường chuyển tiếp luồng nghi vấn sang \texttt{ids-suspicious-flow}, PySpark Streaming (micro-batch) xử lý và trích xuất đặc trưng, kết quả dự đoán ghi vào PostgreSQL phục vụ trực quan hóa trên Grafana và kích hoạt cảnh báo khi phát hiện bất thường. Hệ thống hỗ trợ ba chế độ: tách pipeline (pipeline split), mở rộng theo chiều ngang (horizontal scaling) và cụm Spark (Spark cluster). Thông số phần cứng chi tiết của thiết bị biên được trình bày trong Bảng~\ref{tab:hardware}.
 
 \begin{table}[htbp]
 \centering
