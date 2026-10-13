@@ -33,9 +33,9 @@ TITLES = {
     "5": "Bước 5 · Phát lại luồng CICIDS2017 qua Kafka — log trực tiếp trên hai Jetson",
     "grafana": "Kết quả · Bảng điều khiển Grafana theo dõi hệ thống theo thời gian thực",
     "6": "Bước 6 · Dừng hệ thống (Ctrl+C): thống kê cuối của từng nút",
-    "7": "Bước 7 · Kiểm chứng: đối chiếu từng phán quyết đã lưu với nhãn thật của CICIDS2017",
+    "7": "Bước 7 · Kiểm chứng: đối chiếu từng dự đoán đã lưu với nhãn thật của CICIDS2017",
 }
-GRAFANA_CAPTION = ("Thông lượng phán quyết, số tấn công phát hiện, độ trễ suy luận, CPU/RAM từng Jetson "
+GRAFANA_CAPTION = ("Thông lượng dự đoán, số tấn công phát hiện, độ trễ suy luận, CPU/RAM từng Jetson "
                    "và cảnh báo mới nhất được cập nhật trực tiếp")
 PANES = {"host": "Máy chủ (MacBook) · Kafka, PostgreSQL, InfluxDB, Grafana",
          "j1": "Jetson #1 (192.168.1.81) · cổng lọc bất thường",

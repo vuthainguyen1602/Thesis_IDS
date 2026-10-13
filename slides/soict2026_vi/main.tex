@@ -83,10 +83,10 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
     \item \key{Ba cách triển khai} trên cụm hai Jetson: tách tầng, nhân bản
           ngang, cụm Spark.
     \item \key{Đo đầu cuối}: tốc độ, độ trễ, CPU/RAM từng bo \emph{và} năng
-          lượng mỗi phán quyết.
+          lượng mỗi dự đoán.
     \item Mã nguồn, cấu hình và kịch bản đo \key{công khai}, chạy lại được.
   \end{enumerate}
-  \note{Phán quyết (verdict) là quyết định cuối cùng bình thường hay tấn công
+  \note{Dự đoán (verdict) ở đây là kết luận cuối cùng bình thường hay tấn công
   cho một luồng.}
 \end{frame}
 
@@ -181,9 +181,9 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
         \item[C: Cụm Spark] PC làm master, hai bo làm worker.
       \end{description}
       \vspace{0.3em}
-      \footnotesize Theo dõi \key{từng luồng từ lúc gửi tới lúc có phán quyết},
+      \footnotesize Theo dõi \key{từng luồng từ lúc gửi tới lúc có kết quả},
       tính cả thời gian chờ. \key{Chịu được}: mức tải cao nhất mà mọi luồng có
-      phán quyết trong vòng 10 giây sau khi ngừng tải.
+      kết quả trong vòng 10 giây sau khi ngừng tải.
     \end{column}
     \begin{column}{0.41\textwidth}
       \begin{block}{Thiết lập đo}
@@ -196,7 +196,7 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
       \end{block}
     \end{column}
   \end{columns}
-  \note{Mỗi phán quyết lưu thời điểm gửi của luồng, nên độ trễ tính cả thời gian
+  \note{Mỗi dự đoán lưu thời điểm gửi của luồng, nên độ trễ tính cả thời gian
   nằm trong hàng đợi. Mỗi lần chạy dùng một consumer group Kafka riêng để không
   xử lý phần tồn của lần trước.}
 \end{frame}
@@ -224,7 +224,7 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
       \end{tabular}
       }
       \\[0.3em]
-      \raggedright\scriptsize \textbf{p95}: 95\% số luồng có phán quyết nhanh
+      \raggedright\scriptsize \textbf{p95}: 95\% số luồng có kết quả nhanh
       hơn mức này, tính từ lúc gửi, gồm cả thời gian chờ.
     \end{column}
     \begin{column}{0.41\textwidth}
@@ -265,14 +265,14 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:45
-\begin{frame}{Kết quả 3: năng lượng mỗi phán quyết giảm 5 lần}
+\begin{frame}{Kết quả 3: năng lượng mỗi dự đoán giảm 5 lần}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \centering\small
       \fitwidth{%
       \begin{tabular}{lcc}
         \toprule
-        Cách triển khai & Mức tải & J / phán quyết \\
+        Cách triển khai & Mức tải & J / dự đoán \\
         \midrule
         Một bo            & 2,0/giây  & 3,04 \\
         Một bo + cổng     & 2,0/giây  & 3,04 \\
@@ -287,14 +287,14 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
       \begin{itemize}\small
         \setlength{\itemsep}{0.4em}
         \item Đo ở đúng mức tải mà mỗi chế độ chịu được.
-        \item J mỗi phán quyết = công suất của các bo chia cho số phán quyết
+        \item J mỗi dự đoán = công suất của các bo chia cho số dự đoán
               mỗi giây.
-        \item Tách tầng dùng hai bo (11\,W) nhưng ra nhiều phán quyết hơn hẳn,
-              nên mỗi phán quyết tốn ít hơn.
+        \item Tách tầng dùng hai bo (11\,W) nhưng ra nhiều dự đoán hơn hẳn,
+              nên mỗi dự đoán tốn ít hơn.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Tách tầng: \key{3,0\,J $\rightarrow$ 0,60\,J} mỗi phán quyết.}
+  \takeaway{Tách tầng: \key{3,0\,J $\rightarrow$ 0,60\,J} mỗi dự đoán.}
   \note{Năng lượng đo bằng tegrastats: 30 giây nền rồi cửa sổ tải; chế độ hai
   bo cộng cả hai bo. Khi chạy, công suất tăng thêm khoảng 1,5\,W ở mọi chế độ.}
 \end{frame}
@@ -377,7 +377,7 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
         \setlength{\itemsep}{0.3em}
         \item Tách cổng lọc và bộ phân loại ra hai bo: \good{2,5 $\rightarrow$
               22,4 luồng/giây}, p95 $\approx$7 giây.
-        \item Năng lượng mỗi phán quyết: \good{3,0\,J $\rightarrow$ 0,60\,J}.
+        \item Năng lượng mỗi dự đoán: \good{3,0\,J $\rightarrow$ 0,60\,J}.
         \item Đổi lại, cổng cho lọt \bad{$\approx$30\%} luồng tấn công ở ngưỡng
               đang dùng.
         \item Spark là nút thắt suy luận: ONNX nhanh gấp khoảng 7.200 lần.
@@ -445,8 +445,8 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
   \centering
   \includegraphics[height=0.70\textheight, width=\textwidth, keepaspectratio]{edge_capacity.png}
   \\[0.2em]
-  \footnotesize Số phán quyết mỗi giây chịu được, mọi luồng xong trong 10 giây
-  (trái); năng lượng mỗi phán quyết ở mức tải đó (phải).
+  \footnotesize Số dự đoán mỗi giây chịu được, mọi luồng xong trong 10 giây
+  (trái); năng lượng mỗi dự đoán ở mức tải đó (phải).
 \end{frame}
 
 \begin{frame}{Dự phòng: Spark tốn ở mỗi lần gọi, không phải ở các cây}
@@ -481,12 +481,12 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
 \begin{frame}{Dự phòng: quy trình đo}
   \begin{itemize}\small
     \item Máy chủ khởi động các vai trò trên Jetson qua SSH, tạo tải, thu mọi
-          phán quyết.
-    \item Mỗi phán quyết lưu thời điểm gửi và số dòng của luồng: độ trễ tính từ
+          dự đoán.
+    \item Mỗi dự đoán lưu thời điểm gửi và số dòng của luồng: độ trễ tính từ
           lúc gửi, \emph{gồm cả thời gian chờ}; tỷ lệ bỏ qua và tỷ lệ bắt tấn
           công tính từ chính các luồng.
     \item Quét mức tải cho từng chế độ; một mức được coi là chịu được khi mọi
-          luồng gửi trong 45 giây đều có phán quyết trong vòng 10 giây sau đó.
+          luồng gửi trong 45 giây đều có kết quả trong vòng 10 giây sau đó.
     \item Mỗi lần chạy một consumer group Kafka riêng; mỗi tầng xử lý lô 20
           luồng hoặc sau 1 giây.
     \item Năng lượng: \texttt{tegrastats}, 30 giây nền rồi cửa sổ tải ở mức

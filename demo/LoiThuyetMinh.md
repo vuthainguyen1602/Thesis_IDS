@@ -93,7 +93,7 @@ Các cảnh ngắn (dưới 10 giây) có ít thời gian để nói. Nếu cầ
 
 **Trên màn hình:** `docker compose ps` liệt kê 5 container: `ids-kafka`, `ids-zookeeper`, `ids-postgres`, `ids-influxdb`, `ids-grafana`. Lệnh `kafka-topics --list` trả về hai topic `ids-network-flow` và `ids-suspicious-flow`.
 
-> Trên máy chủ có Kafka để truyền luồng dữ liệu, PostgreSQL để lưu phán quyết, InfluxDB để lưu số liệu hiệu năng và Grafana để giám sát. Có hai topic: `ids-network-flow` chứa toàn bộ luồng mạng đi vào, `ids-suspicious-flow` chỉ chứa các luồng mà cổng lọc đánh giá là đáng ngờ.
+> Trên máy chủ có Kafka để truyền luồng dữ liệu, PostgreSQL để lưu kết quả dự đoán, InfluxDB để lưu số liệu hiệu năng và Grafana để giám sát. Có hai topic: `ids-network-flow` chứa toàn bộ luồng mạng đi vào, `ids-suspicious-flow` chỉ chứa các luồng mà cổng lọc đánh giá là đáng ngờ.
 
 ### 0:14–0:23 · Bước 2: Kiểm tra hai Jetson
 
@@ -147,11 +147,11 @@ Các cảnh ngắn (dưới 10 giây) có ít thời gian để nói. Nếu cầ
 
 ### 4:22–4:36 · Bước 7: Kiểm chứng với nhãn thật
 
-**Chỉ vào:** bảng SQL đếm phán quyết theo đường đi, rồi khối `VERIFY RUN AGAINST CICIDS2017 LABELS`.
+**Chỉ vào:** bảng SQL đếm dự đoán theo đường đi, rồi khối `VERIFY RUN AGAINST CICIDS2017 LABELS`.
 
 | Kết quả | Giá trị |
 |---|---|
-| Luồng đã gửi / phán quyết đã lưu | 2.097 / 2.097 |
+| Luồng đã gửi / dự đoán đã lưu | 2.097 / 2.097 |
 | Cổng lọc bỏ qua | 1.862 (88,8%) |
 | Tấn công thật đã gửi | 328 |
 | **Phát hiện đúng** | **226, recall 68,9%** |
@@ -159,7 +159,7 @@ Các cảnh ngắn (dưới 10 giây) có ít thời gian để nói. Nếu cầ
 | Báo động giả trên 1.769 luồng lành tính | **0** |
 | DoS Hulk / DDoS | 147/174 / 75/123 |
 
-> Cuối cùng, em đối chiếu từng phán quyết đã lưu với nhãn thật của CICIDS2017. Cổng lọc bỏ qua 88,8% lưu lượng. Hệ thống phát hiện đúng 226 trên 328 luồng tấn công, recall 68,9%, và không có báo động giả nào trên gần 1.800 luồng lành tính. Toàn bộ tấn công bị bỏ sót đều nằm ở cổng lọc. Bộ phân loại Spark không bỏ sót tấn công nào trong số luồng nó nhận được. Đây chính là đánh đổi em đã nêu trong luận văn: cổng lọc giúp tăng khoảng 9 lần năng lực xử lý nhưng phải trả bằng khoảng 30% recall. Ngưỡng của cổng có thể điều chỉnh theo đường cong vận hành để cân bằng lại hai yếu tố này.
+> Cuối cùng, em đối chiếu từng dự đoán đã lưu với nhãn thật của CICIDS2017. Cổng lọc bỏ qua 88,8% lưu lượng. Hệ thống phát hiện đúng 226 trên 328 luồng tấn công, recall 68,9%, và không có báo động giả nào trên gần 1.800 luồng lành tính. Toàn bộ tấn công bị bỏ sót đều nằm ở cổng lọc. Bộ phân loại Spark không bỏ sót tấn công nào trong số luồng nó nhận được. Đây chính là đánh đổi em đã nêu trong luận văn: cổng lọc giúp tăng khoảng 9 lần năng lực xử lý nhưng phải trả bằng khoảng 30% recall. Ngưỡng của cổng có thể điều chỉnh theo đường cong vận hành để cân bằng lại hai yếu tố này.
 
 ---
 
@@ -181,4 +181,4 @@ Trong chế độ cụm, `model.save()` ghi dữ liệu cây ra ổ đĩa riêng
 Không. Mọi lệnh và dòng kết quả đều được ghi từ lần chạy thật, kèm mốc thời gian. Chỉ có các đoạn chờ được rút ngắn, Spark UI được tua nhanh (có ghi trên màn hình), và hai dòng nhiễu nêu ở đầu tài liệu bị ẩn. Script quay nằm trong `demo/` (`run_session.py`, `run_session_a.py`); có thể chạy lại để ra kết quả tương tự.
 
 **Tốc độ 15 luồng/giây có phải giới hạn của hệ thống?**
-Không. Demo chọn 15 luồng/giây để chạy ổn định dưới năng lực tối đa. Luận văn đo được chế độ tách hai tầng chịu được khoảng 22 luồng/giây, gấp khoảng 9 lần một nút chạy toàn bộ pipeline.
+Không. Demo chọn 15 luồng/giây để chạy ổn định dưới thông lượng tối đa. Luận văn đo được chế độ tách hai tầng chịu được khoảng 22 luồng/giây, gấp khoảng 9 lần một nút chạy toàn bộ pipeline.
