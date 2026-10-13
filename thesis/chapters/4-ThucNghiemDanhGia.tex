@@ -857,7 +857,29 @@ ONNX Runtime         & \textbf{10.092} & \textbf{1{,}2} & \textbf{0{,}087} \\
 \end{tabular*}
 \end{table}
 
-\textbf{Ảnh hưởng của kích thước lô.} Để kiểm chứng rằng chi phí của PySpark nằm ở mỗi lần gọi chứ không ở việc duyệt cây, cùng mô hình được chạy lại với lô 10, 100, 1.000 và 10.000 luồng (Hình~\ref{fig:batch_sweep}). Thời gian một lô qua PySpark gần như không đổi: 7{,}1\,s ở lô 10, 7{,}4\,s ở lô 1.000, và chỉ tăng lên 9{,}5\,s ở lô 10.000. Vì vậy thông lượng PySpark tăng gần đúng tỷ lệ với kích thước lô, từ 1{,}4 lên 1.046 luồng/giây, trong khi công suất hoạt động giữ ở 2{,}0--2{,}1\,W. ONNX Runtime bão hòa quanh 26.000--28.600 luồng/giây từ lô 100 trở lên. Do đó tỷ lệ $\approx$7.200 lần nêu trên gắn với lô 10, đúng cấu hình đang triển khai; ở lô 10.000 khoảng cách chỉ còn khoảng 27 lần. Hệ thống phát hiện xâm nhập dạng luồng lại không thể dùng lô lớn để bù: ở 20 luồng/giây, gom đủ 10.000 luồng mất hơn 8 phút. Năng lượng của ONNX dao động giữa các lượt đo đơn (0{,}04--0{,}11\,mJ/luồng) và không giảm đều theo kích thước lô, nên chỉ bậc độ lớn của nó có ý nghĩa.
+\textbf{Ảnh hưởng của kích thước lô.} Để kiểm chứng rằng chi phí của PySpark nằm ở mỗi lần gọi chứ không ở việc duyệt cây, cùng mô hình được chạy lại với lô 10, 100, 1.000 và 10.000 luồng (Bảng~\ref{tab:batch_sweep}, Hình~\ref{fig:batch_sweep}). Thời gian một lô qua PySpark gần như không đổi: 7{,}1\,s ở lô 10, 7{,}4\,s ở lô 1.000, và chỉ tăng lên 9{,}5\,s ở lô 10.000. Vì vậy thông lượng PySpark tăng gần đúng tỷ lệ với kích thước lô, từ 1{,}4 lên 1.046 luồng/giây, trong khi công suất hoạt động giữ ở 2{,}0--2{,}1\,W. ONNX Runtime bão hòa quanh 26.000--28.600 luồng/giây từ lô 100 trở lên. Do đó tỷ lệ $\approx$7.200 lần nêu trên gắn với lô 10, đúng cấu hình đang triển khai; ở lô 10.000 khoảng cách chỉ còn khoảng 27 lần. Hệ thống phát hiện xâm nhập dạng luồng lại không thể dùng lô lớn để bù: ở 20 luồng/giây, gom đủ 10.000 luồng mất hơn 8 phút. Năng lượng của ONNX dao động giữa các lượt đo đơn (0{,}04--0{,}11\,mJ/luồng) và không giảm đều theo kích thước lô, nên chỉ bậc độ lớn của nó có ý nghĩa.
+
+\begin{table}[htbp]
+\centering
+\caption[Chi phí suy luận theo kích thước lô: PySpark và ONNX Runtime]{Chi phí suy luận của cùng một rừng ngẫu nhiên qua PySpark và ONNX Runtime theo kích thước lô (Jetson~\#2, mỗi điểm một lượt đo, dự đoán trùng nhau 100\%)}
+\label{tab:batch_sweep}
+\renewcommand{\arraystretch}{1.1}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{r rrr rrr}
+\toprule
+& \multicolumn{3}{c}{\textbf{PySpark (đang triển khai)}} & \multicolumn{3}{c}{\textbf{ONNX Runtime}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+\textbf{\shortstack{Lô\\(luồng)}} & \textbf{\shortstack{p50 mỗi lô\\(s)}} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Năng lượng\\(mJ/luồng)}} & \textbf{\shortstack{p50 mỗi lô\\(ms)}} & \textbf{\shortstack{Thông lượng\\(luồng/giây)}} & \textbf{\shortstack{Năng lượng\\(mJ/luồng)}} \\
+\midrule
+10     & 7{,}09 & 1{,}4   & 1.429 & 0{,}99 & 10.160 & 0{,}081 \\
+100    & 7{,}14 & 14{,}2  & 144   & 3{,}68 & 25.987 & 0{,}107 \\
+1.000  & 7{,}43 & 134{,}5 & 15{,}6 & 36{,}3 & 27.281 & 0{,}065 \\
+10.000 & 9{,}50 & 1.046   & 2{,}0 & 347    & 28.589 & 0{,}039 \\
+\bottomrule
+\end{tabular}
+\tabnote{Thông lượng gồm cả việc dựng ma trận đặc trưng từ bản ghi Python, như trong consumer biên. Năng lượng là phần công suất hoạt động (đã trừ công suất nghỉ) chia cho số luồng; với ONNX, công suất hoạt động dao động giữa các lượt đo đơn nên chỉ bậc độ lớn có ý nghĩa.}
+\end{table}
 
 \begin{figure}[!tbp]
     \centering
@@ -874,7 +896,7 @@ Ngoài việc so sánh engine trên một nút, luận văn đánh giá ba chế
 
 \begin{table}[!t]
 \centering
-\caption[Điểm vận hành duy trì được của từng chế độ triển khai]{Điểm vận hành duy trì được của từng chế độ triển khai trên cụm 2 Jetson Orin Nano Super}
+\caption[Kết quả từng chế độ triển khai ở mức tải cao nhất còn duy trì được]{Thông lượng, độ trễ, tỷ lệ bỏ qua và năng lượng của từng chế độ triển khai ở mức tải cao nhất còn duy trì được (cụm 2 Jetson Orin Nano Super)}
 \label{tab:edge_modes}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
