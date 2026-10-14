@@ -105,7 +105,7 @@ Các cảnh ngắn (dưới 10 giây) có ít thời gian để nói. Nếu cầ
 
 **Chỉ vào:** `[OK] AnomalyScorer loaded`, `Features: 77`, `Threshold: 0.202087`, rồi `ANOMALY GATE READY`.
 
-> Trên Jetson số 1, em khởi động cổng lọc bất thường. Đây là một autoencoder dùng 77 đặc trưng, huấn luyện chỉ trên lưu lượng lành tính. Luồng nào có sai số tái tạo vượt ngưỡng thì bị coi là đáng ngờ và được chuyển sang bộ phân loại. Các luồng còn lại được kết luận lành tính ngay tại cổng.
+> Trên Jetson số 1, em khởi động cổng lọc bất thường. Đây là một autoencoder dùng 77 đặc trưng, huấn luyện chỉ trên lưu lượng lành tính. Luồng nào có sai số tái tạo vượt ngưỡng thì bị coi là đáng ngờ và được chuyển sang bộ phân loại. Các luồng còn lại được kết luận lành tính ngay tại cổng lọc.
 
 ### 0:36–0:58 · Bước 4: Khởi động bộ phân loại PySpark trên Jetson #2
 
@@ -159,14 +159,14 @@ Các cảnh ngắn (dưới 10 giây) có ít thời gian để nói. Nếu cầ
 | Báo động giả trên 1.769 luồng lành tính | **0** |
 | DoS Hulk / DDoS | 147/174 / 75/123 |
 
-> Cuối cùng, em đối chiếu từng dự đoán đã lưu với nhãn thật của CICIDS2017. Cổng lọc bỏ qua 88,8% lưu lượng. Hệ thống phát hiện đúng 226 trên 328 luồng tấn công, recall 68,9%, và không có báo động giả nào trên gần 1.800 luồng lành tính. Toàn bộ tấn công bị bỏ sót đều nằm ở cổng lọc. Bộ phân loại Spark không bỏ sót tấn công nào trong số luồng nó nhận được. Đây chính là đánh đổi em đã nêu trong luận văn: cổng lọc giúp tăng khoảng 9 lần năng lực xử lý nhưng phải trả bằng khoảng 30% recall. Ngưỡng của cổng có thể điều chỉnh theo đường cong vận hành để cân bằng lại hai yếu tố này.
+> Cuối cùng, em đối chiếu từng dự đoán đã lưu với nhãn thật của CICIDS2017. Cổng lọc bỏ qua 88,8% lưu lượng. Hệ thống phát hiện đúng 226 trên 328 luồng tấn công, recall 68,9%, và không có báo động giả nào trên gần 1.800 luồng lành tính. Toàn bộ tấn công bị bỏ sót đều nằm ở cổng lọc. Bộ phân loại Spark không bỏ sót tấn công nào trong số luồng nó nhận được. Đây chính là đánh đổi em đã nêu trong luận văn: cổng lọc giúp tăng khoảng 9 lần năng lực xử lý nhưng phải trả bằng khoảng 30% recall. Ngưỡng của cổng lọc có thể điều chỉnh theo đường cong vận hành để cân bằng lại hai yếu tố này.
 
 ---
 
 ## Câu hỏi hội đồng có thể đặt khi xem demo
 
 **Vì sao recall chỉ khoảng 69% trong khi F1 của mô hình là 0,9957?**
-F1 0,9957 là của bộ phân loại Random Forest trên toàn bộ tập kiểm tra. Trong hệ thống biên, luồng phải qua cổng lọc trước. Cổng bỏ qua khoảng 89% lưu lượng để giảm tải cho Spark, và một phần tấn công (102/328 trong demo) bị bỏ qua cùng. Phần đến được bộ phân loại thì không bị bỏ sót (0 trường hợp). Ngưỡng cổng là một điểm trên đường cong vận hành: hạ ngưỡng sẽ tăng recall nhưng chuyển nhiều luồng hơn sang Spark.
+F1 0,9957 là của bộ phân loại Random Forest trên toàn bộ tập kiểm tra. Trong hệ thống biên, luồng phải qua cổng lọc trước. Cổng lọc bỏ qua khoảng 89% lưu lượng để giảm tải cho Spark, và một phần tấn công (102/328 trong demo) bị bỏ qua cùng. Phần đến được bộ phân loại thì không bị bỏ sót (0 trường hợp). Ngưỡng cổng lọc là một điểm trên đường cong vận hành: hạ ngưỡng sẽ tăng recall nhưng chuyển nhiều luồng hơn sang Spark.
 
 **Vì sao bộ phân loại chậm (trung bình vài trăm ms mỗi luồng, 580,7 ms ở thống kê cuối)?**
 Mỗi lần gọi PySpark tốn chi phí cố định khoảng 7 giây trên Jetson. Chia cho vài chục luồng trong một lô thì ra vài trăm ms mỗi luồng. Luận văn đo bằng cách quét kích thước lô: thời gian mỗi lô gần như không đổi từ 10 đến 1.000 luồng. Chạy cùng mô hình bằng ONNX Runtime nhanh hơn khoảng 7.200 lần ở lô 10, nên đó là hướng phát triển tiếp theo.
