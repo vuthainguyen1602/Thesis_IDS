@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.1.1)  19 OCT 2026 10:32
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.1.1)  19 OCT 2026 10:37
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -880,67 +880,97 @@ Underfull \hbox (badness 7722) in paragraph at lines 46--49
  []
 
 
-Underfull \hbox (badness 1448) in paragraph at lines 67--70
-[]\T1/ptm/m/n/9 Hasan, T., Hos-sain, A., Ansari, M.Q., Syed, T.H.: En-hanced in
--tru-sion de-tec-tion in
+Underfull \hbox (badness 5504) in paragraph at lines 57--60
+[]\T1/ptm/m/n/9 Gama, J., šliobait[]e, I., Bifet, A., Pech-enizkiy, M., Bouchac
+hia, A.: A sur-vey
  []
 
 
-Underfull \hbox (badness 3514) in paragraph at lines 72--76
+Underfull \hbox (badness 3568) in paragraph at lines 57--60
+\T1/ptm/m/n/9 on con-cept drift adap-ta-tion. ACM Com-put-ing Sur-veys \T1/ptm/
+b/n/9 46\T1/ptm/m/n/9 (4), 44:1--44:37 (2014).
+ []
+
+
+Underfull \hbox (badness 3514) in paragraph at lines 74--78
 []\T1/ptm/m/n/9 Hernandez-Ramos, J.L., Karopou-los, G., Chat-zoglou, E., Kou-li
 aridis, V., Mar-mol,
  []
 
 
-Underfull \hbox (badness 3690) in paragraph at lines 72--76
+Underfull \hbox (badness 3690) in paragraph at lines 74--78
 \T1/ptm/m/n/9 E., Gonzalez-Vidal, A., Kam-bourakis, G.: In-tru-sion de-tec-tion
  based on fed-er-ated
  []
 
 
-Underfull \hbox (badness 6380) in paragraph at lines 72--76
+Underfull \hbox (badness 6380) in paragraph at lines 74--78
 \T1/ptm/m/n/9 learn-ing: A sys-tem-atic re-view. ACM Com-put-ing Sur-veys \T1/p
 tm/b/n/9 57\T1/ptm/m/n/9 (12), 1--65 (2025).
  []
 
+
+Underfull \hbox (badness 2426) in paragraph at lines 80--83
+[]\T1/ptm/m/n/9 Khraisat, A., Gondal, I., Vam-plew, P., Kam-ruz-za-man, J.: Sur
+-vey of in-tru-sion de-
+ []
+
+
+Underfull \hbox (badness 2213) in paragraph at lines 80--83
+\T1/ptm/m/n/9 tec-tion sys-tems: tech-niques, datasets and chal-lenges. Cy-ber-
+se-cu-rity \T1/ptm/b/n/9 2\T1/ptm/m/n/9 ,  20 (2019).
+ []
+
+
+Underfull \hbox (badness 1286) in paragraph at lines 85--89
+[]\T1/ptm/m/n/9 Kiran Ku-mar, K.M., Srikar Reddy, M.V., Ul-las, K., Supriya, M.
+: Dis-tributed in-tru-
+ []
+
 [14]
-Underfull \hbox (badness 1112) in paragraph at lines 111--115
-\T1/ptm/m/n/9 tec-tion sys-tem us-ing Kafka and Spark stream-ing. In: 2025 In-t
-er-na-tional Con-fer-ence
- []
-
-
-Underfull \hbox (badness 1337) in paragraph at lines 111--115
-\T1/ptm/m/n/9 on Vi-sual An-a-lyt-ics and Data Vi-su-al-iza-tion (IC-VADV). pp.
- 302--309. IEEE (2025).
- []
-
-
-Underfull \hbox (badness 1348) in paragraph at lines 124--129
+Underfull \hbox (badness 1348) in paragraph at lines 126--131
 \T1/ptm/m/n/9 in-dus-trial IoT us-ing TinyML and edge AI. Sci-en-tific Re-ports
  \T1/ptm/b/n/9 16\T1/ptm/m/n/9 (1), 18524 (2026).
  []
 
 
-Underfull \hbox (badness 1383) in paragraph at lines 131--135
+Underfull \hbox (badness 1383) in paragraph at lines 133--137
 \T1/ptm/m/n/9 DÏoT: A fed-er-ated self-learning anomaly de-tec-tion sys-tem for
  IoT. In: Proc. IEEE
  []
 
 
-Underfull \hbox (badness 1939) in paragraph at lines 131--135
+Underfull \hbox (badness 1939) in paragraph at lines 133--137
 \T1/ptm/m/n/9 39th Int. Conf. on Dis-tributed Com-put-ing Sys-tems (ICDCS). pp.
  756--767 (2019).
  []
 
 
-Underfull \hbox (badness 1259) in paragraph at lines 176--179
+Underfull \hbox (badness 10000) in paragraph at lines 139--143
+[]\T1/ptm/m/n/9 Ruff, L., Kauff-mann, J.R., Van-der-meulen, R.A., Mon-tavon, G.
+, Samek, W.,
+ []
+
+
+Underfull \hbox (badness 3281) in paragraph at lines 139--143
+\T1/ptm/m/n/9 Kloft, M., Di-et-terich, T.G., Müller, K.R.: A uni-fy-ing re-view
+ of deep and shal-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 139--143
+\T1/ptm/m/n/9 low anomaly de-tec-tion. Pro-ceed-ings of the IEEE \T1/ptm/b/n/9 
+109\T1/ptm/m/n/9 (5), 756--795 (2021).
+ []
+
+
+Underfull \hbox (badness 1259) in paragraph at lines 181--184
 []\T1/ptm/m/n/9 Zhang, Z., Zhang, L., Xu, J., Chen, Z., Wang, P.: An edge-deplo
 yable lightweight
  []
 
 
-Underfull \hbox (badness 3492) in paragraph at lines 176--179
+Underfull \hbox (badness 3492) in paragraph at lines 181--184
 \T1/ptm/m/n/9 in-tru-sion de-tec-tion sys-tem for in-dus-trial con-trol. Elec-t
 ron-ics \T1/ptm/b/n/9 15\T1/ptm/m/n/9 (3),  644 (2026).
  []
@@ -952,10 +982,10 @@ L3 programming layer <2024-02-20>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 15336 strings out of 475567
- 310504 string characters out of 5777890
+ 15335 strings out of 475567
+ 310497 string characters out of 5777890
  1944187 words of memory out of 5000000
- 37176 multiletter control sequences out of 15000+600000
+ 37175 multiletter control sequences out of 15000+600000
  613739 words of font info for 117 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
  84i,13n,87p,1657b,1038s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -968,7 +998,7 @@ b></usr/local/texlive/2024basic/texmf-dist/fonts/type1/public/marvosym/marvosym
 .pfb></usr/local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb>
 </usr/local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr
 /local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (15 pages, 632124 bytes).
+Output written on main.pdf (15 pages, 632367 bytes).
 PDF statistics:
  109 PDF objects out of 1000 (max. 8388607)
  68 compressed objects within 1 object stream

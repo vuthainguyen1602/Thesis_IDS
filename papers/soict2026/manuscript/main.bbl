@@ -19,7 +19,7 @@ Arp, D., Quiring, E., Pendlebury, F., Warnecke, A., Pierazzi, F., Wressnegger,
   Establishment}: {CSE-CIC-IDS2018} dataset: A collaborative project between
   the {Communications Security Establishment (CSE)} and the {Canadian Institute
   for Cybersecurity (CIC)}. \url{https://www.unb.ca/cic/datasets/ids-2018.html}
-  (2018)
+  (2018), last accessed 2026/10/19
 
 \bibitem{cantone2024crossdataset}
 Cantone, M., Marrocco, C., Bria, A.: Machine learning in network intrusion
@@ -40,7 +40,7 @@ Chithra~Rani, P.R., Baalaji, K.: Deep learning-based ensemble stacking for
 D'hooge, L., Wauters, T., Volckaert, B., De~Turck, F.: Inter-dataset
   generalization strength of supervised machine learning methods for intrusion
   detection. Journal of Information Security and Applications  \textbf{54},
-  102564 (2020)
+  102564 (2020). \doi{10.1016/j.jisa.2020.102564}
 
 \bibitem{diazgorrin2026jetson}
 Diaz-Gorrin, J., Caballero-Gil, C., Brankovic, L.: Enhancing network security
@@ -51,22 +51,24 @@ Diaz-Gorrin, J., Caballero-Gil, C., Brankovic, L.: Enhancing network security
 Ferrag, M.A., Maglaras, L., Moschoyiannis, S., Janicke, H.: Deep learning for
   cyber security intrusion detection: Approaches, datasets, and comparative
   study. Journal of Information Security and Applications  \textbf{50},  102419
-  (2020)
+  (2020). \doi{10.1016/j.jisa.2019.102419}
 
 \bibitem{gama2014survey}
-Gama, J., {\c{Z}}liobait{\.e}, I., Bifet, A., Pechenizkiy, M., Bouchachia, A.:
-  A survey on concept drift adaptation. ACM Computing Surveys  \textbf{46}(4),
-  1--37 (2014)
+Gama, J., {\v{Z}}liobait{\.{e}}, I., Bifet, A., Pechenizkiy, M., Bouchachia,
+  A.: A survey on concept drift adaptation. ACM Computing Surveys
+  \textbf{46}(4),  44:1--44:37 (2014). \doi{10.1145/2523813}
 
 \bibitem{hamdan2020edge}
-Hamdan, S., Ayyash, M., Almajali, S.: Edge-computing architectures for internet
-  of things applications: A survey. Sensors  \textbf{20}(22), ~6441 (2020).
-  \doi{10.3390/s20226441}
+Hamdan, S., Ayyash, M., Almajali, S.: Edge-computing architectures for
+  {Internet of Things} applications: A survey. Sensors  \textbf{20}(22), ~6441
+  (2020). \doi{10.3390/s20226441}
 
 \bibitem{hasan2025iiot}
 Hasan, T., Hossain, A., Ansari, M.Q., Syed, T.H.: Enhanced intrusion detection
   in {IIoT} networks: A lightweight approach with autoencoder-based feature
-  learning (2025), arXiv:2501.15266
+  learning. In: Proceedings of the 10th International Conference on Internet of
+  Things, Big Data and Security (IoTBDS). pp. 207--214. SciTePress (2025).
+  \doi{10.5220/0013203700003944}
 
 \bibitem{hernandezramos2025federated}
 Hernandez-Ramos, J.L., Karopoulos, G., Chatzoglou, E., Kouliaridis, V., Marmol,
@@ -77,7 +79,13 @@ Hernandez-Ramos, J.L., Karopoulos, G., Chatzoglou, E., Kouliaridis, V., Marmol,
 \bibitem{khraisat2019survey}
 Khraisat, A., Gondal, I., Vamplew, P., Kamruzzaman, J.: Survey of intrusion
   detection systems: techniques, datasets and challenges. Cybersecurity
-  \textbf{2}(1),  1--22 (2019)
+  \textbf{2}, ~20 (2019). \doi{10.1186/s42400-019-0038-7}
+
+\bibitem{kumar2025kafkaspark}
+Kiran~Kumar, K.M., Srikar~Reddy, M.V., Ullas, K., Supriya, M.: Distributed
+  intrusion detection system using {Kafka} and {Spark} streaming. In: 2025
+  International Conference on Visual Analytics and Data Visualization (ICVADV).
+  pp. 302--309. IEEE (2025). \doi{10.1109/ICVADV63329.2025.10961691}
 
 \bibitem{kreps2011kafka}
 Kreps, J., Narkhede, N., Rao, J.: Kafka: a distributed messaging system for log
@@ -98,20 +106,14 @@ Lopez-Martin, M., Carro, B., Sanchez-Esguevillas, A., Lloret, J.: Conditional
 
 \bibitem{lundberg2017unified}
 Lundberg, S.M., Lee, S.I.: A unified approach to interpreting model
-  predictions. Advances in Neural Information Processing Systems  \textbf{30}
-  (2017)
+  predictions. In: Advances in Neural Information Processing Systems 30 (NIPS
+  2017). pp. 4765--4774 (2017)
 
 \bibitem{meng2016mllib}
 Meng, X., Bradley, J., Yavuz, B., Sparks, E., Venkataraman, S., Liu, D.,
   Freeman, J., Tsai, D., Amde, M., Owen, S., Xin, D., Xin, R., Franklin, M.J.,
   Zadeh, R., Zaharia, M., Talwalkar, A.: {MLlib}: Machine learning in {Apache
   Spark}. Journal of Machine Learning Research  \textbf{17}(34), ~1--7 (2016)
-
-\bibitem{kumar2025kafkaspark}
-Mohan Kiran~Kumar, K., Sreekar, M., Ullas, K., Supriya, M.: Distributed
-  intrusion detection system using {Kafka} and {Spark} streaming. In: 2025
-  International Conference on Visual Analytics and Data Visualization (ICVADV).
-  pp. 302--309. IEEE (2025). \doi{10.1109/ICVADV63329.2025.10961691}
 
 \bibitem{asghar2026hedid}
 Nasir, K., Badri, S.K., Alghazzawi, D.M., Alghamdi, M.Y., Alkhozae, M.,
@@ -136,7 +138,8 @@ Nguyen, T.D., Marchal, S., Miettinen, M., Fereidooni, H., Asokan, N., Sadeghi,
 \bibitem{ruff2021unifying}
 Ruff, L., Kauffmann, J.R., Vandermeulen, R.A., Montavon, G., Samek, W., Kloft,
   M., Dietterich, T.G., M{\"u}ller, K.R.: A unifying review of deep and shallow
-  anomaly detection. Proceedings of the IEEE  \textbf{109}(5),  756--795 (2021)
+  anomaly detection. Proceedings of the IEEE  \textbf{109}(5),  756--795
+  (2021). \doi{10.1109/JPROC.2021.3052449}
 
 \bibitem{sarhan2022explainable}
 Sarhan, M., Layeghy, S., Portmann, M.: Evaluating standard feature sets towards
@@ -146,7 +149,7 @@ Sarhan, M., Layeghy, S., Portmann, M.: Evaluating standard feature sets towards
 
 \bibitem{sforzin2016rpids}
 Sforzin, A., G{\'o}mez~M{\'a}rmol, F., Conti, M., Bohli, J.M.: {RPiDS}:
-  Raspberry pi {IDS} --- a fruitful intrusion detection system for {IoT}. In:
+  {Raspberry Pi} {IDS} --- a fruitful intrusion detection system for {IoT}. In:
   Proc. Int. IEEE Conf. on Ubiquitous Intelligence \& Computing
   (UIC/ATC/ScalCom). pp. 440--448 (2016).
   \doi{10.1109/UIC-ATC-ScalCom-CBDCom-IoP-SmartWorld.2016.0080}
@@ -155,7 +158,8 @@ Sforzin, A., G{\'o}mez~M{\'a}rmol, F., Conti, M., Bohli, J.M.: {RPiDS}:
 Sharafaldin, I., Lashkari, A.H., Ghorbani, A.A.: Toward generating a new
   intrusion detection dataset and intrusion traffic characterization. In:
   Proceedings of the 4th International Conference on Information Systems
-  Security and Privacy (ICISSP). pp. 108--116 (2018)
+  Security and Privacy (ICISSP). pp. 108--116. SciTePress (2018).
+  \doi{10.5220/0006639801080116}
 
 \bibitem{shi2016edge}
 Shi, W., Cao, J., Zhang, Q., Li, Y., Xu, L.: Edge computing: Vision and
@@ -165,7 +169,8 @@ Shi, W., Cao, J., Zhang, Q., Li, Y., Xu, L.: Edge computing: Vision and
 \bibitem{vinayakumar2019deep}
 Vinayakumar, R., Alazab, M., Soman, K.P., Poornachandran, P., Al-Nemrat, A.,
   Venkatraman, S.: Deep learning approach for intelligent intrusion detection
-  system. IEEE Access  \textbf{7},  41525--41550 (2019)
+  system. IEEE Access  \textbf{7},  41525--41550 (2019).
+  \doi{10.1109/ACCESS.2019.2895334}
 
 \bibitem{zaharia2010spark}
 Zaharia, M., Chowdhury, M., Franklin, M.J., Shenker, S., Stoica, I.: Spark:
