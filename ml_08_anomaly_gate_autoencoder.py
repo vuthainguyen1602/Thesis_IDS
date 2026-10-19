@@ -47,6 +47,7 @@ def plot_operating_points(sweep_df: pd.DataFrame, results_dir: str) -> str:
     with plt.rc_context({
         "font.size": 8, "axes.titlesize": 9, "axes.labelsize": 8,
         "xtick.labelsize": 7.5, "ytick.labelsize": 7.5,
+        "pdf.fonttype": 42,  # embed TrueType, not Type 3, in the PDF copy
     }):
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(4.8, 2.6), sharex=True)
         ax1.plot(sweep_df["gate_skip_ratio"], sweep_df["recall"], "o-",
@@ -68,6 +69,11 @@ def plot_operating_points(sweep_df: pd.DataFrame, results_dir: str) -> str:
         fig.tight_layout(pad=0.4)
         plot_path = os.path.join(results_dir, "gate_operating_points.png")
         plt.savefig(plot_path, dpi=300, bbox_inches="tight")
+        # Vector copy for the Springer camera-ready, drawn at the width the paper
+        # includes it (0.7 of the LNCS text width) so lettering stays >= 6 pt.
+        fig.set_size_inches(3.36, 1.75)
+        fig.tight_layout(pad=0.4)
+        plt.savefig(plot_path[:-4] + ".pdf")
         plt.close()
     return plot_path
 

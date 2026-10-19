@@ -13,8 +13,8 @@ mkdir -p "$OUT" figures
 for src in \
   "$ROOT/papers/soict2026/figures/grafana_dashboard.png" \
   "$ROOT/papers/soict2026/figures/grafana_peak_load.png" \
-  "$ROOT/papers/soict2026/results/remeasure_20260930/edge_capacity.png" \
-  "$ROOT/results/ml_08_anomaly_gate/gate_operating_points.png"; do
+  "$ROOT/papers/soict2026/results/remeasure_20260930/edge_capacity.pdf" \
+  "$ROOT/results/ml_08_anomaly_gate/gate_operating_points.pdf"; do
   [ -f "$src" ] && cp "$src" figures/
 done
 

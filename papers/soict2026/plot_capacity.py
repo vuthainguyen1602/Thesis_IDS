@@ -16,6 +16,7 @@ import os
 
 import matplotlib
 matplotlib.use("Agg")
+matplotlib.rcParams["pdf.fonttype"] = 42  # embed TrueType, not Type 3, in the PDF copy
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -27,6 +28,9 @@ ORDER = ["single", "single_gate", "horizontal", "spark_cluster", "split_1board",
 LABELS = {"single": "Single node", "single_gate": "Single node\n+ gate",
           "horizontal": "B:\nHorizontal", "spark_cluster": "C: Spark\ncluster",
           "split_1board": "A1: Split,\none board", "split": "A: Pipeline\nsplit"}
+# Shorter labels for the print-size (camera-ready) PDF.
+PRINT_LABELS = {"single": "Single\nnode", "single_gate": "Single\n+ gate", "horizontal": "B:\nhoriz.",
+                "spark_cluster": "C:\ncluster", "split_1board": "A1:\n1-board", "split": "A:\n2-board"}
 LABELS_VI = {"single": "Một nút", "single_gate": "Một nút\n+ cổng",
              "horizontal": "B: Ngang", "spark_cluster": "C: Cụm\nSpark",
              "split": "A: Tách\npipeline"}
@@ -61,6 +65,34 @@ def one_board_split():
     return top["sustained_rps"], en.loc["split_1board", "j_per_verdict"]
 
 
+def draw(cap, en, modes, labels, titles, vi, figsize, fs, title_fs):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
+    x = range(len(modes))
+    colors = ["#0072B2" if m == "split" else "#56B4E9" if m == "split_1board" else "#999999" for m in modes]
+    b1 = ax1.bar(x, cap.loc[modes, "sustained_rps"], color=colors)
+    title_kw = {"fontsize": title_fs} if title_fs else {}
+    ax1.set_title(titles[0], **title_kw)
+    ax2.set_title(titles[1], **title_kw)
+    b2 = ax2.bar(x, en.loc[modes, "j_per_verdict"], color=colors)
+    lower_bound = {"spark_cluster"}  # the next rate step had one of two repeats keep up
+    for ax, bars, fmt in ((ax1, b1, "{:.1f}"), (ax2, b2, "{:.2f}")):
+        ax.set_xticks(list(x))
+        ax.set_xticklabels([labels[m] for m in modes], fontsize=fs)
+        if title_fs:
+            ax.tick_params(axis="y", labelsize=fs)
+        for m, b in zip(modes, bars):
+            txt = fmt.format(b.get_height())
+            if ax is ax1 and m in lower_bound:
+                txt = "≥" + txt
+            ax.annotate(txt.replace(".", ",") if vi else txt, (b.get_x() + b.get_width() / 2, b.get_height()),
+                        ha="center", va="bottom", fontsize=fs)
+        ax.spines[["top", "right"]].set_visible(False)
+        if vi:
+            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:g}".replace(".", ",")))
+    fig.tight_layout(pad=0.3 if title_fs else 1.08)
+    return fig
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--vi", metavar="OUT", help="Vietnamese labels, written to OUT")
@@ -75,29 +107,12 @@ def main():
     modes = [m for m in ORDER if m in cap.index]
     print(cap.loc[modes].round(2))
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 3.4))
-    x = range(len(modes))
-    colors = ["#0072B2" if m == "split" else "#56B4E9" if m == "split_1board" else "#999999" for m in modes]
-    b1 = ax1.bar(x, cap.loc[modes, "sustained_rps"], color=colors)
-    ax1.set_title(titles[0])
-    ax2.set_title(titles[1])
-    b2 = ax2.bar(x, en.loc[modes, "j_per_verdict"], color=colors)
-    lower_bound = {"spark_cluster"}  # the next rate step had one of two repeats keep up
-    for ax, bars, fmt in ((ax1, b1, "{:.1f}"), (ax2, b2, "{:.2f}")):
-        ax.set_xticks(list(x))
-        ax.set_xticklabels([labels[m] for m in modes], fontsize=8)
-        for m, b in zip(modes, bars):
-            txt = fmt.format(b.get_height())
-            if ax is ax1 and m in lower_bound:
-                txt = "≥" + txt
-            ax.annotate(txt.replace(".", ",") if args.vi else txt, (b.get_x() + b.get_width() / 2, b.get_height()),
-                        ha="center", va="bottom", fontsize=8)
-        ax.spines[["top", "right"]].set_visible(False)
-        if args.vi:
-            ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v, _: f"{v:g}".replace(".", ",")))
-    fig.tight_layout()
     out = args.vi or os.path.join(D, "edge_capacity.png")
-    fig.savefig(out, dpi=200)
+    draw(cap, en, modes, labels, titles, args.vi, (10, 3.4), 8, None).savefig(out, dpi=200)
+    if not args.vi:
+        # Vector copy for the Springer camera-ready, drawn at the LNCS text width
+        # (4.8 in) so it is included 1:1 and no lettering falls below 6 pt.
+        draw(cap, en, modes, PRINT_LABELS, titles, False, (4.8, 1.75), 6, 7).savefig(out[:-4] + ".pdf")
     print(f"[OK] {out}")
 
 
