@@ -171,20 +171,13 @@ Each tier scores flows in batches of 20, or sooner once the oldest waiting flow 
 
 \subsection{Monitoring and Alerting}
 
-Each node tags its metrics with a unique node identifier in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Fig.~\ref{fig:grafana} shows the Grafana dashboard during the 500\,s run that replays all 10{,}000 CICIDS2017 test flows through the split deployment (Sect.~\ref{sec:benchmark-results}): prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM utilization are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL. Fig.~\ref{fig:grafana-peak} zooms into the same run at peak load: the gate node idles at 1.3\% CPU while the PySpark classifier node reaches 94.5\%, so the classifier dominates the compute budget.
+Each node tags its metrics with a unique node identifier in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Fig.~\ref{fig:grafana} shows the Grafana dashboard during the 500\,s run that replays all 10{,}000 CICIDS2017 test flows through the split deployment (Sect.~\ref{sec:benchmark-results}): prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM utilization are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL. Its CPU panel shows the load asymmetry: at peak load the gate node idles at 1.3\% CPU while the PySpark classifier node reaches 94.5\%, so the classifier dominates the compute budget.
 
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{grafana_dashboard.png}
   \caption{Real-time Grafana monitoring of the edge IDS during CICIDS2017 replay.}
   \label{fig:grafana}
-\end{figure}
-
-\begin{figure}[tbp]
-  \centering
-  \includegraphics[width=\textwidth]{grafana_peak_load.png}
-  \caption{Grafana dashboard at peak load in the split deployment, showing the load asymmetry between the two pipeline roles.}
-  \label{fig:grafana-peak}
 \end{figure}
 
 \section{Implementation}
@@ -373,7 +366,7 @@ A host-side script starts the pipeline roles on the Jetsons over SSH, drives the
 \textbf{End-to-end detection after gating.} Table~\ref{tab:e2e} scores the final verdicts of the deployed pipeline against the replay labels, with gate-only verdicts counted as benign. In the run that replays all 10{,}000 flows once (mode A at 20\,flows/s, sustained for 500\,s with a 5.9\,s drain and an end-to-end p95 of 5.1\,s), the pipeline detects 1{,}055 of 1{,}518 attack flows (recall 69.5\%) and raises no false alarm on 8{,}483 benign flows, so F1 is 0.82, against 0.996 offline for the classifier alone. All 463 missed attacks were skipped by the gate. The classifier made no error on the flows it received. Every placement with the gate lands at the same point (recall 68--73\%, no false positive), and without the gate the deployed pipeline makes no error on the windows replayed. Gating thus turns the classifier's offline F1 into an end-to-end F1 that the gate's threshold alone decides.
 
 \begin{table}[htbp]
-  \caption{End-to-end detection of the deployed pipeline: final verdicts against replay labels (CICIDS2017 unless noted), gate-only verdicts counted as benign.}
+  \caption{End-to-end detection of the deployed pipeline: final verdicts against replay labels, gate-only verdicts counted as benign.}
   \label{tab:e2e}
   \centering
   \small
@@ -387,12 +380,10 @@ A host-side script starts the pipeline roles on the Jetsons over SSH, drives the
     C: Spark cluster & 2{,}499 & 381 & 115 / 0 & 0 & 69.8 & 0.822 \\
     Single node + gate & 1{,}480 & 200 & 55 / 0 & 0 & 72.5 & 0.841 \\
     Gate off (single, B) & 1{,}855 & 242 & -- / 0 & 0 & 100.0 & 1.000 \\
-    \midrule
-    A: CSE-CIC-IDS2018 replay & 10{,}001 & 1{,}276 & 712 / 554 & 0 & 0.8 & 0.016 \\
     \bottomrule
   \end{tabular}
 
-  \tabnote{Precision is 100\% in every row (no benign flow received an attack verdict). Capacity-window rows pool every repeat of a mode. Each window replays the sample from its first row, so these rows overlap and cover 3{,}601 (A), 1{,}351 (A1), 829 (C) and 219 (single node + gate) distinct flows. The full-replay row covers all 10{,}000 once (the sender's loop repeats one row), as does the CSE-CIC-IDS2018 row, which uses the same CICIDS2017-trained models.}
+  \tabnote{Precision is 100\% in every row (no benign flow received an attack verdict). Capacity-window rows pool every repeat of a mode. Each window replays the sample from its first row, so these rows overlap and cover 3{,}601 (A), 1{,}351 (A1), 829 (C) and 219 (single node + gate) distinct flows. The full-replay row covers all 10{,}000 once (the sender's loop repeats one row).}
 \end{table}
 
 \begin{figure}[htbp]
@@ -408,7 +399,28 @@ Two findings qualify the design. First, decoupling the stages matters more than 
 
 \textbf{Dependence on the host.} The boards run all detection, but Kafka, PostgreSQL, InfluxDB and Grafana run on the host PC, so the deployment is not autonomous. Flows enter the pipeline through the host's broker and verdicts are stored there. If the host fails, detection stops, even though both boards remain healthy. With the PySpark classifier the host is not the bottleneck: the boards saturate first, and a round trip from host to board averages 4--9\,ms on the Wi-Fi LAN. The coupling still bounds scaling: every added board is one more consumer of the same broker and one more writer to the same database, one insert per verdict. A field deployment would therefore move ingest to the edge: a broker on, or next to, the board that receives the flow export, with verdicts buffered locally and forwarded to a central store in batches, so that detection keeps running when the uplink or the host is lost. Kafka's replication would let such a broker be spread over the boards themselves. We have not measured these variants. They trade the memory the JVM-based broker takes on an 8\,GB board against independence from the host.
 
-\textbf{Beyond CICIDS2017.} To test the deployed system on another network, we replayed 10{,}000 flows sampled from the deduplicated, leak-free test split of CSE-CIC-IDS2018~\cite{csecicids2018} (12.8\% attacks, columns mapped to the CICIDS2017 names) through the same pipeline split, keeping the models trained on CICIDS2017 (last row of Table~\ref{tab:e2e}). The gate, calibrated on CICIDS2017 benign traffic, forwards 30\% of the 2018 flows instead of 11\%, so the classifier receives three times the load and capacity falls from 22.4 to about 8\,flows/s (a 1{,}250\,s run at 8\,flows/s drained in 1.9\,s; at 12\,flows/s one repeat drained in 29\,s). Detection collapses to a recall of 0.8\%, and the classifier itself, not only the gate, misses almost every 2018 attack: scored offline without the gate, the same forest detects 1.8\%. An offline study with the same model family (class-weighted Random Forest, same leakage-aware protocol, shared features, 18 runs) agrees with earlier inter-dataset studies~\cite{dhooge2020interdataset,cantone2024crossdataset}: across datasets AUC-PR falls to 0.48 (2017$\rightarrow$2018) and 0.19 (2018$\rightarrow$2017), while training on 1\% of the target dataset's labelled flows restores F1 to 0.92 and 0.99. Since the gate's skip ratio depends on the traffic, so does the load on the classifier: a new network needs the gate recalibrated on local benign traffic and the classifier retrained.
+\textbf{Beyond CICIDS2017.} To test the deployed system on another network, we replayed 10{,}000 flows sampled from the deduplicated, leak-free test split of CSE-CIC-IDS2018~\cite{csecicids2018} (12.8\% attacks, columns mapped to the CICIDS2017 names) through the same pipeline split, keeping the models trained on CICIDS2017 (Table~\ref{tab:xdataset}). The gate, calibrated on CICIDS2017 benign traffic, forwards 30\% of the 2018 flows instead of 11\%, so the classifier receives three times the load and capacity falls from 22.4 to about 8\,flows/s. Detection collapses to a recall of 0.8\%, and the classifier itself, not only the gate, misses almost every 2018 attack. An offline study with the same model family (class-weighted Random Forest, same leakage-aware protocol, shared features, 18 runs) agrees with earlier inter-dataset studies~\cite{dhooge2020interdataset,cantone2024crossdataset}: across datasets AUC-PR falls to 0.48 (2017$\rightarrow$2018) and 0.19 (2018$\rightarrow$2017), while training on 1\% of the target dataset's labelled flows restores F1 to 0.92 and 0.99. Since the gate's skip ratio depends on the traffic, so does the load on the classifier: a new network needs the gate recalibrated on local benign traffic and the classifier retrained.
+
+\begin{table}[htbp]
+  \caption{The deployed pipeline split (models trained on CICIDS2017) on replayed CICIDS2017 and CSE-CIC-IDS2018 flows.}
+  \label{tab:xdataset}
+  \centering
+  \small
+  \begin{tabular}{l c c}
+    \toprule
+    Replayed flows (10{,}000 each, once) & CICIDS2017 & CSE-CIC-IDS2018 \\
+    \midrule
+    Flows forwarded by the gate (benign forwarded) & 11.0\% (0.6\%) & 30.4\% (28.4\%) \\
+    Sustained capacity (flows/s) & 22.4 & $\approx$8$^{*}$ \\
+    Attack flows / detected & 1{,}518 / 1{,}055 & 1{,}276 / 10 \\
+    Missed: skipped by gate / by classifier & 463 / 0 & 712 / 554 \\
+    End-to-end recall / F1 (precision 100\%) & 69.5\% / 0.820 & 0.8\% / 0.016 \\
+    Classifier alone, offline recall & 99.8\% & 1.8\% \\
+    \bottomrule
+  \end{tabular}
+
+  \tabnote{$^{*}$A 1{,}250\,s run at 8\,flows/s drained in 1.9\,s; at 12\,flows/s one repeat drained in 29\,s. The classifier-alone row scores the same forest offline through its ONNX export (identical predictions).}
+\end{table}
 
 \textbf{Limitations.} Benchmarks are obtained on a two-node lab cluster over Wi-Fi. Wired networking and larger clusters may shift latency tails. Capacity is bounded by the PySpark classifier, whose per-batch cost of several seconds sets both the tail latency and the ceiling. The $\sim$67-TOPS GPU remains unexploited by the CPU-only pipeline. The gate bounds recall, and its threshold is calibrated on benign training data only. Live-traffic re-calibration is future work. Energy figures subtract a single pre-run idle baseline, so within-run drift in background power is not captured. Neither detection nor capacity transfers to CSE-CIC-IDS2018 traffic without recalibration and retraining (see above). Live traffic and deliberately evasive (adversarial) traffic remain untested, and the host-side services were not moved to the edge.
 

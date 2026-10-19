@@ -55,22 +55,20 @@
 \newlabel{fig:architecture}{{1}{5}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Monitoring and Alerting}{5}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {4}Implementation}{5}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}From Spark Training to Edge Deployment}{5}{}\protected@file@percent }
-\newlabel{sec:bridge}{{5}{5}{}{}{}}
 \citation{arp2022dosdonts}
 \citation{lanvin2023errors}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Real-time Grafana monitoring of the edge IDS during CICIDS2017 replay.}}{6}{}\protected@file@percent }
 \newlabel{fig:grafana}{{2}{6}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Grafana dashboard at peak load in the split deployment, showing the load asymmetry between the two pipeline roles.}}{6}{}\protected@file@percent }
-\newlabel{fig:grafana-peak}{{3}{6}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Offline Phase (Spark ML), Leakage-Aware}{6}{}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Apache Spark standalone training cluster: the host as \emph  {master} (no executor), two Jetson Orin Nano Super devices as \emph  {worker}/\emph  {executor} nodes.}}{7}{}\protected@file@percent }
-\newlabel{fig:spark-cluster}{{4}{7}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Two-phase train--deploy pipeline linking Spark ML experiments to Jetson edge inference.}}{7}{}\protected@file@percent }
-\newlabel{fig:train-deploy}{{5}{7}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Edge Phase (Jetson Orin Nano Super)}{7}{}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Bridge table: offline Spark selection criteria from the leakage-aware offline selection stage.}}{8}{}\protected@file@percent }
-\newlabel{tab:spark-edge-bridge}{{2}{8}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Apache Spark standalone training cluster: the host as \emph  {master} (no executor), two Jetson Orin Nano Super devices as \emph  {worker}/\emph  {executor} nodes.}}{6}{}\protected@file@percent }
+\newlabel{fig:spark-cluster}{{3}{6}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}From Spark Training to Edge Deployment}{6}{}\protected@file@percent }
+\newlabel{sec:bridge}{{5}{6}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Two-phase train--deploy pipeline linking Spark ML experiments to Jetson edge inference.}}{7}{}\protected@file@percent }
+\newlabel{fig:train-deploy}{{4}{7}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Offline Phase (Spark ML), Leakage-Aware}{7}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Bridge table: offline Spark selection criteria from the leakage-aware offline selection stage.}}{7}{}\protected@file@percent }
+\newlabel{tab:spark-edge-bridge}{{2}{7}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Edge Phase (Jetson Orin Nano Super)}{8}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {6}Experimental Setup}{8}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {7}Results}{9}{}\protected@file@percent }
 \newlabel{sec:benchmark-results}{{7}{9}{}{}{}}
@@ -78,19 +76,21 @@
 \newlabel{tab:benchmark}{{3}{9}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Single-node inference cost of the deployed forest (same trees, identical predictions) across engines, batch size 10.}}{10}{}\protected@file@percent }
 \newlabel{tab:engines}{{4}{10}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Sustained verdict throughput (left) and energy per verdict at that rate (right) per deployment mode. The Spark-cluster bar is a lower bound (Table~\ref {tab:benchmark}).}}{11}{}\protected@file@percent }
-\newlabel{fig:edge-modes}{{6}{11}{}{}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces End-to-end detection of the deployed pipeline: final verdicts against replay labels (CICIDS2017 unless noted), gate-only verdicts counted as benign.}}{11}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Sustained verdict throughput (left) and energy per verdict at that rate (right) per deployment mode. The Spark-cluster bar is a lower bound (Table~\ref {tab:benchmark}).}}{11}{}\protected@file@percent }
+\newlabel{fig:edge-modes}{{5}{11}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces End-to-end detection of the deployed pipeline: final verdicts against replay labels, gate-only verdicts counted as benign.}}{11}{}\protected@file@percent }
 \newlabel{tab:e2e}{{5}{11}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Discussion}{11}{}\protected@file@percent }
 \citation{csecicids2018}
 \citation{dhooge2020interdataset,cantone2024crossdataset}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Anomaly-gate operating curve: attack recall (left) and false-positive rate (right) vs.\ gate-skip ratio.}}{12}{}\protected@file@percent }
-\newlabel{fig:gate}{{7}{12}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {8}Discussion}{12}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Anomaly-gate operating curve: attack recall (left) and false-positive rate (right) vs.\ gate-skip ratio.}}{12}{}\protected@file@percent }
+\newlabel{fig:gate}{{6}{12}{}{}{}}
 \citation{hernandezramos2025federated}
 \bibstyle{splncs04}
 \bibdata{references}
 \bibcite{alrawashdeh2016toward}{1}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces The deployed pipeline split (models trained on CICIDS2017) on replayed CICIDS2017 and CSE-CIC-IDS2018 flows.}}{13}{}\protected@file@percent }
+\newlabel{tab:xdataset}{{6}{13}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {9}Conclusion}{13}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{Disclosure of Interests.}{13}{}\protected@file@percent }
 \bibcite{arp2022dosdonts}{2}
