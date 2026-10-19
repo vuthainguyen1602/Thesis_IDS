@@ -512,27 +512,29 @@
     Một nút + cổng lọc            & 1 & $\approx$2,5  & 3,8 / 7,8  & 89,0 & 3,04 \\
     B: Mở rộng ngang          & 2 & 3,3  & 4,1 / 8,2  & --   & 3,20 \\
     C: Cụm Spark              & 2 & 9--17  & 0,7 / 5,2  & 88,6 & 1,15 \\
+    A1: Tách, cùng một bo     & 1 & 17,8   & 0,6 / 5,3  & 88,9 & 0,32 \\
     \textbf{A: Tách pipeline} & 2 & \good{22,4} & 1,0 / 7,1 & 88,8 & \good{0,60} \\
     \bottomrule
   \end{tabular}
   }
-  \par\vspace{0.4em}
-  \raggedright\small
+  \par\vspace{0.2em}
+  \raggedright\footnotesize
   \begin{itemize}
-    \item \emph{Duy trì được} = tốc độ cao nhất mà \key{mọi luồng} đều có kết
-          quả trong 10\,giây; độ trễ tính từ lúc gửi, \key{gồm cả thời gian
-          xếp hàng}.
-    \item \good{A gấp 9 lần một nút} --- nhờ đặt cổng lọc và bộ phân loại trên
-          \emph{hai bo riêng}: thêm cổng lọc trên cùng bo không nhanh hơn.
+    \item \emph{Duy trì được}: \key{mọi luồng} có kết quả trong 10\,giây. Độ
+          trễ tính từ lúc gửi, \key{gồm cả xếp hàng}.
+    \item \good{A gấp 9 lần một nút} nhờ \emph{tách hai tầng thành hai tiến
+          trình}: chạy chung không nhanh hơn, tách trên cùng một bo (A1) đã gấp 7.
     \item \bad{Cái giá}: cổng lọc bỏ sót $\approx$30\% luồng tấn công (recall thực
-          đo 69,6\%); p95 $\approx$7\,giây vì mỗi lô PySpark mất vài giây.
+          đo 69,6\%). p95 $\approx$7\,giây vì mỗi lô PySpark mất vài giây.
   \end{itemize}
   \note{Đây là số đo lại (30/9) sau khi phát hiện cách đo cũ chỉ đếm dự đoán
   trong cửa sổ tải: số cũ 62,5 luồng/giây và 95,8\% bỏ qua thực chất là
   $1 - 2{,}6/62{,}5$, tức thông lượng bộ phân loại chia tổng số luồng. Lần đo
   mới theo dõi từng luồng đã gửi đến khi có kết quả. Không có cổng lọc, recall
   thực đo 100\% (212 luồng tấn công). Một nút + cổng lọc: quy tắc 10 giây xếp nó ở mức 1,9 chỉ vì một lần lặp mất 10,6 giây; ở tốc độ gửi 3 luồng/giây nó cho 2,4--2,5 như một nút. Cụm Spark: ở mức 20, một lần lặp theo kịp (17,1), lần kia thì không, nên chỉ biết khoảng 9--17. Năng lượng là công suất toàn bo chia tốc
-  độ dự đoán.}
+  độ dự đoán. A1 đo bổ sung ngày 12/10, cùng bo, cùng mô hình, cùng tệp phát lại:
+  bo thứ hai chỉ thêm khoảng một phần tư thông lượng, còn năng lượng mỗi dự đoán
+  tăng gần gấp đôi.}
 \end{frame}
 
 
@@ -616,7 +618,7 @@
     Bagging chỉ 0,9966 --- thua, mà huấn luyện lâu gấp 4 lần.
   \end{block}
   \begin{block}{RQ3 --- Pipeline Spark có khả thi trên cụm thiết bị biên?}
-    \good{Khả thi cho cảnh báo gần thời gian thực, với điều kiện tách vai trò.}
+    \good{Khả thi cho cảnh báo gần thời gian thực, với điều kiện tách hai tầng.}
     Thông lượng \num{2,5 $\rightarrow$ 22,4} luồng/giây (gấp 9), năng lượng
     \num{3,04 $\rightarrow$ 0,60\,J} mỗi dự đoán; đổi lại recall tấn công
     69,6\% và p95 $\approx$7\,giây.
@@ -626,7 +628,8 @@
   RF Importance +0,48\% đến +1,15\% trên mọi thuật toán họ cây. RQ2: kiểm định
   hoán vị ghép cặp cho $p \approx 0{,}031$, chỉ vừa chạm ngưỡng sàn --- bài toán nhị phân
   trong-miền đã gần bão hòa, nên tiêu chí phụ mới là căn cứ chọn mô hình. RQ3:
-  chỉ thêm bo mạch mà không tách vai trò (chế độ B) hầu như không cải thiện.}
+  chỉ thêm bo mạch mà không tách hai tầng (chế độ B) hầu như không cải thiện, còn
+  tách hai tầng trên cùng một bo (A1) đã đạt 17,8 luồng/giây.}
 \end{frame}
 
 \begin{frame}{Đóng góp chính của luận văn}
