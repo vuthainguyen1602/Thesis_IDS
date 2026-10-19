@@ -97,9 +97,12 @@
 \justifying\printbibliography[title=Tài liệu tham khảo, heading=bibintocuc]
 \endgroup
 
-% Bản PDF bài báo FAIR 2026 đính kèm ở cuối luận văn
+% Bản PDF hai bài báo (FAIR 2026, SOICT 2026 camera-ready) đính kèm ở cuối luận văn
 \IfFileExists{../output/pdfs/FAIR2026.pdf}{%
   \includepdf[pages=-,scale=0.9,fitpaper=false,pagecommand={\thispagestyle{empty}}]{../output/pdfs/FAIR2026.pdf}%
+}{}
+\IfFileExists{../output/pdfs/SOICT2026.pdf}{%
+  \includepdf[pages=-,scale=0.9,fitpaper=false,pagecommand={\thispagestyle{empty}}]{../output/pdfs/SOICT2026.pdf}%
 }{}
 
 
