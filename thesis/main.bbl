@@ -58,12 +58,14 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Cybersecurity}
-      \field{number}{1}
       \field{title}{Survey of intrusion detection systems: techniques, datasets and challenges}
       \field{volume}{2}
       \field{year}{2019}
-      \field{pages}{1\bibrangedash 22}
-      \range{pages}{22}
+      \field{pages}{20}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1186/s42400-019-0038-7
+      \endverb
     \endentry
     \entry{ferrag2020deep}{article}{}{}
       \name{author}{4}{}{%
@@ -106,6 +108,9 @@
       \field{year}{2020}
       \field{pages}{102419}
       \range{pages}{1}
+      \verb{doi}
+      \verb 10.1016/j.jisa.2019.102419
+      \endverb
     \endentry
     \entry{vinayakumar2019deep}{article}{}{}
       \name{author}{6}{}{%
@@ -158,6 +163,9 @@
       \field{year}{2019}
       \field{pages}{41525\bibrangedash 41550}
       \range{pages}{26}
+      \verb{doi}
+      \verb 10.1109/ACCESS.2019.2895334
+      \endverb
     \endentry
     \entry{singh2022}{misc}{}{}
       \name{author}{2}{}{%
@@ -340,7 +348,7 @@
       \verb 10.1016/j.cose.2024.104146
       \endverb
     \endentry
-    \entry{hasan2025iiot}{misc}{}{}
+    \entry{hasan2025iiot}{inproceedings}{}{}
       \name{author}{4}{}{%
         {{hash=aa90fb0a41bfb11b03bc5067829c26d5}{%
            family={Hasan},
@@ -363,6 +371,9 @@
            given={Talha\bibnamedelima Hussain},
            giveni={T\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
       }
+      \list{publisher}{1}{%
+        {SciTePress}%
+      }
       \strng{namehash}{b4a626ee2b12ca30cd6058bc1f89aa8a}
       \strng{fullhash}{21bf46cffc3bd1b468bea00ef8674360}
       \strng{fullhashraw}{21bf46cffc3bd1b468bea00ef8674360}
@@ -375,11 +386,13 @@
       \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{eprinttype}{arXiv}
+      \field{booktitle}{Proceedings of the 10th International Conference on Internet of Things, Big Data and Security (IoTBDS)}
       \field{title}{Enhanced Intrusion Detection in {IIoT} Networks: A Lightweight Approach with Autoencoder-Based Feature Learning}
       \field{year}{2025}
-      \verb{eprint}
-      \verb 2501.15266
+      \field{pages}{207\bibrangedash 214}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.5220/0013203700003944
       \endverb
     \endentry
     \entry{baalaji2025ensemble}{article}{}{}
@@ -586,11 +599,11 @@
            familyi={A\bibinitperiod},
            given={Mohammed\bibnamedelima Ibrahim},
            giveni={M\bibinitperiod\bibinitdelim I\bibinitperiod}}}%
-        {{hash=9d8a7607a73a79e7c2b16bf8cefbd766}{%
-           family={Ben\bibnamedelima Chaabane},
-           familyi={B\bibinitperiod\bibinitdelim C\bibinitperiod},
-           given={Slim},
-           giveni={S\bibinitperiod}}}%
+        {{hash=cb2a2d2c7ebc5d1e6daf1b3f2f3ec6bd}{%
+           family={Chaabane},
+           familyi={C\bibinitperiod},
+           given={Slim\bibnamedelima Ben},
+           giveni={S\bibinitperiod\bibinitdelim B\bibinitperiod}}}%
         {{hash=78282f1d8b77c1c11a9a39da28d06e45}{%
            family={Abbas},
            familyi={A\bibinitperiod},
@@ -618,13 +631,13 @@
            giveni={B\bibinitperiod}}}%
       }
       \strng{namehash}{116353c62d8c283a947e9c6e90dd4397}
-      \strng{fullhash}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
-      \strng{fullhashraw}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
-      \strng{bibnamehash}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
-      \strng{authorbibnamehash}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
+      \strng{fullhash}{d2ea52f0fe018bcd9669061339ea5566}
+      \strng{fullhashraw}{d2ea52f0fe018bcd9669061339ea5566}
+      \strng{bibnamehash}{d2ea52f0fe018bcd9669061339ea5566}
+      \strng{authorbibnamehash}{d2ea52f0fe018bcd9669061339ea5566}
       \strng{authornamehash}{116353c62d8c283a947e9c6e90dd4397}
-      \strng{authorfullhash}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
-      \strng{authorfullhashraw}{5e3ae5dcf2a8c966e2e90f4ef13a6623}
+      \strng{authorfullhash}{d2ea52f0fe018bcd9669061339ea5566}
+      \strng{authorfullhashraw}{d2ea52f0fe018bcd9669061339ea5566}
       \field{sortinit}{8}
       \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
       \field{labelnamesource}{author}
@@ -642,16 +655,16 @@
     \endentry
     \entry{kumar2025kafkaspark}{inproceedings}{}{}
       \name{author}{4}{}{%
-        {{hash=637bc9a697ca2befd38226179c3160a3}{%
-           family={Mohan\bibnamedelimb Kiran\bibnamedelima Kumar},
-           familyi={M\bibinitperiod\bibinitdelim K\bibinitperiod\bibinitdelim K\bibinitperiod},
-           given={Kotyada},
-           giveni={K\bibinitperiod}}}%
-        {{hash=84b3d818efcdce7c4648792a10660f3a}{%
-           family={Sreekar},
-           familyi={S\bibinitperiod},
-           given={Mokshith},
-           giveni={M\bibinitperiod}}}%
+        {{hash=a257a1b9609d1a8fc6079e9b4540d0b8}{%
+           family={Kiran\bibnamedelima Kumar},
+           familyi={K\bibinitperiod\bibinitdelim K\bibinitperiod},
+           given={Kotyada\bibnamedelima Mohan},
+           giveni={K\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=47604d1d2ae51ef01de743e92e6d3dc9}{%
+           family={Srikar\bibnamedelima Reddy},
+           familyi={S\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={M.\bibnamedelimi Vivek},
+           giveni={M\bibinitperiod\bibinitdelim V\bibinitperiod}}}%
         {{hash=708b67f35926bc0ac365e3f35d73706c}{%
            family={Ullas},
            familyi={U\bibinitperiod},
@@ -666,14 +679,14 @@
       \list{publisher}{1}{%
         {IEEE}%
       }
-      \strng{namehash}{9bbdc4061785d707257d4565089db8e7}
-      \strng{fullhash}{c94db382bcff5af769e0fc1cc21dfe40}
-      \strng{fullhashraw}{c94db382bcff5af769e0fc1cc21dfe40}
-      \strng{bibnamehash}{c94db382bcff5af769e0fc1cc21dfe40}
-      \strng{authorbibnamehash}{c94db382bcff5af769e0fc1cc21dfe40}
-      \strng{authornamehash}{9bbdc4061785d707257d4565089db8e7}
-      \strng{authorfullhash}{c94db382bcff5af769e0fc1cc21dfe40}
-      \strng{authorfullhashraw}{c94db382bcff5af769e0fc1cc21dfe40}
+      \strng{namehash}{38e3be932b45b0a3c3309fdc4dc300b2}
+      \strng{fullhash}{200ab005848b93a770db64eb71d74a8a}
+      \strng{fullhashraw}{200ab005848b93a770db64eb71d74a8a}
+      \strng{bibnamehash}{200ab005848b93a770db64eb71d74a8a}
+      \strng{authorbibnamehash}{200ab005848b93a770db64eb71d74a8a}
+      \strng{authornamehash}{38e3be932b45b0a3c3309fdc4dc300b2}
+      \strng{authorfullhash}{200ab005848b93a770db64eb71d74a8a}
+      \strng{authorfullhashraw}{200ab005848b93a770db64eb71d74a8a}
       \field{sortinit}{9}
       \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
       \field{labelnamesource}{author}
@@ -1540,6 +1553,9 @@
       \field{year}{2021}
       \field{pages}{756\bibrangedash 795}
       \range{pages}{40}
+      \verb{doi}
+      \verb 10.1109/JPROC.2021.3052449
+      \endverb
     \endentry
     \entry{lopez2017autoencoder}{article}{}{}
       \name{author}{4}{}{%
@@ -2383,6 +2399,9 @@
       \field{year}{2018}
       \field{pages}{108\bibrangedash 116}
       \range{pages}{9}
+      \verb{doi}
+      \verb 10.5220/0006639801080116
+      \endverb
     \endentry
     \entry{csecicids2018}{misc}{}{}
       \name{author}{1}{}{%
@@ -2500,6 +2519,41 @@
            given={Éric},
            giveni={É\bibinitperiod}}}%
       }
+      \name{editor}{6}{}{%
+        {{hash=8cf1a24cced286a83534f863718eb7a6}{%
+           family={Kallel},
+           familyi={K\bibinitperiod},
+           given={Slim},
+           giveni={S\bibinitperiod}}}%
+        {{hash=73382d5530fe60e56cdaef20ff5f88ee}{%
+           family={Jmaiel},
+           familyi={J\bibinitperiod},
+           given={Mohamed},
+           giveni={M\bibinitperiod}}}%
+        {{hash=c1e421303c6cad096694c2ddee6bb48c}{%
+           family={Zulkernine},
+           familyi={Z\bibinitperiod},
+           given={Mohammad},
+           giveni={M\bibinitperiod}}}%
+        {{hash=bfcb0763a0bf51ae8d7d4d0ebdc4f118}{%
+           family={Hadj\bibnamedelima Kacem},
+           familyi={H\bibinitperiod\bibinitdelim K\bibinitperiod},
+           given={Ahmed},
+           giveni={A\bibinitperiod}}}%
+        {{hash=fb76214f07c5f12623a98e8bd915b756}{%
+           family={Cuppens},
+           familyi={C\bibinitperiod},
+           given={Frédéric},
+           giveni={F\bibinitperiod}}}%
+        {{hash=f2591b0f197a466246095c7c8662563b}{%
+           family={Cuppens},
+           familyi={C\bibinitperiod},
+           given={Nora},
+           giveni={N\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Cham}%
+      }
       \list{publisher}{1}{%
         {Springer}%
       }
@@ -2511,12 +2565,18 @@
       \strng{authornamehash}{40ce643d08f8071d042d43830d503aaa}
       \strng{authorfullhash}{a14864ae09d25944293d4a2c2834e6f0}
       \strng{authorfullhashraw}{a14864ae09d25944293d4a2c2834e6f0}
+      \strng{editorbibnamehash}{e64a0e3f360f5c3b89de3f54d91ac154}
+      \strng{editornamehash}{34312802094069ab047e0fb746b70b36}
+      \strng{editorfullhash}{e64a0e3f360f5c3b89de3f54d91ac154}
+      \strng{editorfullhashraw}{e64a0e3f360f5c3b89de3f54d91ac154}
       \field{sortinit}{5}
       \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{booktitle}{Risks and Security of Internet and Systems (CRiSIS 2022), Revised Selected Papers}
+      \field{booktitle}{Risks and Security of Internet and Systems (CRiSIS 2022)}
+      \field{series}{Lecture Notes in Computer Science}
       \field{title}{Errors in the {CICIDS2017} Dataset and the Significant Differences in Detection Performances It Makes}
+      \field{volume}{13857}
       \field{year}{2023}
       \field{pages}{18\bibrangedash 33}
       \range{pages}{16}
@@ -2600,6 +2660,9 @@
            given={Su-In},
            giveni={S\bibinithyphendelim I\bibinitperiod}}}%
       }
+      \list{publisher}{1}{%
+        {Curran Associates}%
+      }
       \strng{namehash}{9cd6e49767b1dfa9f5df9a46216a8739}
       \strng{fullhash}{9cd6e49767b1dfa9f5df9a46216a8739}
       \strng{fullhashraw}{9cd6e49767b1dfa9f5df9a46216a8739}
@@ -2612,10 +2675,10 @@
       \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{booktitle}{Advances in Neural Information Processing Systems (NeurIPS)}
+      \field{booktitle}{Proceedings of the 31st International Conference on Neural Information Processing Systems (NIPS'17)}
       \field{title}{A Unified Approach to Interpreting Model Predictions}
       \field{year}{2017}
-      \field{pages}{4765\bibrangedash 4774}
+      \field{pages}{4768\bibrangedash 4777}
       \range{pages}{10}
     \endentry
     \entry{engelen2021troubleshooting}{inproceedings}{}{}
@@ -2762,6 +2825,9 @@
       \field{year}{2020}
       \field{pages}{102564}
       \range{pages}{1}
+      \verb{doi}
+      \verb 10.1016/j.jisa.2020.102564
+      \endverb
     \endentry
     \entry{cantone2024crossdataset}{article}{}{}
       \name{author}{3}{}{%
