@@ -480,12 +480,12 @@ devices, and what it costs in detection. Eight minutes, five results.}
   \fitwidth{%
   \begin{tabular}{lcccp{3.3cm}}
     \toprule
-    Configuration & F1 & Features & Size (MB) & Edge rationale \\
+    Feature set (XGBoost) & F1 & Features & Size (MB) & Edge rationale \\
     \midrule
-    Baseline $+$ XGBoost      & 0.9971 & 77 & 2.32 & Reference accuracy \\
-    \textbf{SHAP Top-30} $+$ XGBoost & 0.9970 & 30 & 0.003$^{\dagger}$ & Explainable; deployed feature set \\
-    RF Top-30 $+$ XGBoost     & 0.9922 & 30 & 2.52 & Embedded ranking \\
-    PCA $k$=40 $+$ XGBoost    & 0.9939 & 40 & 3.82 & Unsupervised reduction \\
+    All features (baseline) & 0.9971 & 77 & 2.32 & Reference accuracy \\
+    \textbf{SHAP Top-30} & 0.9970 & 30 & 2.37$^{\dagger}$ & Explainable; deployed feature set \\
+    RF Top-30     & 0.9922 & 30 & 2.52 & Embedded ranking \\
+    PCA $k$=40    & 0.9939 & 40 & 3.82 & Unsupervised reduction \\
     \bottomrule
   \end{tabular}
   }
@@ -496,7 +496,7 @@ devices, and what it costs in detection. Eight minutes, five results.}
   \texttt{PipelineModel} loads on ARM64 without the native libraries Spark's
   XGBoost integration needs. The SHAP ranking is computed after
   \texttt{destination\_port} is removed.
-  \\ $^{\dagger}$Distributed saving under-reports size. True size: $\approx$2.5\,MB.
+  \\ $^{\dagger}$Measured on a single-node retrain (the cluster save kept only metadata).
 \end{frame}
 
 \begin{frame}{Backup: full monitoring dashboard}

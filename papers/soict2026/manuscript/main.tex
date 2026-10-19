@@ -284,13 +284,13 @@ In the offline selection stage, we evaluate four feature configurations (baselin
     Feature set (XGBoost) & F1 & Features & Size (MB) & Edge rationale \\
     \midrule
     All features (baseline) & 0.9971 & 77 & 2.32 & Reference accuracy \\
-    SHAP Top-30 & 0.9970 & 30 & n/a$^{\dagger}$ & Explainable; fewer features (deployed feature set) \\
+    SHAP Top-30 & 0.9970 & 30 & 2.37$^{\dagger}$ & Explainable; fewer features (deployed feature set) \\
     RF Top-30 & 0.9922 & 30 & 2.52 & Same feature count; embedded ranking \\
     PCA $k$=40 & 0.9939 & 40 & 3.82 & Unsupervised reduction \\
     \bottomrule
   \end{tabular}
 
-  \tabnote{$^{\dagger}$Not recoverable: the distributed save on the training cluster scattered this model's tree partitions across executors, so the recorded 3\,KB covers only driver-side metadata. The deployed model is exported on a single node, where its size is measured reliably.}
+  \tabnote{$^{\dagger}$Measured on a single-node retrain of the same configuration (test F1 0.9971 against 0.9970 in the original run): the distributed save on the training cluster kept only driver-side metadata for this model.}
 \end{table}
 
 \subsection{Edge Phase (Jetson Orin Nano Super)}
