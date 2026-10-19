@@ -33,7 +33,7 @@ PRINT_LABELS = {"single": "Single\nnode", "single_gate": "Single\n+ gate", "hori
                 "spark_cluster": "C:\ncluster", "split_1board": "A1:\n1-board", "split": "A:\n2-board"}
 LABELS_VI = {"single": "Một nút", "single_gate": "Một nút\n+ cổng",
              "horizontal": "B: Ngang", "spark_cluster": "C: Cụm\nSpark",
-             "split": "A: Tách\npipeline"}
+             "split_1board": "A1: Tách,\ncùng một bo", "split": "A: Tách\npipeline"}
 TITLES = {"en": ("Sustained verdicts/s (all flows done ≤10 s)",
                  "Energy per verdict (J), at the sustained rate"),
           "vi": ("Dự đoán/giây duy trì được (mọi luồng xong ≤10 s)",
@@ -100,10 +100,7 @@ def main():
     labels, titles = (LABELS_VI, TITLES["vi"]) if args.vi else (LABELS, TITLES["en"])
     cap = capacity_table()
     en = pd.read_csv(os.path.join(D, "energy_at_sustained_rate.csv")).set_index("mode")
-    # The thesis figure (--vi) predates A1 and its text has no A1, so only the
-    # English (paper) figure carries it.
-    if not args.vi:
-        cap.loc["split_1board", "sustained_rps"], en.loc["split_1board", "j_per_verdict"] = one_board_split()
+    cap.loc["split_1board", "sustained_rps"], en.loc["split_1board", "j_per_verdict"] = one_board_split()
     modes = [m for m in ORDER if m in cap.index]
     print(cap.loc[modes].round(2))
 

@@ -709,16 +709,16 @@ Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguy
 
 Cả ba mô hình đều được huấn luyện trên một danh sách SHAP Top-30 và triển khai dưới dạng PySpark PipelineModel. Lưu ý về phạm vi: phép so sánh ba ứng viên (Bảng~\ref{tab:edge_training} và~\ref{tab:edge_benchmark}) được thực hiện ở giai đoạn đầu, với danh sách đặc trưng xếp hạng \emph{trước} khi áp dụng quy trình loại trừ rò rỉ (29 đặc trưng, chỉ trùng 15 với SHAP Top-30 hiện tại). Kết quả so sánh tương đối giữa ba mô hình vẫn là căn cứ chọn Random Forest, nhưng mô hình thực sự triển khai đã được huấn luyện lại trên SHAP Top-30 loại trừ rò rỉ (F1 0{,}9959), và mọi số đo hệ thống từ Mục~\ref{sec:engine-baseline-thesis} trở đi là của mô hình huấn luyện lại này.
 
-% LƯU Ý: terminal + Grafana đã chụp lại từ cụm Jetson (2026-07-19). Riêng 2 ảnh
+% LƯU Ý: Grafana chụp lại từ cụm Jetson; hai ảnh terminal dựng từ log chạy ngày 2026-10-20 (img/terminal_logs_20261020). Riêng 2 ảnh
 % cảnh báo email/Slack dùng lại ảnh giai đoạn thử nghiệm sớm — chính văn dưới cụm
 % hình đã ghi chú tường minh; mô-đun cảnh báo không đổi giữa hai giai đoạn.
 \begin{figure}[htbp]
     \centering
-    \IfFileExists{img/pipeline_terminal_jetson1.png}{\includegraphics[width=0.85\textwidth]{img/pipeline_terminal_jetson1.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Ảnh terminal node cổng lọc (jetson-nano-1)}\vspace{1.2cm}}}}\\[2pt]
-    {\footnotesize (a) Jetson \#1 (\texttt{jetson-nano-1}): cổng lọc bất thường, giám sát tài nguyên theo node}\\[8pt]
-    \IfFileExists{img/pipeline_terminal_jetson2.png}{\includegraphics[width=0.85\textwidth]{img/pipeline_terminal_jetson2.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Ảnh terminal node phân loại (jetson-nano-2)}\vspace{1.2cm}}}}\\[2pt]
-    {\footnotesize (b) Jetson \#2 (\texttt{jetson-nano-2}): bộ phân loại PySpark, đếm tấn công theo lô (chụp ở giai đoạn trước, với mô hình cũ)}
-    \caption[Giao diện terminal của pipeline IDS trên hai nút Jetson]{Giao diện terminal của pipeline IDS trên hai nút Jetson: (a) cổng lọc bất thường, (b) bộ phân loại PySpark}
+    \IfFileExists{img/pipeline_terminal_jetson1.png}{\includegraphics[width=0.72\textwidth]{img/pipeline_terminal_jetson1.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Ảnh terminal node cổng lọc (jetson-nano-1)}\vspace{1.2cm}}}}\\[2pt]
+    {\footnotesize (a) Jetson \#1 (\texttt{jetson-nano-1}): cổng lọc bất thường, khoảng 19--21 luồng/giây, chuyển tiếp 233 trên 2.102 luồng}\\[8pt]
+    \IfFileExists{img/pipeline_terminal_jetson2.png}{\includegraphics[width=0.72\textwidth]{img/pipeline_terminal_jetson2.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Ảnh terminal node phân loại (jetson-nano-2)}\vspace{1.2cm}}}}\\[2pt]
+    {\footnotesize (b) Jetson \#2 (\texttt{jetson-nano-2}): bộ phân loại PySpark (Random Forest, 30 đặc trưng) xử lý các luồng được chuyển tiếp}
+    \caption[Giao diện terminal của pipeline IDS trên hai nút Jetson]{Nhật ký terminal của pipeline IDS trên hai nút Jetson trong một lượt phát lại 20 luồng/giây ở chế độ pipeline split: (a) cổng lọc bất thường, (b) bộ phân loại PySpark. Dấu [...] đánh dấu các dòng được lược bớt}
     \label{fig:pipeline_terminal}
 \end{figure}
 
@@ -758,7 +758,7 @@ Cả ba mô hình đều được huấn luyện trên một danh sách SHAP Top
     \label{fig:slack_alert}
 \end{figure}
 
-Hình~\ref{fig:pipeline_terminal} minh họa giao diện terminal thực tế khi pipeline IDS đang xử lý dữ liệu trên Jetson Orin Nano Super, bao gồm thông tin về thông lượng, độ trễ và số lượng tấn công phát hiện được. Hai dashboard Grafana (Hình~\ref{fig:grafana_dashboard} và Hình~\ref{fig:grafana_attacks}) cho phép giám sát hiệu năng hệ thống và chi tiết các cuộc tấn công theo thời gian thực. Hình~\ref{fig:grafana_peak_load} ghi lại thời điểm tải đỉnh, cho thấy rõ sự phân bố tải lệch đặc trưng của chế độ tách pipeline: nút cổng lọc chỉ sử dụng khoảng 5\% CPU trong khi nút phân loại PySpark đạt tới 91\%, xác nhận bộ phân loại là thành phần chiếm tài nguyên chủ đạo. Các ảnh terminal và Grafana được chụp ở một lượt chạy trước với mô hình cũ. Chúng minh họa cách hệ thống vận hành và giám sát, còn các con số hiệu năng chính thức là số đo lại ở Bảng~\ref{tab:engines_thesis} và~\ref{tab:edge_modes}. Khi phát hiện tấn công, hệ thống tự động gửi cảnh báo qua nhiều kênh: email thông qua Mailtrap SMTP (Hình~\ref{fig:mailtrap_alert}) và tin nhắn Slack (Hình~\ref{fig:slack_alert}). Hai ảnh cảnh báo này chụp từ giai đoạn thử nghiệm sớm của hệ thống. Mô-đun cảnh báo và định dạng thông điệp giữ nguyên khi triển khai trên cụm Jetson.
+Hình~\ref{fig:pipeline_terminal} là nhật ký terminal của hai nút trong một lượt phát lại 20 luồng/giây với mô hình đang triển khai: cổng lọc trên Jetson \#1 chấm điểm khoảng 19--21 luồng/giây và chỉ chuyển tiếp 233 trên 2.102 luồng, còn bộ phân loại PySpark trên Jetson \#2 xử lý các luồng được chuyển tiếp theo từng lô, kèm thông tin CPU, bộ nhớ, nhiệt độ, độ trễ và số tấn công. Hai dashboard Grafana (Hình~\ref{fig:grafana_dashboard} và Hình~\ref{fig:grafana_attacks}) cho phép giám sát hiệu năng hệ thống và chi tiết các cuộc tấn công theo thời gian thực. Hình~\ref{fig:grafana_peak_load} ghi lại thời điểm tải đỉnh, cho thấy rõ sự phân bố tải lệch đặc trưng của chế độ tách pipeline: nút cổng lọc chỉ sử dụng khoảng 5\% CPU trong khi nút phân loại PySpark đạt tới 91\%, xác nhận bộ phân loại là thành phần chiếm tài nguyên chủ đạo. Các ảnh Grafana được chụp ở một lượt chạy trước với mô hình cũ. Chúng minh họa cách hệ thống vận hành và giám sát, còn các con số hiệu năng chính thức là số đo lại ở Bảng~\ref{tab:engines_thesis} và~\ref{tab:edge_modes}. Khi phát hiện tấn công, hệ thống tự động gửi cảnh báo qua nhiều kênh: email thông qua Mailtrap SMTP (Hình~\ref{fig:mailtrap_alert}) và tin nhắn Slack (Hình~\ref{fig:slack_alert}). Hai ảnh cảnh báo này chụp từ giai đoạn thử nghiệm sớm của hệ thống. Mô-đun cảnh báo và định dạng thông điệp giữ nguyên khi triển khai trên cụm Jetson.
 \subsection{Kết quả huấn luyện các mô hình ứng viên trên cụm Spark}
 
 Bảng~\ref{tab:edge_training} trình bày kết quả huấn luyện và đánh giá ba mô hình ứng viên trên cụm Spark (mô tả ở mục Môi trường thực nghiệm) trước khi triển khai xuống thiết bị biên.
@@ -943,16 +943,17 @@ Một nút                   & 1 & 2{,}5  & 5{,}9 / 11{,}3 & --      & 3{,}04 \\
 Một nút + cổng lọc            & 1 & 1{,}9$^{*}$  & 3{,}8 / 7{,}8  & 89{,}0 & 3{,}04 \\
 B: Horizontal             & 2 & 3{,}3  & 4{,}1 / 8{,}2  & --      & 3{,}20 \\
 C: Spark cluster          & 2 & $\geq$8{,}7$^{\dagger}$  & \textbf{0{,}7 / 5{,}2}  & 88{,}6 & 1{,}15 \\
-\textbf{A: Pipeline split} & 2 & \textbf{22{,}4} & 1{,}0 / 7{,}1 & 88{,}8 & \textbf{0{,}60} \\ \bottomrule
+A1: Tách, cùng một bo$^{\ddagger}$ & 1 & 17{,}8 & 0{,}6 / 5{,}3 & 88{,}9 & \textbf{0{,}32} \\
+\textbf{A: Pipeline split} & 2 & \textbf{22{,}4} & 1{,}0 / 7{,}1 & 88{,}8 & 0{,}60 \\ \bottomrule
 \end{tabular*}
 
-\tabnote{Phát lại 10.000 luồng lấy từ tập kiểm tra CICIDS2017 (15{,}2\% tấn công). Thông lượng duy trì và độ trễ là trung bình 2 lần lặp ở tốc độ gửi cao nhất còn theo kịp (Bảng~\ref{tab:capacity_sweep}). Tỷ lệ bỏ qua gộp trên mọi lượt chạy của chế độ. Năng lượng là công suất toàn bo (cộng cả hai bo ở chế độ hai nút) chia cho tốc độ dự đoán, đo ở 2{,}0 / 2{,}0 / 3{,}9 / 9{,}5 / 18{,}4 luồng/giây. Recall tấn công thực đo là 100\% khi không có cổng lọc (212 luồng tấn công) và 69{,}6\% ở chế độ A (1.261 luồng tấn công), khớp với recall 68{,}1\% của cổng lọc ở Bảng~\ref{tab:gate_oc}. $^{*}$Ở tốc độ gửi 3 luồng/giây, một nút có cổng lọc và không cổng lọc đều cho 2{,}4--2{,}5 dự đoán/giây. Cấu hình có cổng lọc chỉ bị xếp xuống mức 2 luồng/giây vì một trong hai lần lặp mất 10{,}6\,giây để xử lý hết phần tồn. $^{\dagger}$Cận dưới: ở mức 20 luồng/giây, một lần lặp theo kịp (17{,}1 luồng/giây), lần còn lại mất 12{,}3\,giây để xử lý hết phần tồn.}
+\tabnote{Phát lại 10.000 luồng lấy từ tập kiểm tra CICIDS2017 (15{,}2\% tấn công). Thông lượng duy trì và độ trễ là trung bình 2 lần lặp ở tốc độ gửi cao nhất còn theo kịp (Bảng~\ref{tab:capacity_sweep}). Tỷ lệ bỏ qua gộp trên mọi lượt chạy của chế độ. Năng lượng là công suất toàn bo (cộng cả hai bo ở chế độ hai nút) chia cho tốc độ dự đoán, đo ở 2{,}0 / 2{,}0 / 3{,}9 / 9{,}5 / 18{,}4 luồng/giây. Recall tấn công thực đo là 100\% khi không có cổng lọc (212 luồng tấn công) và 69{,}6\% ở chế độ A (1.261 luồng tấn công), khớp với recall 68{,}1\% của cổng lọc ở Bảng~\ref{tab:gate_oc}. $^{*}$Ở tốc độ gửi 3 luồng/giây, một nút có cổng lọc và không cổng lọc đều cho 2{,}4--2{,}5 dự đoán/giây. Cấu hình có cổng lọc chỉ bị xếp xuống mức 2 luồng/giây vì một trong hai lần lặp mất 10{,}6\,giây để xử lý hết phần tồn. $^{\dagger}$Cận dưới: ở mức 20 luồng/giây, một lần lặp theo kịp (17{,}1 luồng/giây), lần còn lại mất 12{,}3\,giây để xử lý hết phần tồn. $^{\ddagger}$Cổng lọc và bộ phân loại là hai tiến trình riêng trên cùng một bo; đo bổ sung ngày 12/10/2026 với cùng bo mạch, mô hình và tệp phát lại, năng lượng đo ở 17{,}8 luồng/giây.}
 \end{table}
 
 \begin{figure}[!t]
     \centering
     \IfFileExists{img/edge_capacity_vi.png}{\includegraphics[width=\textwidth]{img/edge_capacity_vi.png}}{\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.2cm}\ph{Biểu đồ thông lượng --- chạy plot\_capacity.py --vi}\vspace{1.2cm}}}}
-    \caption[Thông lượng duy trì và năng lượng mỗi dự đoán của các cấu hình triển khai]{Thông lượng duy trì (trái) và năng lượng mỗi dự đoán ở tốc độ duy trì (phải) của năm cấu hình triển khai trên cụm 2 Jetson. Cột của cụm Spark là cận dưới, cột một nút + cổng lọc xem chú thích Bảng~\ref{tab:edge_modes}}
+    \caption[Thông lượng duy trì và năng lượng mỗi dự đoán của các cấu hình triển khai]{Thông lượng duy trì (trái) và năng lượng mỗi dự đoán ở tốc độ duy trì (phải) của sáu cấu hình triển khai trên cụm 2 Jetson. Cột của cụm Spark là cận dưới, cột một nút + cổng lọc xem chú thích Bảng~\ref{tab:edge_modes}}
     \label{fig:edge_modes}
 \end{figure}
 
