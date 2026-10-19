@@ -97,6 +97,14 @@ def analyze(run_path, cur, labels, clock_offset_s=0.0):
     gate_only = sum(1 for r in rows if r[2] == "anomaly_gate_only")
     attacks = [r for r in rows if r[4] is not None and labels[r[4]] == 1]
     caught = sum(1 for r in attacks if r[1] == 1)
+    # End-to-end confusion counts over labelled flows, gate-only verdicts included
+    # (a skipped attack is a false negative, a forwarded benign flow the
+    # classifier calls Attack is a false positive).
+    benign = [r for r in rows if r[4] is not None and labels[r[4]] == 0]
+    false_pos = sum(1 for r in benign if r[1] == 1)
+    precision = caught / (caught + false_pos) if caught + false_pos else None
+    recall = caught / len(attacks) if attacks else None
+    f1 = 2 * precision * recall / (precision + recall) if precision and recall else None
     # Rows sent: the sender reports its count since 2026-10-12 (it may loop the
     # CSV, so row indexes repeat). Older runs: the sender restarted its row
     # counter at 0 for every send, so the rows sent in the window are 0..max.
@@ -122,6 +130,12 @@ def analyze(run_path, cur, labels, clock_offset_s=0.0):
         "skip_pct": round(100.0 * gate_only / len(rows), 1),
         "attack_flows": len(attacks),
         "attack_recall_pct": round(100.0 * caught / len(attacks), 1) if attacks else None,
+        "tp": caught,
+        "fn": len(attacks) - caught,
+        "fp": false_pos,
+        "tn": len(benign) - false_pos,
+        "precision_pct": round(100.0 * precision, 1) if precision is not None else None,
+        "f1": round(f1, 4) if f1 is not None else None,
     }
 
 
