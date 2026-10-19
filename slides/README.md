@@ -8,8 +8,8 @@ Numbers must match the manuscripts in every deck.
 
 | Deck | Language | Length | Output PDF |
 |---|---|---|---|
-| `soict2026/` | English | ~7:30 (9 talk slides + 3 section pages + references + 5 backup = 20 pages) | `output/pdfs/SOICT2026_slides.pdf` |
-| `soict2026_vi/` | Vietnamese | ~11 min, detailed (12 talk slides + 3 section pages + references + 5 backup = 22 pages) | `output/pdfs/SOICT2026_slides_vi.pdf` |
+| `soict2026/` | English | ~8:30 of a 15-min slot (10 talk slides + 3 section pages + references + 7 backup = 23 pages) | `output/pdfs/SOICT2026_slides.pdf` |
+| `soict2026_vi/` | Vietnamese | ~12:30, detailed (14 talk slides + 3 section pages + references + 6 backup = 26 pages) | `output/pdfs/SOICT2026_slides_vi.pdf` |
 | `fair2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/FAIR2026_slides.pdf` |
 | `fair2026_vi/` | Vietnamese | ~10 min, detailed (outline + 11 talk slides + 3 section pages + references + 10 backup = 28 pages) | `output/pdfs/FAIR2026_slides_vi.pdf` |
 | `defense/` | Vietnamese | 15 min (16 talk slides + 5 section pages + title/outline/refs/thanks + backup index + 14 backup frames for 14 questions = 40 pages) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |

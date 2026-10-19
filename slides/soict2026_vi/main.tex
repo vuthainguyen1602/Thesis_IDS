@@ -9,7 +9,7 @@
 % slide về cổng lọc lấy từ results/ml_08_anomaly_gate/gate_operating_points.csv
 % và jetson/model/anomaly_threshold.json.
 %
-% KẾ HOẠCH THỜI GIAN (~11:00). Nếu chỉ có 7 phút: bỏ các slide "Vì sao bộ
+% KẾ HOẠCH THỜI GIAN (~12:30). Nếu chỉ có 8 phút: bỏ các slide "Vì sao bộ
 % phân loại là Random Forest", "Kết quả 2" và "Kết quả 3", chỉ nói câu kết luận của chúng.
 % Sau slide tài liệu tham khảo là DỰ PHÒNG cho hỏi đáp.
 % =====================================================================
@@ -39,7 +39,8 @@
 % ---------------------------------------------------------------- 0:20
 \maketitle
 \note{Câu hỏi của bài: có hai bo mạch biên thì nên chia việc phát hiện xâm nhập
-giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
+giữa chúng thế nào, bo thứ hai thực sự đem lại bao nhiêu, và cái giá về khả
+năng phát hiện là gì.}
 
 % =====================================================================
 \section{I.\ VẤN ĐỀ VÀ ĐÓNG GÓP}
@@ -76,18 +77,22 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
 
 % ---------------------------------------------------------------- 0:30
 \begin{frame}{Các đóng góp}
+  \small Các thành phần đều quen thuộc (autoencoder, Kafka, Spark). \key{Không
+  đề xuất mô hình mới}: đóng góp là những gì đo được trên phần cứng biên thật.
+  \vspace{0.3em}
   \begin{enumerate}
-    \setlength{\itemsep}{0.4em}
-    \item Hệ thống phát hiện xâm nhập \key{hai tầng, phân tán}: cổng lọc và
-          bộ phân loại Spark đặt trên hai bo khác nhau.
-    \item \key{Ba cách triển khai} trên cụm hai Jetson: tách tầng, nhân bản
-          ngang, cụm Spark.
-    \item \key{Đo đầu cuối}: tốc độ, độ trễ, CPU/RAM từng bo \emph{và} năng
-          lượng mỗi dự đoán.
+    \setlength{\itemsep}{0.3em}
+    \item \key{So sánh cách đặt hai tầng} lên cụm hai Jetson: một bo, tách tầng
+          trên một bo và trên hai bo, nhân bản ngang, cụm Spark.
+    \item \key{Đo đầu cuối}: mức tải chịu được, độ trễ, năng lượng mỗi dự đoán
+          \emph{và} precision / recall / F1 của cả pipeline sau cổng lọc, trên
+          CICIDS2017 và CSE-CIC-IDS2018.
+    \item So sánh \key{cùng một mô hình} trên PySpark, NumPy và ONNX Runtime.
     \item Mã nguồn, cấu hình và kịch bản đo \key{công khai}, chạy lại được.
   \end{enumerate}
-  \note{Dự đoán (verdict) ở đây là kết luận cuối cùng bình thường hay tấn công
-  cho một luồng.}
+  \note{Phản biện nói tính mới chủ yếu là tích hợp hệ thống. Bài nói thẳng
+  điều đó: đóng góp là phép đo, cụ thể là cách đặt nào đáng và vì sao. Dự đoán
+  (verdict) ở đây là kết luận cuối cùng bình thường hay tấn công cho một luồng.}
 \end{frame}
 
 % =====================================================================
@@ -164,7 +169,7 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
     \item \key{Ít đặc trưng} (30 thay vì 77) thì dựng vector và suy luận nhanh
           hơn trên bo 8\,GB.
     \item \key{Cùng một bộ công cụ} (Spark) vừa huấn luyện trên cụm vừa chạy
-          trên thiết bị --- cái giá của lựa chọn này ở Kết quả 5.
+          trên thiết bị --- cái giá của lựa chọn này ở Kết quả 7.
   \end{itemize}
   \note{Đây đúng là mô hình SHAP Top-30 của bài FAIR, huấn luyện lại trên toàn bộ
   tập train: F1 0,9959 (bài FAIR báo 0,9955).}
@@ -174,9 +179,10 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
 \begin{frame}{Các cách triển khai và cách đo}
   \begin{columns}[T]
     \begin{column}{0.56\textwidth}
-      \begin{description}\small
+      \begin{description}\footnotesize
         \item[Một bo] làm hết mọi việc, tắt hoặc bật cổng lọc.
         \item[A: Tách tầng] cổng trên \#1, phân loại trên \#2.
+        \item[A1: Tách, một bo] cổng và phân loại là hai tiến trình trên \#2.
         \item[B: Nhân bản] mỗi bo làm đủ cả hai việc (tắt cổng).
         \item[C: Cụm Spark] PC làm master, hai bo làm worker.
       \end{description}
@@ -188,10 +194,11 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
     \begin{column}{0.41\textwidth}
       \begin{block}{Thiết lập đo}
         \footnotesize
-        2$\times$ Jetson Orin Nano Super: CPU 6 nhân, 8\,GB RAM\\[0.3em]
-        PySpark 3.4.1, Kafka 3.5, mạng Wi-Fi\\[0.3em]
-        10.000 luồng từ tập kiểm tra, 15\% tấn công\\[0.3em]
-        Quét mức tải 1--40 luồng/giây, mỗi mức 2 lần\\[0.3em]
+        2$\times$ Jetson Orin Nano Super: CPU 6 nhân, 8\,GB RAM\\[0.15em]
+        PySpark 3.4.1, Kafka 3.5, mạng Wi-Fi\\[0.15em]
+        10.000 luồng từ tập kiểm tra, 15\% tấn công\\
+        $+$ 10.000 luồng CSE-CIC-IDS2018\\[0.15em]
+        Quét mức tải 1--40 luồng/giây, mỗi mức 2 lần\\[0.15em]
         Năng lượng đo bằng \texttt{tegrastats}
       \end{block}
     \end{column}
@@ -206,7 +213,7 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
 % =====================================================================
 
 % ---------------------------------------------------------------- 1:00
-\begin{frame}{Kết quả 1: tách tầng chịu được tải gấp 9 lần}
+\begin{frame}{Kết quả 1: tách hai tầng chịu được tải gấp 7--9 lần}
   \begin{columns}[T]
     \begin{column}{0.56\textwidth}
       \centering\small
@@ -219,6 +226,7 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
         Một bo + cổng       & $\approx$2,5   & 7,8 \\
         B: Nhân bản         & 3,3            & 8,2 \\
         C: Cụm Spark        & 9--17          & 5,2 \\
+        A1: Tách, một bo    & \num{17,8}     & 5,3 \\
         \textbf{A: Tách tầng} & \num{22,4}   & \num{7,1} \\
         \bottomrule
       \end{tabular}
@@ -230,15 +238,16 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
     \begin{column}{0.41\textwidth}
       \begin{itemize}
         \setlength{\itemsep}{0.4em}
-        \item \good{Tách tầng: gấp 9 lần} một bo.
-        \item \bad{Cùng cổng mà để chung một bo thì không nhanh hơn}: lợi ích
-              đến từ bo thứ hai.
-        \item Độ trễ vài giây vì mỗi lô Spark mất vài giây.
+        \item \bad{Cổng chạy chung tiến trình với bộ phân loại: không nhanh hơn.}
+        \item \good{Tách thành hai tiến trình trên cùng một bo: gấp 7 lần.}
+        \item Thêm bo thứ hai chỉ tăng thêm khoảng một phần tư (22,4).
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{\textbf{Nên dùng tách tầng}: chịu được tải cao nhất.}
-  \note{Chế độ một bo và nhân bản tắt cổng, như bản đã nộp. Độ trễ trung vị
+  \takeaway{\textbf{Lợi ích đến từ việc tách hai tầng}, không phải từ bo thứ hai.}
+  \note{A1 đo ở một phiên sau, cùng bo, cùng mô hình, cùng tệp phát lại; ở 30
+  luồng/giây một lần lặp mất 16 giây để xả hàng đợi. Độ trễ vài giây ở mọi chế
+  độ vì mỗi lô Spark mất vài giây. Chế độ một bo và nhân bản tắt cổng, như bản đã nộp. Độ trễ trung vị
   của tách tầng khoảng 1 giây. Cổng bỏ qua khoảng 89\% số luồng ở mọi chế độ có
   bật cổng.}
 \end{frame}
@@ -251,17 +260,17 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
       \includegraphics[width=\textwidth]{grafana_peak_load.png}
     \end{column}
     \begin{column}{0.35\textwidth}
-      Lúc tải cao nhất, chế độ tách tầng\\{\scriptsize (lần đo trước, mô hình cũ)}:
+      Lúc tải cao nhất, chế độ tách tầng\\{\scriptsize (phát lại đủ 10.000 luồng, mô hình đang dùng)}:
       \begin{itemize}
-        \item bo cổng lọc: \good{4,6\% CPU}
-        \item bo phân loại: \bad{90,8\% CPU}
+        \item bo cổng lọc: \good{1,3\% CPU}
+        \item bo phân loại: \bad{94,5\% CPU}
       \end{itemize}
       \vspace{0.5em}
       Bộ phân loại chiếm gần hết sức tính --- nên tách nó ra khỏi đường nhận
       dữ liệu là đáng.
     \end{column}
   \end{columns}
-  \note{Ảnh Grafana chụp khi đang phát lại dữ liệu ở chế độ tách tầng.}
+  \note{Ảnh Grafana chụp trong lần phát lại đủ 10.000 luồng ở chế độ tách tầng, 20 luồng mỗi giây trong 500 giây.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:45
@@ -278,6 +287,7 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
         Một bo + cổng     & 2,0/giây  & 3,04 \\
         B: Nhân bản       & 3,9/giây  & 3,20 \\
         C: Cụm Spark      & 9,5/giây  & 1,15 \\
+        A1: Tách, một bo  & 17,8/giây & \num{0,32} \\
         \textbf{A: Tách tầng} & 18,4/giây & \num{0,60} \\
         \bottomrule
       \end{tabular}
@@ -291,10 +301,11 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
               mỗi giây.
         \item Tách tầng dùng hai bo (11\,W) nhưng ra nhiều dự đoán hơn hẳn,
               nên mỗi dự đoán tốn ít hơn.
+        \item Tách trên một bo còn rẻ hơn (0,32\,J): không tốn điện nền của bo thứ hai.
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Tách tầng: \key{3,0\,J $\rightarrow$ 0,60\,J} mỗi dự đoán.}
+  \takeaway{Tách tầng: \key{3,0\,J $\rightarrow$ 0,60\,J} mỗi dự đoán (hai bo), \key{0,32\,J} (một bo).}
   \note{Năng lượng đo bằng tegrastats: 30 giây nền rồi cửa sổ tải; chế độ hai
   bo cộng cả hai bo. Khi chạy, công suất tăng thêm khoảng 1,5\,W ở mọi chế độ.}
 \end{frame}
@@ -318,7 +329,7 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
       }
       \\[0.3em]
       \raggedright\scriptsize Offline trên tập kiểm tra; cổng dùng đủ 77 đặc
-      trưng. Chạy thật: bắt được 69,6\% trong 1.261 luồng tấn công.
+      trưng. Chạy thật: xem Kết quả 5.
     \end{column}
     \begin{column}{0.44\textwidth}
       \begin{itemize}\small
@@ -331,14 +342,95 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Tải gấp 9 lần phải trả bằng recall: cổng là một \key{sự đánh đổi
+  \takeaway{Tải tăng phải trả bằng recall: cổng là một \key{sự đánh đổi
   có thể chỉnh}, không phải bộ lọc miễn phí.}
   \note{Khi tắt cổng, mọi luồng tấn công trong dữ liệu phát lại đều bị bắt, nên phần
   bị lọt là do cổng.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:45
-\begin{frame}{Kết quả 5: cái giá của việc dùng Spark để suy luận}
+\begin{frame}{Kết quả 5: đo đầu cuối cả pipeline sau cổng lọc}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \centering\small
+      \fitwidth{%
+      \begin{tabular}{lcccc}
+        \toprule
+        Cách triển khai & Tấn công & Lọt: cổng / phân loại & Báo nhầm & F1 \\
+        \midrule
+        \textbf{A: phát lại đủ} & 1.518 & 463 / 0 & 0 & \num{0,820} \\
+        A1: Tách, một bo        & 882   & 278 / 0 & 0 & 0,813 \\
+        C: Cụm Spark            & 381   & 115 / 0 & 0 & 0,822 \\
+        Tắt cổng                & 242   & -- / 0  & 0 & 1,000 \\
+        \bottomrule
+      \end{tabular}
+      }
+      \\[0.3em]
+      \raggedright\scriptsize Dự đoán cuối cùng của pipeline so với nhãn.
+      Phát lại đủ: toàn bộ 10.000 luồng một lần, 20 luồng/giây trong 500 giây.
+      Bộ phân loại một mình, offline: F1 0,996.
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{itemize}\small
+        \setlength{\itemsep}{0.4em}
+        \item \good{Precision 100\%}: không báo nhầm luồng nào trong 8.483 luồng bình thường.
+        \item \bad{Recall 69,5\%}: \emph{mọi} tấn công bị lọt đều do cổng bỏ qua;
+              bộ phân loại không sai luồng nào nó nhận.
+        \item F1 đầu cuối do ngưỡng cổng quyết định.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \takeaway{Phản biện hỏi đúng điều này: \key{P / R / F1 của cả pipeline},
+  không phải của bộ phân loại offline.}
+  \note{Các dòng ngoài dòng phát lại đủ gộp mọi lần lặp ở cửa sổ đo tải; mỗi
+  cửa sổ phát lại từ dòng đầu nên các lần lặp trùng nhau. Dòng phát lại đủ phủ
+  từng luồng đúng một lần.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:50
+\begin{frame}{Kết quả 6: sang mạng khác --- CSE-CIC-IDS2018}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \centering\small
+      \fitwidth{%
+      \begin{tabular}{lcc}
+        \toprule
+        Luồng phát lại & CICIDS2017 & CSE-CIC-IDS2018 \\
+        \midrule
+        Cổng chuyển sang        & 11\%   & \bad{30\%} \\
+        Luồng bình thường bị chuyển & 0,6\% & 28\% \\
+        Chịu được (luồng/giây)  & 22,4   & \bad{$\approx$8} \\
+        Recall / F1             & 69,5\% / 0,82 & \bad{0,8\% / 0,016} \\
+        Bộ phân loại một mình, recall & 99,8\% & 1,8\% \\
+        \bottomrule
+      \end{tabular}
+      }
+      \\[0.3em]
+      \raggedright\scriptsize Cùng pipeline tách tầng, mô hình huấn luyện trên
+      CICIDS2017, mỗi bộ 10.000 luồng phát lại một lần. Precision 100\% ở cả hai.
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{itemize}\small
+        \setlength{\itemsep}{0.4em}
+        \item Cổng coi lưu lượng bình thường của mạng mới là bất thường:
+              bộ phân loại phải nhận \bad{gấp 3 lần}.
+        \item Chính bộ phân loại cũng bỏ sót gần hết tấn công 2018.
+        \item Offline: 1\% nhãn của mạng mới đưa F1 lên lại 0,92.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+  \takeaway{Cả khả năng phát hiện \emph{lẫn mức tải} đều không mang sang được:
+  mạng mới cần \key{chỉnh lại ngưỡng cổng} và \key{huấn luyện lại}.}
+  \note{Phản biện 1 yêu cầu thêm bộ dữ liệu, nên nhóm phát lại CSE-CIC-IDS2018
+  qua đúng các bo đang triển khai, không huấn luyện lại. Mức tải không chỉ phụ
+  thuộc pipeline: tỷ lệ cổng bỏ qua phụ thuộc lưu lượng, kéo theo tải lên bộ
+  phân loại. Ở 12 luồng/giây một lần lặp mất 29 giây để xả hàng đợi. Nghiên cứu
+  offline khác bộ (18 lượt chạy) cho AUC-PR 0,48 chiều 2017 sang 2018 và 0,19
+  chiều ngược lại.}
+\end{frame}
+
+% ---------------------------------------------------------------- 0:45
+\begin{frame}{Kết quả 7: cái giá của việc dùng Spark để suy luận}
   \small Đúng khu rừng đang triển khai, xuất sang các bộ máy chạy khác, cùng một
   bo:
   \vspace{0.4em}
@@ -375,11 +467,11 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
       \textbf{Những gì đã chỉ ra}
       \begin{itemize}\small
         \setlength{\itemsep}{0.3em}
-        \item Tách cổng lọc và bộ phân loại ra hai bo: \good{2,5 $\rightarrow$
-              22,4 luồng/giây}, p95 $\approx$7 giây.
-        \item Năng lượng mỗi dự đoán: \good{3,0\,J $\rightarrow$ 0,60\,J}.
-        \item Đổi lại, cổng cho lọt \bad{$\approx$30\%} luồng tấn công ở ngưỡng
-              đang dùng.
+        \item Tách hai tầng: \good{2,5 $\rightarrow$ 17,8 luồng/giây} trên một bo
+              (0,32\,J), \good{22,4} trên hai bo (0,60\,J); p95 $\approx$7 giây.
+        \item Đầu cuối: \good{precision 100\%}, \bad{recall 69,5\%}, F1 0,82;
+              mọi tấn công lọt đều do cổng.
+        \item Sang CSE-CIC-IDS2018: recall \bad{0,8\%}, tải còn $\approx$8 luồng/giây.
         \item Spark là nút thắt suy luận: ONNX nhanh gấp khoảng 7.200 lần.
       \end{itemize}
     \end{column}
@@ -387,19 +479,22 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
       \textbf{Hạn chế}
       \begin{itemize}\footnotesize
         \item Hai bo, mạng Wi-Fi, dữ liệu phát lại.
+        \item Kafka và CSDL vẫn nằm trên máy chủ PC.
         \item GPU chưa dùng; chưa thử tấn công né tránh.
       \end{itemize}
       \textbf{Hướng tiếp theo}
       \begin{itemize}\footnotesize
-        \item Suy luận bằng ONNX/TensorRT.
+        \item Suy luận bằng ONNX/TensorRT (nhanh gấp $\approx$7.200 lần).
         \item Lưu lượng thật; huấn luyện lại khi dữ liệu trôi.
       \end{itemize}
     \end{column}
   \end{columns}
   \vfill
   \centering \key{Xin cảm ơn --- kính mời câu hỏi}
-  \note{Nhắc lại: gấp 9 lần, năng lượng giảm 5 lần, và cái giá: khoảng 30\%
-  luồng tấn công bị cổng cho qua ở ngưỡng hiện tại.}
+  \note{Nhắc lại: tách hai tầng cho tải gấp 7 đến 9 lần với năng lượng thấp
+  hơn nhiều; cái giá là khoảng 30\% luồng tấn công bị cổng cho qua; và sang mạng
+  khác thì cả khả năng phát hiện lẫn mức tải đều giảm, nên phải chỉnh ngưỡng và
+  huấn luyện lại.}
 \end{frame}
 
 % ---------------------------------------------------------------- ~11:00
@@ -476,6 +571,21 @@ giữa chúng thế nào, và bo thứ hai thực sự đem lại bao nhiêu.}
   \\[0.2em]
   \footnotesize Tốc độ từng bo, số tấn công phát hiện, độ trễ suy luận, CPU/RAM
   hai bo, cảnh báo lưu trong PostgreSQL.
+\end{frame}
+
+\begin{frame}{Dự phòng: phụ thuộc vào máy chủ PC}
+  \begin{itemize}\footnotesize
+    \item Kafka, PostgreSQL, InfluxDB, Grafana chạy trên máy chủ: luồng vào qua
+          broker của nó, kết quả lưu ở đó. \bad{Máy chủ hỏng thì ngừng phát hiện},
+          dù hai bo vẫn chạy tốt.
+    \item Với PySpark, máy chủ \emph{không} phải nút thắt: các bo bão hòa trước;
+          độ trễ khứ hồi máy chủ--bo 4--9\,ms qua Wi-Fi.
+    \item Nhưng nó giới hạn việc mở rộng: thêm bo là thêm một consumer của cùng
+          broker và một nơi ghi vào cùng CSDL (mỗi dự đoán một lệnh INSERT).
+    \item Triển khai thực tế: broker đặt trên hoặc cạnh bo nhận luồng, kết quả
+          đệm tại chỗ rồi gửi về theo lô; Kafka nhân bản giữa các bo.
+          \key{Chưa đo.}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Dự phòng: quy trình đo}
