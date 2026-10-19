@@ -48,7 +48,8 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$DIR/../.." && pwd)"
 MACJ="$ROOT/jetson"
 OUT="${OUT_DIR:-$DIR/results/benchmarks}"; mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"  # absolute: python steps cd elsewhere
-CSV_ABS="$MACJ/sender/replay_cicids2017.csv"
+# REPLAY_CSV swaps the replayed flows (e.g. sender/replay_cicids2018.csv); same columns.
+CSV_ABS="${REPLAY_CSV:-$MACJ/sender/replay_cicids2017.csv}"
 ts() { date +%Y%m%d_%H%M%S; }
 
 # Mac-side orchestrator env: point config.py at the Mac's Docker services and

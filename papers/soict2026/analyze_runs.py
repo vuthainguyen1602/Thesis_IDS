@@ -29,7 +29,8 @@ import statistics
 import psycopg2
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LABELS = os.path.join(HERE, "..", "..", "jetson", "sender", "replay_cicids2017_labels.csv")
+# REPLAY_LABELS (or --labels) must match the replay CSV the run sent.
+LABELS = os.environ.get("REPLAY_LABELS") or os.path.join(HERE, "..", "..", "jetson", "sender", "replay_cicids2017_labels.csv")
 
 
 def pct(values, q):
@@ -143,6 +144,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("runs", nargs="+")
     ap.add_argument("--rate", type=float, default=100.0, help="requested sender rate, recorded in the CSV")
+    ap.add_argument("--labels", default=LABELS, help="label sidecar of the replay CSV the runs sent")
     ap.add_argument("--csv", default=None, help="append per-repeat rows to this CSV")
     ap.add_argument("--clock-offset-s", type=float, default=None,
                     help="board clock minus sender clock, subtracted from verdict timestamps")
@@ -157,7 +159,7 @@ def main():
     if offset:
         print(f"clock offset applied: {offset:+.4f} s (board minus sender)")
 
-    labels = [int(r["label_binary"]) for r in csv.DictReader(open(LABELS))]
+    labels = [int(r["label_binary"]) for r in csv.DictReader(open(args.labels))]
     conn = psycopg2.connect(host="localhost", port=5433, dbname="ids_edge", user="ids", password="ids_password")
     cur = conn.cursor()
     results = [r for r in (analyze(p, cur, labels, offset) for p in sorted(args.runs)) if r]
