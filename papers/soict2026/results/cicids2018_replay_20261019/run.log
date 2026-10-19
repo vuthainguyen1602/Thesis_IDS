@@ -1,0 +1,168 @@
+[09:06:57] Jetson #1: stopping k3s
+  k3s: inactive
+================ split @ 5 flows/s ================
+[stop] killing consumers + power monitors on both Jetsons
+[clock] board clock offsets + ping RTT (before)
+  192.168.1.81: offset +0.0243 s (+/-2.1 ms)  ping 4.89 ms avg / 6.379 max, loss 0.0%
+  192.168.1.39: offset +0.0237 s (+/-2.1 ms)  ping 4.758 ms avg / 5.557 max, loss 0.0%
+[start] jetson-nano-1 role=anomaly_gate alert=0 spark=local[*] extra='' on 192.168.1.81
+  -> launch dispatched on 192.168.1.81 (log: ~/edge_jetson-nano-1.log)
+[start] jetson-nano-2 role=classifier alert=1 spark=local[*] extra='' on 192.168.1.39
+  -> launch dispatched on 192.168.1.39 (log: ~/edge_jetson-nano-2.log)
+[wait] letting pipelines initialise (Spark ~15s) ...
+[run] throughput/latency, mode=split, repeats=2 ...
+
+===== Repeat 1/2 (mode=split) =====
+
+[WARMUP] Sending 15s of warmup traffic at 5 flows/s (excluded from measurement)...
+
+[WAIT] Draining metrics (load window 2026-10-19T02:08:31Z .. 2026-10-19T02:09:17Z)...
+[WARN] No raw latency logs supplied (--raw-latency-glob). Falling back to mean-of-window p95 from InfluxDB — this underestimates the tail and must NOT be used in the paper.
+[OK] Wrote /Users/thainguyenvu/Desktop/Thesis_IDS/papers/soict2026/results/cicids2018_replay_20261019/runs/run_split_rep0_edge-node-1_20261019_091000.json
+
+--- LaTeX snippet (tab:benchmark) ---
+    split & 4.78 & 1178.51 & 70.6 & -- \\
+
+===== Repeat 2/2 (mode=split) =====
+
+[WARMUP] Sending 5s of warmup traffic at 5 flows/s (excluded from measurement)...
+
+[WAIT] Draining metrics (load window 2026-10-19T02:10:51Z .. 2026-10-19T02:11:37Z)...
+[WARN] No raw latency logs supplied (--raw-latency-glob). Falling back to mean-of-window p95 from InfluxDB — this underestimates the tail and must NOT be used in the paper.
+[OK] Wrote /Users/thainguyenvu/Desktop/Thesis_IDS/papers/soict2026/results/cicids2018_replay_20261019/runs/run_split_rep1_edge-node-1_20261019_091211.json
+
+--- LaTeX snippet (tab:benchmark) ---
+    split & 5.03 & 2308.98 & 67.2 & -- \\
+
+[WARN] Only 2 repeat(s). Use --repeats 5 for publishable mean±std.
+[clock] board clock offsets + ping RTT (after)
+  192.168.1.81: offset +0.0186 s (+/-2.0 ms)  ping 8.697 ms avg / 28.276 max, loss 0.0%
+  192.168.1.39: offset +0.0179 s (+/-1.8 ms)  ping 4.999 ms avg / 6.423 max, loss 0.0%
+[stop] killing consumers + power monitors on both Jetsons
+[done] mode=split (no energy window)
+clock offset applied: +0.0211 s (board minus sender)
+{'mode': 'split', 'load_start': 1792375712, 'repeat': 0, 'clock_offset_s': 0.022, 'clock_spread_s': 0.0023, 'sent': 226, 'send_rps': 5.0, 'completed': 226, 'completed_pct': 100.0, 'in_window_rps': 4.78, 'sustained_rps': 4.53, 'drain_s': 4.3, 'e2e_p50_ms': 819.8, 'e2e_p95_ms': 7620.8, 'e2e_p95_classified_ms': 8534.2, 'skip_pct': 69.5, 'attack_flows': 32, 'attack_recall_pct': 0.0, 'tp': 0, 'fn': 32, 'fp': 0, 'tn': 194, 'precision_pct': None, 'f1': None}
+{'mode': 'split', 'load_start': 1792375852, 'repeat': 1, 'clock_offset_s': 0.0194, 'clock_spread_s': 0.0021, 'sent': 226, 'send_rps': 5.0, 'completed': 226, 'completed_pct': 100.0, 'in_window_rps': 4.85, 'sustained_rps': 4.28, 'drain_s': 7.3, 'e2e_p50_ms': 819.9, 'e2e_p95_ms': 7746.3, 'e2e_p95_classified_ms': 8385.1, 'skip_pct': 69.5, 'attack_flows': 32, 'attack_recall_pct': 0.0, 'tp': 0, 'fn': 32, 'fp': 0, 'tn': 194, 'precision_pct': None, 'f1': None}
+mean: {'sustained_rps': 4.41, 'e2e_p95_ms': 7683.55, 'drain_s': 5.8, 'skip_pct': 69.5, 'attack_recall_pct': 0.0}
+[sweep] split @ 5: worst drain 7.3s (sustained if <= 10s)
+================ split @ 8 flows/s ================
+[stop] killing consumers + power monitors on both Jetsons
+[clock] board clock offsets + ping RTT (before)
+  192.168.1.81: offset +0.0182 s (+/-1.9 ms)  ping 6.528 ms avg / 26.941 max, loss 0.0%
+  192.168.1.39: offset +0.0179 s (+/-2.2 ms)  ping 5.179 ms avg / 10.055 max, loss 0.0%
+[start] jetson-nano-1 role=anomaly_gate alert=0 spark=local[*] extra='' on 192.168.1.81
+  -> launch dispatched on 192.168.1.81 (log: ~/edge_jetson-nano-1.log)
+[start] jetson-nano-2 role=classifier alert=1 spark=local[*] extra='' on 192.168.1.39
+  -> launch dispatched on 192.168.1.39 (log: ~/edge_jetson-nano-2.log)
+[wait] letting pipelines initialise (Spark ~15s) ...
+[run] throughput/latency, mode=split, repeats=2 ...
+
+===== Repeat 1/2 (mode=split) =====
+
+[WARMUP] Sending 15s of warmup traffic at 8 flows/s (excluded from measurement)...
+
+[WAIT] Draining metrics (load window 2026-10-19T02:13:44Z .. 2026-10-19T02:14:30Z)...
+[WARN] No raw latency logs supplied (--raw-latency-glob). Falling back to mean-of-window p95 from InfluxDB — this underestimates the tail and must NOT be used in the paper.
+[OK] Wrote /Users/thainguyenvu/Desktop/Thesis_IDS/papers/soict2026/results/cicids2018_replay_20261019/runs/run_split_rep0_edge-node-1_20261019_091504.json
+
+--- LaTeX snippet (tab:benchmark) ---
+    split & 7.52 & 827.82 & 73.0 & -- \\
+
+===== Repeat 2/2 (mode=split) =====
+
+[WARMUP] Sending 5s of warmup traffic at 8 flows/s (excluded from measurement)...
+
+[WAIT] Draining metrics (load window 2026-10-19T02:15:55Z .. 2026-10-19T02:16:41Z)...
+[WARN] No raw latency logs supplied (--raw-latency-glob). Falling back to mean-of-window p95 from InfluxDB — this underestimates the tail and must NOT be used in the paper.
+[OK] Wrote /Users/thainguyenvu/Desktop/Thesis_IDS/papers/soict2026/results/cicids2018_replay_20261019/runs/run_split_rep1_edge-node-1_20261019_091715.json
+
+--- LaTeX snippet (tab:benchmark) ---
+    split & 7.99 & 1981.27 & 69.0 & -- \\
+
+[WARN] Only 2 repeat(s). Use --repeats 5 for publishable mean±std.
+[clock] board clock offsets + ping RTT (after)
+  192.168.1.81: offset +0.0426 s (+/-1.9 ms)  ping 5.045 ms avg / 10.915 max, loss 0.0%
+  192.168.1.39: offset +0.0418 s (+/-1.9 ms)  ping 4.822 ms avg / 7.707 max, loss 0.0%
+[stop] killing consumers + power monitors on both Jetsons
+[done] mode=split (no energy window)
+clock offset applied: +0.0301 s (board minus sender)
+{'mode': 'split', 'load_start': 1792376025, 'repeat': 0, 'clock_offset_s': 0.0437, 'clock_spread_s': 0.001, 'sent': 361, 'send_rps': 7.9, 'completed': 361, 'completed_pct': 100.0, 'in_window_rps': 7.5, 'sustained_rps': 7.67, 'drain_s': 1.4, 'e2e_p50_ms': 862.8, 'e2e_p95_ms': 7455.9, 'e2e_p95_classified_ms': 9022.2, 'skip_pct': 69.8, 'attack_flows': 53, 'attack_recall_pct': 0.0, 'tp': 0, 'fn': 53, 'fp': 0, 'tn': 308, 'precision_pct': None, 'f1': None}
+{'mode': 'split', 'load_start': 1792376156, 'repeat': 1, 'clock_offset_s': 0.0429, 'clock_spread_s': 0.0017, 'sent': 361, 'send_rps': 7.9, 'completed': 361, 'completed_pct': 100.0, 'in_window_rps': 7.7, 'sustained_rps': 7.09, 'drain_s': 5.3, 'e2e_p50_ms': 865.0, 'e2e_p95_ms': 7778.7, 'e2e_p95_classified_ms': 8675.0, 'skip_pct': 69.8, 'attack_flows': 53, 'attack_recall_pct': 0.0, 'tp': 0, 'fn': 53, 'fp': 0, 'tn': 308, 'precision_pct': None, 'f1': None}
+mean: {'sustained_rps': 7.38, 'e2e_p95_ms': 7617.3, 'drain_s': 3.35, 'skip_pct': 69.8, 'attack_recall_pct': 0.0}
+[sweep] split @ 8: worst drain 5.3s (sustained if <= 10s)
+================ split @ 12 flows/s ================
+[stop] killing consumers + power monitors on both Jetsons
+[clock] board clock offsets + ping RTT (before)
+  192.168.1.81: offset +0.0425 s (+/-2.1 ms)  ping 4.772 ms avg / 6.048 max, loss 0.0%
+  192.168.1.39: offset +0.0416 s (+/-2.0 ms)  ping 5.152 ms avg / 10.372 max, loss 0.0%
+[start] jetson-nano-1 role=anomaly_gate alert=0 spark=local[*] extra='' on 192.168.1.81
+  -> launch dispatched on 192.168.1.81 (log: ~/edge_jetson-nano-1.log)
+[start] jetson-nano-2 role=classifier alert=1 spark=local[*] extra='' on 192.168.1.39
+  -> launch dispatched on 192.168.1.39 (log: ~/edge_jetson-nano-2.log)
+[wait] letting pipelines initialise (Spark ~15s) ...
+[run] throughput/latency, mode=split, repeats=2 ...
+
+===== Repeat 1/2 (mode=split) =====
+
+[WARMUP] Sending 15s of warmup traffic at 12 flows/s (excluded from measurement)...
+
+[WAIT] Draining metrics (load window 2026-10-19T02:18:48Z .. 2026-10-19T02:19:34Z)...
+[WARN] No raw latency logs supplied (--raw-latency-glob). Falling back to mean-of-window p95 from InfluxDB — this underestimates the tail and must NOT be used in the paper.
+[OK] Wrote /Users/thainguyenvu/Desktop/Thesis_IDS/papers/soict2026/results/cicids2018_replay_20261019/runs/run_split_rep0_edge-node-1_20261019_092009.json
+
+--- LaTeX snippet (tab:benchmark) ---
+    split & 10.79 & 725.47 & 75.6 & -- \\
+
+===== Repeat 2/2 (mode=split) =====
+
+[WARMUP] Sending 5s of warmup traffic at 12 flows/s (excluded from measurement)...
+
+[WAIT] Draining metrics (load window 2026-10-19T02:20:59Z .. 2026-10-19T02:21:45Z)...
+[WARN] No raw latency logs supplied (--raw-latency-glob). Falling back to mean-of-window p95 from InfluxDB — this underestimates the tail and must NOT be used in the paper.
+[OK] Wrote /Users/thainguyenvu/Desktop/Thesis_IDS/papers/soict2026/results/cicids2018_replay_20261019/runs/run_split_rep1_edge-node-1_20261019_092219.json
+
+--- LaTeX snippet (tab:benchmark) ---
+    split & 10.78 & 841.37 & 75.6 & -- \\
+
+[WARN] Only 2 repeat(s). Use --repeats 5 for publishable mean±std.
+[clock] board clock offsets + ping RTT (after)
+  192.168.1.81: offset +0.0391 s (+/-2.0 ms)  ping 4.931 ms avg / 8.438 max, loss 0.0%
+  192.168.1.39: offset +0.0382 s (+/-1.7 ms)  ping 4.682 ms avg / 6.324 max, loss 0.0%
+[stop] killing consumers + power monitors on both Jetsons
+[done] mode=split (no energy window)
+clock offset applied: +0.0404 s (board minus sender)
+{'mode': 'split', 'load_start': 1792376329, 'repeat': 0, 'clock_offset_s': 0.0409, 'clock_spread_s': 0.0021, 'sent': 541, 'send_rps': 11.9, 'completed': 541, 'completed_pct': 100.0, 'in_window_rps': 10.31, 'sustained_rps': 7.26, 'drain_s': 28.9, 'e2e_p50_ms': 770.7, 'e2e_p95_ms': 23972.8, 'e2e_p95_classified_ms': 28586.4, 'skip_pct': 69.5, 'attack_flows': 72, 'attack_recall_pct': 0.0, 'tp': 0, 'fn': 72, 'fp': 0, 'tn': 469, 'precision_pct': None, 'f1': None}
+{'mode': 'split', 'load_start': 1792376460, 'repeat': 1, 'clock_offset_s': 0.0392, 'clock_spread_s': 0.0019, 'sent': 541, 'send_rps': 11.9, 'completed': 541, 'completed_pct': 100.0, 'in_window_rps': 10.47, 'sustained_rps': 8.44, 'drain_s': 18.5, 'e2e_p50_ms': 769.9, 'e2e_p95_ms': 20332.2, 'e2e_p95_classified_ms': 22986.0, 'skip_pct': 69.5, 'attack_flows': 72, 'attack_recall_pct': 0.0, 'tp': 0, 'fn': 72, 'fp': 0, 'tn': 469, 'precision_pct': None, 'f1': None}
+mean: {'sustained_rps': 7.85, 'e2e_p95_ms': 22152.5, 'drain_s': 23.7, 'skip_pct': 69.5, 'attack_recall_pct': 0.0}
+[sweep] split @ 12: worst drain 28.9s (sustained if <= 10s)
+[sweep] split saturates at 12 flows/s; next mode
+[sweep] results -> /Users/thainguyenvu/Desktop/Thesis_IDS/papers/soict2026/results/cicids2018_replay_20261019/runs/capacity_sweep.csv
+[09:22:36] full replay: 8 flows/s for 1250 s
+[stop] killing consumers + power monitors on both Jetsons
+[clock] board clock offsets + ping RTT (before)
+  192.168.1.81: offset +0.0386 s (+/-1.9 ms)  ping 5.12 ms avg / 6.583 max, loss 0.0%
+  192.168.1.39: offset +0.0378 s (+/-1.9 ms)  ping 4.72 ms avg / 5.327 max, loss 0.0%
+[start] jetson-nano-1 role=anomaly_gate alert=0 spark=local[*] extra='' on 192.168.1.81
+  -> launch dispatched on 192.168.1.81 (log: ~/edge_jetson-nano-1.log)
+[start] jetson-nano-2 role=classifier alert=1 spark=local[*] extra='' on 192.168.1.39
+  -> launch dispatched on 192.168.1.39 (log: ~/edge_jetson-nano-2.log)
+[wait] letting pipelines initialise (Spark ~15s) ...
+[run] throughput/latency, mode=split, repeats=1 ...
+
+[WARMUP] Sending 15s of warmup traffic at 8 flows/s (excluded from measurement)...
+
+[WAIT] Draining metrics (load window 2026-10-19T02:23:52Z .. 2026-10-19T02:44:42Z)...
+[WARN] No raw latency logs supplied (--raw-latency-glob). Falling back to mean-of-window p95 from InfluxDB — this underestimates the tail and must NOT be used in the paper.
+[OK] Wrote /Users/thainguyenvu/Desktop/Thesis_IDS/papers/soict2026/results/cicids2018_replay_20261019/runs/run_split_20261019_092236.json
+
+--- LaTeX snippet (tab:benchmark) ---
+    split & 7.98 & 405.89 & 69.7 & -- \\
+
+[WARN] Only 1 repeat(s). Use --repeats 5 for publishable mean±std.
+[clock] board clock offsets + ping RTT (after)
+  192.168.1.81: offset +0.0233 s (+/-2.0 ms)  ping 4.715 ms avg / 5.363 max, loss 0.0%
+  192.168.1.39: offset +0.0223 s (+/-1.8 ms)  ping 4.527 ms avg / 5.336 max, loss 0.0%
+[stop] killing consumers + power monitors on both Jetsons
+[done] mode=split (no energy window)
+[09:45:34] Jetson #1: starting k3s again
+  k3s: active

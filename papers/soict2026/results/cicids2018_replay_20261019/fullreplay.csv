@@ -1,0 +1,2 @@
+mode,load_start,repeat,clock_offset_s,clock_spread_s,sent,send_rps,completed,completed_pct,in_window_rps,sustained_rps,drain_s,e2e_p50_ms,e2e_p95_ms,e2e_p95_classified_ms,skip_pct,attack_flows,attack_recall_pct,tp,fn,fp,tn,precision_pct,f1,rate
+split,1792376632,0,0.03,0.0169,10001,8.0,10001,100.0,7.98,7.98,1.9,857.6,7802.0,9611.4,69.6,1276,0.8,10,1266,0,8725,100.0,0.0156,8.0
