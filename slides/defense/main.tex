@@ -525,14 +525,14 @@
           trễ tính từ lúc gửi, \key{gồm cả xếp hàng}.
     \item \good{A gấp 9 lần một nút} nhờ \emph{tách hai tầng thành hai tiến
           trình}: chạy chung không nhanh hơn, tách trên cùng một bo (A1) đã gấp 7.
-    \item \bad{Cái giá}: cổng lọc bỏ sót $\approx$30\% luồng tấn công (recall thực
-          đo 69,6\%). p95 $\approx$7\,giây vì mỗi lô PySpark mất vài giây.
+    \item \bad{Cái giá}: phát lại trọn 10.000 luồng, precision 100\% nhưng recall
+          69,5\% (F1 0,82); \key{mọi luồng sót do cổng lọc}. p95 $\approx$7\,giây.
   \end{itemize}
   \note{Đây là số đo lại (30/9) sau khi phát hiện cách đo cũ chỉ đếm dự đoán
   trong cửa sổ tải: số cũ 62,5 luồng/giây và 95,8\% bỏ qua thực chất là
   $1 - 2{,}6/62{,}5$, tức thông lượng bộ phân loại chia tổng số luồng. Lần đo
   mới theo dõi từng luồng đã gửi đến khi có kết quả. Không có cổng lọc, recall
-  thực đo 100\% (212 luồng tấn công). Một nút + cổng lọc: quy tắc 10 giây xếp nó ở mức 1,9 chỉ vì một lần lặp mất 10,6 giây; ở tốc độ gửi 3 luồng/giây nó cho 2,4--2,5 như một nút. Cụm Spark: ở mức 20, một lần lặp theo kịp (17,1), lần kia thì không, nên chỉ biết khoảng 9--17. Năng lượng là công suất toàn bo chia tốc
+  thực đo 100\% (212 luồng tấn công). Phát lại trọn 10.000 luồng (19/10): 1.055/1.518 luồng tấn công, 463 luồng sót đều do cổng lọc bỏ qua, không báo nhầm luồng benign nào. Phát lại CSE-CIC-IDS2018 qua cùng pipeline: cổng lọc chuyển tiếp 30\% thay vì 11\%, thông lượng còn khoảng 8 luồng/giây, recall 0,8\% (Bảng 4.22): mạng mới cần hiệu chỉnh cổng lọc và huấn luyện lại. Một nút + cổng lọc: quy tắc 10 giây xếp nó ở mức 1,9 chỉ vì một lần lặp mất 10,6 giây; ở tốc độ gửi 3 luồng/giây nó cho 2,4--2,5 như một nút. Cụm Spark: ở mức 20, một lần lặp theo kịp (17,1), lần kia thì không, nên chỉ biết khoảng 9--17. Năng lượng là công suất toàn bo chia tốc
   độ dự đoán. A1 đo bổ sung ngày 12/10, cùng bo, cùng mô hình, cùng tệp phát lại:
   bo thứ hai chỉ thêm khoảng một phần tư thông lượng, còn năng lượng mỗi dự đoán
   tăng gần gấp đôi.}
@@ -602,7 +602,7 @@
   0:58--1:44 (log trực tiếp) rồi tua đến 4:14--4:36 (thống kê cuối và kiểm
   chứng). Link mở video chỉ chạy khi trình chiếu file trong output/pdfs/
   (video nằm ở output/videos/); nếu trình xem PDF chặn link, mở video bằng tay.
-  Recall 68,9\% của demo khớp 69,6\% ở KQ6; F1 0,9957 khớp mô hình triển khai.}
+  Recall 68,9\% của demo khớp 69,5\% ở KQ6; F1 0,9957 khớp mô hình triển khai.}
 \end{frame}
 
 % =====================================================================
@@ -622,7 +622,7 @@
     \good{Khả thi cho cảnh báo gần thời gian thực, với điều kiện tách hai tầng.}
     Thông lượng \num{2,5 $\rightarrow$ 22,4} luồng/giây (gấp 9), năng lượng
     \num{3,04 $\rightarrow$ 0,60\,J} mỗi dự đoán; đổi lại recall tấn công
-    69,6\% và p95 $\approx$7\,giây.
+    69,5\% (F1 0,82, precision 100\%) và p95 $\approx$7\,giây.
   \end{block}
   \note{Slide quan trọng nhất với hội đồng. Trả lời thẳng, kể cả câu trả lời
   ``không'' cho RQ2. RQ1: Random Forest đạt 0,9955. Với cùng số đặc trưng, SHAP vượt
