@@ -121,7 +121,7 @@
             },
             "targets": [
                 {
-                    "query": "from(bucket: \"ids_metrics\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"system_metrics\" and r._field == \"cpu_percent\") |> last()",
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"system_metrics\" and r._field == \"cpu_percent\") |> last()",
                     "refId": "A"
                 }
             ],
@@ -163,7 +163,7 @@
             },
             "targets": [
                 {
-                    "query": "from(bucket: \"ids_metrics\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"system_metrics\" and r._field == \"memory_percent\") |> last()",
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"system_metrics\" and r._field == \"memory_percent\") |> last()",
                     "refId": "A"
                 }
             ],
