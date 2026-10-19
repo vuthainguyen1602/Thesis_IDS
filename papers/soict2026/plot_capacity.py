@@ -3,7 +3,8 @@
 """Sustained capacity and energy per verdict per deployment mode (SOICT).
 
 Reads results/remeasure_20260930/capacity_sweep_part{1,2}.csv (analyze_runs.py
-rows) and energy_at_sustained_rate.csv. A rate counts as sustained when every
+rows) and energy_at_sustained_rate.csv, plus the one-board split (A1) from
+results/journal_20261012/ (same rule, clock-corrected tables). A rate counts as sustained when every
 repeat drained within DRAIN_OK seconds; the bar is the mean sustained verdict
 rate over the repeats at the highest such rate.
 
@@ -20,11 +21,12 @@ import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 D = os.path.join(HERE, "results", "remeasure_20260930")
+J = os.path.join(HERE, "results", "journal_20261012")
 DRAIN_OK = 10.0
-ORDER = ["single", "single_gate", "horizontal", "spark_cluster", "split"]
+ORDER = ["single", "single_gate", "horizontal", "spark_cluster", "split_1board", "split"]
 LABELS = {"single": "Single node", "single_gate": "Single node\n+ gate",
-          "horizontal": "B: Horizontal", "spark_cluster": "C: Spark\ncluster",
-          "split": "A: Pipeline\nsplit"}
+          "horizontal": "B:\nHorizontal", "spark_cluster": "C: Spark\ncluster",
+          "split_1board": "A1: Split,\none board", "split": "A: Pipeline\nsplit"}
 LABELS_VI = {"single": "Một nút", "single_gate": "Một nút\n+ cổng",
              "horizontal": "B: Ngang", "spark_cluster": "C: Cụm\nSpark",
              "split": "A: Tách\npipeline"}
@@ -50,6 +52,15 @@ def capacity_table() -> pd.DataFrame:
     return pd.DataFrame(rows).set_index("mode")
 
 
+def one_board_split():
+    """A1 capacity and energy rows from the journal sweep tables."""
+    cap = pd.read_csv(os.path.join(J, "capacity_summary.csv"))
+    cap = cap[(cap["mode"] == "split_1board") & (cap["sustained"] == 1)]
+    top = cap[cap["rate"] == cap["rate"].max()].iloc[0]
+    en = pd.read_csv(os.path.join(J, "energy_at_sustained_rate.csv")).set_index("mode")
+    return top["sustained_rps"], en.loc["split_1board", "j_per_verdict"]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--vi", metavar="OUT", help="Vietnamese labels, written to OUT")
@@ -57,12 +68,16 @@ def main():
     labels, titles = (LABELS_VI, TITLES["vi"]) if args.vi else (LABELS, TITLES["en"])
     cap = capacity_table()
     en = pd.read_csv(os.path.join(D, "energy_at_sustained_rate.csv")).set_index("mode")
+    # The thesis figure (--vi) predates A1 and its text has no A1, so only the
+    # English (paper) figure carries it.
+    if not args.vi:
+        cap.loc["split_1board", "sustained_rps"], en.loc["split_1board", "j_per_verdict"] = one_board_split()
     modes = [m for m in ORDER if m in cap.index]
     print(cap.loc[modes].round(2))
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 3.4))
     x = range(len(modes))
-    colors = ["#0072B2" if m == "split" else "#999999" for m in modes]
+    colors = ["#0072B2" if m == "split" else "#56B4E9" if m == "split_1board" else "#999999" for m in modes]
     b1 = ax1.bar(x, cap.loc[modes, "sustained_rps"], color=colors)
     ax1.set_title(titles[0])
     ax2.set_title(titles[1])
