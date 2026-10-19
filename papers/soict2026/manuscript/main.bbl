@@ -124,11 +124,10 @@ Nasir, K., Badri, S.K., Alghazzawi, D.M., Alghamdi, M.Y., Alkhozae, M.,
   \doi{10.1038/s41598-025-32183-8}
 
 \bibitem{nassef2026tinyml}
-Nassef, L., Alghamdi, M.I., Ben~Chaabane, S., Abbas, Q., Alawad, W.M.,
-  Albalawi, O.H., Alqaisi, O.I., Fakieh, B.: Lightweight and energy-aware
-  intrusion detection for industrial {IoT} using {TinyML} and edge {AI}.
-  Scientific Reports  \textbf{16}(1),  18524 (2026).
-  \doi{10.1038/s41598-026-50690-0}
+Nassef, L., Alghamdi, M.I., Chaabane, S.B., Abbas, Q., Alawad, W.M., Albalawi,
+  O.H., Alqaisi, O.I., Fakieh, B.: Lightweight and energy-aware intrusion
+  detection for industrial {IoT} using {TinyML} and edge {AI}. Scientific
+  Reports  \textbf{16}(1),  18524 (2026). \doi{10.1038/s41598-026-50690-0}
 
 \bibitem{nguyen2019diot}
 Nguyen, T.D., Marchal, S., Miettinen, M., Fereidooni, H., Asokan, N., Sadeghi,
