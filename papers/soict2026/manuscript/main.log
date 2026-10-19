@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.1.1)  19 OCT 2026 08:58
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.1.1)  19 OCT 2026 09:48
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -807,17 +807,16 @@ LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 7
 5.
 (/usr/local/texlive/2024basic/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-) [1
+)
+Underfull \vbox (badness 8189) has occurred while \output is active []
+
+ [1
 
 {/Users/thainguyenvu/Library/texlive/2024basic/texmf-var/fonts/map/pdftex/updma
 p/pdftex.map}{/usr/local/texlive/2024basic/texmf-dist/fonts/enc/dvips/base/8r.e
-nc}{/usr/local/texlive/2024basic/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}] [2]
-Underfull \hbox (badness 10000) in paragraph at lines 98--98
- [][]$\T1/lmtt/m/n/9 https : / / www . nvidia . com / en-[]us / autonomous-[]ma
-chines / embedded-[]systems /
- []
-
-[3] [4]
+nc}{/usr/local/texlive/2024basic/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}] [2] 
+[3]
+[4]
 <figures/grafana_dashboard.png, id=26, 1927.2pt x 1229.59375pt>
 File: figures/grafana_dashboard.png Graphic file (type png)
 <use figures/grafana_dashboard.png>
@@ -856,18 +855,14 @@ File: figures/edge_capacity.png Graphic file (type png)
 <use figures/edge_capacity.png>
 Package pdftex.def Info: figures/edge_capacity.png  used on input line 366.
 (pdftex.def)             Requested size: 295.05711pt x 100.3176pt.
-
-Underfull \vbox (badness 2158) has occurred while \output is active []
-
- [10]
+[10]
 <figures/gate_operating_points.png, id=50, 355.5684pt x 196.3335pt>
 File: figures/gate_operating_points.png Graphic file (type png)
 <use figures/gate_operating_points.png>
 Package pdftex.def Info: figures/gate_operating_points.png  used on input line 
 398.
-(pdftex.def)             Requested size: 277.69987pt x 153.33722pt.
-
-[11 <./figures/edge_capacity.png>] [12 <./figures/gate_operating_points.png>]
+(pdftex.def)             Requested size: 242.98541pt x 134.17007pt.
+ [11 <./figures/edge_capacity.png>] [12 <./figures/gate_operating_points.png>] 
 (./main.bbl [13]
 Underfull \hbox (badness 1122) in paragraph at lines 25--28
 []\T1/ptm/m/n/9 Cantone, M., Mar-rocco, C., Bria, A.: Ma-chine learn-ing in net
@@ -967,11 +962,11 @@ L3 programming layer <2024-02-20>
 Here is how much of TeX's memory you used:
  15345 strings out of 475567
  310813 string characters out of 5777890
- 1950187 words of memory out of 5000000
+ 1949187 words of memory out of 5000000
  37185 multiletter control sequences out of 15000+600000
  613739 words of font info for 117 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 84i,13n,87p,1725b,1038s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,13n,87p,1890b,1038s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2024basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi1
 0.pfb></usr/local/texlive/2024basic/texmf-dist/fonts/type1/public/amsfonts/cm/c
 mr10.pfb></usr/local/texlive/2024basic/texmf-dist/fonts/type1/public/amsfonts/c
@@ -981,7 +976,7 @@ b></usr/local/texlive/2024basic/texmf-dist/fonts/type1/public/marvosym/marvosym
 .pfb></usr/local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb>
 </usr/local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr
 /local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (15 pages, 798650 bytes).
+Output written on main.pdf (15 pages, 798280 bytes).
 PDF statistics:
  110 PDF objects out of 1000 (max. 8388607)
  68 compressed objects within 1 object stream
