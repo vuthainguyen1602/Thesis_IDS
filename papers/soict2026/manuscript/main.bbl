@@ -94,9 +94,10 @@ Kreps, J., Narkhede, N., Rao, J.: Kafka: a distributed messaging system for log
 \bibitem{lanvin2023errors}
 Lanvin, M., Gimenez, P.F., Han, Y., Majorczyk, F., M{\'e}, L., Totel, {\'E}.:
   Errors in the {CICIDS2017} dataset and the significant differences in
-  detection performances it makes. In: Risks and Security of Internet and
-  Systems (CRiSIS 2022), Revised Selected Papers. pp. 18--33. Lecture Notes in
-  Computer Science, Springer (2023). \doi{10.1007/978-3-031-31108-6_2}
+  detection performances it makes. In: Kallel, S., Jmaiel, M., Zulkernine, M.,
+  Hadj~Kacem, A., Cuppens, F., Cuppens, N. (eds.) Risks and Security of
+  Internet and Systems (CRiSIS 2022). Lecture Notes in Computer Science, vol.
+  13857, pp. 18--33. Springer, Cham (2023). \doi{10.1007/978-3-031-31108-6_2}
 
 \bibitem{lopez2017autoencoder}
 Lopez-Martin, M., Carro, B., Sanchez-Esguevillas, A., Lloret, J.: Conditional
