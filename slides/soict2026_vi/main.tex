@@ -150,7 +150,7 @@ năng phát hiện là gì.}
       \textbf{Tầng 2 --- bộ phân loại (PySpark)}
       \begin{itemize}\small
         \item Random Forest trên \key{30 đặc trưng} được SHAP chọn
-              (bài FAIR), không có cổng đích; F1 0,9959.
+              (bài FAIR), không có cổng đích, F1 0,9959.
         \item Chỉ phải xét số ít luồng mà cổng chuyển sang.
       \end{itemize}
     \end{column}
@@ -245,7 +245,7 @@ năng phát hiện là gì.}
     \end{column}
   \end{columns}
   \takeaway{\textbf{Lợi ích đến từ việc tách hai tầng}, không phải từ bo thứ hai.}
-  \note{A1 đo ở một phiên sau, cùng bo, cùng mô hình, cùng tệp phát lại; ở 30
+  \note{A1 đo ở một phiên sau, cùng bo, cùng mô hình, cùng tệp phát lại. Ở 30
   luồng/giây một lần lặp mất 16 giây để xả hàng đợi. Độ trễ vài giây ở mọi chế
   độ vì mỗi lô Spark mất vài giây. Chế độ một bo và nhân bản tắt cổng, như bản đã nộp. Độ trễ trung vị
   của tách tầng khoảng 1 giây. Cổng bỏ qua khoảng 89\% số luồng ở mọi chế độ có
@@ -306,7 +306,7 @@ năng phát hiện là gì.}
     \end{column}
   \end{columns}
   \takeaway{Tách tầng: \key{3,0\,J $\rightarrow$ 0,60\,J} mỗi dự đoán (hai bo), \key{0,32\,J} (một bo).}
-  \note{Năng lượng đo bằng tegrastats: 30 giây nền rồi cửa sổ tải; chế độ hai
+  \note{Năng lượng đo bằng tegrastats: 30 giây nền rồi cửa sổ tải. Chế độ hai
   bo cộng cả hai bo. Khi chạy, công suất tăng thêm khoảng 1,5\,W ở mọi chế độ.}
 \end{frame}
 
@@ -328,7 +328,7 @@ năng phát hiện là gì.}
       \end{tabular}
       }
       \\[0.3em]
-      \raggedright\scriptsize Offline trên tập kiểm tra; cổng dùng đủ 77 đặc
+      \raggedright\scriptsize Offline trên tập kiểm tra, cổng dùng đủ 77 đặc
       trưng. Chạy thật: xem Kết quả 5.
     \end{column}
     \begin{column}{0.44\textwidth}
@@ -374,15 +374,15 @@ năng phát hiện là gì.}
       \begin{itemize}\small
         \setlength{\itemsep}{0.4em}
         \item \good{Precision 100\%}: không báo nhầm luồng nào trong 8.483 luồng bình thường.
-        \item \bad{Recall 69,5\%}: \emph{mọi} tấn công bị lọt đều do cổng bỏ qua;
-              bộ phân loại không sai luồng nào nó nhận.
+        \item \bad{Recall 69,5\%}: \emph{mọi} tấn công bị lọt đều do cổng bỏ qua.
+              Bộ phân loại không sai luồng nào nó nhận.
         \item F1 đầu cuối do ngưỡng cổng quyết định.
       \end{itemize}
     \end{column}
   \end{columns}
   \takeaway{Phản biện hỏi đúng điều này: \key{P / R / F1 của cả pipeline},
   không phải của bộ phân loại offline.}
-  \note{Các dòng ngoài dòng phát lại đủ gộp mọi lần lặp ở cửa sổ đo tải; mỗi
+  \note{Các dòng ngoài dòng phát lại đủ gộp mọi lần lặp ở cửa sổ đo tải. Mỗi
   cửa sổ phát lại từ dòng đầu nên các lần lặp trùng nhau. Dòng phát lại đủ phủ
   từng luồng đúng một lần.}
 \end{frame}
@@ -447,7 +447,7 @@ năng phát hiện là gì.}
     \bottomrule
   \end{tabular}
   }
-  \\[0.2em]{\scriptsize Lô 10 luồng, như khi triển khai; ba bộ máy cho dự đoán
+  \\[0.2em]{\scriptsize Lô 10 luồng, như khi triển khai. Ba bộ máy cho dự đoán
   giống nhau 100\%. mJ mỗi luồng: năng lượng tăng thêm so với lúc bo nghỉ. Mỗi
   lần gọi Spark tốn $\approx$7\,giây với mọi lô tới 1.000 luồng, nên ở lô 10.000
   khoảng cách chỉ còn $\approx$27 lần (slide dự phòng).}
@@ -468,9 +468,9 @@ năng phát hiện là gì.}
       \begin{itemize}\small
         \setlength{\itemsep}{0.3em}
         \item Tách hai tầng: \good{2,5 $\rightarrow$ 17,8 luồng/giây} trên một bo
-              (0,32\,J), \good{22,4} trên hai bo (0,60\,J); p95 $\approx$7 giây.
-        \item Đầu cuối: \good{precision 100\%}, \bad{recall 69,5\%}, F1 0,82;
-              mọi tấn công lọt đều do cổng.
+              (0,32\,J), \good{22,4} trên hai bo (0,60\,J), p95 $\approx$7 giây.
+        \item Đầu cuối: \good{precision 100\%}, \bad{recall 69,5\%}, F1 0,82.
+              Mọi tấn công lọt đều do cổng.
         \item Sang CSE-CIC-IDS2018: recall \bad{0,8\%}, tải còn $\approx$8 luồng/giây.
         \item Spark là nút thắt suy luận: ONNX nhanh gấp khoảng 7.200 lần.
       \end{itemize}
@@ -492,7 +492,7 @@ năng phát hiện là gì.}
   \vfill
   \centering \key{Xin cảm ơn --- kính mời câu hỏi}
   \note{Nhắc lại: tách hai tầng cho tải gấp 7 đến 9 lần với năng lượng thấp
-  hơn nhiều; cái giá là khoảng 30\% luồng tấn công bị cổng cho qua; và sang mạng
+  hơn nhiều. Cái giá là khoảng 30\% luồng tấn công bị cổng cho qua. Sang mạng
   khác thì cả khả năng phát hiện lẫn mức tải đều giảm, nên phải chỉnh ngưỡng và
   huấn luyện lại.}
 \end{frame}
@@ -541,7 +541,7 @@ năng phát hiện là gì.}
   \includegraphics[height=0.70\textheight, width=\textwidth, keepaspectratio]{edge_capacity.png}
   \\[0.2em]
   \footnotesize Số dự đoán mỗi giây chịu được, mọi luồng xong trong 10 giây
-  (trái); năng lượng mỗi dự đoán ở mức tải đó (phải).
+  (trái), năng lượng mỗi dự đoán ở mức tải đó (phải).
 \end{frame}
 
 \begin{frame}{Dự phòng: Spark tốn ở mỗi lần gọi, không phải ở các cây}
@@ -549,7 +549,7 @@ năng phát hiện là gì.}
   \includegraphics[height=0.62\textheight, width=\textwidth, keepaspectratio]{batch_sweep_vi.png}
   \\[0.2em]
   \footnotesize Cùng khu rừng, cùng bo, lô từ 10 tới 10.000 luồng. Một lần gọi
-  PySpark mất 7,1--7,4\,giây tới lô 1.000 và 9,5\,giây ở lô 10.000; ONNX bão
+  PySpark mất 7,1--7,4\,giây tới lô 1.000 và 9,5\,giây ở lô 10.000. ONNX bão
   hòa quanh 28.000 luồng/giây. Khoảng cách giảm từ $\approx$7.200 lần (lô 10)
   xuống $\approx$27 lần (lô 10.000).
 \end{frame}
@@ -578,12 +578,12 @@ năng phát hiện là gì.}
     \item Kafka, PostgreSQL, InfluxDB, Grafana chạy trên máy chủ: luồng vào qua
           broker của nó, kết quả lưu ở đó. \bad{Máy chủ hỏng thì ngừng phát hiện},
           dù hai bo vẫn chạy tốt.
-    \item Với PySpark, máy chủ \emph{không} phải nút thắt: các bo bão hòa trước;
+    \item Với PySpark, máy chủ \emph{không} phải nút thắt: các bo bão hòa trước,
           độ trễ khứ hồi máy chủ--bo 4--9\,ms qua Wi-Fi.
     \item Nhưng nó giới hạn việc mở rộng: thêm bo là thêm một consumer của cùng
           broker và một nơi ghi vào cùng CSDL (mỗi dự đoán một lệnh INSERT).
     \item Triển khai thực tế: broker đặt trên hoặc cạnh bo nhận luồng, kết quả
-          đệm tại chỗ rồi gửi về theo lô; Kafka nhân bản giữa các bo.
+          đệm tại chỗ rồi gửi về theo lô, Kafka nhân bản giữa các bo.
           \key{Chưa đo.}
   \end{itemize}
 \end{frame}
@@ -593,14 +593,14 @@ năng phát hiện là gì.}
     \item Máy chủ khởi động các vai trò trên Jetson qua SSH, tạo tải, thu mọi
           dự đoán.
     \item Mỗi dự đoán lưu thời điểm gửi và số dòng của luồng: độ trễ tính từ
-          lúc gửi, \emph{gồm cả thời gian chờ}; tỷ lệ bỏ qua và tỷ lệ bắt tấn
+          lúc gửi, \emph{gồm cả thời gian chờ}. Tỷ lệ bỏ qua và tỷ lệ bắt tấn
           công tính từ chính các luồng.
-    \item Quét mức tải cho từng chế độ; một mức được coi là chịu được khi mọi
+    \item Quét mức tải cho từng chế độ. Một mức được coi là chịu được khi mọi
           luồng gửi trong 45 giây đều có kết quả trong vòng 10 giây sau đó.
-    \item Mỗi lần chạy một consumer group Kafka riêng; mỗi tầng xử lý lô 20
+    \item Mỗi lần chạy một consumer group Kafka riêng. Mỗi tầng xử lý lô 20
           luồng hoặc sau 1 giây.
     \item Năng lượng: \texttt{tegrastats}, 30 giây nền rồi cửa sổ tải ở mức
-          chịu được; chế độ hai bo cộng cả hai bo.
+          chịu được. Chế độ hai bo cộng cả hai bo.
   \end{itemize}
 \end{frame}
 

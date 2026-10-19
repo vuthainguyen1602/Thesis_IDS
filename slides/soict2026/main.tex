@@ -3,8 +3,8 @@
 % Paper: papers/soict2026/manuscript/main.tex
 % Compile: ./compile.sh   (XeLaTeX; notes version via NOTES=1 ./compile.sh)
 %
-% TIMING PLAN (~8:30 total; the slot is 15 min including Q&A). Three section
-% pages sit between the parts; they are not frame-numbered and cost ~5 s each.
+% TIMING PLAN (~8:30 total, in a 15-min slot including Q&A). Three section
+% pages sit between the parts. They are not frame-numbered and cost ~5 s each.
 %   Title .......................... 0:20
 %   I   Problem, contributions ..... 1:25   (2 slides)
 %   II  Architecture, modes ........ 1:40   (2 slides)
@@ -135,7 +135,7 @@ devices, and what it costs in detection. Eight minutes, five results.}
     \draw[dsh] (j2.south) -- (out.north -| j2);
   \end{tikzpicture}}
   \\[0.15em]
-  \footnotesize The gate scores all 77 features; its threshold is fixed
+  \footnotesize The gate scores all 77 features. Its threshold is fixed
   \emph{offline} on benign validation data, never on the test set. Batches of
   20, or after 1\,s.
   \\[0.2em]
@@ -219,11 +219,11 @@ devices, and what it costs in detection. Eight minutes, five results.}
     \end{column}
   \end{columns}
   \takeaway{\textbf{Decoupling, not the second board, pays}: one board
-  running the split is the efficient choice; a second board buys headroom.}
+  running the split is the efficient choice, and a second board buys headroom.}
   \note{Single node and horizontal run with the gate off, as in the submitted
   version. Energy is measured at each mode's sustained rate: 2.0, 2.0, 3.9,
   9.5, 17.8 and 18.4 flows per second. Tail latency is seconds in every mode because one PySpark batch takes seconds. A1 was measured in a later session
-  with the same boards, models and replay file; at 30 flows per second one
+  with the same boards, models and replay file. At 30 flows per second one
   repeat drained in 16 seconds. Gate skip is about 89 percent in every gated
   mode. Median latency in split mode is about one second. Single node plus gate: the 10 second rule puts it at 1.9 only because one repeat drained in 10.6 seconds; at 3 flows per second it delivers 2.4 to 2.5 like the single node. Spark cluster: at 20 flows per second one repeat kept up at 17.1 and the other did not, so its capacity is only known to lie between about 9 and 17.}
 \end{frame}
@@ -278,7 +278,7 @@ devices, and what it costs in detection. Eight minutes, five results.}
         \setlength{\itemsep}{0.4em}
         \item \good{Precision 100\%}: no false alarm on 8{,}483 benign flows.
         \item \bad{Recall 69.5\%}: every missed attack was \emph{skipped by the
-              gate}; the classifier made no error on what it received.
+              gate}. The classifier made no error on what it received.
         \item The gate's threshold alone sets the end-to-end F1.
       \end{itemize}
     \end{column}
@@ -289,7 +289,7 @@ devices, and what it costs in detection. Eight minutes, five results.}
   whole deployed pipeline, not the offline classifier. The deployed threshold
   is the 0.995 quantile of benign validation errors, fixed before any test.
   The capacity-window rows overlap because every window replays the sample
-  from its first row; the full replay covers every flow once.}
+  from its first row. The full replay covers every flow once.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:50
@@ -352,7 +352,7 @@ devices, and what it costs in detection. Eight minutes, five results.}
     \bottomrule
   \end{tabular}
   }
-  \\[0.2em]{\scriptsize Batch 10, as deployed; identical predictions on every
+  \\[0.2em]{\scriptsize Batch 10, as deployed, with identical predictions on every
   flow. mJ per flow: energy above the board's idle power. A Spark call costs
   $\approx$7\,s at any batch up to 1{,}000, so at batch 10{,}000 the gap is
   $\approx$27$\times$ (backup).}
@@ -374,10 +374,10 @@ devices, and what it costs in detection. Eight minutes, five results.}
       \begin{itemize}\small
         \item Reproducible edge IDS: Kafka $+$ PySpark on Jetson Orin Nano Super.
         \item Decoupled stages: \good{2.5 $\rightarrow$ 17.8 flows/s} on one
-              board (0.32\,J), \good{22.4} on two (0.60\,J); e2e p95
+              board (0.32\,J), \good{22.4} on two (0.60\,J), e2e p95
               $\approx$7\,s.
-        \item End to end: \good{precision 100\%}, \bad{recall 69.5\%}, F1 0.82;
-              every miss is a gate skip.
+        \item End to end: \good{precision 100\%}, \bad{recall 69.5\%}, F1 0.82.
+              Every miss is a gate skip.
         \item ONNX serves the same forest $\approx$7{,}200$\times$ faster.
       \end{itemize}
     \end{column}
@@ -399,8 +399,8 @@ devices, and what it costs in detection. Eight minutes, five results.}
   \centering
   \key{Thank you --- questions?}
   \note{Recap: decoupling gives seven to nine times the load at a fraction of
-  the energy; the price is about thirty percent of attacks skipped by the
-  gate; and on another dataset both detection and capacity fall, so a new
+  the energy. The price is about thirty percent of attacks skipped by the
+  gate. On another dataset both detection and capacity fall, so a new
   network needs recalibration and retraining.}
 \end{frame}
 
@@ -449,7 +449,7 @@ devices, and what it costs in detection. Eight minutes, five results.}
   \centering
   \includegraphics[height=0.70\textheight, width=\textwidth, keepaspectratio]{edge_capacity.png}
   \\[0.2em]
-  \footnotesize Sustained verdicts/s with every flow done within 10\,s (left);
+  \footnotesize Sustained verdicts/s with every flow done within 10\,s (left),
   energy per verdict at that rate (right).
 \end{frame}
 
@@ -458,7 +458,7 @@ devices, and what it costs in detection. Eight minutes, five results.}
   \includegraphics[height=0.62\textheight, width=\textwidth, keepaspectratio]{batch_sweep.png}
   \\[0.2em]
   \footnotesize Same forest, same board, batch 10 to 10{,}000. A PySpark call
-  takes 7.1--7.4\,s up to batch 1{,}000 and 9.5\,s at 10{,}000; ONNX saturates
+  takes 7.1--7.4\,s up to batch 1{,}000 and 9.5\,s at 10{,}000. ONNX saturates
   near 28{,}000 flows/s. The gap falls from $\approx$7{,}200$\times$ (batch 10)
   to $\approx$27$\times$ (batch 10{,}000).
 \end{frame}
@@ -472,7 +472,7 @@ devices, and what it costs in detection. Eight minutes, five results.}
   \\[0.2em]
   \footnotesize Attack recall (left) and false-positive rate (right) vs.\
   gate-skip ratio. Raising the skip ratio offloads more Spark work and costs
-  recall; the operator chooses the point.
+  recall. The operator chooses the point.
 \end{frame}
 
 \begin{frame}{Backup: which model, and why}
@@ -496,7 +496,7 @@ devices, and what it costs in detection. Eight minutes, five results.}
   \texttt{PipelineModel} loads on ARM64 without the native libraries Spark's
   XGBoost integration needs. The SHAP ranking is computed after
   \texttt{destination\_port} is removed.
-  \\ $^{\dagger}$Distributed saving under-reports size; true size $\approx$2.5\,MB.
+  \\ $^{\dagger}$Distributed saving under-reports size. True size: $\approx$2.5\,MB.
 \end{frame}
 
 \begin{frame}{Backup: full monitoring dashboard}
@@ -513,13 +513,13 @@ devices, and what it costs in detection. Eight minutes, five results.}
           through its broker, verdicts are stored there. \bad{Host down
           $\Rightarrow$ detection stops}, although both boards are healthy.
     \item With PySpark the host is \emph{not} the bottleneck: the boards saturate
-          first; host-to-board round trip 4--9\,ms on Wi-Fi.
+          first, and a host-to-board round trip takes 4--9\,ms on Wi-Fi.
     \item It still bounds scaling: each added board is one more consumer of the
           same broker and one more writer to the same database (one insert per
           verdict).
     \item Field deployment: broker on or next to the board that receives the
-          flow export, verdicts buffered locally and forwarded in batches;
-          Kafka replication across the boards. \key{Not measured.}
+          flow export, verdicts buffered locally and forwarded in batches,
+          Kafka replicated across the boards. \key{Not measured.}
   \end{itemize}
 \end{frame}
 
@@ -528,14 +528,14 @@ devices, and what it costs in detection. Eight minutes, five results.}
     \item Host-side orchestration starts pipeline roles on the Jetsons over
           SSH, drives the load, collects every verdict.
     \item Each verdict stores the flow's send time and replay row: latency is
-          send to verdict, \emph{queueing included}; skip ratio and attack
+          send to verdict, \emph{queueing included}. Skip ratio and attack
           recall come from the flows themselves.
-    \item Rate sweep per mode; a rate is sustained when every flow sent in the
+    \item Rate sweep per mode. A rate is sustained when every flow sent in the
           45\,s window gets its verdict within 10\,s after it. 2 runs per rate.
     \item Fresh Kafka consumer group per run, so no run inherits a backlog.
     \item Tiers batch 20 flows or flush after 1\,s.
     \item Energy: \texttt{tegrastats}, 30\,s idle baseline then load at the
-          sustained rate; two-node modes sum both boards.
+          sustained rate. Two-node modes sum both boards.
   \end{itemize}
 \end{frame}
 
