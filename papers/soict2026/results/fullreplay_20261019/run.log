@@ -1,0 +1,31 @@
+[08:35:49] Jetson #1: stopping k3s for the run
+  k3s: inactive
+ 08:36:08 up 9 days, 20:30,  0 users,  load average: 1.60, 1.88, 1.66
+[stop] killing consumers + power monitors on both Jetsons
+[clock] board clock offsets + ping RTT (before)
+  192.168.1.81: offset +0.0499 s (+/-1.6 ms)  ping 3.583 ms avg / 6.794 max, loss 0.0%
+  192.168.1.39: offset +0.0502 s (+/-1.6 ms)  ping 3.598 ms avg / 4.914 max, loss 0.0%
+[start] jetson-nano-1 role=anomaly_gate alert=0 spark=local[*] extra='' on 192.168.1.81
+  -> launch dispatched on 192.168.1.81 (log: ~/edge_jetson-nano-1.log)
+[start] jetson-nano-2 role=classifier alert=1 spark=local[*] extra='' on 192.168.1.39
+  -> launch dispatched on 192.168.1.39 (log: ~/edge_jetson-nano-2.log)
+[wait] letting pipelines initialise (Spark ~15s) ...
+[run] throughput/latency, mode=split, repeats=1 ...
+
+[WARMUP] Sending 15s of warmup traffic at 20 flows/s (excluded from measurement)...
+
+[WAIT] Draining metrics (load window 2026-10-19T01:37:23Z .. 2026-10-19T01:45:43Z)...
+[WARN] No raw latency logs supplied (--raw-latency-glob). Falling back to mean-of-window p95 from InfluxDB — this underestimates the tail and must NOT be used in the paper.
+[OK] Wrote /Users/thainguyenvu/Desktop/Thesis_IDS/papers/soict2026/results/fullreplay_20261019/runs/run_split_20261019_083608.json
+
+--- LaTeX snippet (tab:benchmark) ---
+    split & 19.97 & 463.46 & 89.0 & -- \\
+
+[WARN] Only 1 repeat(s). Use --repeats 5 for publishable mean±std.
+[clock] board clock offsets + ping RTT (after)
+  192.168.1.81: offset +0.0340 s (+/-1.8 ms)  ping 4.798 ms avg / 5.956 max, loss 0.0%
+  192.168.1.39: offset +0.0337 s (+/-1.9 ms)  ping 4.649 ms avg / 5.331 max, loss 0.0%
+[stop] killing consumers + power monitors on both Jetsons
+[done] mode=split (no energy window)
+[08:46:34] Jetson #1: starting k3s again
+  k3s: active
