@@ -107,8 +107,9 @@ Lopez-Martin, M., Carro, B., Sanchez-Esguevillas, A., Lloret, J.: Conditional
 
 \bibitem{lundberg2017unified}
 Lundberg, S.M., Lee, S.I.: A unified approach to interpreting model
-  predictions. In: Advances in Neural Information Processing Systems 30 (NIPS
-  2017). Curran Associates (2017)
+  predictions. In: Proceedings of the 31st International Conference on Neural
+  Information Processing Systems (NIPS'17). pp. 4768--4777. Curran Associates
+  (2017)
 
 \bibitem{meng2016mllib}
 Meng, X., Bradley, J., Yavuz, B., Sparks, E., Venkataraman, S., Liu, D.,

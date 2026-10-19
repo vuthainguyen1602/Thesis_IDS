@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.1.1)  19 OCT 2026 11:10
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.1.1)  19 OCT 2026 11:12
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -916,55 +916,55 @@ Underfull \hbox (badness 1286) in paragraph at lines 85--89
  []
 
 [14]
-Underfull \hbox (badness 1946) in paragraph at lines 127--131
+Underfull \hbox (badness 1946) in paragraph at lines 128--132
 []\T1/ptm/m/n/9 Nassef, L., Al-ghamdi, M.I., Chaa-bane, S.B., Ab-bas, Q., Alawa
 d, W.M., Al-bal-awi,
  []
 
 
-Underfull \hbox (badness 1348) in paragraph at lines 127--131
+Underfull \hbox (badness 1348) in paragraph at lines 128--132
 \T1/ptm/m/n/9 in-dus-trial IoT us-ing TinyML and edge AI. Sci-en-tific Re-ports
  \T1/ptm/b/n/9 16\T1/ptm/m/n/9 (1), 18524 (2026).
  []
 
 
-Underfull \hbox (badness 1383) in paragraph at lines 133--137
+Underfull \hbox (badness 1383) in paragraph at lines 134--138
 \T1/ptm/m/n/9 DÏoT: A fed-er-ated self-learning anomaly de-tec-tion sys-tem for
  IoT. In: Proc. IEEE
  []
 
 
-Underfull \hbox (badness 1939) in paragraph at lines 133--137
+Underfull \hbox (badness 1939) in paragraph at lines 134--138
 \T1/ptm/m/n/9 39th Int. Conf. on Dis-tributed Com-put-ing Sys-tems (ICDCS). pp.
  756--767 (2019).
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 139--143
+Underfull \hbox (badness 10000) in paragraph at lines 140--144
 []\T1/ptm/m/n/9 Ruff, L., Kauff-mann, J.R., Van-der-meulen, R.A., Mon-tavon, G.
 , Samek, W.,
  []
 
 
-Underfull \hbox (badness 3281) in paragraph at lines 139--143
+Underfull \hbox (badness 3281) in paragraph at lines 140--144
 \T1/ptm/m/n/9 Kloft, M., Di-et-terich, T.G., Müller, K.R.: A uni-fy-ing re-view
  of deep and shal-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 139--143
+Underfull \hbox (badness 10000) in paragraph at lines 140--144
 \T1/ptm/m/n/9 low anomaly de-tec-tion. Pro-ceed-ings of the IEEE \T1/ptm/b/n/9 
 109\T1/ptm/m/n/9 (5), 756--795 (2021).
  []
 
 
-Underfull \hbox (badness 1259) in paragraph at lines 181--184
+Underfull \hbox (badness 1259) in paragraph at lines 182--185
 []\T1/ptm/m/n/9 Zhang, Z., Zhang, L., Xu, J., Chen, Z., Wang, P.: An edge-deplo
 yable lightweight
  []
 
 
-Underfull \hbox (badness 3492) in paragraph at lines 181--184
+Underfull \hbox (badness 3492) in paragraph at lines 182--185
 \T1/ptm/m/n/9 in-tru-sion de-tec-tion sys-tem for in-dus-trial con-trol. Elec-t
 ron-ics \T1/ptm/b/n/9 15\T1/ptm/m/n/9 (3),  644 (2026).
  []
@@ -992,7 +992,7 @@ b></usr/local/texlive/2024basic/texmf-dist/fonts/type1/public/marvosym/marvosym
 .pfb></usr/local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb>
 </usr/local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr
 /local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (15 pages, 632459 bytes).
+Output written on main.pdf (15 pages, 632473 bytes).
 PDF statistics:
  109 PDF objects out of 1000 (max. 8388607)
  68 compressed objects within 1 object stream
