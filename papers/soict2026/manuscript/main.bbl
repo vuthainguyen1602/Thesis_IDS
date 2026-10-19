@@ -14,6 +14,18 @@ Arp, D., Quiring, E., Pendlebury, F., Warnecke, A., Pierazzi, F., Wressnegger,
   security. In: 31st USENIX Security Symposium (USENIX Security 22). pp.
   3971--3988 (2022)
 
+\bibitem{csecicids2018}
+{Canadian Institute for Cybersecurity and Communications Security
+  Establishment}: {CSE-CIC-IDS2018} dataset: A collaborative project between
+  the {Communications Security Establishment (CSE)} and the {Canadian Institute
+  for Cybersecurity (CIC)}. \url{https://www.unb.ca/cic/datasets/ids-2018.html}
+  (2018)
+
+\bibitem{cantone2024crossdataset}
+Cantone, M., Marrocco, C., Bria, A.: Machine learning in network intrusion
+  detection: A cross-dataset generalization study. IEEE Access  \textbf{12},
+  144489--144508 (2024). \doi{10.1109/ACCESS.2024.3472907}
+
 \bibitem{chandola2009anomaly}
 Chandola, V., Banerjee, A., Kumar, V.: Anomaly detection: A survey. ACM
   Computing Surveys  \textbf{41}(3),  1--58 (2009).
@@ -23,6 +35,12 @@ Chandola, V., Banerjee, A., Kumar, V.: Anomaly detection: A survey. ACM
 Chithra~Rani, P.R., Baalaji, K.: Deep learning-based ensemble stacking for
   enhanced intrusion detection in {IoT}-edge platforms. Discover Applied
   Sciences  \textbf{7}, ~928 (2025). \doi{10.1007/s42452-025-06871-z}
+
+\bibitem{dhooge2020interdataset}
+D'hooge, L., Wauters, T., Volckaert, B., De~Turck, F.: Inter-dataset
+  generalization strength of supervised machine learning methods for intrusion
+  detection. Journal of Information Security and Applications  \textbf{54},
+  102564 (2020)
 
 \bibitem{diazgorrin2026jetson}
 Diaz-Gorrin, J., Caballero-Gil, C., Brankovic, L.: Enhancing network security
