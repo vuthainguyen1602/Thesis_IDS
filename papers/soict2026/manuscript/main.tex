@@ -1,21 +1,13 @@
 % SOICT 2026 — Springer LNCS template (English)
 % Self-contained: class, style, bibliography and figures all live in this folder.
-% Compile: ./compile.sh (XeLaTeX)
+% Compile: ./compile.sh (pdfLaTeX, as Springer production requires)
 %
 \documentclass[runningheads]{llncs}
 
-\usepackage{fontspec}
-\usepackage{polyglossia}
-\setdefaultlanguage{english}
-\setotherlanguage{vietnamese}
-% TeX Gyre Termes is a Times-compatible font that ships with TeX Live / MacTeX,
-% covers Vietnamese, and needs no MS-Office fonts -> builds on any machine.
-% If TeX Gyre Termes is missing (e.g. BasicTeX without the tex-gyre package),
-% fall back to macOS' built-in Times New Roman instead of silently dropping to
-% nullfont (which produces blank pages).
-\IfFontExistsTF{TeX Gyre Termes}
-  {\setmainfont{TeX Gyre Termes}[Ligatures=TeX]}
-  {\setmainfont{Times New Roman}[Ligatures=TeX]}
+\usepackage[T1]{fontenc}
+% Times (Type 1, from psnfss) as in the XeLaTeX build; keeps the 15-page layout
+\usepackage{lmodern}  % Type 1 typewriter and sans in T1 (no bitmap EC fonts)
+\usepackage{mathptmx}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{amsmath}
@@ -48,17 +40,10 @@
 \setlength{\textfloatsep}{10pt plus 4pt minus 3pt}
 % Allow slightly looser interword glue instead of overfull lines
 \setlength{\emergencystretch}{1.5em}
-% No-op fallback: \babelshorthandoff is a babel command, undefined under polyglossia.
-\providecommand{\babelshorthandoff}[1]{}
 
 \graphicspath{{figures/}}
 
 \begin{document}
-
-% polyglossia's \setdefaultlanguage{english} resets \figurename to "Figure",
-% overriding llncs. Springer LNCS style is "Fig." in captions AND in running
-% text, so restore it here (after all \AtBeginDocument hooks have run).
-\renewcommand{\figurename}{Fig.}
 
 \title{A Distributed Real-Time Intrusion Detection System on a Jetson Orin Nano Super Edge Cluster using Kafka and PySpark}
 

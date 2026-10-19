@@ -1,5 +1,5 @@
 #!/bin/bash
-# Compile SOICT 2026 paper (Springer LNCS + XeLaTeX). The folder is
+# Compile SOICT 2026 paper (Springer LNCS + pdfLaTeX, as Springer production requires). The folder is
 # self-contained; figures are refreshed from their sources when present.
 set -euo pipefail
 
@@ -18,12 +18,12 @@ for src in \
   [ -f "$src" ] && cp "$src" figures/
 done
 
-echo "Compiling main.tex with xelatex ..."
+echo "Compiling main.tex with pdflatex ..."
 
-xelatex -interaction=nonstopmode main.tex || true
+pdflatex -interaction=nonstopmode main.tex || true
 bibtex main || true
-xelatex -interaction=nonstopmode main.tex || true
-xelatex -interaction=nonstopmode main.tex || true
+pdflatex -interaction=nonstopmode main.tex || true
+pdflatex -interaction=nonstopmode main.tex || true
 
 cp main.pdf "$OUT/SOICT2026.pdf"
 

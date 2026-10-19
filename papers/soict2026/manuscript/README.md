@@ -7,7 +7,7 @@ English paper based on `Latex-Template-for-Springer/` (llncs.cls + splncs04.bst)
 ```bash
 ./papers/soict2026/collect_results.sh
 cd papers/soict2026/manuscript
-./compile.sh
+./compile.sh   # pdfLaTeX (Springer production); Times via mathptmx, Type 1 fonts only
 ```
 
 ## TODO before submission
