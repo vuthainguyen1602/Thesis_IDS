@@ -56,7 +56,7 @@ Ferrag, M.A., Maglaras, L., Moschoyiannis, S., Janicke, H.: Deep learning for
 \bibitem{gama2014survey}
 Gama, J., {\v{Z}}liobait{\.{e}}, I., Bifet, A., Pechenizkiy, M., Bouchachia,
   A.: A survey on concept drift adaptation. ACM Computing Surveys
-  \textbf{46}(4),  1--37 (2014). \doi{10.1145/2523813}
+  \textbf{46}(4),  44:1--44:37 (2014). \doi{10.1145/2523813}
 
 \bibitem{hamdan2020edge}
 Hamdan, S., Ayyash, M., Almajali, S.: Edge-computing architectures for

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.1.1)  19 OCT 2026 11:12
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.1.1)  19 OCT 2026 11:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -880,6 +880,18 @@ Underfull \hbox (badness 7722) in paragraph at lines 46--49
  []
 
 
+Underfull \hbox (badness 5504) in paragraph at lines 57--60
+[]\T1/ptm/m/n/9 Gama, J., šliobait[]e, I., Bifet, A., Pech-enizkiy, M., Bouchac
+hia, A.: A sur-vey
+ []
+
+
+Underfull \hbox (badness 3568) in paragraph at lines 57--60
+\T1/ptm/m/n/9 on con-cept drift adap-ta-tion. ACM Com-put-ing Sur-veys \T1/ptm/
+b/n/9 46\T1/ptm/m/n/9 (4), 44:1--44:37 (2014).
+ []
+
+
 Underfull \hbox (badness 3514) in paragraph at lines 74--78
 []\T1/ptm/m/n/9 Hernandez-Ramos, J.L., Karopou-los, G., Chat-zoglou, E., Kou-li
 aridis, V., Mar-mol,
@@ -992,7 +1004,7 @@ b></usr/local/texlive/2024basic/texmf-dist/fonts/type1/public/marvosym/marvosym
 .pfb></usr/local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb>
 </usr/local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr
 /local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (15 pages, 632473 bytes).
+Output written on main.pdf (15 pages, 632488 bytes).
 PDF statistics:
  109 PDF objects out of 1000 (max. 8388607)
  68 compressed objects within 1 object stream
