@@ -1,0 +1,152 @@
+\relax 
+\ProvideDocumentCommand \selectlanguage {sO{}m}{}
+\citation{shi2016edge,hamdan2020edge}
+\citation{baalaji2025ensemble,asghar2026hedid}
+\citation{zhang2026edgeics}
+\citation{hasan2025iiot}
+\citation{diazgorrin2026jetson}
+\@writefile{toc}{\selectlanguage *[]{english}}
+\@writefile{toc}{\contentsline {title}{A Distributed Real-Time Intrusion Detection System on a Jetson Orin Nano Super Edge Cluster using Kafka and PySpark}{1}{}\protected@file@percent }
+\@writefile{toc}{\authcount {4}}
+\@writefile{toc}{\contentsline {author}{Thai Nguyen Vu\textsuperscript  {({\fontfamily  {mvs}\fontencoding  {U}\fontseries  {m}\fontshape  {n}\selectfont  \char 66})} \and Dung Van Bui \and Nhut Tri Do \and Van Du Nguyen}{1}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{}\protected@file@percent }
+\citation{kumar2025kafkaspark}
+\citation{nassef2026tinyml}
+\citation{arp2022dosdonts}
+\citation{lanvin2023errors}
+\citation{shi2016edge,hamdan2020edge}
+\citation{sforzin2016rpids}
+\citation{baalaji2025ensemble}
+\citation{asghar2026hedid}
+\citation{zhang2026edgeics}
+\citation{hasan2025iiot}
+\citation{diazgorrin2026jetson}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{2}{}\protected@file@percent }
+\citation{kreps2011kafka}
+\citation{zaharia2010spark}
+\citation{meng2016mllib}
+\citation{kumar2025kafkaspark}
+\citation{khraisat2019survey,ferrag2020deep,vinayakumar2019deep}
+\citation{chandola2009anomaly,ruff2021unifying}
+\citation{alrawashdeh2016toward}
+\citation{lopez2017autoencoder,hasan2025iiot}
+\citation{nguyen2019diot,hernandezramos2025federated}
+\citation{nassef2026tinyml}
+\citation{arp2022dosdonts}
+\citation{lanvin2023errors}
+\citation{sharafaldin2018toward}
+\citation{sarhan2022explainable}
+\citation{lundberg2017unified}
+\citation{gama2014survey}
+\citation{sforzin2016rpids}
+\citation{lopez2017autoencoder}
+\citation{nguyen2019diot}
+\citation{hasan2025iiot}
+\citation{baalaji2025ensemble}
+\citation{asghar2026hedid}
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Capability comparison with prior edge IDS deployments.}}{4}{}\protected@file@percent }
+\newlabel{tab:related-work}{{1}{4}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}System Architecture}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Split Deployment Overview}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Pipeline Roles}{4}{}\protected@file@percent }
+\citation{zaharia2010spark}
+\citation{meng2016mllib}
+\citation{sharafaldin2018toward}
+\citation{shi2016edge}
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Split-deployment architecture (PC + 2$\times $ Jetson Orin Nano Super).}}{5}{}\protected@file@percent }
+\newlabel{fig:architecture}{{1}{5}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Monitoring and Alerting}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Implementation}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}From Spark Training to Edge Deployment}{5}{}\protected@file@percent }
+\newlabel{sec:bridge}{{5}{5}{}{}{}}
+\citation{arp2022dosdonts}
+\citation{lanvin2023errors}
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Real-time Grafana monitoring of the edge IDS during CICIDS2017 replay.}}{6}{}\protected@file@percent }
+\newlabel{fig:grafana}{{2}{6}{}{}{}}
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Grafana dashboard at peak load in the split deployment, showing the load asymmetry between the two pipeline roles.}}{6}{}\protected@file@percent }
+\newlabel{fig:grafana-peak}{{3}{6}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Offline Phase (Spark ML), Leakage-Aware}{6}{}\protected@file@percent }
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Apache Spark standalone training cluster: the host as \emph  {master} (no executor), two Jetson Orin Nano Super devices as \emph  {worker}/\emph  {executor} nodes.}}{7}{}\protected@file@percent }
+\newlabel{fig:spark-cluster}{{4}{7}{}{}{}}
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Two-phase train--deploy pipeline linking Spark ML experiments to Jetson edge inference.}}{7}{}\protected@file@percent }
+\newlabel{fig:train-deploy}{{5}{7}{}{}{}}
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Bridge table: offline Spark selection criteria from the leakage-aware offline selection stage.}}{8}{}\protected@file@percent }
+\newlabel{tab:spark-edge-bridge}{{2}{8}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Edge Phase (Jetson Orin Nano Super)}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Experimental Setup}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Results}{9}{}\protected@file@percent }
+\newlabel{sec:benchmark-results}{{7}{9}{}{}{}}
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Sustained operating point per deployment mode on the 2-node Jetson cluster: the highest rate at which every flow got its verdict within 10\,s of the load window, with latency measured from send to verdict.}}{9}{}\protected@file@percent }
+\newlabel{tab:benchmark}{{3}{9}{}{}{}}
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Single-node inference cost of the deployed forest (same trees, identical predictions) across engines, batch size 10.}}{11}{}\protected@file@percent }
+\newlabel{tab:engines}{{4}{11}{}{}{}}
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Sustained verdict throughput (left) and energy per verdict at that rate (right) per deployment mode. The Spark-cluster bar is a lower bound (Table~\ref {tab:benchmark}).}}{11}{}\protected@file@percent }
+\newlabel{fig:edge-modes}{{6}{11}{}{}{}}
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces End-to-end detection of the deployed pipeline: final verdicts against replay labels, gate-only verdicts counted as benign.}}{11}{}\protected@file@percent }
+\newlabel{tab:e2e}{{5}{11}{}{}{}}
+\citation{csecicids2018}
+\citation{dhooge2020interdataset,cantone2024crossdataset}
+\@writefile{lof}{\setforeignlanguage {english}}
+\@writefile{lot}{\setforeignlanguage {english}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Anomaly-gate operating curve: attack recall (left) and false-positive rate (right) vs.\ gate-skip ratio.}}{12}{}\protected@file@percent }
+\newlabel{fig:gate}{{7}{12}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Discussion}{12}{}\protected@file@percent }
+\citation{hernandezramos2025federated}
+\bibstyle{splncs04}
+\bibdata{references}
+\bibcite{alrawashdeh2016toward}{1}
+\@writefile{toc}{\contentsline {section}{\numberline {9}Conclusion}{13}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Disclosure of Interests.}{13}{}\protected@file@percent }
+\bibcite{arp2022dosdonts}{2}
+\bibcite{csecicids2018}{3}
+\bibcite{cantone2024crossdataset}{4}
+\bibcite{chandola2009anomaly}{5}
+\bibcite{baalaji2025ensemble}{6}
+\bibcite{dhooge2020interdataset}{7}
+\bibcite{diazgorrin2026jetson}{8}
+\bibcite{ferrag2020deep}{9}
+\bibcite{gama2014survey}{10}
+\bibcite{hamdan2020edge}{11}
+\bibcite{hasan2025iiot}{12}
+\bibcite{hernandezramos2025federated}{13}
+\bibcite{khraisat2019survey}{14}
+\bibcite{kreps2011kafka}{15}
+\bibcite{lanvin2023errors}{16}
+\bibcite{lopez2017autoencoder}{17}
+\bibcite{lundberg2017unified}{18}
+\bibcite{meng2016mllib}{19}
+\bibcite{kumar2025kafkaspark}{20}
+\bibcite{asghar2026hedid}{21}
+\bibcite{nassef2026tinyml}{22}
+\bibcite{nguyen2019diot}{23}
+\bibcite{ruff2021unifying}{24}
+\bibcite{sarhan2022explainable}{25}
+\bibcite{sforzin2016rpids}{26}
+\bibcite{sharafaldin2018toward}{27}
+\bibcite{shi2016edge}{28}
+\bibcite{vinayakumar2019deep}{29}
+\bibcite{zaharia2010spark}{30}
+\bibcite{zhang2026edgeics}{31}
+\gdef \@abspage@last{15}

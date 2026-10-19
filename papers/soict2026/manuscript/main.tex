@@ -186,7 +186,7 @@ Each tier scores flows in batches of 20, or sooner once the oldest waiting flow 
 
 \subsection{Monitoring and Alerting}
 
-Each node tags its metrics with a unique node identifier in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Fig.~\ref{fig:grafana} shows the live Grafana dashboard while CICIDS2017 flows are replayed through the split deployment: prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM utilization are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL. Fig.~\ref{fig:grafana-peak} captures the dashboard at peak load in an earlier run with the previous model: the gate node idles at 4.6\% CPU while the PySpark classifier node reaches 90.8\%, so the classifier dominates the compute budget.
+Each node tags its metrics with a unique node identifier in InfluxDB and PostgreSQL. Alerts are emitted from a designated primary node only, avoiding duplicate notifications. Fig.~\ref{fig:grafana} shows the Grafana dashboard during the 500\,s run that replays all 10{,}000 CICIDS2017 test flows through the split deployment (Sect.~\ref{sec:benchmark-results}): prediction throughput, detected-attack count, inference latency, and per-node CPU/RAM utilization are all tracked in real time, alongside the most recent attack alerts persisted to PostgreSQL. Fig.~\ref{fig:grafana-peak} zooms into the same run at peak load: the gate node idles at 1.3\% CPU while the PySpark classifier node reaches 94.5\%, so the classifier dominates the compute budget.
 
 \begin{figure}[tbp]
   \centering
