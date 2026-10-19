@@ -11,6 +11,8 @@ Labels go to a sidecar file with the same row order: the sender forwards every
 column as a number, so a text label column cannot travel with the features.
 
     python scripts/make_replay_csv.py --rows 10000
+    python scripts/make_replay_csv.py --test ../data_2018/test_data.parquet \
+        --out sender/replay_cicids2018.csv --labels-out sender/replay_cicids2018_labels.csv
 """
 
 import argparse
@@ -42,8 +44,23 @@ def main() -> None:
         with open(path) as fh:
             features += [c for c in json.load(fh) if c not in features]
 
-    table = ds.dataset(args.test, format="parquet").to_table(columns=features + ["label", "label_binary"])
+    # CICIDS2017 carries "Fwd Header Length" twice (fwd_header_length34/55, equal
+    # on every row); CSE-CIC-IDS2018, harmonised to the 2017 names, has it once.
+    dataset = ds.dataset(args.test, format="parquet")
+    duplicated = {"fwd_header_length34": "fwd_header_length", "fwd_header_length55": "fwd_header_length"}
+    present = set(dataset.schema.names)
+    read = [c for c in features if c in present]
+    for c, src in duplicated.items():
+        if c in features and c not in present and src not in read:
+            read.append(src)
+    missing = [c for c in features if c not in present and duplicated.get(c) not in present]
+    if missing:
+        raise SystemExit(f"[ERROR] {args.test} lacks {missing}")
+    table = dataset.to_table(columns=read + ["label", "label_binary"])
     df = table.to_pandas().sample(n=args.rows, random_state=args.seed).reset_index(drop=True)
+    for c, src in duplicated.items():
+        if c in features and c not in present:
+            df[c] = df[src]
 
     df[features].to_csv(args.out, index=False)
     df[["label", "label_binary"]].to_csv(args.labels_out, index=False)
