@@ -43,6 +43,10 @@ slides/*/main_notes.pdf
 # Keep exported PDFs here
 !output/pdfs/*.pdf
 
+# Camera-ready packages & private submission assets
+output/soict2026_camera_ready/
+papers/soict2026/thu_chap_nhan.png
+
 # Data & large artifacts (keep local, do not commit)
 data/
 data_smoke/
