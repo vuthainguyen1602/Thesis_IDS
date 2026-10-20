@@ -216,7 +216,7 @@
         \item 8 thuật toán $+$ \key{Soft Voting}, \key{Hybrid Bagging}.
       \end{itemize}
       \vspace{0.4em}
-      \small \textbf{Chống thiên lệch}: cấu hình cố định trước; tập kiểm tra
+      \small \textbf{Chống thiên lệch}: cấu hình cố định trước, tập kiểm tra
       \bad{không tham gia} khâu lựa chọn nào.
     \end{column}
   \end{columns}
@@ -406,7 +406,7 @@
   phân phối t, nên Nadeau--Bengio là căn cứ chính.
   Nếu hội đồng hỏi ``sao dám nói tương đương'': đó chính là lý do có TOST ---
   hai kiểm định một phía với biên 0,001 F1 khai báo TRƯỚC, dùng sai số
-  Nadeau--Bengio, cho p = 3,9e-6; biên chặt nhất dữ liệu chứng minh được ở
+  Nadeau--Bengio, cho p = 3,9e-6. Biên chặt nhất dữ liệu chứng minh được ở
   alpha = 0,05 là 2,3e-4 F1. Kiểm định ý nghĩa chỉ bác bỏ ``không khác biệt'',
   còn TOST mới là bằng chứng khẳng định cho tương đương.}
 \end{frame}
@@ -475,7 +475,7 @@
       }
       \\[0.25em]
       \small
-      Trung bình 18 lượt chạy; tập đặc trưng chung đã loại rò rỉ.
+      Trung bình 18 lượt chạy, trên tập đặc trưng chung đã loại rò rỉ.
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{itemize}\small
@@ -484,7 +484,7 @@
         \item Recall 0,073 / 0,030: \key{không nhận ra} tấn công testbed kia
               (khác CICFlowMeter, cấu hình mạng, công cụ tấn công).
         \item 18 lượt, \key{hai chế độ rời nhau}: 11 lượt 0,029--0,085 và 7
-              lượt 0,185--0,301; AUC-PR lệch không đáng kể.
+              lượt 0,185--0,301, trong khi AUC-PR lệch không đáng kể.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -557,7 +557,7 @@
   \end{tabular}
   }
   \\[0.2em]{\scriptsize Mỗi lần gọi PySpark tốn $\approx$7\,giây dù lô 10 hay
-  1.000 luồng; ở lô 10.000 khoảng cách còn $\approx$27 lần
+  1.000 luồng. Ở lô 10.000, khoảng cách còn $\approx$27 lần
   $\rightarrow$ \hyperlink{bk-batch}{\key{Q14}}.}
   \takeaway{ONNX Runtime nhanh gấp \num{$\approx$7.200 lần} PySpark trên cùng mô
   hình. Nút thắt của mọi chế độ ở KQ6 là engine PySpark, không phải mô hình
@@ -595,14 +595,14 @@
       \href{run:../videos/LuanVan_demo.mp4}{\key{$\blacktriangleright$ Mở video pha B}}
     \end{column}
   \end{columns}
-  \takeaway{Lệnh và kết quả ghi từ \key{một lần chạy thật} (11/10/2026); số liệu khớp KQ1 và KQ6.}
+  \takeaway{Lệnh và kết quả ghi từ \key{một lần chạy thật} (11/10/2026). Số liệu khớp KQ1 và KQ6.}
   \note{Hai video dài khoảng 6 phút, vượt ngân sách 15 phút nếu chiếu hết. Nếu
   hội đồng cho phép, chiếu đủ cả hai (lời thuyết minh: demo/LoiThuyetMinh.md).
-  Nếu thiếu giờ: pha A chiếu 0:37--1:36 (gửi job đến kết quả); pha B chiếu
+  Nếu thiếu giờ: pha A chiếu 0:37--1:36 (gửi job đến kết quả), còn pha B chiếu
   0:58--1:44 (log trực tiếp) rồi tua đến 4:14--4:36 (thống kê cuối và kiểm
   chứng). Link mở video chỉ chạy khi trình chiếu file trong output/pdfs/
-  (video nằm ở output/videos/); nếu trình xem PDF chặn link, mở video bằng tay.
-  Recall 68,9\% của demo khớp 69,5\% ở KQ6; F1 0,9957 khớp mô hình triển khai.}
+  (video nằm ở output/videos/). Nếu trình xem PDF chặn link, mở video bằng tay.
+  Recall 68,9\% của demo khớp 69,5\% ở KQ6, còn F1 0,9957 của mô hình demo sát với 0,9959 của mô hình triển khai.}
 \end{frame}
 
 % =====================================================================
@@ -621,7 +621,7 @@
   \begin{block}{RQ3 --- Pipeline Spark có khả thi trên cụm thiết bị biên?}
     \good{Khả thi cho cảnh báo gần thời gian thực, với điều kiện tách hai tầng.}
     Thông lượng \num{2,5 $\rightarrow$ 22,4} luồng/giây (gấp 9), năng lượng
-    \num{3,04 $\rightarrow$ 0,60\,J} mỗi dự đoán; đổi lại recall tấn công
+    \num{3,04 $\rightarrow$ 0,60\,J} mỗi dự đoán. Đổi lại là recall tấn công
     69,5\% (F1 0,82, precision 100\%) và p95 $\approx$7\,giây.
   \end{block}
   \note{Slide quan trọng nhất với hội đồng. Trả lời thẳng, kể cả câu trả lời
@@ -671,7 +671,7 @@
         \item \textbf{Phân loại}: triển khai chính là nhị phân.
         \item \textbf{Dữ liệu}: CICIDS2017 không có lưu lượng IoT đặc thù.
         \item \textbf{Quy mô}: mới ở mức \emph{minh chứng khái niệm}, cụm 2 nút.
-        \item \textbf{Đối kháng}: chưa kiểm thử lưu lượng né tránh; GPU còn bỏ
+        \item \textbf{Đối kháng}: chưa kiểm thử lưu lượng né tránh, và GPU còn bỏ
               trống.
       \end{itemize}
     \end{column}
@@ -1064,7 +1064,7 @@
 
   \vspace{0.2em}
   \footnotesize MacBook \emph{chỉ} điều phối (master), không chạy executor, để
-  thời gian huấn luyện phản ánh đúng \key{cụm biên thuần Jetson}; đưa M3 vào
+  thời gian huấn luyện phản ánh đúng \key{cụm biên thuần Jetson}. Đưa M3 vào
   tính toán sẽ gây lệch tải (straggler).
   \note{Cùng cặp Jetson này ở pha huấn luyện là worker/executor của Spark, ở
   pha suy luận là cổng lọc và bộ phân loại. Jetson \#1 kiêm tiến trình driver
@@ -1084,8 +1084,8 @@
           mức cụm lấy \emph{thận trọng} theo nút tệ nhất.
     \item Độ trễ đầu cuối dựa trên đồng hồ đồng bộ NTP và \emph{không} bao gồm
           chi phí ghi cơ sở dữ liệu.
-    \item Năng lượng: \texttt{tegrastats}, 30\,giây không tải rồi đến cửa sổ tải;
-          chế độ hai nút cộng công suất cả hai bo mạch.
+    \item Năng lượng: \texttt{tegrastats}, 30\,giây không tải rồi đến cửa sổ tải.
+          Ở chế độ hai nút, công suất là tổng của cả hai bo mạch.
   \end{itemize}
 \end{frame}
 
@@ -1128,7 +1128,7 @@
   chính (Bảng ablation) là của Random Forest --- đúng nhưng chỉ đúng cho họ cây.
   Trên SVM và Logistic Regression, cùng một đặc trưng rò rỉ đó thổi F1 lên gấp
   khoảng 40 lần. Lý giải: cây dựng lại được biên quyết định từ thống kê hành vi
-  luồng nên không cần lối tắt cổng; mô hình tuyến tính thiếu năng lực đó.}
+  luồng nên không cần lối tắt cổng, còn mô hình tuyến tính thiếu năng lực đó.}
 \end{frame}
 
 \begin{frame}[label=bk-grafana]{Q11 --- Bất đối xứng tải lúc đỉnh tải (Grafana)}
@@ -1159,7 +1159,7 @@
   \\[0.2em]\footnotesize
   Cùng rừng 200 cây, cùng bo Jetson~\#2, lô từ 10 tới 10.000 luồng, dự đoán
   trùng nhau 100\%. Một lần gọi PySpark mất 7,1--7,4\,giây tới lô 1.000 và
-  9,5\,giây ở lô 10.000; ONNX bão hòa ở 26.000--28.600 luồng/giây từ lô 100 trở lên. Khoảng cách
+  9,5\,giây ở lô 10.000, còn ONNX bão hòa ở 26.000--28.600 luồng/giây từ lô 100 trở lên. Khoảng cách
   giảm từ $\approx$7.200 lần (lô 10) xuống $\approx$27 lần (lô 10.000).
   \note{Thông lượng của PySpark tăng gần đúng tỷ lệ với kích thước lô vì gần như
   toàn bộ 7 giây là chi phí cố định: JVM, lập kế hoạch, Py4J. Công suất hoạt
@@ -1176,12 +1176,12 @@
           tổng, còn bộ định danh loại chỉ huấn luyện trên \emph{luồng tấn công},
           huấn luyện lại ngoại tuyến mà không đụng hệ thống đang chạy; thêm
           \key{đặc trưng chuỗi thời gian theo host} cho beaconing C\&C.
-    \item \textbf{Kiểm chứng trên dữ liệu IoT chuyên biệt.} Bot-IoT, TON\_IoT,
-          CIC-IoT-2023; mở rộng thí nghiệm liên bộ dữ liệu lên toàn bộ
+    \item \textbf{Kiểm chứng trên dữ liệu IoT chuyên biệt.} Dùng Bot-IoT, TON\_IoT,
+          CIC-IoT-2023, và mở rộng thí nghiệm liên bộ dữ liệu lên toàn bộ
           CSE-CIC-IDS2018.
     \item \textbf{Tối ưu suy luận biên bằng ONNX/TensorRT.} Tích hợp phiên suy
           luận ONNX vào pipeline streaming, tăng tốc bằng TensorRT trên GPU
-          Jetson; đo độ trễ đầu cuối đầy đủ.
+          Jetson, rồi đo lại độ trễ đầu cuối.
     \item \textbf{Bền vững trước tấn công đối kháng.} Đặc biệt hai bề mặt tấn
           công mới do cổng lọc tạo ra: giả dạng lưu lượng bình thường để vượt cổng lọc,
           và cố ý tạo sai số tái tạo cao để dồn tải lên nút phân loại.
