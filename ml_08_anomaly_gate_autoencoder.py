@@ -72,8 +72,10 @@ def plot_operating_points(sweep_df: pd.DataFrame, results_dir: str) -> str:
         # Vector copy for the Springer camera-ready, drawn at the width the paper
         # includes it (0.7 of the LNCS text width) so lettering stays >= 6 pt.
         fig.set_size_inches(3.36, 1.75)
-        fig.tight_layout(pad=0.4)
-        plt.savefig(plot_path[:-4] + ".pdf")
+        fig.tight_layout(pad=0.4, w_pad=1.2)
+        # bbox "tight": at this size tight_layout alone left the recall axis label
+        # half outside the page.
+        plt.savefig(plot_path[:-4] + ".pdf", bbox_inches="tight", pad_inches=0.02)
         plt.close()
     return plot_path
 
