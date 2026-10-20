@@ -275,7 +275,7 @@ This paper does not compare Spark against Jetson Orin Nano Super as competing pl
 In the offline selection stage, we evaluate four feature configurations (baseline with all features, RF Importance Top-30, SHAP Top-30, and PCA with $k$=40) under a fixed 80/20 train--test split, using eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. The offline protocol is leakage-aware~\cite{arp2022dosdonts}: it removes information that would be unavailable at deployment time but that otherwise inflates test scores. Motivated by documented labeling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores obtained when these leaks are left in place. Offline metrics constrain which exported model is worth deploying. They are not directly comparable to edge throughput or latency.
 
 \begin{table}[htbp]
-  \caption{Offline choice of the feature set: test F1 of XGBoost and of the deployed Random Forest (RF)}
+  \caption{Offline choice of the feature set: test F1 of XGBoost and of Random Forest (RF), the deployed classifier}
   \label{tab:spark-edge-bridge}
   \centering
   \small
@@ -285,12 +285,12 @@ In the offline selection stage, we evaluate four feature configurations (baselin
     \midrule
     All features (baseline) & 77 & \textbf{0.9971} & 0.9949 & 2.32 & Reference \\
     \textbf{SHAP Top-30} & 30 & 0.9970 & \textbf{0.9955} & 2.37$^{\dagger}$ & Explainable, deployed \\
-    RF Top-30 & 30 & 0.9922 & 0.9879 & 2.52 & Embedded ranking \\
+    RF-importance Top-30 & 30 & 0.9922 & 0.9879 & 2.52 & Embedded ranking \\
     PCA $k$=40 & 40 & 0.9939 & 0.9837 & 3.82 & Unsupervised \\
     \bottomrule
   \end{tabular}
 
-  \tabnote{$^{\dagger}$Measured on a single-node retrain of the same configuration (test F1 0.9971 against 0.9970 in the original run): the distributed save on the training cluster kept only driver-side metadata for this model.}
+  \tabnote{The SHAP ranking comes from TreeExplainer on the 77-feature XGBoost model. $^{\dagger}$Measured on a single-node retrain of the same configuration (test F1 0.9971 against 0.9970 in the original run): the distributed save on the training cluster kept only driver-side metadata for this model.}
 \end{table}
 
 \subsection{Edge Phase (Jetson Orin Nano Super)}

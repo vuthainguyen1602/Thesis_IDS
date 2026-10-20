@@ -484,7 +484,7 @@ devices, and what it costs in detection. Eight minutes, five results.}
     \midrule
     All features (baseline) & 77 & \textbf{0.9971} & 0.9949 & 2.32 & Reference \\
     \textbf{SHAP Top-30} & 30 & 0.9970 & \textbf{0.9955} & 2.37$^{\dagger}$ & Explainable, deployed \\
-    RF Top-30     & 30 & 0.9922 & 0.9879 & 2.52 & Embedded ranking \\
+    RF-importance Top-30 & 30 & 0.9922 & 0.9879 & 2.52 & Embedded ranking \\
     PCA $k$=40    & 40 & 0.9939 & 0.9837 & 3.82 & Unsupervised \\
     \bottomrule
   \end{tabular}
@@ -494,7 +494,8 @@ devices, and what it costs in detection. Eight minutes, five results.}
   We deploy \key{SHAP Top-30 with Random Forest} (exported model: test F1
   0.9959, 30 features): a native Spark ML estimator, so the
   \texttt{PipelineModel} loads on ARM64 without the native libraries Spark's
-  XGBoost integration needs. The SHAP ranking is computed after
+  XGBoost integration needs. The SHAP ranking comes from the 77-feature
+  XGBoost model and is computed after
   \texttt{destination\_port} is removed.
   \\ $^{\dagger}$Measured on a single-node retrain (the cluster save kept only metadata).
 \end{frame}
