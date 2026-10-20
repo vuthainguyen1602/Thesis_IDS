@@ -109,11 +109,7 @@ def _is_arm64() -> bool:
     return platform.machine().lower() in ("aarch64", "arm64")
 
 
-# LightGBM (via SynapseML) was removed from the algorithm set: its native libs
-# are x86_64-only and do not run on the Jetson Orin Nano Super (ARM64) edge target, so a
-# LightGBM model could never be deployed in our pipeline. Keeping it would also
-# make x86 vs. ARM result sets inconsistent. HAS_LIGHTGBM stays defined as False
-# for backward compatibility with any guarded references.
+# LightGBM disabled: SynapseML lacks ARM64 support for edge deployment (Jetson Orin).
 HAS_LIGHTGBM = False
 
 try:

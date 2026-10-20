@@ -17,11 +17,6 @@ Máy chủ MacBook chỉ đảm nhận vai trò \textit{master} điều phối c
 
 \section{Kết quả thực nghiệm}
 
-% Ghi chú: các giá trị trong mục này đã được điền từ loạt chạy leakage-free 2026-07 trên cụm Jetson
-% cần điền lại sau khi chạy lại pipeline theo cấu hình đã loại trừ rò rỉ (đã loại
-% destination_port và loại bỏ trùng lặp ở mức đặc trưng — xem Chương ref{c:phuongphapthuchien}).
-% Các số liệu cũ (gần như tuyệt đối) thu được khi chưa loại rò rỉ và KHÔNG dùng làm kết quả công bố.
-% Giá trị điền vào lấy từ các bảng tổng hợp kết quả tương ứng.
 
 \vspace{1em}
 Bảng~\ref{tab:model_parameters} tóm tắt bộ tham số cố định của các mô hình. Bộ tham số này được chọn từ trước, dựa trên các nghiên cứu gần đây và thực nghiệm sơ bộ, và dùng chung cho Kịch bản 1 và 2. Nhờ vậy khác biệt quan sát được giữa các phương pháp giảm chiều phản ánh đúng bản thân phương pháp, thay vì mức độ tinh chỉnh riêng từng mô hình. Riêng Kịch bản 3 tinh chỉnh lại bốn mô hình (Random Forest, Decision Tree, \ac{gbt}, Logistic Regression) bằng Grid Search kết hợp kiểm định chéo. Trong các bảng kết quả của chương, giá trị in đậm là giá trị tốt nhất trong cột (với bảng chia nhóm dòng: tốt nhất trong từng nhóm), trừ khi chú thích bảng nêu khác.
@@ -151,7 +146,6 @@ MLP                    & 0{,}9900 & 0{,}9844 & 0{,}9487 & 0{,}9662 & 0{,}9984 & 
 \end{tabular*}
 \end{table}
 
-% (Ghi chú nội bộ: điền số liệu từ bảng tổng hợp baseline và bảng so sánh chéo phương pháp sau khi chạy pipeline loại trừ rò rỉ.)
 Nhóm mô hình dựa trên cây dẫn đầu: \ac{xgb} đạt F1 0{,}9971, Decision Tree 0{,}9954, Random Forest 0{,}9949 và \ac{gbt} 0{,}9932. MLP đứng sau với 0{,}9662. Hai mô hình tuyến tính thấp hơn hẳn (Logistic Regression 0{,}7991, \ac{svm} 0{,}7788): recall vẫn khoảng 0{,}94 nhưng precision chỉ 0{,}69 và 0{,}67, tức khoảng một phần ba cảnh báo là sai. \ac{nb} gần như gắn cờ mọi luồng (recall 0{,}9933, precision 0{,}1793) nên F1 chỉ 0{,}3038. Hai mô hình học tổ hợp (0{,}9967 và 0{,}9969) không vượt \ac{xgb} đơn lẻ.
 
 Các con số này thu được sau khi đã loại trừ rò rỉ dữ liệu, nên thấp hơn mức gần tuyệt đối của các cấu hình có rò rỉ và phản ánh đúng hơn độ khó của bài toán. Chênh lệch giữa các mô hình dẫn đầu rất nhỏ, vì vậy kết luận ``mô hình nào tốt nhất'' chỉ được đưa ra khi chênh lệch vượt khoảng tin cậy (Mục~\ref{sec:stat_validity}). Do dữ liệu mất cân bằng mạnh, AUC-\ac{pr} và recall trên lớp tấn công được ưu tiên hơn Accuracy khi diễn giải: một mô hình luôn đoán lớp benign vẫn đạt Accuracy cao.
@@ -259,8 +253,6 @@ Hình~\ref{fig:shap_summary} xếp hạng 30 đặc trưng quan trọng nhất t
 
 Bổ sung cho xếp hạng tổng thể, Hình~\ref{fig:shap_beeswarm} trình bày biểu đồ SHAP Summary dạng beeswarm: mỗi điểm đại diện cho một quan sát, trục hoành thể hiện giá trị SHAP (dương đẩy dự đoán về lớp tấn công, âm đẩy về lớp bình thường), còn màu sắc biểu diễn giá trị đặc trưng từ thấp đến cao. Độ phân tán theo trục hoành phản ánh mức độ ảnh hưởng của đặc trưng, độ tập trung thể hiện tính ổn định của tác động.
 
-% (Ghi chú nội bộ: hình và danh sách phải được tạo lại trên tập đặc trưng đã loại rò rỉ;
-% điền từ ml_06_feature_selection_shap/shap_feature_importance.csv.)
 Bên cạnh đó, giá trị trung bình tuyệt đối của SHAP (mean $|\text{SHAP}|$) được dùng để xếp hạng mức quan trọng tổng thể. Trên tập đặc trưng đã loại trừ rò rỉ, các đặc trưng có mean $|\text{SHAP}|$ lớn nhất là: \texttt{bwd\_packet\_length\_std}, \texttt{init\_win\_bytes\_backward}, \texttt{init\_win\_bytes\_forward} và \texttt{bwd\_packet\_length\_mean}.
 
 Các đặc trưng như \texttt{\path{init_win_bytes_forward}}, \texttt{\path{init_win_bytes_backward}} (kích thước cửa sổ TCP giai đoạn khởi tạo) và \texttt{\path{bwd_packet_length_std}}, \texttt{\path{packet_length_std}} (sự biến thiên độ dài gói tin) phản ánh đặc tính phân phối lưu lượng, tức các tín hiệu mạng có ý nghĩa và không phụ thuộc vào định danh dịch vụ. Việc loại \texttt{destination\_port} buộc mô hình dựa vào các đặc trưng hành vi này thay vì ghi nhớ ánh xạ cổng~$\rightarrow$~nhãn.
@@ -282,8 +274,6 @@ Loại \texttt{destination\_port} (đề xuất) & 0{,}9955 & 0{,}9961 & 0{,}999
 \end{tabular*}
 \end{table}
 
-% (Ghi chú nội bộ: chạy hai lượt — lượt rò rỉ IDS_KEEP_PORT_FEATURES=1 IDS_DEDUP_ON_FEATURES=0
-% và lượt đề xuất mặc định — rồi điền Delta F1 vào bảng.)
 Cả hai lượt dùng cùng một cấu hình Random Forest cố định từ trước (200 cây, độ sâu 15, trọng số lớp, khớp Bảng~\ref{tab:model_parameters}) để cô lập đúng ảnh hưởng của đặc trưng rò rỉ. Mức chênh lệch F1 giữa hai hàng phản ánh phần hiệu năng bị thổi phồng do đặc trưng rò rỉ. Ở đây mức chênh nhỏ vì đã loại trùng lặp trước và tác vụ nhị phân gần bão hòa, nhưng chiều hướng (giữ cổng cho F1/recall cao hơn) vẫn nhất quán với hiện tượng rò rỉ. Mọi kết quả khác trong luận văn dùng cấu hình đã loại cổng.
 
 \textbf{Ảnh hưởng của cổng đích thay đổi theo họ mô hình.} Con số $\approx$0{,}001 ở trên là đặc tính của họ cây chứ không phải của bộ dữ liệu. Khi lặp lại đúng hai lượt đó trên cùng một phép chia cho cả tám thuật toán (Bảng~\ref{tab:leakage_by_model}, Hình~\ref{fig:leakage_by_model}), mức thổi phồng trải trên gần hai bậc độ lớn: các mô hình cây chỉ được lợi $+0{,}0007$ đến $+0{,}0017$ điểm F1, trong khi \ac{svm} và Logistic Regression được lợi tới $+0{,}0415$ và $+0{,}0395$, tức gấp khoảng 40 lần. Thứ tự này bám theo năng lực biểu diễn của mô hình: các ensemble cây dựng lại được cùng một biên quyết định từ các thống kê hành vi của luồng nên gần như không cần đến cổng, còn mô hình tuyến tính không đủ năng lực làm vậy nên bám vào cổng như một chỉ báo định danh dịch vụ. Hệ quả về phương pháp luận: \emph{không thể suy ra mức rò rỉ của một lớp mô hình từ phép đo trên một mô hình đại diện khác}, và con số nhỏ báo cáo ở Bảng~\ref{tab:leakage_ablation} là con số trung thực cho cấu hình được triển khai, không phải bằng chứng rằng đặc trưng này vô hại nói chung.
@@ -716,9 +706,6 @@ Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguy
 
 Cả ba mô hình đều được huấn luyện trên một danh sách SHAP Top-30 và triển khai dưới dạng PySpark PipelineModel. Lưu ý về phạm vi: phép so sánh ba ứng viên (Bảng~\ref{tab:edge_training} và~\ref{tab:edge_benchmark}) được thực hiện ở giai đoạn đầu, với danh sách đặc trưng xếp hạng \emph{trước} khi áp dụng quy trình loại trừ rò rỉ (29 đặc trưng, chỉ trùng 15 với SHAP Top-30 hiện tại). Kết quả so sánh tương đối giữa ba mô hình vẫn là căn cứ chọn Random Forest, nhưng mô hình thực sự triển khai đã được huấn luyện lại trên SHAP Top-30 loại trừ rò rỉ (F1 0{,}9959), và mọi số đo hệ thống từ Mục~\ref{sec:engine-baseline-thesis} trở đi là của mô hình huấn luyện lại này.
 
-% LƯU Ý: Grafana chụp lại từ cụm Jetson; hai ảnh terminal dựng từ log chạy ngày 2026-10-20 (img/terminal_logs_20261020). Riêng 2 ảnh
-% cảnh báo email/Slack dùng lại ảnh giai đoạn thử nghiệm sớm — chính văn dưới cụm
-% hình đã ghi chú tường minh; mô-đun cảnh báo không đổi giữa hai giai đoạn.
 \begin{figure}[htbp]
     \centering
     \IfFileExists{img/pipeline_terminal_jetson1.png}{\includegraphics[width=0.72\textwidth]{img/pipeline_terminal_jetson1.png}}{\fbox{\parbox{0.85\textwidth}{\centering\vspace{1.2cm}\ph{Ảnh terminal node cổng lọc (jetson-nano-1)}\vspace{1.2cm}}}}\\[2pt]

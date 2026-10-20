@@ -4,23 +4,19 @@ from .core import *
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 
 
-# Column carrying per-row class weights (added to the training data by the
-# fit drivers). Every Spark classifier that supports `weightCol` reads it so
-# class imbalance is handled uniformly across models. Weights: attack rows =
-# scale_pos_weight (= benign/attack ratio), benign rows = 1.0, equivalent to
-# XGBoost's scheme.
+# Uniform class weighting: attack = scale_pos_weight (benign/attack ratio), benign = 1.0.
 CLASS_WEIGHT_COL = "classWeight"
+
+_extract_prob_udf = udf(lambda v: float(v[1]) if v is not None and len(v) > 1 else 0.0, DoubleType())
+_vector_prob_udf = udf(lambda p: Vectors.dense([1.0 - p, p]), VectorUDT())
+extract_prob_udf = _extract_prob_udf
+vector_prob_udf = _vector_prob_udf
 
 
 def add_class_weights(df, scale_pos_weight: float = None,
                       label_col: str = "label_binary",
                       weight_col: str = CLASS_WEIGHT_COL):
-    """Attach a class-weight column so weightCol-aware models are balanced.
-
-    If ``scale_pos_weight`` is None it is computed from the data as the
-    benign/attack ratio, so any fit site can simply call this once on its
-    training DataFrame before building a pipeline.
-    """
+    """Attach class-weight column (weightCol) based on benign/attack ratio."""
     if scale_pos_weight is None:
         counts = {r[label_col]: r["count"]
                   for r in df.groupBy(label_col).count().collect()}
@@ -61,9 +57,7 @@ def get_classifiers(
         regParam=0.001,
         elasticNetParam=0.0,
         family="binomial",
-        # Default decision threshold 0.5 — kept consistent with the other
-        # classifiers so the method comparison is not biased by a per-model,
-        # hand-picked operating point.
+        # Standard threshold 0.5 for unbiased comparison across classifiers
     )
 
     classifiers["SVM (LinearSVC)"] = LinearSVC(
@@ -126,8 +120,7 @@ def get_classifiers(
             xgb_params["scale_pos_weight"] = scale_pos_weight
         classifiers["XGBoost"] = SparkXGBClassifier(**xgb_params)
 
-    # LightGBM excluded: x86_64-only native libs cannot run on the ARM64
-    # Jetson Orin Nano Super edge target. XGBoost / GBT cover gradient boosting.
+    # LightGBM excluded (ARM64 edge target incompatibility)
 
     layers = [num_features, 64, 32, 2]
     classifiers["MLP"] = MultilayerPerceptronClassifier(
@@ -252,55 +245,34 @@ def get_model_size(model) -> float:
 
 
 def _get_param(model, param_name: str, default=None):
-    """
-    Robust parameter extraction from PySpark, XGBoost, or SynapseML models.
-    Tries multiple naming conventions and fallback mechanisms.
-    """
-    # 1. Try standard getter (e.g., getNumTrees)
-    getter = "get" + param_name[0].upper() + param_name[1:]
+    """Extract model hyperparameter by getter, paramMap, getOrDefault, or attribute."""
+    getter = f"get{param_name[:1].upper()}{param_name[1:]}"
     if hasattr(model, getter):
         try:
             val = getattr(model, getter)()
-            if val is not None: return val
+            if val is not None:
+                return val
         except Exception:
             pass
 
-    # 2. Try variations of the name (camelCase vs snake_case)
-    variations = [param_name]
-    if "_" in param_name:
-        parts = param_name.split("_")
-        variations.append(parts[0] + "".join(p.capitalize() for p in parts[1:]))
-    else:
-        import re
-        s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", param_name)
-        variations.append(re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower())
-
-    # Remove duplicates
-    variations = list(dict.fromkeys(variations))
-
-    # 3. Try extractParamMap
     try:
         pmap = {p.name: v for p, v in model.extractParamMap().items()}
-        for var in variations:
-            if var in pmap:
-                return pmap[var]
+        if param_name in pmap:
+            return pmap[param_name]
     except Exception:
         pass
 
-    # 4. Try getOrDefault with variations
-    for var in variations:
-        try:
-            val = model.getOrDefault(var)
-            if val is not None: return val
-        except Exception:
-            pass
+    try:
+        val = model.getOrDefault(param_name)
+        if val is not None:
+            return val
+    except Exception:
+        pass
 
-    # 5. Try direct attribute access
-    for var in variations:
-        if hasattr(model, var):
-            val = getattr(model, var)
-            if "pyspark.ml.param.Param" not in str(type(val)):
-                return val
+    if hasattr(model, param_name):
+        val = getattr(model, param_name)
+        if "pyspark.ml.param.Param" not in str(type(val)):
+            return val
 
     return default if default is not None else "N/A"
 
@@ -316,11 +288,7 @@ def train_and_evaluate(pipeline, train_df, test_df, title: str = "") -> tuple:
     model = pipeline.fit(train_df)
     training_time = time.time() - start
 
-    # NOTE: model.transform() is lazy — timing it directly measures plan
-    # construction (~0s), not inference. Cache the result and force a single
-    # action so (1) prediction_time reflects real inference latency and
-    # (2) compute_metrics' three passes reuse the cached output instead of
-    # re-running inference three times.
+    # Cache and force action so prediction_time captures real latency and compute_metrics reuses predictions
     predictions = model.transform(test_df).cache()
     start_pred = time.time()
     predictions.count()
@@ -350,41 +318,30 @@ class BaggingModel:
     def transform(self, df):
         df_with_id = df.withColumn("_row_id", monotonically_increasing_id()).cache()
         df_with_id.count()
-        
-        extract_prob_udf = udf(lambda v: float(v[1]) if v is not None and len(v) > 1 else 0.0, DoubleType())
-        vector_prob_udf = udf(lambda p: Vectors.dense([1.0 - p, p]), VectorUDT())
-        
         combined_result = df_with_id.select("_row_id", "label_binary")
         
         for i, model in enumerate(self.models):
             preds = model.transform(df_with_id)
-            preds = preds.withColumn(f"prob_{i}", extract_prob_udf(col("probability")))
+            preds = preds.withColumn(f"prob_{i}", _extract_prob_udf(col("probability")))
             combined_result = combined_result.join(preds.select("_row_id", f"prob_{i}"), on="_row_id")
             
             if (i + 1) % 5 == 0:
                 combined_result = combined_result.localCheckpoint()
 
-        weighted_probs = []
-        for i in range(len(self.models)):
-            weighted_probs.append(col(f"prob_{i}") * self.weights[i])
-        
+        weighted_probs = [col(f"prob_{i}") * self.weights[i] for i in range(len(self.models))]
         avg_prob_expr = sum(weighted_probs)
         
         final_res = combined_result.withColumn("avg_probability", avg_prob_expr)
         final_res = final_res.withColumn("rawPrediction", col("avg_probability"))
-        final_res = final_res.withColumn("probability", vector_prob_udf(col("avg_probability")))
-        
+        final_res = final_res.withColumn("probability", _vector_prob_udf(col("avg_probability")))
         final_res = final_res.withColumn(
             "prediction", 
             when(col("avg_probability") >= 0.5, 1.0).otherwise(0.0)
         )
-        
         return final_res
 
     def save(self, path: str) -> None:
-        """Serialise every bootstrap sub-model so the ensemble can be measured
-        (get_model_size) and reloaded the same way as a single PipelineModel.
-        Real on-disk size = sum of all sub-models, consistent with Ensemble Voting."""
+        """Serialize all bootstrap sub-models for model size measurement and reloading."""
         import json
         os.makedirs(path, exist_ok=True)
         for i, m in enumerate(self.models):
@@ -454,6 +411,61 @@ def train_hybrid_bagging(
     return BaggingModel(models)
 
 
+def _train_top3_bagging(
+    classifiers, base_stages, results, train_df, test_df, val_df=None, seed: int = 42
+):
+    base_results = {name: metrics for name, metrics in results.items() 
+                    if "Bagging" not in name and "Ensemble" not in name}
+    if len(base_results) < 3:
+        print("  [WARN] Need at least 3 base models for Hybrid Bagging.")
+        return None, None, None
+
+    # Rank by validation F1 (if available) to prevent test-set leakage
+    rank_key = "val_f1" if val_df is not None else "f1"
+    sorted_names = sorted(base_results.keys(),
+                          key=lambda x: base_results[x].get(rank_key, 0), reverse=True)
+    top_3 = sorted_names[:3]
+    top_3_f1 = [base_results[name].get(rank_key, 0) for name in top_3]
+    print(f"  Top-3 models (ranked by {'validation' if val_df is not None else 'test'} F1): {', '.join(top_3)}")
+
+    counts = [3, 2, 2]
+    pipeline_dist = []
+    total_weights = []
+    for i, name in enumerate(top_3):
+        clf = classifiers[name]
+        pipeline = Pipeline(stages=base_stages + [clf])
+        pipeline_dist.append((pipeline, counts[i]))
+        for _ in range(counts[i]):
+            total_weights.append(top_3_f1[i])
+
+    start_time = time.time()
+    ensemble_model = train_hybrid_bagging(
+        pipeline_dist, train_df, balanced=False, feature_subset_rate=1.0, seed_base=seed
+    )
+    ensemble_model.weights = [w / sum(total_weights) for w in total_weights]
+    training_time = time.time() - start_time
+
+    start_pred = time.time()
+    ens_preds = ensemble_model.transform(test_df).cache()
+    ens_preds.count()
+    prediction_time = time.time() - start_pred
+
+    metrics = compute_metrics(ens_preds)
+    metrics["training_time"] = training_time
+    metrics["prediction_time"] = prediction_time
+
+    # Measure serialized size of all sub-models (or fallback to sum of base models)
+    real_size = get_model_size(ensemble_model)
+    metrics["model_size_mb"] = real_size if real_size and real_size > 0 else sum(
+        results[name].get("model_size_mb", 0.5) * count
+        for name, count in zip(top_3, counts))
+
+    display_name = "Hybrid Bagging Ensemble (Top-3 Mixed + Weighted)"
+    print_metrics(metrics, title=display_name)
+    ens_preds.unpersist()
+    return display_name, ensemble_model, metrics
+
+
 def run_all_classifiers(
     assembler,
     scaler,
@@ -466,25 +478,15 @@ def run_all_classifiers(
     seed: int = 42,
     val_df=None,
 ) -> tuple:
-    """Train the base classifiers and the Hybrid Bagging ensemble.
-
-    When ``val_df`` is provided (a holdout disjoint from both the training data
-    and ``test_df``), the Top-3 ensemble members are selected by F1 on
-    ``val_df`` — NOT on ``test_df`` — so the test set never participates in
-    model selection. Without it the function falls back to test-F1 ranking.
-    """
-    class_counts = (
-        train_df.groupBy(label_col).count().collect()
-    )
+    """Train base classifiers and Top-3 Hybrid Bagging ensemble."""
+    class_counts = train_df.groupBy(label_col).count().collect()
     count_map = {row[label_col]: row["count"] for row in class_counts}
     benign_count = count_map.get(0, 0)
     attack_count = count_map.get(1, 0)
     scale_pos_weight = float(benign_count) / float(attack_count) if attack_count > 0 else 1.0
     print(f"  Class ratio (Benign/Attack): {scale_pos_weight:.4f}")
 
-    # Attach the class-weight column so weightCol-aware models are balanced
-    # uniformly (DT/LR/RF/GBT/SVM/NB); XGBoost uses scale_pos_weight; MLP is
-    # unweighted (no weightCol support). Reused by the bagging sampler below.
+    # Add class weights for weightCol-supported classifiers and bagging sampler
     train_df = add_class_weights(train_df, scale_pos_weight, label_col)
 
     classifiers = get_classifiers(
@@ -510,8 +512,7 @@ def run_all_classifiers(
             )
             results[name] = metrics
             trained_models[name] = model
-            # Validation F1 (holdout disjoint from train & test) used ONLY to
-            # rank ensemble members, avoiding test-set leakage in selection.
+            # Validation F1 used for ensemble selection to prevent test leakage
             if val_df is not None:
                 try:
                     v_preds = model.transform(val_df)
@@ -530,71 +531,13 @@ def run_all_classifiers(
     print(f"\n\n{'=' * 60}")
     print("  TRAINING HYBRID TOP-3 BAGGING ENSEMBLE (3-2-2 WEIGHTED)")
     print("=" * 60)
-    
-    base_results = {name: metrics for name, metrics in results.items() 
-                    if "Bagging" not in name and "Ensemble" not in name}
-    
-    if len(base_results) < 3:
-        print("  [WARN] Need at least 3 base models for Hybrid Bagging.")
-        return results, trained_models
-
-    # Rank by validation F1 when available (selection must not see the test set);
-    # the weights below reuse the same ranking metric for the same reason.
-    rank_key = "val_f1" if val_df is not None else "f1"
-    sorted_names = sorted(base_results.keys(),
-                          key=lambda x: base_results[x].get(rank_key, 0), reverse=True)
-    top_3 = sorted_names[:3]
-    top_3_f1 = [base_results[name].get(rank_key, 0) for name in top_3]
-    print(f"  Top-3 models (ranked by {'validation' if val_df is not None else 'test'} F1): "
-          f"{', '.join(top_3)}")
-    
     try:
-        counts = [3, 2, 2]
-        pipeline_dist = []
-        total_weights = []
-        
-        for i, name in enumerate(top_3):
-            clf = classifiers[name]
-            pipeline = Pipeline(stages=base_stages + [clf])
-            pipeline_dist.append((pipeline, counts[i]))
-            
-            for _ in range(counts[i]):
-                total_weights.append(top_3_f1[i])
-        
-        start_time = time.time()
-        ensemble_model = train_hybrid_bagging(
-            pipeline_dist, train_df, balanced=False, feature_subset_rate=1.0, seed_base=seed
+        ens_name, ensemble_model, ens_metrics = _train_top3_bagging(
+            classifiers, base_stages, results, train_df, test_df, val_df=val_df, seed=seed
         )
-        ensemble_model.weights = [w / sum(total_weights) for w in total_weights]
-        
-        training_time = time.time() - start_time
-        
-        start_pred = time.time()
-        ens_preds = ensemble_model.transform(test_df)
-        prediction_time = time.time() - start_pred
-        
-        ens_preds.cache().count()
-        
-        metrics = compute_metrics(ens_preds)
-        metrics["training_time"] = training_time
-        metrics["prediction_time"] = prediction_time
-        
-        # Measure the real serialised size (all 7 sub-models on disk) — the same
-        # way Ensemble Voting is measured — so the two ensembles are comparable.
-        # Fall back to the base-size estimate only if serialisation fails.
-        real_size = get_model_size(ensemble_model)
-        metrics["model_size_mb"] = real_size if real_size and real_size > 0 else sum(
-            results[name].get("model_size_mb", 0.5) * count
-            for name, count in zip(top_3, counts))
-        
-        display_name = "Hybrid Bagging Ensemble (Top-3 Mixed + Weighted)"
-        print_metrics(metrics, title=display_name)
-        
-        results[display_name] = metrics
-        trained_models[display_name] = ensemble_model
-        
-        ens_preds.unpersist()
-        
+        if ens_name:
+            results[ens_name] = ens_metrics
+            trained_models[ens_name] = ensemble_model
     except Exception as e:
         print(f"  [ERROR] Training Hybrid Bagging: {str(e)}")
 
@@ -613,9 +556,7 @@ def ensemble_voting(
         if results is not None:
             base_results = {name: metrics for name, metrics in results.items()
                             if "Bagging" not in name and "Ensemble" not in name and "Voting" not in name}
-            # Prefer validation F1 (set by run_all_classifiers) so the voting
-            # members are selected without ever looking at the test set; fall
-            # back to test F1 only if no validation ranking is available.
+            # Rank candidates by validation F1 if available, fallback to test F1
             uses_val = any("val_f1" in m for m in base_results.values())
             rank_key = "val_f1" if uses_val else "f1"
             sorted_names = sorted(base_results.keys(),
@@ -641,19 +582,11 @@ def ensemble_voting(
     print(f"{'─' * 60}")
 
     start = time.time()
-
-    # monotonically_increasing_id() is only stable for a *materialised*
-    # DataFrame. Without caching, every model.transform(test_with_id) below
-    # re-evaluates this expression and may assign different ids on each side of
-    # the joins, silently misaligning rows and corrupting the ensemble metrics.
-    # Cache + force an action so the ids are fixed once (same pattern as
-    # BaggingModel.transform).
+    # Cache with _row_id to prevent non-deterministic re-evaluation across joins
     test_with_id = test_df.withColumn("_row_id", monotonically_increasing_id()).cache()
     test_with_id.count()
 
     combined = None
-    extract_prob_udf = udf(lambda v: float(v[1]) if v is not None and len(v) > 1 else 0.0, DoubleType())
-
     for i, name in enumerate(base_model_names):
         model = trained_models[name]
         preds = model.transform(test_with_id)
@@ -661,7 +594,7 @@ def ensemble_voting(
         if "probability" in preds.columns:
             preds = preds.select(
                 "_row_id", label_col,
-                extract_prob_udf(col("probability")).alias(f"prob_{i}")
+                _extract_prob_udf(col("probability")).alias(f"prob_{i}")
             )
         else:
             preds = preds.select(
@@ -669,40 +602,28 @@ def ensemble_voting(
                 col("prediction").alias(f"prob_{i}").cast(DoubleType())
             )
             
-        if combined is None:
-            combined = preds
-        else:
-            combined = combined.join(
-                preds.select("_row_id", f"prob_{i}"), on="_row_id"
-            )
+        combined = preds if combined is None else combined.join(
+            preds.select("_row_id", f"prob_{i}"), on="_row_id"
+        )
 
     n = len(base_model_names)
     avg_prob_expr = sum([col(f"prob_{i}") for i in range(n)]) / float(n)
     
-    vector_prob_udf = udf(lambda p: Vectors.dense([1.0 - p, p]), VectorUDT())
-    
     combined = combined.withColumn("avg_probability", avg_prob_expr)
     combined = combined.withColumn("rawPrediction", col("avg_probability"))
-    combined = combined.withColumn("probability", vector_prob_udf(col("avg_probability")))
-    
+    combined = combined.withColumn("probability", _vector_prob_udf(col("avg_probability")))
     combined = combined.withColumn(
         "prediction",
         when(col("avg_probability") >= 0.5, 1.0).otherwise(0.0)
     )
 
-    # Force a single action so prediction_time reflects real inference (the
-    # transforms/joins above are lazy) and compute_metrics' three passes reuse
-    # the cached result instead of re-running every base model three times.
+    # Materialize once for accurate latency timing and multi-pass metric caching
     combined = combined.cache()
     combined.count()
     prediction_time = time.time() - start
 
     metrics = compute_metrics(combined, label_col=label_col)
-
-    total_size = 0.0
-    for name in base_model_names:
-        m_size = get_model_size(trained_models[name])
-        total_size += m_size
+    total_size = sum(get_model_size(trained_models[name]) for name in base_model_names)
 
     metrics["training_time"] = 0.0
     metrics["prediction_time"] = prediction_time
@@ -736,11 +657,7 @@ def print_summary_table(results: dict, title: str = "") -> None:
 
 
 def _t_critical_95(n: int) -> float:
-    """Two-sided 95% t critical value for a sample of size ``n`` (df = n-1).
-
-    Uses SciPy when available; otherwise a small lookup table. Falls back to the
-    normal 1.96 only for large samples where the difference is negligible.
-    """
+    """Two-sided 95% t-critical value (df = n - 1) via SciPy or lookup table."""
     if n <= 1:
         return 0.0
     df = n - 1
@@ -760,14 +677,7 @@ def _t_critical_95(n: int) -> float:
 
 def summarize_metric_runs(run_metrics: list, metric_keys: list = None,
                           nb_test_train_ratio: float = None) -> dict:
-    """Mean/std/CI over repeated runs.
-
-    ``nb_test_train_ratio`` (rho = n_test / n_train, e.g. 0.25 for an 80/20
-    split) enables the Nadeau–Bengio (2003) variance correction for repeated
-    resampling with overlapping train sets: Var_NB = s^2 * (1/N + rho). The
-    naive t-CI (also reported) assumes independent runs and is optimistically
-    narrow under resampling — publish the NB interval when resamples overlap.
-    """
+    """Compute mean, std, 95% t-CI, and optional Nadeau-Bengio corrected CI across runs."""
     if metric_keys is None:
         metric_keys = ["accuracy", "precision", "recall", "f1", "auc_roc", "auc_pr"]
 
@@ -783,9 +693,7 @@ def summarize_metric_runs(run_metrics: list, metric_keys: list = None,
         n = len(arr)
         mean_val = float(np.mean(arr))
         std_val = float(np.std(arr, ddof=1)) if n > 1 else 0.0
-        # Small-sample CI must use the t-distribution, not the 1.96 normal
-        # approximation: with n=3 the correct factor is t(0.975, df=2)=4.303,
-        # so 1.96 understates the interval ~2x and overstates significance.
+        # Exact t-distribution critical value for small sample sizes
         t_crit = _t_critical_95(n)
         ci95_half = float(t_crit * std_val / np.sqrt(n)) if n > 1 else 0.0
         summary[f"{key}_mean"] = mean_val
@@ -802,11 +710,7 @@ def summarize_metric_runs(run_metrics: list, metric_keys: list = None,
 
 
 def paired_cohens_d(scores_a: list, scores_b: list) -> float:
-    """Cohen's d for paired samples: mean(diff) / std(diff, ddof=1).
-
-    With small N a p-value near its floor says little on its own; the paper's
-    statistical track reports this effect size alongside the CI and p-value.
-    """
+    """Cohen's d effect size for paired samples: mean(diff) / std(diff, ddof=1)."""
     if len(scores_a) != len(scores_b) or len(scores_a) < 2:
         return 0.0
     diffs = np.array(scores_a, dtype=float) - np.array(scores_b, dtype=float)
@@ -818,25 +722,9 @@ def paired_cohens_d(scores_a: list, scores_b: list) -> float:
 
 def tost_equivalence(scores_a: list, scores_b: list, margin: float = 0.001,
                      nb_test_train_ratio: float = None, alpha: float = 0.05) -> dict:
-    """Two one-sided tests (TOST) for *practical equivalence* of paired scores.
-
-    A non-significant NHST p-value never establishes equivalence — it only fails
-    to establish a difference. TOST turns the question around: it rejects
-    "the true difference is at least ``margin``" from both sides, so a small
-    p-value is positive evidence that the two configurations are interchangeable
-    within that margin. This is the right test when the point of the comparison
-    is that a cheaper configuration loses nothing that matters.
-
-    ``margin`` is the largest F1 difference still considered operationally
-    irrelevant; it is a decision, not an estimate, so it is stated up front.
-    With ``nb_test_train_ratio`` the standard error carries the Nadeau-Bengio
-    correction for overlapping resamples (same factor as the CI in
-    :func:`summarize_metric_runs`), which makes the test more conservative.
-
-    Returns mean_diff, se, p_tost (max of the two one-sided p-values),
-    equivalent (p_tost < alpha) and min_margin — the tightest margin this data
-    could have established at ``alpha``, i.e. the one-sided upper bound on
-    |mean_diff|.
+    """Two One-Sided Tests (TOST) for practical equivalence within margin.
+    
+    Supports Nadeau-Bengio SE correction for overlapping resamples.
     """
     out = {"margin": float(margin), "mean_diff": 0.0, "se": 0.0,
            "p_tost": None, "equivalent": False, "min_margin": None}
@@ -870,14 +758,7 @@ def tost_equivalence(scores_a: list, scores_b: list, margin: float = 0.001,
 
 
 def permutation_pvalue(scores_a: list, scores_b: list, n_permutations: int = 2000, seed: int = 42) -> float:
-    """Two-sided paired sign-permutation p-value.
-
-    For small N (2^N <= max(n_permutations, 4096)) the full sign-flip
-    distribution is ENUMERATED EXACTLY — with N=6 there are only 64 patterns,
-    so Monte Carlo sampling with replacement would just add estimator noise
-    around the exact floor 2/2^N. Monte Carlo (with the add-one correction) is
-    used only when exhaustive enumeration is too large.
-    """
+    """Two-sided paired sign-permutation p-value (exact enumeration for small N, Monte Carlo otherwise)."""
     if len(scores_a) != len(scores_b) or len(scores_a) < 2:
         return 1.0
 
@@ -888,8 +769,7 @@ def permutation_pvalue(scores_a: list, scores_b: list, n_permutations: int = 200
     n = len(diffs)
 
     if 2 ** n <= max(n_permutations, 4096):
-        # Exact enumeration of all 2^n sign patterns (includes the identity, so
-        # p >= 1/2^n by construction; no add-one correction needed).
+        # Exact enumeration of all 2^n sign patterns
         extreme = 0
         total = 2 ** n
         for mask in range(total):
