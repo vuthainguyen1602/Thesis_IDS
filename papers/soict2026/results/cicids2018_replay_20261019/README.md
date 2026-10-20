@@ -29,7 +29,8 @@ sustained rate (8 flows/s, 1,250 s; `fullreplay.csv`).
 Offline check on the same 10,000 flows (gate scorer + `ids_rf.onnx`, which agrees
 with the PySpark forest on every prediction) gives the same gate+classifier
 counts on both datasets; the classifier alone, without the gate, catches 23 of
-1,276 2018 attacks (recall 1.8%, 17 FP).
+1,276 2018 attacks (recall 1.8%, 17 FP) and 1,515 of 1,518 2017 attacks (99.8%, 8 FP);
+`classifier_alone.csv`, written by `../../provenance.py`.
 
 Per 2018 attack class, the gate forwards: Bot 95%, LOIC-HTTP 53%, HOIC 57%,
 Infilteration 33%, Hulk 1%, SSH-Bruteforce 0%, GoldenEye 5%.

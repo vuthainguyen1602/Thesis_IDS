@@ -13,7 +13,8 @@ holds the new measurements; the old files are left untouched.
    The retrained Random Forest (200 trees, depth 15, full training set) has test
    F1 **0.9959** (the companion study reports 0.9955).
 2. **Gate features.** The autoencoder gate scored the classifier's feature list.
-   On the new SHAP Top-30 it forwarded only 44.8% of attack flows at the
+   On the new SHAP Top-30 it forwarded only 44.8% of attack flows (re-run in
+   `../gate_features_20261021/`) at the
    pre-committed threshold (benign-validation quantile 0.995); on all 77
    leak-free features it forwards **68.1%** (FPR 0.49%, skip 89.4%). The gate now
    has its own list, `model/anomaly_feature_columns.json`.

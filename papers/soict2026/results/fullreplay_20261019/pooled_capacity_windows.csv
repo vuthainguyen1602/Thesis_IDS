@@ -1,0 +1,6 @@
+mode,runs,verdicts,attack,tp,fn,fp,recall_pct,f1,distinct_rows
+A: capacity windows,15,19543,2990,2092,898,0,70.0,0.823,3601
+"A1: split, one board",8,5858,882,604,278,0,68.5,0.813,1351
+C: Spark cluster,4,2499,381,266,115,0,69.8,0.822,829
+Single node + gate,10,1480,200,145,55,0,72.5,0.841,219
+"Gate off (single, B)",16,1855,242,242,0,0,100.0,1.0,262

@@ -67,7 +67,7 @@ application, Postgres) and a Playwright container, together about 50% CPU
 and 5 GB RSS. k3s was stopped (`k3s-killall.sh`) for the measurements and
 started again afterwards (`boards_before.txt`: 677 MB used, load 1.2 before
 the first mode). Both boards in 25 W mode; Wi-Fi link 175-390 Mb/s;
-Mac → board ping 4-9 ms average, board → board 6.3 ms average
+Mac → board ping 3.6-9.5 ms average per snapshot, median 4.9 ms over the PySpark runs (`ping_rtt.csv`, from every clock snapshot), board → board 6.3 ms average
 (`rtt_j1_to_j2.txt`). onnxruntime 1.23.2 was installed into Jetson #1's
 venv for the horizontal ONNX modes (Jetson #2 already had it).
 

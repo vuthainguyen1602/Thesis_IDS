@@ -20,7 +20,7 @@ pipeline split (gate on Jetson #1, PySpark classifier on Jetson #2).
 attack has route `anomaly_gate_only`; the classifier made no error on the
 flows it received.
 
-Pooled over every capacity-window repeat (Table 5 of the manuscript):
+Pooled over every capacity-window repeat (Table 5 of the manuscript; `pooled_capacity_windows.csv`, written by `../../provenance.py`, also counts the distinct replay rows):
 split 19,543 verdicts / 2,990 attack / FN 898 (gate) / FP 0, recall 70.0%;
 split_1board (`../journal_20261012/runs`) 5,858 / 882 / 278 / 0, 68.5%;
 spark_cluster 2,499 / 381 / 115 / 0, 69.8%; single_gate 1,480 / 200 / 55 / 0, 72.5%;

@@ -1,0 +1,3 @@
+replay,flows,attack,tp,fn,fp,tn,recall_pct
+cicids2017,10000,1518,1515,3,8,8474,99.8
+cicids2018,10000,1276,23,1253,17,8707,1.8
