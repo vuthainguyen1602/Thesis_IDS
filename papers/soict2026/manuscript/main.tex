@@ -275,7 +275,7 @@ This paper does not compare Spark against Jetson Orin Nano Super as competing pl
 In the offline selection stage, we evaluate four feature configurations (baseline with all features, RF Importance Top-30, SHAP Top-30, and PCA with $k$=40) under a fixed 80/20 train--test split, using eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. The offline protocol is leakage-aware~\cite{arp2022dosdonts}: it removes information that would be unavailable at deployment time but that otherwise inflates test scores. Motivated by documented labeling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores obtained when these leaks are left in place. Offline metrics constrain which exported model is worth deploying. They are not directly comparable to edge throughput or latency.
 
 \begin{table}[htbp]
-  \caption{Bridge table: offline selection of the feature set, scored with XGBoost (the deployed classifier is a Random Forest on SHAP Top-30)}
+  \caption{Offline choice of the feature set, scored with XGBoost}
   \label{tab:spark-edge-bridge}
   \centering
   \small
