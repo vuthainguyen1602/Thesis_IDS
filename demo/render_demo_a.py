@@ -94,9 +94,9 @@ def main():
         ib = next((i for i, e in enumerate(ev) if e["kind"] == "step" and e["text"] == b), len(ev))
         return [e for e in ev[ia + 1:ib] if e["kind"] in ("cmd", "out")]
 
-    panes = {"host": rd.Pane("host", "thainguyenvu@MacBook ~/Thesis_IDS % "),
-             "j1": rd.Pane("j1", "thainguyenvu@MacBook ~ % "),
-             "j2": rd.Pane("j2", "thainguyenvu@MacBook ~ % ")}
+    panes = {"host": rd.Pane("host", "bvdung@MacBook ~/Thesis_IDS % "),
+             "j1": rd.Pane("j1", "bvdung@MacBook ~ % "),
+             "j2": rd.Pane("j2", "bvdung@MacBook ~ % ")}
     full = {"host": (40, 110, rd.W - 40, rd.H - 30)}
     two = {"j1": (40, 110, rd.W / 2 - 10, rd.H - 30), "j2": (rd.W / 2 + 10, 110, rd.W - 40, rd.H - 30)}
     r = rd.Renderer(out)
