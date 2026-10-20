@@ -123,7 +123,7 @@ Các cảnh ngắn (dưới 10 giây) có ít thời gian để nói. Nếu cầ
 
 ### 1:44–4:14 · Kết quả trên Grafana
 
-**Trên màn hình:** dashboard Grafana. Cảnh này dài khoảng 2,5 phút nên có thể nói thong thả.
+**Trên màn hình:** dashboard Grafana. Cảnh này dài khoảng 2,5 phút nên có thể nói thong thả. Trên mọi biểu đồ, đường xanh dương là Jetson #1 (cổng lọc), đường cam là Jetson #2 (bộ phân loại).
 
 **Chỉ vào (theo thứ tự):**
 
