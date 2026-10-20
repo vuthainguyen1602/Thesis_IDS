@@ -201,7 +201,7 @@ Random Forest & 0{,}9879 & 0{,}9837 & 0{,}9955 & +0{,}77 \\
 \ac{gbt} & 0{,}9844 & 0{,}9797 & 0{,}9918 & +0{,}75 \\
 Decision Tree & 0{,}9835 & 0{,}9834 & 0{,}9948 & +1{,}15 \\ \bottomrule
 \end{tabular*}
-\tabnote{Giá trị là F1 trên tập kiểm tra. Cột chênh lệch là mức chênh tương đối của \ac{shap}-\ac{xgb} so với \ac{rf} Importance. Cột \ac{shap}-\ac{rf} đo trong một lần chạy riêng với cùng giao thức; trong lần chạy đó, danh sách \ac{shap}-\ac{xgb} được chạy lại và lệch không quá 0{,}0002 so với cột \ac{shap}-\ac{xgb}.}
+\tabnote{Giá trị là F1 trên tập kiểm tra. Cột chênh lệch là mức chênh tương đối của \ac{shap}-\ac{xgb} so với \ac{rf} Importance. Cột \ac{shap}-\ac{rf} đo trong một lần chạy riêng với cùng giao thức. Trong lần chạy đó, danh sách \ac{shap}-\ac{xgb} được chạy lại và lệch không quá 0{,}0002 so với cột \ac{shap}-\ac{xgb}.}
 \end{table}
 
 Danh sách \ac{shap} Top-30 ở trên được xếp hạng bằng \ac{xgb}, trong khi mô hình triển khai ở biên là Random Forest. Để kiểm tra xem tính \ac{shap} trực tiếp trên Random Forest có cho danh sách tốt hơn cho chính mô hình này hay không, luận văn tính thêm giá trị \ac{shap} (TreeExplainer) trên Random Forest huấn luyện với đủ 77 đặc trưng, dùng cùng mẫu 2.000 luồng phân tầng và cùng giao thức đánh giá. Cột \ac{shap}-\ac{rf} của Bảng~\ref{tab:rf_vs_shap} cho thấy danh sách này kém danh sách \ac{shap}-\ac{xgb} ở cả bốn mô hình, kể cả với Random Forest (0{,}9837 so với 0{,}9955), và chỉ ngang mức \ac{rf} Importance. Danh sách \ac{shap}-\ac{rf} trùng 25/30 đặc trưng với \ac{rf} Importance nhưng chỉ 19/30 với \ac{shap}-\ac{xgb}, nghĩa là mô hình dùng để xếp hạng quyết định danh sách nhiều hơn cách đo.
@@ -234,7 +234,7 @@ MLP$^{\ddagger}$ & 0{,}9900 & 0{,}9844 & 0{,}9487 & 0{,}9662 & 0{,}9984 & 0{,}99
 \textbf{Soft Voting}  & 0{,}9988 & \textbf{0{,}9985} & 0{,}9932 & 0{,}9958 & \textbf{1{,}0000} & 0{,}9998 \\
 \bottomrule
 \end{tabular*}
-\tabnote{$^{\ddagger}$Giữ bộ tham số cố định (Bảng~\ref{tab:model_parameters}), không tinh chỉnh; số liệu là của Kịch bản 1 (Bảng~\ref{tab:exp0_ml_metrics}) ghi lại để tiện so sánh trong cùng bảng.}
+\tabnote{$^{\ddagger}$Giữ bộ tham số cố định (Bảng~\ref{tab:model_parameters}), không tinh chỉnh. Số liệu là của Kịch bản 1 (Bảng~\ref{tab:exp0_ml_metrics}) ghi lại để tiện so sánh trong cùng bảng.}
 \end{table}
 
 \subsection{Phân tích khả năng giải thích với \ac{shap}}
@@ -257,7 +257,7 @@ Hình~\ref{fig:shap_summary} xếp hạng 30 đặc trưng quan trọng nhất t
     \label{fig:shap_beeswarm}
 \end{figure}
 
-Bổ sung cho xếp hạng tổng thể, Hình~\ref{fig:shap_beeswarm} trình bày biểu đồ SHAP Summary dạng beeswarm: mỗi điểm đại diện cho một quan sát; trục hoành thể hiện giá trị SHAP (dương đẩy dự đoán về lớp tấn công, âm đẩy về lớp bình thường); màu sắc biểu diễn giá trị đặc trưng từ thấp đến cao. Độ phân tán theo trục hoành phản ánh mức độ ảnh hưởng của đặc trưng, độ tập trung thể hiện tính ổn định của tác động.
+Bổ sung cho xếp hạng tổng thể, Hình~\ref{fig:shap_beeswarm} trình bày biểu đồ SHAP Summary dạng beeswarm: mỗi điểm đại diện cho một quan sát, trục hoành thể hiện giá trị SHAP (dương đẩy dự đoán về lớp tấn công, âm đẩy về lớp bình thường), còn màu sắc biểu diễn giá trị đặc trưng từ thấp đến cao. Độ phân tán theo trục hoành phản ánh mức độ ảnh hưởng của đặc trưng, độ tập trung thể hiện tính ổn định của tác động.
 
 % (Ghi chú nội bộ: hình và danh sách phải được tạo lại trên tập đặc trưng đã loại rò rỉ;
 % điền từ ml_06_feature_selection_shap/shap_feature_importance.csv.)
@@ -891,7 +891,7 @@ ONNX Runtime         & \textbf{10.092} & \textbf{1{,}2} & \textbf{0{,}087} \\
 \begin{figure}[!tbp]
     \centering
     \includegraphics[width=0.9\textwidth]{img/batch_sweep_vi.png}
-    \caption[Chi phí suy luận theo kích thước lô: PySpark và ONNX Runtime]{Thời gian mỗi lô (p50), thông lượng và năng lượng hoạt động mỗi luồng của cùng một rừng ngẫu nhiên qua PySpark và ONNX Runtime theo kích thước lô (Jetson~\#2, mỗi điểm một lượt đo, dự đoán trùng nhau 100\%; trục log)}
+    \caption[Chi phí suy luận theo kích thước lô: PySpark và ONNX Runtime]{Thời gian mỗi lô (p50), thông lượng và năng lượng hoạt động mỗi luồng của cùng một rừng ngẫu nhiên qua PySpark và ONNX Runtime theo kích thước lô (Jetson~\#2, mỗi điểm một lượt đo, dự đoán trùng nhau 100\%, trục log)}
     \label{fig:batch_sweep}
 \end{figure}
 

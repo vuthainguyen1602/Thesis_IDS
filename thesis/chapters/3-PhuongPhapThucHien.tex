@@ -103,7 +103,7 @@ Bên cạnh đó, luận văn áp dụng hai bước \emph{loại trừ rò rỉ
 
 \textbf{Bước một: loại đặc trưng rò rỉ nhãn.} Cột \texttt{destination\_port} (và \texttt{source\_port} nếu có) bị loại. Trong CICIDS2017, mỗi loại tấn công được sinh nhằm vào những cổng dịch vụ cố định, nên cổng đích gần như mã hóa trực tiếp nhãn. Mô hình khi đó ``ghi nhớ'' ánh xạ cổng--nhãn thay vì học hành vi luồng. Cột \texttt{protocol} cũng bị loại với lý do tương tự: đây là biến phân loại có ít mức giá trị, tương quan mạnh với cổng dịch vụ, nên mang cùng nguy cơ trở thành ``lối tắt'' định danh dịch vụ thay vì hành vi.
 
-\textbf{Bước hai: loại bỏ trùng lặp ở mức đặc trưng.} Các luồng được gom nhóm theo toàn bộ vector đặc trưng. Nhóm có nhãn nhất quán được giữ lại đúng một đại diện. Nhóm trùng đặc trưng nhưng mâu thuẫn nhãn (cùng vector đặc trưng, nhãn vừa Benign vừa Attack) bị loại toàn bộ, vì không thể xác định nhãn đúng. Đây là một lỗi gán nhãn đã được ghi nhận của CICIDS2017~\cite{lanvin2023errors}; có 270 nhóm như vậy, gồm 44.260 hàng. Cách xử lý này tất định: nếu giữ lại một hàng tùy ý thì kết quả phụ thuộc cách phân mảnh dữ liệu và không tái lập được giữa các lần chạy. Bước này tránh việc cùng một mẫu xuất hiện ở cả tập huấn luyện lẫn tập kiểm tra khi phân chia ngẫu nhiên.
+\textbf{Bước hai: loại bỏ trùng lặp ở mức đặc trưng.} Các luồng được gom nhóm theo toàn bộ vector đặc trưng. Nhóm có nhãn nhất quán được giữ lại đúng một đại diện. Nhóm trùng đặc trưng nhưng mâu thuẫn nhãn (cùng vector đặc trưng, nhãn vừa Benign vừa Attack) bị loại toàn bộ, vì không thể xác định nhãn đúng. Đây là một lỗi gán nhãn đã được ghi nhận của CICIDS2017~\cite{lanvin2023errors}. Có 270 nhóm như vậy, gồm 44.260 hàng. Cách xử lý này tất định: nếu giữ lại một hàng tùy ý thì kết quả phụ thuộc cách phân mảnh dữ liệu và không tái lập được giữa các lần chạy. Bước này tránh việc cùng một mẫu xuất hiện ở cả tập huấn luyện lẫn tập kiểm tra khi phân chia ngẫu nhiên.
 
 Bước loại bỏ trùng lặp làm thay đổi phân bố lớp: các luồng benign trùng lặp nhiều hơn nên bị loại nhiều hơn, khiến tỷ lệ benign/attack sau xử lý khác tỷ lệ ban đầu. Vì vậy phân bố lớp trước và sau khi loại trùng lặp được báo cáo tường minh. Toàn bộ quá trình tiền xử lý CICIDS2017 được trình bày ở Thuật toán~\ref{data_preparation_ag}.
 
@@ -506,7 +506,7 @@ Quy trình tối ưu hóa được thực hiện như sau:
     \item Chọn mô hình tốt nhất dựa trên điểm đánh giá trung bình trên các fold.
 \end{enumerate}
 
-\textbf{Đoạn mã minh họa cách dùng API của Spark MLlib} (các giá trị trong lưới chỉ để minh họa; các mô hình được tinh chỉnh và kết quả tương ứng nằm ở Kịch bản 3, Chương~\ref{c:thucnghiemdanhgia}):
+\textbf{Đoạn mã minh họa cách dùng API của Spark MLlib} (các giá trị trong lưới chỉ để minh họa, còn các mô hình được tinh chỉnh và kết quả tương ứng nằm ở Kịch bản 3, Chương~\ref{c:thucnghiemdanhgia}):
 
 \begin{lstlisting}[language=Python]
 from pyspark.ml.classification import RandomForestClassifier
