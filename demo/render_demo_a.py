@@ -37,13 +37,11 @@ TITLES = {
 def title_card(r):
     img = Image.new("RGB", (rd.W, rd.H), rd.HEADER_BG)
     d = ImageDraw.Draw(img)
-    f1, f2, f3 = rd.font(rd.UNI, 60), rd.font(rd.UNI, 34), rd.font(rd.UNI, 28)
+    f1, f2 = rd.font(rd.UNI, 60), rd.font(rd.UNI, 34)
     lines = [("Demo pha A: Huấn luyện mô hình phân tán trên cụm Spark", f1, rd.H / 2 - 120, (255, 255, 255)),
              ("Spark Standalone: Master trên máy chủ, Worker trên hai Jetson Orin Nano Super", f2,
               rd.H / 2 - 20, (220, 228, 240)),
-             (f"{rd.AUTHOR}  ·  Luận văn Thạc sĩ", f2, rd.H / 2 + 40, (220, 228, 240)),
-             ("Toàn bộ lệnh và kết quả trong video được ghi từ một lần chạy thật", f3, rd.H / 2 + 140,
-              (180, 195, 215))]
+             (f"{rd.AUTHOR}  ·  Luận văn Thạc sĩ", f2, rd.H / 2 + 40, (220, 228, 240))]
     for text, f, y, col in lines:
         d.text(((rd.W - d.textlength(text, font=f)) / 2, y), text, font=f, fill=col)
     r.emit(img, 6)
