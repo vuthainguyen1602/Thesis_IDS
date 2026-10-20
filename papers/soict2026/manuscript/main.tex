@@ -281,7 +281,7 @@ In the offline selection stage, we evaluate four feature configurations (baselin
   \small
   \begin{tabular}{l c c c c l}
     \toprule
-    Feature set & Features & XGBoost F1 & RF F1 & XGBoost size (MB) & Edge rationale \\
+    Feature set & Features & XGBoost F1 & RF F1 & \shortstack{XGBoost\\size (MB)} & Edge rationale \\
     \midrule
     All features (baseline) & 77 & \textbf{0.9971} & 0.9949 & 2.32 & Reference \\
     \textbf{SHAP Top-30} & 30 & 0.9970 & \textbf{0.9955} & 2.37$^{\dagger}$ & Explainable, deployed \\
@@ -321,22 +321,22 @@ A host-side script starts the pipeline roles on the Jetsons over SSH, drives the
     Mode & Boards & Sustained (flows/s) & e2e p50 / p95 (s) & Gate skip (\%) & J / verdict \\
     \midrule
     Single node, gate off & 1 & 2.5 & 5.9 / 11.3 & -- & 3.04 \\
-    Single node + gate & 1 & 1.9$^{*}$ & 3.8 / 7.8 & 89.0 & 3.04 \\
+    Single node + gate & 1 & 2.0$^{*}$ & 3.8 / 7.8 & 89.0 & 3.04 \\
     B: Horizontal, gate off & 2 & 3.3 & 4.1 / 8.2 & -- & 3.20 \\
     C: Spark cluster & 2 & $\geq$8.7$^{\dagger}$ & 0.7 / 5.2 & 88.6 & 1.15 \\
-    A1: Split, one board & 1 & 17.8$^{\ddagger}$ & 0.6 / 5.3 & 88.9 & 0.32 \\
+    A1: Split, one board & 1 & 17.8$^{\ddagger}$ & 0.6 / 5.3 & 89.0 & 0.32 \\
     A: Pipeline split & 2 & 22.4 & 1.0 / 7.1 & 88.8 & 0.60 \\
     \bottomrule
   \end{tabular}
 
-  \tabnote{Energy is total-board power over verdict rate, measured at 2.0, 2.0, 3.9, 9.5, 17.8 and 18.4 flows/s respectively. Both boards are summed in two-node modes. Gate skip is pooled over all runs of a mode. Detection metrics are in Table~\ref{tab:e2e}. $^{\ddagger}$Delivered at an offered 20\,flows/s. At 30\,flows/s one repeat drained in 16.1\,s. $^{*}$At 3\,flows/s the single node with and without the gate both deliver 2.4--2.5 verdicts/s, and the gated one falls to the 2\,flows/s step only because one of its two repeats drained in 10.6\,s. $^{\dagger}$Lower bound: at 20\,flows/s one repeat kept up at 17.1\,flows/s and the other drained in 12.3\,s.}
+  \tabnote{Energy is total-board power over verdict rate, measured at 2.0, 2.0, 3.9, 9.5, 17.8 and 18.4 flows/s respectively. Both boards are summed in two-node modes. Gate skip is pooled over all runs of a mode. Detection metrics are in Table~\ref{tab:e2e}. $^{\ddagger}$Delivered at an offered 20\,flows/s. At 30\,flows/s both repeats drained late (15.2 and 16.1\,s). $^{*}$At 3\,flows/s the single node with and without the gate both deliver 2.4--2.5 verdicts/s, and the gated one falls to the 2\,flows/s step only because one of its two repeats drained in 10.6\,s. $^{\dagger}$Lower bound: at 20\,flows/s one repeat kept up at 17.1\,flows/s and the other drained in 12.3\,s.}
 \end{table}
 
 \textbf{Capacity.} Pipeline split sustains 22.4 flows/s, about $9\times$ the single node that runs the whole pipeline (2.5\,flows/s). The gate alone does not explain the gain: with the gate added to the single node, where gate and classifier run one after the other in the same process, it shows no measurable gain (2.4--2.5 verdicts/s at 3\,flows/s, the same as without the gate), because each batch still waits for a PySpark call that costs seconds regardless of how few flows reach it. Pipeline split decouples the two stages, so the gate keeps consuming while the classifier works through its share. Decoupling, not the second board, accounts for most of the gain: the same split as two processes on one board (A1) sustains 17.8\,flows/s, $7\times$ the single node, and the second board adds about a quarter on top. Horizontal scaling of the full role (gate off) stays Spark-bound at 3.3\,flows/s. The Spark standalone cluster sustains at least 8.7\,flows/s. At 20\,flows/s one of two repeats kept up (17.1\,flows/s) and the other did not, so its capacity lies between about 9 and 17\,flows/s, below pipeline split and with an extra host dependency.
 
 \textbf{Latency.} At its sustained rate, pipeline split returns a median verdict in about 1\,s, dominated by gate-only verdicts. Flows forwarded to the classifier wait for a PySpark batch, and the p95 over all flows is 7.1\,s. Every mode shows a multi-second tail for the same reason: one PySpark batch on the board takes seconds regardless of its size.
 
-\textbf{Energy efficiency.} Power is sampled with \texttt{tegrastats} (30\,s idle baseline, then the load window). Serving 18.4\,flows/s on two boards, pipeline split spends 0.60\,J per verdict against 3.04\,J for a single node at its 2\,flows/s, a $5\times$ reduction. On one board, A1 needs only 0.32\,J per verdict at 17.8\,flows/s, since the second board's idle draw disappears. The active (idle-subtracted) power rises by about 1.5\,W under load in every mode.
+\textbf{Energy efficiency.} Power is sampled with \texttt{tegrastats} (30\,s idle baseline, then the load window). Serving 18.4\,flows/s on two boards, pipeline split spends 0.60\,J per verdict against 3.04\,J for a single node at its 2\,flows/s, a $5\times$ reduction. On one board, A1 needs only 0.32\,J per verdict at 17.8\,flows/s, since the second board's idle draw disappears. The active (idle-subtracted) power rises by 1.4--1.6\,W under load in every mode except horizontal scaling, where both boards run Spark (2.6\,W).
 
 \textbf{Inference-engine baseline (cost of the unified stack).} We deploy a Spark \texttt{PipelineModel} on the edge for consistency with the distributed training phase: the same stack trains on the cluster and serves on the device. To quantify the price of that unification, we export the deployed forest to NumPy and ONNX Runtime and serve all three through the edge's own inference layer on the classifier node, batch size 10 (Table~\ref{tab:engines}). The three engines return identical predictions on every replayed flow. ONNX Runtime serves the same forest at about 10{,}100\,flows/s, about $7{,}200\times$ the PySpark path, at $<$0.01\% of its active energy per inference. The gap motivates exporting the \texttt{PipelineModel} to ONNX/TensorRT for serving while retaining Spark for training. Wiring the ONNX session into the streaming pipeline is left as future work. A batch-size sweep on the same board shows the PySpark cost is a fixed per-call overhead (7.1--7.4\,s from batch 10 to 1{,}000), not the trees. Larger batches narrow the gap to about $27\times$ at 10{,}000 flows, but at 20\,flows/s collecting such a batch takes over 8 minutes.
 
@@ -421,7 +421,7 @@ Two findings qualify the design. First, decoupling the stages matters more than 
     \bottomrule
   \end{tabular}
 
-  \tabnote{$^{*}$A 1{,}250\,s run at 8\,flows/s drained in 1.9\,s. At 12\,flows/s one repeat drained in 29\,s. The classifier-alone row scores the same forest offline through its ONNX export (identical predictions).}
+  \tabnote{$^{*}$A 1{,}250\,s run at 8\,flows/s drained in 1.9\,s. At 12\,flows/s both repeats drained late (18.5 and 28.9\,s). The classifier-alone row scores the same forest offline through its ONNX export (identical predictions).}
 \end{table}
 
 \textbf{Limitations.} Benchmarks are obtained on a two-node lab cluster over Wi-Fi. Wired networking and larger clusters may shift latency tails. Capacity is bounded by the PySpark classifier, whose per-batch cost of several seconds sets both the tail latency and the ceiling. The $\sim$67-TOPS GPU remains unexploited by the CPU-only pipeline. The gate bounds recall, and its threshold is calibrated on benign training data only. Energy figures subtract a single pre-run idle baseline, so within-run drift in background power is not captured. Live traffic and deliberately evasive (adversarial) traffic remain untested, and the host-side services were not moved to the edge.
