@@ -953,7 +953,7 @@
       \field{booktitle}{2022 IEEE Global Communications Conference (GLOBECOM)}
       \field{title}{LCCDE: A Decision-Based Ensemble Framework for Intrusion Detection in The Internet of Vehicles}
       \field{year}{2022}
-      \field{pages}{1\bibrangedash 6}
+      \field{pages}{3545\bibrangedash 3550}
       \range{pages}{6}
       \verb{doi}
       \verb 10.1109/GLOBECOM48099.2022.10001280
@@ -1207,9 +1207,7 @@
       \endverb
     \endentry
     \entry{boukela2021}{inproceedings}{}{}
-      \true{moreauthor}
-      \true{morelabelname}
-      \name{author}{3}{}{%
+      \name{author}{4}{}{%
         {{hash=f8d66e012ac097a8e78bc24108bdd304}{%
            family={Boukela},
            familyi={B\bibinitperiod},
@@ -1225,15 +1223,20 @@
            familyi={Y\bibinitperiod},
            given={Méziane},
            giveni={M\bibinitperiod}}}%
+        {{hash=9ae5143ff71c320a6e03d5d3653011fc}{%
+           family={Bouzefrane},
+           familyi={B\bibinitperiod},
+           given={Samia},
+           giveni={S\bibinitperiod}}}%
       }
       \strng{namehash}{f929c2153f41f9abf1747e5a9b792d36}
-      \strng{fullhash}{732b85c9c5bc122ffad6da15a9448c92}
-      \strng{fullhashraw}{732b85c9c5bc122ffad6da15a9448c92}
-      \strng{bibnamehash}{732b85c9c5bc122ffad6da15a9448c92}
-      \strng{authorbibnamehash}{732b85c9c5bc122ffad6da15a9448c92}
+      \strng{fullhash}{3c49b5d03bcdf1fd28c1cb51cac948f7}
+      \strng{fullhashraw}{3c49b5d03bcdf1fd28c1cb51cac948f7}
+      \strng{bibnamehash}{3c49b5d03bcdf1fd28c1cb51cac948f7}
+      \strng{authorbibnamehash}{3c49b5d03bcdf1fd28c1cb51cac948f7}
       \strng{authornamehash}{f929c2153f41f9abf1747e5a9b792d36}
-      \strng{authorfullhash}{732b85c9c5bc122ffad6da15a9448c92}
-      \strng{authorfullhashraw}{732b85c9c5bc122ffad6da15a9448c92}
+      \strng{authorfullhash}{3c49b5d03bcdf1fd28c1cb51cac948f7}
+      \strng{authorfullhashraw}{3c49b5d03bcdf1fd28c1cb51cac948f7}
       \field{sortinit}{1}
       \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
