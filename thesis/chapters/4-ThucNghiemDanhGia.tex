@@ -707,6 +707,8 @@ Triển khai trên thiết bị biên đặt ra các ràng buộc về tài nguy
     \item \textbf{Random Forest} -- Đại diện cho phương pháp Bagging, sử dụng ensemble 200 cây song song.
 \end{enumerate}
 
+\ac{xgb} đạt F1 ngoại tuyến cao nhất trên SHAP Top-30 (0{,}9970, Bảng~\ref{tab:summary_comparison}, so với 0{,}9955 của Random Forest, Bảng~\ref{tab:rf_vs_shap}) nhưng không được đưa vào nhóm ứng viên. Spark ML không có sẵn \ac{xgb}: tích hợp \ac{xgb} của Spark là một thư viện ngoài, cần thêm thư viện native khi nạp mô hình, trong khi ba mô hình trên là estimator gốc của Spark ML nên \texttt{PipelineModel} xuất ra nạp được thẳng trên bo mạch ARM64. Mức chênh F1 khoảng 0{,}0015 không đủ bù cho rủi ro triển khai đó.
+
 Cả ba mô hình đều được huấn luyện trên một danh sách SHAP Top-30 và triển khai dưới dạng PySpark PipelineModel. Lưu ý về phạm vi: phép so sánh ba ứng viên (Bảng~\ref{tab:edge_training} và~\ref{tab:edge_benchmark}) được thực hiện ở giai đoạn đầu, với danh sách đặc trưng xếp hạng \emph{trước} khi áp dụng quy trình loại trừ rò rỉ (29 đặc trưng, chỉ trùng 15 với SHAP Top-30 hiện tại). Kết quả so sánh tương đối giữa ba mô hình vẫn là căn cứ chọn Random Forest, nhưng mô hình thực sự triển khai đã được huấn luyện lại trên SHAP Top-30 loại trừ rò rỉ (F1 0{,}9959), và mọi số đo hệ thống từ Mục~\ref{sec:engine-baseline-thesis} trở đi là của mô hình huấn luyện lại này.
 
 % LƯU Ý: Grafana chụp lại từ cụm Jetson; hai ảnh terminal dựng từ log chạy ngày 2026-10-20 (img/terminal_logs_20261020). Riêng 2 ảnh
@@ -819,19 +821,19 @@ Kết quả benchmark cho thấy sự đánh đổi rõ ràng giữa các chỉ 
     \item \textbf{Decision Tree} nhẹ nhất về bộ nhớ (RAM 21{,}9\%, mô hình $\approx$0{,}05\,MB) nhưng chậm nhất: thông lượng 22{,}0 mẫu/giây và độ trễ p95 537\,ms, cao hơn Random Forest khoảng 35\%.
 \end{itemize}
 
-Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữa các tiêu chí lựa chọn mô hình: Decision Tree chiếm ưu thế về bộ nhớ, còn Random Forest chiếm ưu thế về tốc độ xử lý và tải CPU.
+Hình~\ref{fig:model_tradeoff} thể hiện sự đánh đổi đa chiều giữa các tiêu chí lựa chọn mô hình: Decision Tree chiếm ưu thế về bộ nhớ, còn Random Forest chiếm ưu thế về tốc độ xử lý và tải CPU. Thông lượng, độ trễ p95, CPU và RAM lấy từ Bảng~\ref{tab:edge_benchmark}, F1 và kích thước lấy từ Bảng~\ref{tab:edge_training}. Mỗi trục được chuẩn hóa min--max giữa ba mô hình, nên khoảng cách trên hình chỉ cho biết thứ hạng chứ không cho biết độ lớn chênh lệch: chẳng hạn F1 của ba mô hình chỉ chênh nhau 0{,}007.
 
 \begin{figure}[!t]
     \centering
     \IfFileExists{img/model_tradeoff_radar.png}{\includegraphics[width=0.75\textwidth]{img/model_tradeoff_radar.png}}{\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.4cm}\ph{Biểu đồ radar trade-off --- tạo từ \texttt{benchmark\_comparison.json}}\vspace{1.4cm}}}}
-    \caption[Biểu đồ radar đánh đổi giữa các mô hình trên thiết bị biên]{Biểu đồ radar thể hiện sự đánh đổi (trade-off) giữa ba mô hình ứng viên trên thiết bị biên. Thông lượng, độ trễ p95, CPU và RAM lấy từ Bảng~\ref{tab:edge_benchmark}, F1 và kích thước từ Bảng~\ref{tab:edge_training}. Mỗi trục chuẩn hóa min--max giữa ba mô hình, nên khoảng cách trên hình chỉ thể hiện thứ hạng, không thể hiện độ lớn chênh lệch (ví dụ F1 chỉ chênh 0{,}007)}
+    \caption[Biểu đồ radar đánh đổi giữa các mô hình trên thiết bị biên]{Đánh đổi giữa ba mô hình ứng viên trên Jetson Orin Nano Super}
     \label{fig:model_tradeoff}
 \end{figure}
 
 \textbf{Random Forest được chọn} làm mô hình triển khai chính trên thiết bị biên dựa trên ba tiêu chí:
 \begin{enumerate}
     \item \textbf{Hiệu năng xử lý thời gian thực}: thông lượng cao nhất (26{,}8 mẫu/giây) và độ trễ p95 thấp nhất (397\,ms). Với \ac{ids}, độ trễ dự đoán là ràng buộc trực tiếp: một mô hình nhỏ nhưng chậm hơn 35\% về p95 sẽ kéo dài cửa sổ mà tấn công chưa bị chặn.
-    \item \textbf{Chất lượng phát hiện}: cao nhất trong ba mô hình ứng viên ở cả hai phép đo: F1 0{,}9955 trên đánh giá ngoại tuyến đầy đủ (Bảng~\ref{tab:summary_comparison}) và 0{,}9826 ở bản xuất ứng viên (Bảng~\ref{tab:edge_training}). Bản huấn luyện lại trên SHAP Top-30 loại trừ rò rỉ để triển khai đạt F1 0{,}9959.
+    \item \textbf{Chất lượng phát hiện}: cao nhất trong ba mô hình ứng viên ở cả hai phép đo: F1 0{,}9955 trên đánh giá ngoại tuyến đầy đủ (Bảng~\ref{tab:rf_vs_shap}) và 0{,}9826 ở bản xuất ứng viên (Bảng~\ref{tab:edge_training}). Bản huấn luyện lại trên SHAP Top-30 loại trừ rò rỉ để triển khai đạt F1 0{,}9959.
     \item \textbf{Tương thích nền tảng}: Random Forest là estimator gốc của Spark ML. Nhờ vậy \texttt{PipelineModel} xuất ra nạp được trực tiếp trên bo mạch ARM64, không cần các thư viện native mà tích hợp \ac{xgb} của Spark đòi hỏi.
 \end{enumerate}
 
