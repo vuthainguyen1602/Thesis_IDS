@@ -163,11 +163,10 @@ class Renderer:
 def title_card(r):
     img = Image.new("RGB", (W, H), HEADER_BG)
     d = ImageDraw.Draw(img)
-    f1, f2, f3 = font(UNI, 62), font(UNI, 34), font(UNI, 28)
+    f1, f2 = font(UNI, 62), font(UNI, 34)
     lines = [("Demo: Hệ thống phát hiện xâm nhập phân tán thời gian thực", f1, H / 2 - 120, (255, 255, 255)),
              ("Kafka + PySpark trên cụm hai Jetson Orin Nano Super", f2, H / 2 - 20, (220, 228, 240)),
-             (f"{AUTHOR}  ·  Luận văn Thạc sĩ", f2, H / 2 + 40, (220, 228, 240)),
-             ("Toàn bộ lệnh và kết quả trong video được ghi từ một lần chạy thật", f3, H / 2 + 140, (180, 195, 215))]
+             (f"{AUTHOR}  ·  Luận văn Thạc sĩ", f2, H / 2 + 40, (220, 228, 240))]
     for text, f, y, col in lines:
         d.text(((W - d.textlength(text, font=f)) / 2, y), text, font=f, fill=col)
     r.emit(img, 6)
