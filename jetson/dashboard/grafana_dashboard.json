@@ -24,7 +24,7 @@
             },
             "targets": [
                 {
-                    "query": "from(bucket: \"ids_metrics\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"prediction_metrics\" and r._field == \"throughput_rps\")",
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"prediction_metrics\" and r._field == \"throughput_rps\")",
                     "refId": "A"
                 }
             ],
@@ -36,10 +36,88 @@
                     "custom": {
                         "lineWidth": 2,
                         "fillOpacity": 15,
-                        "gradientMode": "scheme"
+                        "gradientMode": "opacity"
                     },
                     "unit": "reqps"
-                }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-1(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #1"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "blue"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "orange"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-gate(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (gate)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "purple"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-clf(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (classifier)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "green"
+                                }
+                            }
+                        ]
+                    }
+                ]
             }
         },
         {
@@ -57,21 +135,98 @@
             },
             "targets": [
                 {
-                    "query": "from(bucket: \"ids_metrics\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"prediction_metrics\" and r._field == \"attacks_count\")",
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"prediction_metrics\" and r._field == \"attacks_count\")",
                     "refId": "A"
                 }
             ],
             "fieldConfig": {
                 "defaults": {
                     "color": {
-                        "fixedColor": "red",
-                        "mode": "fixed"
+                        "mode": "palette-classic"
                     },
                     "custom": {
                         "lineWidth": 2,
                         "fillOpacity": 30
                     }
-                }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-1(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #1"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "blue"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "orange"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-gate(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (gate)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "purple"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-clf(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (classifier)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "green"
+                                }
+                            }
+                        ]
+                    }
+                ]
             }
         },
         {
@@ -89,21 +244,98 @@
             },
             "targets": [
                 {
-                    "query": "from(bucket: \"ids_metrics\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"prediction_metrics\" and r._field == \"avg_latency_ms\")",
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"prediction_metrics\" and r._field == \"avg_latency_ms\")",
                     "refId": "A"
                 }
             ],
             "fieldConfig": {
                 "defaults": {
                     "color": {
-                        "fixedColor": "green",
-                        "mode": "fixed"
+                        "mode": "palette-classic"
                     },
                     "custom": {
                         "lineWidth": 2
                     },
                     "unit": "ms"
-                }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-1(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #1"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "blue"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "orange"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-gate(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (gate)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "purple"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-clf(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (classifier)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "green"
+                                }
+                            }
+                        ]
+                    }
+                ]
             }
         },
         {
@@ -145,7 +377,57 @@
                     },
                     "unit": "percent",
                     "max": 100
-                }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-1(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #1"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-gate(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (gate)"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-clf(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (classifier)"
+                            }
+                        ]
+                    }
+                ]
             }
         },
         {
@@ -187,7 +469,57 @@
                     },
                     "unit": "percent",
                     "max": 100
-                }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-1(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #1"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-gate(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (gate)"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-clf(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (classifier)"
+                            }
+                        ]
+                    }
+                ]
             }
         },
         {
@@ -205,24 +537,101 @@
             },
             "targets": [
                 {
-                    "query": "from(bucket: \"ids_metrics\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"system_metrics\" and r._field == \"cpu_percent\")",
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"system_metrics\" and r._field == \"cpu_percent\")",
                     "refId": "A"
                 }
             ],
             "fieldConfig": {
                 "defaults": {
                     "color": {
-                        "fixedColor": "blue",
-                        "mode": "fixed"
+                        "mode": "palette-classic"
                     },
                     "custom": {
                         "lineWidth": 2,
                         "fillOpacity": 20,
-                        "gradientMode": "scheme"
+                        "gradientMode": "opacity"
                     },
                     "unit": "percent",
                     "max": 100
-                }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-1(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #1"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "blue"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "orange"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-gate(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (gate)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "purple"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*jetson-nano-2-clf(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (classifier)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "green"
+                                }
+                            }
+                        ]
+                    }
+                ]
             }
         },
         {
@@ -240,7 +649,7 @@
             },
             "targets": [
                 {
-                    "query": "from(bucket: \"ids_metrics\") |> range(start: -3h) |> filter(fn: (r) => r._measurement == \"system_metrics\" and (r._field == \"memory_percent\" or r._field == \"memory_used_mb\"))",
+                    "query": "from(bucket: \"ids_metrics\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop) |> filter(fn: (r) => r._measurement == \"system_metrics\" and (r._field == \"memory_percent\" or r._field == \"memory_used_mb\"))",
                     "refId": "A"
                 }
             ],
@@ -252,9 +661,315 @@
                     "custom": {
                         "lineWidth": 2,
                         "fillOpacity": 15,
-                        "gradientMode": "scheme"
+                        "gradientMode": "opacity"
                     }
-                }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*memory_percent.*jetson-nano-1(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #1 (%)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "blue"
+                                }
+                            },
+                            {
+                                "id": "unit",
+                                "value": "percent"
+                            },
+                            {
+                                "id": "max",
+                                "value": 100
+                            },
+                            {
+                                "id": "min",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*memory_used_mb.*jetson-nano-1(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #1 (MB)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "blue"
+                                }
+                            },
+                            {
+                                "id": "unit",
+                                "value": "decmbytes"
+                            },
+                            {
+                                "id": "min",
+                                "value": 0
+                            },
+                            {
+                                "id": "custom.axisPlacement",
+                                "value": "right"
+                            },
+                            {
+                                "id": "custom.fillOpacity",
+                                "value": 0
+                            },
+                            {
+                                "id": "custom.lineStyle",
+                                "value": {
+                                    "fill": "dash",
+                                    "dash": [
+                                        10,
+                                        10
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*memory_percent.*jetson-nano-2(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (%)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "orange"
+                                }
+                            },
+                            {
+                                "id": "unit",
+                                "value": "percent"
+                            },
+                            {
+                                "id": "max",
+                                "value": 100
+                            },
+                            {
+                                "id": "min",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*memory_used_mb.*jetson-nano-2(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (MB)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "orange"
+                                }
+                            },
+                            {
+                                "id": "unit",
+                                "value": "decmbytes"
+                            },
+                            {
+                                "id": "min",
+                                "value": 0
+                            },
+                            {
+                                "id": "custom.axisPlacement",
+                                "value": "right"
+                            },
+                            {
+                                "id": "custom.fillOpacity",
+                                "value": 0
+                            },
+                            {
+                                "id": "custom.lineStyle",
+                                "value": {
+                                    "fill": "dash",
+                                    "dash": [
+                                        10,
+                                        10
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*memory_percent.*jetson-nano-2-gate(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (gate) (%)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "purple"
+                                }
+                            },
+                            {
+                                "id": "unit",
+                                "value": "percent"
+                            },
+                            {
+                                "id": "max",
+                                "value": 100
+                            },
+                            {
+                                "id": "min",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*memory_used_mb.*jetson-nano-2-gate(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (gate) (MB)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "purple"
+                                }
+                            },
+                            {
+                                "id": "unit",
+                                "value": "decmbytes"
+                            },
+                            {
+                                "id": "min",
+                                "value": 0
+                            },
+                            {
+                                "id": "custom.axisPlacement",
+                                "value": "right"
+                            },
+                            {
+                                "id": "custom.fillOpacity",
+                                "value": 0
+                            },
+                            {
+                                "id": "custom.lineStyle",
+                                "value": {
+                                    "fill": "dash",
+                                    "dash": [
+                                        10,
+                                        10
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*memory_percent.*jetson-nano-2-clf(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (classifier) (%)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "green"
+                                }
+                            },
+                            {
+                                "id": "unit",
+                                "value": "percent"
+                            },
+                            {
+                                "id": "max",
+                                "value": 100
+                            },
+                            {
+                                "id": "min",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byRegexp",
+                            "options": ".*memory_used_mb.*jetson-nano-2-clf(?![-\\w]).*"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "Jetson #2 (classifier) (MB)"
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "mode": "fixed",
+                                    "fixedColor": "green"
+                                }
+                            },
+                            {
+                                "id": "unit",
+                                "value": "decmbytes"
+                            },
+                            {
+                                "id": "min",
+                                "value": 0
+                            },
+                            {
+                                "id": "custom.axisPlacement",
+                                "value": "right"
+                            },
+                            {
+                                "id": "custom.fillOpacity",
+                                "value": 0
+                            },
+                            {
+                                "id": "custom.lineStyle",
+                                "value": {
+                                    "fill": "dash",
+                                    "dash": [
+                                        10,
+                                        10
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
             }
         },
         {
@@ -272,7 +987,7 @@
             },
             "targets": [
                 {
-                    "rawSql": "SELECT created_at, alert_type, confidence, message FROM alerts ORDER BY created_at DESC LIMIT 20",
+                    "rawSql": "SELECT created_at, alert_type, confidence, message FROM alerts WHERE $__timeFilter(created_at) ORDER BY created_at DESC LIMIT 20",
                     "format": "table",
                     "refId": "A"
                 }
@@ -351,7 +1066,7 @@
             },
             "targets": [
                 {
-                    "rawSql": "SELECT\n  created_at,\n  label,\n  prediction,\n  confidence,\n  inference_time_ms,\n  COALESCE(raw_features->>'route', 'legacy') AS route,\n  COALESCE((raw_features->>'anomaly_score')::double precision, 0.0) AS anomaly_score,\n  COALESCE((raw_features->>'anomaly_threshold')::double precision, 0.0) AS anomaly_threshold\nFROM predictions\nORDER BY created_at DESC\nLIMIT 50",
+                    "rawSql": "SELECT\n  created_at,\n  label,\n  prediction,\n  confidence,\n  inference_time_ms,\n  COALESCE(raw_features->>'route', 'legacy') AS route,\n  COALESCE((raw_features->>'anomaly_score')::double precision, 0.0) AS anomaly_score,\n  COALESCE((raw_features->>'anomaly_threshold')::double precision, 0.0) AS anomaly_threshold\nFROM predictions\nWHERE $__timeFilter(created_at)\nORDER BY created_at DESC\nLIMIT 50",
                     "format": "table",
                     "refId": "A"
                 }
