@@ -2164,8 +2164,8 @@
       \strng{authornamehash}{cec83448a93ad6a5cdc6f494a8f2dbcb}
       \strng{authorfullhash}{138b620984178bfaf960c59da39eb14f}
       \strng{authorfullhashraw}{138b620984178bfaf960c59da39eb14f}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Advances in Neural Information Processing Systems}
@@ -2572,8 +2572,8 @@
       \strng{editornamehash}{34312802094069ab047e0fb746b70b36}
       \strng{editorfullhash}{e64a0e3f360f5c3b89de3f54d91ac154}
       \strng{editorfullhashraw}{e64a0e3f360f5c3b89de3f54d91ac154}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Risks and Security of Internet and Systems (CRiSIS 2022)}
@@ -2942,8 +2942,8 @@
       \strng{authorfullhash}{cc5e7b91e6d7d6755b98fa45c0ac9de5}
       \strng{authorfullhashraw}{cc5e7b91e6d7d6755b98fa45c0ac9de5}
       \field{extraname}{2}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Proceedings of the 30th AAAI Conference on Artificial Intelligence (AAAI)}
