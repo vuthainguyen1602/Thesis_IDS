@@ -285,8 +285,6 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
         {{\textbf{\@ThesisType}}\par}
         \vspace*{1.5ex}
         {{{\large\textbf{\MakeUppercase\expandafter{\@Title}}}}\par}
-        \vspace*{1.5ex}
-        {\textcolor{red}{\textbf{\@Title[en]}}\par}
         \vspace*{7.5ex}
         
         {\textbf{{\@Degree} NGÀNH {\@Major}}\par}
@@ -318,8 +316,6 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
         {{\textbf{\@ThesisType}}\par}
         \vspace*{1.5ex}
         {{\large\textbf{\@Title}}\par}
-        \vspace*{1.5ex}
-        {\textcolor{red}{\textbf{\@Title[en]}}\par}
         \vspace*{7.5ex}
         
         {\textbf{{\@Degree} NGÀNH {\@Major}}\par}
