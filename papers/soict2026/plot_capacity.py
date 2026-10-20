@@ -13,6 +13,7 @@ rate over the repeats at the highest such rate.
 """
 import argparse
 import os
+from decimal import ROUND_HALF_UP, Decimal
 
 import matplotlib
 matplotlib.use("Agg")
@@ -38,6 +39,12 @@ TITLES = {"en": ("Sustained verdicts/s (all flows done ≤10 s)",
                  "Energy per verdict (J), at the sustained rate"),
           "vi": ("Dự đoán/giây duy trì được (mọi luồng xong ≤10 s)",
                  "Năng lượng mỗi dự đoán (J) ở tốc độ duy trì")}
+
+
+def half_up(v: float, nd: int) -> float:
+    """Round half up on the decimal value: format() rounds the binary float, so
+    the single+gate mean (1.92 + 1.98) / 2 = 1.95 printed as 1.9."""
+    return float(Decimal(repr(round(v, 6))).quantize(Decimal(1).scaleb(-nd), ROUND_HALF_UP))
 
 
 def capacity_table() -> pd.DataFrame:
@@ -81,7 +88,7 @@ def draw(cap, en, modes, labels, titles, vi, figsize, fs, title_fs):
         if title_fs:
             ax.tick_params(axis="y", labelsize=fs)
         for m, b in zip(modes, bars):
-            txt = fmt.format(b.get_height())
+            txt = fmt.format(half_up(b.get_height(), 1 if ax is ax1 else 2))
             if ax is ax1 and m in lower_bound:
                 txt = "≥" + txt
             ax.annotate(txt.replace(".", ",") if vi else txt, (b.get_x() + b.get_width() / 2, b.get_height()),
