@@ -478,14 +478,14 @@ devices, and what it costs in detection. Eight minutes, five results.}
 \begin{frame}{Backup: which model, and why}
   \centering\small
   \fitwidth{%
-  \begin{tabular}{lcccp{3.3cm}}
+  \begin{tabular}{lccccl}
     \toprule
-    Feature set (XGBoost) & F1 & Features & Size (MB) & Edge rationale \\
+    Feature set & Features & XGBoost F1 & RF F1 & XGBoost size (MB) & Edge rationale \\
     \midrule
-    All features (baseline) & 0.9971 & 77 & 2.32 & Reference accuracy \\
-    \textbf{SHAP Top-30} & 0.9970 & 30 & 2.37$^{\dagger}$ & Explainable; deployed feature set \\
-    RF Top-30     & 0.9922 & 30 & 2.52 & Embedded ranking \\
-    PCA $k$=40    & 0.9939 & 40 & 3.82 & Unsupervised reduction \\
+    All features (baseline) & 77 & \textbf{0.9971} & 0.9949 & 2.32 & Reference \\
+    \textbf{SHAP Top-30} & 30 & 0.9970 & \textbf{0.9955} & 2.37$^{\dagger}$ & Explainable; deployed \\
+    RF Top-30     & 30 & 0.9922 & 0.9879 & 2.52 & Embedded ranking \\
+    PCA $k$=40    & 40 & 0.9939 & 0.9837 & 3.82 & Unsupervised \\
     \bottomrule
   \end{tabular}
   }

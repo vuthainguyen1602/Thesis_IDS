@@ -275,18 +275,18 @@ This paper does not compare Spark against Jetson Orin Nano Super as competing pl
 In the offline selection stage, we evaluate four feature configurations (baseline with all features, RF Importance Top-30, SHAP Top-30, and PCA with $k$=40) under a fixed 80/20 train--test split, using eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. The offline protocol is leakage-aware~\cite{arp2022dosdonts}: it removes information that would be unavailable at deployment time but that otherwise inflates test scores. Motivated by documented labeling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores obtained when these leaks are left in place. Offline metrics constrain which exported model is worth deploying. They are not directly comparable to edge throughput or latency.
 
 \begin{table}[htbp]
-  \caption{Offline choice of the feature set, scored with XGBoost}
+  \caption{Offline choice of the feature set: test F1 of XGBoost and of the deployed Random Forest (RF)}
   \label{tab:spark-edge-bridge}
   \centering
   \small
-  \begin{tabular}{l c c c p{3.2cm}}
+  \begin{tabular}{l c c c c l}
     \toprule
-    Feature set (XGBoost) & F1 & Features & Size (MB) & Edge rationale \\
+    Feature set & Features & XGBoost F1 & RF F1 & XGBoost size (MB) & Edge rationale \\
     \midrule
-    All features (baseline) & 0.9971 & 77 & 2.32 & Reference accuracy \\
-    SHAP Top-30 & 0.9970 & 30 & 2.37$^{\dagger}$ & Explainable; fewer features (deployed feature set) \\
-    RF Top-30 & 0.9922 & 30 & 2.52 & Same feature count; embedded ranking \\
-    PCA $k$=40 & 0.9939 & 40 & 3.82 & Unsupervised reduction \\
+    All features (baseline) & 77 & \textbf{0.9971} & 0.9949 & 2.32 & Reference \\
+    \textbf{SHAP Top-30} & 30 & 0.9970 & \textbf{0.9955} & 2.37$^{\dagger}$ & Explainable; deployed \\
+    RF Top-30 & 30 & 0.9922 & 0.9879 & 2.52 & Embedded ranking \\
+    PCA $k$=40 & 40 & 0.9939 & 0.9837 & 3.82 & Unsupervised \\
     \bottomrule
   \end{tabular}
 
@@ -298,7 +298,7 @@ In the offline selection stage, we evaluate four feature configurations (baselin
 
 The exported \texttt{PipelineModel} (VectorAssembler, StandardScaler, classifier) is loaded on Jetson~\#2 with only the selected SHAP features, reducing assembly and inference cost relative to the 77-feature baseline. The deployed input vector contains the 30 SHAP-selected features. The ranking is computed after \texttt{destination\_port} has been removed as a label-leaking channel, consistent with the leakage-aware offline protocol. A lightweight autoencoder gate on Jetson~\#1 filters benign flows before they reach Spark inference, further lowering load on the classifier node.
 
-We deploy the SHAP Top-30 feature set on Jetson~\#2 with a Random Forest classifier (the exported model scores test F1 0.9959, whereas the offline evaluation reports 0.9955 for this configuration, within 0.002 of the best XGBoost score in Table~\ref{tab:spark-edge-bridge}): it retains near-baseline F1 with substantially fewer features, and Random Forest is a native Spark ML estimator, so the exported \texttt{PipelineModel} loads on the ARM board without the additional native libraries that Spark's XGBoost integration requires. Sect.~\ref{sec:benchmark-results} then evaluates this choice under streaming load. The full four-method comparison and drift analysis are beyond the scope of this paper.
+We deploy the SHAP Top-30 feature set on Jetson~\#2 with a Random Forest classifier (the exported model scores test F1 0.9959, whereas the offline evaluation reports 0.9955 for this configuration, within 0.002 of the best XGBoost score, and SHAP Top-30 is also the Random Forest's best feature set in Table~\ref{tab:spark-edge-bridge}): it retains near-baseline F1 with substantially fewer features, and Random Forest is a native Spark ML estimator, so the exported \texttt{PipelineModel} loads on the ARM board without the additional native libraries that Spark's XGBoost integration requires. Sect.~\ref{sec:benchmark-results} then evaluates this choice under streaming load. The full four-method comparison and drift analysis are beyond the scope of this paper.
 
 \section{Experimental Setup}
 
