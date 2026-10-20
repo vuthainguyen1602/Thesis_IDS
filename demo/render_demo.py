@@ -264,9 +264,9 @@ def main():
         return keep
 
     mark = {e["text"]: e["t"] for e in ev if e["kind"] == "mark"}
-    panes = {"host": Pane("host", "thainguyenvu@MacBook ~/Thesis_IDS/jetson % "),
-             "j1": Pane("j1", "thainguyenvu@MacBook ~ % "),
-             "j2": Pane("j2", "thainguyenvu@MacBook ~ % ")}
+    panes = {"host": Pane("host", "bvdung@MacBook ~/Thesis_IDS/jetson % "),
+             "j1": Pane("j1", "bvdung@MacBook ~ % "),
+             "j2": Pane("j2", "bvdung@MacBook ~ % ")}
     full = {"host": (40, 110, W - 40, H - 30)}
     r = Renderer(out)
     title_card(r)
