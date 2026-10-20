@@ -23,7 +23,7 @@ Các cảnh ngắn (dưới 10 giây) có ít thời gian để nói. Nếu cầ
 
 ### 0:00–0:06 · Tiêu đề
 
-> Đầu tiên em xin trình bày pha A: huấn luyện mô hình trên cụm Spark Standalone. Máy chủ đóng vai trò Spark Master, còn hai Jetson Orin Nano Super là hai Worker. Toàn bộ lệnh và kết quả trong video được ghi từ một lần chạy thật.
+> Đầu tiên em xin trình bày pha A: huấn luyện mô hình trên cụm Spark Standalone. Máy chủ đóng vai trò Spark Master, còn hai Jetson Orin Nano Super là hai Worker.
 
 ### 0:06–0:11 · Bước 1: Khởi động Spark Master
 
