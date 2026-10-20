@@ -165,7 +165,7 @@ Fig.~\ref{fig:architecture} shows the split-deployment architecture. A host PC r
 
 \begin{itemize}
   \item \textbf{Anomaly gate:} a lightweight autoencoder + scaler over all 77 leak-free flow features. The MSE threshold is calibrated offline as a quantile (0.995) of a held-out benign validation split (10\% of benign training flows, never the test set), so the operating point is committed before evaluation.
-  \item \textbf{Classifier:} PySpark \texttt{PipelineModel} with the leakage-free SHAP-selected feature set.
+  \item \textbf{Classifier:} a Random Forest PySpark \texttt{PipelineModel} over the leakage-free SHAP Top-30 feature set (Sect.~\ref{sec:edge-phase}).
   \item \textbf{Combined role:} gate and classifier in one process, used for horizontal scaling via Kafka consumer groups.
 \end{itemize}
 Each tier scores flows in batches of 20, or sooner once the oldest waiting flow has been held for 1\,s, so the classifier, which receives only a small share of traffic, never holds a partial batch indefinitely.
@@ -275,7 +275,7 @@ This paper does not compare Spark against Jetson Orin Nano Super as competing pl
 In the offline selection stage, we evaluate four feature configurations (baseline with all features, RF Importance Top-30, SHAP Top-30, and PCA with $k$=40) under a fixed 80/20 train--test split, using eight Spark ML classifiers and statistical validation (repeated paired resampling and permutation tests). LightGBM is excluded because its SynapseML native libraries are x86\_64-only and cannot run on the ARM64 Jetson Orin Nano Super deployment target. The offline protocol is leakage-aware~\cite{arp2022dosdonts}: it removes information that would be unavailable at deployment time but that otherwise inflates test scores. Motivated by documented labeling and duplication errors in CICIDS2017~\cite{lanvin2023errors}, the label-leaking \texttt{destination\_port} feature is removed and flows that are identical on all feature columns are de-duplicated before splitting. This yields realistic F1 values (Table~\ref{tab:spark-edge-bridge}) rather than the near-perfect scores obtained when these leaks are left in place. Offline metrics constrain which exported model is worth deploying. They are not directly comparable to edge throughput or latency.
 
 \begin{table}[htbp]
-  \caption{Bridge table: offline Spark selection criteria from the leakage-aware offline selection stage}
+  \caption{Bridge table: offline selection of the feature set, scored with XGBoost (the deployed classifier is a Random Forest on SHAP Top-30)}
   \label{tab:spark-edge-bridge}
   \centering
   \small
@@ -294,6 +294,7 @@ In the offline selection stage, we evaluate four feature configurations (baselin
 \end{table}
 
 \subsection{Edge Phase (Jetson Orin Nano Super)}
+\label{sec:edge-phase}
 
 The exported \texttt{PipelineModel} (VectorAssembler, StandardScaler, classifier) is loaded on Jetson~\#2 with only the selected SHAP features, reducing assembly and inference cost relative to the 77-feature baseline. The deployed input vector contains the 30 SHAP-selected features. The ranking is computed after \texttt{destination\_port} has been removed as a label-leaking channel, consistent with the leakage-aware offline protocol. A lightweight autoencoder gate on Jetson~\#1 filters benign flows before they reach Spark inference, further lowering load on the classifier node.
 
