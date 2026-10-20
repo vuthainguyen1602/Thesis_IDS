@@ -187,21 +187,26 @@ Baseline (Toàn bộ) & 77 & \ac{xgb} & \textbf{0{,}9971} & 4615{,}5 & 2{,}32 \\
 
 \ac{shap} Top-30 giữ được hiệu năng của Baseline: F1 0{,}9970 so với 0{,}9971, trong khi số đặc trưng giảm từ 77 xuống 30 (giảm 61\%) và thời gian huấn luyện giảm từ 4615{,}5 xuống 1226{,}1\,giây, tức còn khoảng một phần tư. Hai phương pháp còn lại cũng rút ngắn thời gian huấn luyện tương tự nhưng mất hiệu năng nhiều hơn: \ac{pca} đạt 0{,}9939 và \ac{rf} Importance đạt 0{,}9922. Chênh lệch giữa Baseline và \ac{shap} Top-30 có đủ nhỏ để coi hai cấu hình là tương đương hay không được kiểm định ở Mục~\ref{sec:stat_validity}.
 
-Bảng~\ref{tab:rf_vs_shap} so sánh trực tiếp hai cách chọn 30 đặc trưng trên bốn mô hình cây. Danh sách chọn theo \ac{shap} cho F1 cao hơn danh sách chọn theo độ quan trọng của \ac{rf} ở cả bốn mô hình, với mức chênh tương đối từ $+0{,}48\%$ đến $+1{,}15\%$.
+Bảng~\ref{tab:rf_vs_shap} so sánh trực tiếp các cách chọn 30 đặc trưng trên bốn mô hình cây. Danh sách chọn theo \ac{shap}-\ac{xgb} cho F1 cao hơn danh sách chọn theo độ quan trọng của \ac{rf} ở cả bốn mô hình, với mức chênh tương đối từ $+0{,}48\%$ đến $+1{,}15\%$.
 
 \begin{table}[htbp]
 \centering
-\caption[So sánh lựa chọn đặc trưng: RF Importance vs SHAP (Top-30)]{So sánh hiệu năng lựa chọn đặc trưng: \ac{rf} Importance vs \ac{shap} Importance (Top-30)}
+\caption[So sánh lựa chọn đặc trưng: RF Importance vs SHAP (Top-30)]{So sánh hiệu năng lựa chọn đặc trưng (Top-30): \ac{rf} Importance, \ac{shap} xếp hạng trên Random Forest (\ac{shap}-\ac{rf}) và \ac{shap} xếp hạng trên \ac{xgb} (\ac{shap}-\ac{xgb}, danh sách được dùng)}
 \label{tab:rf_vs_shap}
-\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lccc@{}}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lcccc@{}}
 \toprule
-\textbf{Thuật toán} & \textbf{F1 (\ac{rf} Top-30)} & \textbf{F1 (\ac{shap} Top-30)} & \textbf{Chênh lệch tương đối (\%)} \\ \midrule
-Random Forest & 0{,}9879 & 0{,}9955 & +0{,}77 \\
-\ac{xgb} & \textbf{0{,}9922} & \textbf{0{,}9970} & +0{,}48 \\
-\ac{gbt} & 0{,}9844 & 0{,}9918 & +0{,}75 \\
-Decision Tree & 0{,}9835 & 0{,}9948 & +1{,}15 \\ \bottomrule
+\textbf{Thuật toán} & \textbf{\ac{rf} Importance} & \textbf{\ac{shap}-\ac{rf}} & \textbf{\ac{shap}-\ac{xgb}} & \textbf{Chênh lệch (\%)} \\ \midrule
+Random Forest & 0{,}9879 & 0{,}9837 & 0{,}9955 & +0{,}77 \\
+\ac{xgb} & \textbf{0{,}9922} & \textbf{0{,}9942} & \textbf{0{,}9970} & +0{,}48 \\
+\ac{gbt} & 0{,}9844 & 0{,}9797 & 0{,}9918 & +0{,}75 \\
+Decision Tree & 0{,}9835 & 0{,}9834 & 0{,}9948 & +1{,}15 \\ \bottomrule
 \end{tabular*}
+\tabnote{Giá trị là F1 trên tập kiểm tra. Cột chênh lệch là mức chênh tương đối của \ac{shap}-\ac{xgb} so với \ac{rf} Importance. Cột \ac{shap}-\ac{rf} đo trong một lần chạy riêng với cùng giao thức; trong lần chạy đó, danh sách \ac{shap}-\ac{xgb} được chạy lại và lệch không quá 0{,}0002 so với cột \ac{shap}-\ac{xgb}.}
 \end{table}
+
+Danh sách \ac{shap} Top-30 ở trên được xếp hạng bằng \ac{xgb}, trong khi mô hình triển khai ở biên là Random Forest. Để kiểm tra xem tính \ac{shap} trực tiếp trên Random Forest có cho danh sách tốt hơn cho chính mô hình này hay không, luận văn tính thêm giá trị \ac{shap} (TreeExplainer) trên Random Forest huấn luyện với đủ 77 đặc trưng, dùng cùng mẫu 2.000 luồng phân tầng và cùng giao thức đánh giá. Cột \ac{shap}-\ac{rf} của Bảng~\ref{tab:rf_vs_shap} cho thấy danh sách này kém danh sách \ac{shap}-\ac{xgb} ở cả bốn mô hình, kể cả với Random Forest (0{,}9837 so với 0{,}9955), và chỉ ngang mức \ac{rf} Importance. Danh sách \ac{shap}-\ac{rf} trùng 25/30 đặc trưng với \ac{rf} Importance nhưng chỉ 19/30 với \ac{shap}-\ac{xgb}, nghĩa là mô hình dùng để xếp hạng quyết định danh sách nhiều hơn cách đo.
+
+Mười một đặc trưng chỉ có trong danh sách \ac{shap}-\ac{rf} phần lớn là bản sao gần như của các đặc trưng đã được chọn, ví dụ \texttt{packet\_length\_variance} (bình phương của độ lệch chuẩn), \texttt{subflow\_bwd\_bytes} và \texttt{avg\_fwd\_segment\_size}. Mười một đặc trưng chỉ có trong danh sách \ac{shap}-\ac{xgb} là các đặc trưng thời gian và cờ TCP như \texttt{idle\_min}, \texttt{flow\_iat\_min}, \texttt{fin\_flag\_count} và \texttt{psh\_flag\_count}. Random Forest chia điểm quan trọng cho các đặc trưng tương quan với nhau, còn boosting dồn điểm cho một đại diện rồi chuyển sang tín hiệu khác, nên Top-30 của \ac{xgb} bao phủ nhiều nguồn thông tin hơn. Đây là lý do luận văn dùng xếp hạng \ac{shap} của \ac{xgb} cho mô hình Random Forest được triển khai. Kết quả này dựa trên một lần chia dữ liệu nên chưa có kiểm định thống kê, nhưng mức chênh (0{,}003--0{,}012) lớn hơn nhiều lần độ lệch giữa hai lần chạy và nhất quán ở cả bốn mô hình.
 
 \subsection{Kịch bản 3: Tối ưu hóa siêu tham số}
 Kịch bản này tinh chỉnh bốn mô hình Spark ML gốc (Random Forest, Decision Tree, \ac{gbt}, Logistic Regression) bằng Grid Search kết hợp kiểm định chéo. Việc tinh chỉnh chạy trên cấu hình đặc trưng có F1 cao nhất ở Kịch bản 2, tức Baseline với toàn bộ 77 đặc trưng. Các mô hình còn lại (\ac{xgb}, MLP, \ac{svm}, \ac{nb}) giữ bộ tham số cố định ở Bảng~\ref{tab:model_parameters}.
