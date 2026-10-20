@@ -514,7 +514,7 @@ devices, and what it costs in detection. Eight minutes, five results.}
           through its broker, verdicts are stored there. \bad{Host down
           $\Rightarrow$ detection stops}, although both boards are healthy.
     \item With PySpark the host is \emph{not} the bottleneck: the boards saturate
-          first, and a host-to-board round trip takes 4--9\,ms on Wi-Fi.
+          first, and a host-to-board round trip takes about 5\,ms on Wi-Fi.
     \item It still bounds scaling: each added board is one more consumer of the
           same broker and one more writer to the same database (one insert per
           verdict).
