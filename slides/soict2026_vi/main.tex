@@ -246,7 +246,7 @@ năng phát hiện là gì.}
   \end{columns}
   \takeaway{\textbf{Lợi ích đến từ việc tách hai tầng}, không phải từ bo thứ hai.}
   \note{A1 đo ở một phiên sau, cùng bo, cùng mô hình, cùng tệp phát lại. Ở 30
-  luồng/giây một lần lặp mất 16 giây để xả hàng đợi. Độ trễ vài giây ở mọi chế
+  luồng/giây cả hai lần lặp đều xả hàng đợi quá hạn, mất 15 và 16 giây. Độ trễ vài giây ở mọi chế
   độ vì mỗi lô Spark mất vài giây. Chế độ một bo và nhân bản tắt cổng, như bản đã nộp. Độ trễ trung vị
   của tách tầng khoảng 1 giây. Cổng bỏ qua khoảng 89\% số luồng ở mọi chế độ có
   bật cổng.}
@@ -307,7 +307,7 @@ năng phát hiện là gì.}
   \end{columns}
   \takeaway{Tách tầng: \key{3,0\,J $\rightarrow$ 0,60\,J} mỗi dự đoán (hai bo), \key{0,32\,J} (một bo).}
   \note{Năng lượng đo bằng tegrastats: 30 giây nền rồi cửa sổ tải. Chế độ hai
-  bo cộng cả hai bo. Khi chạy, công suất tăng thêm khoảng 1,5\,W ở mọi chế độ.}
+  bo cộng cả hai bo. Khi chạy, công suất tăng thêm 1,4--1,6\,W ở mọi chế độ, trừ chế độ nhân bản (2,6\,W, cả hai bo cùng chạy Spark).}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:45
@@ -424,7 +424,7 @@ năng phát hiện là gì.}
   \note{Phản biện 1 yêu cầu thêm bộ dữ liệu, nên nhóm phát lại CSE-CIC-IDS2018
   qua đúng các bo đang triển khai, không huấn luyện lại. Mức tải không chỉ phụ
   thuộc pipeline: tỷ lệ cổng bỏ qua phụ thuộc lưu lượng, kéo theo tải lên bộ
-  phân loại. Ở 12 luồng/giây một lần lặp mất 29 giây để xả hàng đợi. Nghiên cứu
+  phân loại. Ở 12 luồng/giây cả hai lần lặp đều xả hàng đợi quá hạn, mất 19 và 29 giây. Nghiên cứu
   offline khác bộ (18 lượt chạy) cho AUC-PR 0,48 chiều 2017 sang 2018 và 0,19
   chiều ngược lại.}
 \end{frame}

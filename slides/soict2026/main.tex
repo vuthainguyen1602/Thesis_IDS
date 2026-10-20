@@ -223,9 +223,9 @@ devices, and what it costs in detection. Eight minutes, five results.}
   \note{Single node and horizontal run with the gate off, as in the submitted
   version. Energy is measured at each mode's sustained rate: 2.0, 2.0, 3.9,
   9.5, 17.8 and 18.4 flows per second. Tail latency is seconds in every mode because one PySpark batch takes seconds. A1 was measured in a later session
-  with the same boards, models and replay file. At 30 flows per second one
-  repeat drained in 16 seconds. Gate skip is about 89 percent in every gated
-  mode. Median latency in split mode is about one second. Single node plus gate: the 10 second rule puts it at 1.9 only because one repeat drained in 10.6 seconds; at 3 flows per second it delivers 2.4 to 2.5 like the single node. Spark cluster: at 20 flows per second one repeat kept up at 17.1 and the other did not, so its capacity is only known to lie between about 9 and 17.}
+  with the same boards, models and replay file. At 30 flows per second both
+  repeats drained late, in 15 and 16 seconds. Gate skip is about 89 percent in every gated
+  mode. Median latency in split mode is about one second. Single node plus gate: the 10 second rule puts it at 2.0 only because one repeat drained in 10.6 seconds; at 3 flows per second it delivers 2.4 to 2.5 like the single node. Spark cluster: at 20 flows per second one repeat kept up at 17.1 and the other did not, so its capacity is only known to lie between about 9 and 17.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35
@@ -329,8 +329,8 @@ devices, and what it costs in detection. Eight minutes, five results.}
   \note{Reviewer one asked for a second dataset, so we replayed CSE-CIC-IDS2018
   through the deployed boards without retraining. Capacity is not a property
   of the pipeline alone: the gate's skip ratio depends on the traffic, and
-  with it the load on the classifier. At 12 flows per second a repeat drained
-  in 29 seconds. The offline cross-dataset study, 18 runs, gives AUC-PR 0.48
+  with it the load on the classifier. At 12 flows per second both repeats drained
+  late, in 19 and 29 seconds. The offline cross-dataset study, 18 runs, gives AUC-PR 0.48
   from 2017 to 2018 and 0.19 the other way.}
 \end{frame}
 

@@ -916,7 +916,7 @@ Một nút & 1 & 0,9 & 4,7 & 8,2 & 7,6 / 5,8 & Đạt \\
  & 2 & 1,8 & 4,3 & 8,1 & 6,5 / 0,4 & Đạt \\
  & 3 & 2,5 & 5,9 & 11,3 & 7,7 / 8,6 & Đạt \\
 \midrule
-Một nút + cổng lọc & 2 & 1,9 & 3,8 & 7,8 & 1,2 / 0,0 & Đạt \\
+Một nút + cổng lọc & 2 & 2,0 & 3,8 & 7,8 & 1,2 / 0,0 & Đạt \\
  & 3 & 2,4 & 6,3 & 11,7 & 10,6 / 8,7 & Không \\
  & 5 & 2,7 & 23,1 & 36,7 & 42,6 / 23,7$^{*}$ & Không \\
 \midrule
@@ -947,10 +947,10 @@ A: Pipeline split & 5 & 4,2 & 1,1 & 5,1 & 7,1 / 4,4 & Đạt \\
 \toprule
 \textbf{Chế độ} & \textbf{Số bo} & \textbf{\shortstack{Thông lượng duy trì\\(luồng/giây)}} & \textbf{\shortstack{Độ trễ đầu cuối\\p50 / p95 (s)}} & \textbf{\shortstack{Bỏ qua\\tại cổng lọc (\%)}} & \textbf{\shortstack{Năng lượng\\/dự đoán (J)}} \\ \midrule
 Một nút                   & 1 & 2{,}5  & 5{,}9 / 11{,}3 & --      & 3{,}04 \\
-Một nút + cổng lọc            & 1 & 1{,}9$^{*}$  & 3{,}8 / 7{,}8  & 89{,}0 & 3{,}04 \\
+Một nút + cổng lọc            & 1 & 2{,}0$^{*}$  & 3{,}8 / 7{,}8  & 89{,}0 & 3{,}04 \\
 B: Horizontal             & 2 & 3{,}3  & 4{,}1 / 8{,}2  & --      & 3{,}20 \\
 C: Spark cluster          & 2 & $\geq$8{,}7$^{\dagger}$  & \textbf{0{,}7 / 5{,}2}  & 88{,}6 & 1{,}15 \\
-A1: Tách, cùng một bo$^{\ddagger}$ & 1 & 17{,}8 & 0{,}6 / 5{,}3 & 88{,}9 & \textbf{0{,}32} \\
+A1: Tách, cùng một bo$^{\ddagger}$ & 1 & 17{,}8 & 0{,}6 / 5{,}3 & 89{,}0 & \textbf{0{,}32} \\
 \textbf{A: Pipeline split} & 2 & \textbf{22{,}4} & 1{,}0 / 7{,}1 & 88{,}8 & 0{,}60 \\ \bottomrule
 \end{tabular*}
 
@@ -990,7 +990,7 @@ Recall / F1 đầu cuối (precision 100\%) & 69{,}5\% / 0{,}820 & 0{,}8\% / 0{,
 Bộ phân loại chạy riêng, recall ngoại tuyến & 99{,}8\% & 1{,}8\% \\ \bottomrule
 \end{tabular*}
 
-\tabnote{$^{*}$Lượt phát lại 1.250\,giây ở 8 luồng/giây xử lý hết phần tồn sau 1{,}9\,giây. Ở 12 luồng/giây, một lần lặp cần 29\,giây. Hàng cuối chấm cùng rừng cây ngoại tuyến qua bản xuất ONNX (dự đoán trùng khớp với PySpark).}
+\tabnote{$^{*}$Lượt phát lại 1.250\,giây ở 8 luồng/giây xử lý hết phần tồn sau 1{,}9\,giây. Ở 12 luồng/giây, cả hai lần lặp đều xả hàng đợi quá hạn (18{,}5 và 28{,}9\,giây). Hàng cuối chấm cùng rừng cây ngoại tuyến qua bản xuất ONNX (dự đoán trùng khớp với PySpark).}
 \end{table}
 
 \textbf{So với số liệu đo trước.} Một lượt đo trước đó của cùng hệ thống ghi nhận 62{,}5 luồng/giây, p95 13\,ms và tỷ lệ bỏ qua 95{,}8\% cho pipeline split. Phép đo đó chỉ đếm các dự đoán ghi được trong cửa sổ tải và chỉ tính độ trễ suy luận của từng nút, nên bỏ sót các luồng còn nằm trong hàng đợi của bộ phân loại PySpark. Mô hình triển khai khi đó cũng dùng danh sách đặc trưng cũ. Các số liệu ở mục này thay thế toàn bộ số liệu đó.
