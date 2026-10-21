@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 import sys
 os.environ["PYSPARK_PYTHON"] = sys.executable
 os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+if sys.platform == "darwin":
+    os.environ.setdefault("OBJC_DISABLE_INITIALIZE_FORK_SAFETY", "YES")
 
 
 def _configure_java_home() -> None:
@@ -63,6 +65,11 @@ _configure_java_home()
 
 def _allow_local_spark() -> bool:
     return os.environ.get("IDS_ALLOW_LOCAL_SPARK", "").strip().lower() in ("1", "true", "yes")
+
+
+if sys.platform == "darwin" and _allow_local_spark():
+    # Prevent macOS external standalone SPARK_HOME (e.g. 3.5.3) from overriding pip pyspark (3.4.1) jars
+    os.environ.pop("SPARK_HOME", None)
 
 
 def require_distributed_spark(context: str = "this script") -> None:
