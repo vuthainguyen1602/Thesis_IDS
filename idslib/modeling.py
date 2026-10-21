@@ -782,7 +782,7 @@ def permutation_pvalue(scores_a: list, scores_b: list, n_permutations: int = 200
     for _ in range(n_permutations):
         signs = rng.choice([-1.0, 1.0], size=len(diffs))
         perm_stat = abs(float(np.mean(diffs * signs)))
-        if perm_stat >= observed:
+        if perm_stat >= observed - 1e-15:
             extreme += 1
     return (extreme + 1.0) / (n_permutations + 1.0)
 
