@@ -444,9 +444,9 @@ def _train_top3_bagging(
     training_time = time.time() - start_time
 
     start_pred = time.time()
-    ens_preds = ensemble_model.transform(test_df).cache()
-    ens_preds.count()
+    ens_preds = ensemble_model.transform(test_df)
     prediction_time = time.time() - start_pred
+    ens_preds.cache().count()
 
     metrics = compute_metrics(ens_preds)
     metrics["training_time"] = training_time
