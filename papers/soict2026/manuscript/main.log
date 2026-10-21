@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.1.1)  19 OCT 2026 11:14
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2025.1.1)  21 OCT 2026 10:36
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -363,6 +363,11 @@ Package xcolor Info: Model `wave' substituted by `hsb' on input line 1373.
 \Urlmuskip=\muskip17
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
+(/usr/local/texlive/2024basic/texmf-dist/tex/latex/cite/cite.sty
+LaTeX Info: Redefining \cite on input line 302.
+LaTeX Info: Redefining \nocite on input line 332.
+Package: cite 2015/02/27  v 5.5
+)
 (/usr/local/texlive/2024basic/texmf-dist/tex/latex/marvosym/marvosym.sty
 Package: marvosym 2011/07/20 v2.2 Martin Vogel's Symbols font definitions
 )
@@ -690,7 +695,7 @@ File: tikzlibrarybackgrounds.code.tex 2023-01-15 v3.1.10 (3.1.10)
 raries/tikzlibrarycalc.code.tex
 File: tikzlibrarycalc.code.tex 2023-01-15 v3.1.10 (3.1.10)
 )
-LaTeX Font Info:    Trying to load font information for T1+ptm on input line 46
+LaTeX Font Info:    Trying to load font information for T1+ptm on input line 47
 .
 
 (/usr/local/texlive/2024basic/texmf-dist/tex/latex/psnfss/t1ptm.fd
@@ -704,20 +709,20 @@ File: l3backend-pdftex.def 2024-02-20 L3 backend support: PDF output (pdfTeX)
 ) (./main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 46.
-LaTeX Font Info:    ... okay on input line 46.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 46.
-LaTeX Font Info:    ... okay on input line 46.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 46.
-LaTeX Font Info:    ... okay on input line 46.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 46.
-LaTeX Font Info:    ... okay on input line 46.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 46.
-LaTeX Font Info:    ... okay on input line 46.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 46.
-LaTeX Font Info:    ... okay on input line 46.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 46.
-LaTeX Font Info:    ... okay on input line 46.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 47.
+LaTeX Font Info:    ... okay on input line 47.
 
 (/usr/local/texlive/2024basic/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -744,67 +749,67 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
 
-Package mathptmx Warning: There are no bold math fonts on input line 70.
+Package mathptmx Warning: There are no bold math fonts on input line 71.
 
 LaTeX Font Info:    Trying to load font information for OT1+ztmcm on input line
- 70.
+ 71.
 (/usr/local/texlive/2024basic/texmf-dist/tex/latex/psnfss/ot1ztmcm.fd
 File: ot1ztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OT1/ztmcm.
 )
 LaTeX Font Info:    Trying to load font information for OML+ztmcm on input line
- 70.
+ 71.
 
 (/usr/local/texlive/2024basic/texmf-dist/tex/latex/psnfss/omlztmcm.fd
 File: omlztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OML/ztmcm.
 )
 LaTeX Font Info:    Trying to load font information for OMS+ztmcm on input line
- 70.
+ 71.
 
 (/usr/local/texlive/2024basic/texmf-dist/tex/latex/psnfss/omsztmcm.fd
 File: omsztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OMS/ztmcm.
 )
 LaTeX Font Info:    Trying to load font information for OMX+ztmcm on input line
- 70.
+ 71.
 
 (/usr/local/texlive/2024basic/texmf-dist/tex/latex/psnfss/omxztmcm.fd
 File: omxztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OMX/ztmcm.
 )
 LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 7
-0.
+1.
 
 (/usr/local/texlive/2024basic/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 70.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 71.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7.4> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 70.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 71.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 70.
-LaTeX Font Info:    Trying to load font information for U+mvs on input line 70.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 71.
+LaTeX Font Info:    Trying to load font information for U+mvs on input line 71.
 
 
 (/usr/local/texlive/2024basic/texmf-dist/tex/latex/marvosym/umvs.fd)
 LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 7
-0.
+1.
 
 (/usr/local/texlive/2024basic/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 70.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 71.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 70.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 71.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <5> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 70.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 71.
 
-Underfull \hbox (badness 1231) in paragraph at lines 73--74
+Underfull \hbox (badness 1231) in paragraph at lines 74--75
 []\T1/ptm/m/n/9 Deploying ma-chine learn-ing (ML) based in-tru-sion de-tec-tion
  on
  []
 
 LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 7
-5.
+6.
 (/usr/local/texlive/2024basic/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 ) [1
@@ -816,10 +821,10 @@ Underfull \vbox (badness 5105) has occurred while \output is active []
 
  [3]
 [4]
-<figures/grafana_dashboard.png, id=26, 1927.2pt x 1229.59375pt>
+<figures/grafana_dashboard.png, id=27, 1927.2pt x 1229.59375pt>
 File: figures/grafana_dashboard.png Graphic file (type png)
 <use figures/grafana_dashboard.png>
-Package pdftex.def Info: figures/grafana_dashboard.png  used on input line 178.
+Package pdftex.def Info: figures/grafana_dashboard.png  used on input line 179.
 
 (pdftex.def)             Requested size: 347.12354pt x 221.46742pt.
 
@@ -827,34 +832,28 @@ Underfull \vbox (badness 1383) has occurred while \output is active []
 
  [5]
 [6 <./figures/grafana_dashboard.png (PNG copy)>]
-Underfull \hbox (badness 1603) in paragraph at lines 286--287
-[]\T1/ptm/m/n/9 Explainable; fewer fea-
- []
+Underfull \vbox (badness 1281) has occurred while \output is active []
 
-
-Underfull \hbox (badness 2762) in paragraph at lines 286--287
-\T1/ptm/m/n/9 tures (de-ployed fea-ture
- []
-
-[7] [8] [9]
-Underfull \hbox (badness 1168) in paragraph at lines 339--340
+ [7]
+[8] [9]
+Underfull \hbox (badness 1168) in paragraph at lines 341--342
 []\T1/ptm/b/n/10 Inference-engine base-line (cost of the uni-fied stack). \T1/p
 tm/m/n/10 We de-ploy a Spark
  []
 
-<figures/edge_capacity.png, id=44, 722.7pt x 245.718pt>
-File: figures/edge_capacity.png Graphic file (type png)
-<use figures/edge_capacity.png>
-Package pdftex.def Info: figures/edge_capacity.png  used on input line 359.
-(pdftex.def)             Requested size: 295.05711pt x 100.3176pt.
+<figures/edge_capacity.pdf, id=44, 346.89601pt x 126.4725pt>
+File: figures/edge_capacity.pdf Graphic file (type pdf)
+<use figures/edge_capacity.pdf>
+Package pdftex.def Info: figures/edge_capacity.pdf  used on input line 361.
+(pdftex.def)             Requested size: 347.12354pt x 126.56094pt.
 [10]
-<figures/gate_operating_points.png, id=49, 355.5684pt x 196.3335pt>
-File: figures/gate_operating_points.png Graphic file (type png)
-<use figures/gate_operating_points.png>
-Package pdftex.def Info: figures/gate_operating_points.png  used on input line 
-391.
-(pdftex.def)             Requested size: 242.98541pt x 134.17007pt.
- [11 <./figures/edge_capacity.png>] [12 <./figures/gate_operating_points.png>] 
+<figures/gate_operating_points.pdf, id=48, 244.58125pt x 123.19965pt>
+File: figures/gate_operating_points.pdf Graphic file (type pdf)
+<use figures/gate_operating_points.pdf>
+Package pdftex.def Info: figures/gate_operating_points.pdf  used on input line 
+393.
+(pdftex.def)             Requested size: 242.98541pt x 122.39662pt.
+ [11 <./figures/edge_capacity.pdf>] [12 <./figures/gate_operating_points.pdf>] 
 (./main.bbl [13]
 Underfull \hbox (badness 1122) in paragraph at lines 25--28
 []\T1/ptm/m/n/9 Cantone, M., Mar-rocco, C., Bria, A.: Ma-chine learn-ing in net
@@ -988,13 +987,13 @@ L3 programming layer <2024-02-20>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 15335 strings out of 475567
- 310497 string characters out of 5777890
+ 15439 strings out of 475567
+ 312066 string characters out of 5777890
  1944187 words of memory out of 5000000
- 37175 multiletter control sequences out of 15000+600000
- 613739 words of font info for 117 fonts, out of 8000000 for 9000
+ 37274 multiletter control sequences out of 15000+600000
+ 614161 words of font info for 119 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 84i,13n,87p,1657b,1038s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,13n,87p,1658b,1038s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2024basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi1
 0.pfb></usr/local/texlive/2024basic/texmf-dist/fonts/type1/public/amsfonts/cm/c
 mr10.pfb></usr/local/texlive/2024basic/texmf-dist/fonts/type1/public/amsfonts/c
@@ -1004,10 +1003,10 @@ b></usr/local/texlive/2024basic/texmf-dist/fonts/type1/public/marvosym/marvosym
 .pfb></usr/local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmb8a.pfb>
 </usr/local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr
 /local/texlive/2024basic/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on main.pdf (15 pages, 632488 bytes).
+Output written on main.pdf (15 pages, 495917 bytes).
 PDF statistics:
- 109 PDF objects out of 1000 (max. 8388607)
- 68 compressed objects within 1 object stream
+ 124 PDF objects out of 1000 (max. 8388607)
+ 77 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  28 words of extra memory for PDF output out of 10000 (max. 10000000)
 
