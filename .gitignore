@@ -40,8 +40,9 @@ thesis/main.pdf
 slides/*/main.pdf
 slides/*/main_notes.pdf
 
-# Keep exported PDFs here
+# Keep exported PDFs and slides here
 !output/pdfs/*.pdf
+!output/pdfs/*.pptx
 
 # Camera-ready packages & private submission assets
 output/soict2026_camera_ready/
