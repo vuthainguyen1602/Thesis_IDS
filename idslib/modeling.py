@@ -9,8 +9,6 @@ CLASS_WEIGHT_COL = "classWeight"
 
 _extract_prob_udf = udf(lambda v: float(v[1]) if v is not None and len(v) > 1 else 0.0, DoubleType())
 _vector_prob_udf = udf(lambda p: Vectors.dense([1.0 - p, p]), VectorUDT())
-extract_prob_udf = _extract_prob_udf
-vector_prob_udf = _vector_prob_udf
 
 
 def add_class_weights(df, scale_pos_weight: float = None,
