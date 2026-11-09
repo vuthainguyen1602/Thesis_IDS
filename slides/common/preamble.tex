@@ -178,4 +178,10 @@
 \ifdefined\shownotes
   \usepackage{pgfpages}
   \setbeameroption{show notes on second screen=right}
+  % No hyphenation in notes: pdf2pptx.py copies the note text into PowerPoint,
+  % and a word broken across lines ("asym- metry") reads badly there.
+  % Set globally: a template hook does not reach the end of the note paragraph.
+  % Only the notes build is affected; main.pdf is compiled without \shownotes.
+  \hyphenpenalty=10000
+  \exhyphenpenalty=10000
 \fi

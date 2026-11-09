@@ -6,7 +6,7 @@ the right half of each page is extracted as text and stored as speaker notes.
 
 Usage: pdf2pptx.py slides/<deck>/main.pdf output/pdfs/<Name>.pptx [--dpi 200]
 """
-import argparse, re, subprocess, sys, tempfile
+import argparse, re, subprocess, sys, tempfile, unicodedata
 from pathlib import Path
 
 from pptx import Presentation
@@ -92,7 +92,10 @@ def notes_text(notes_pdf: Path, page: int, w: float, h: float) -> str:
         buf.append(text); prev_top = ln[0][0]
     if buf:
         paras.append(" ".join(buf))
-    return "\n\n".join(paras).strip()
+    # pdftohtml keeps typographic ligatures (U+FB00..FB06: ff, fi, fl, ffi, ffl);
+    # spell them out so the PowerPoint notes are plain, searchable text.
+    out = "\n\n".join(paras).strip()
+    return "".join(unicodedata.normalize("NFKC", c) if "ﬀ" <= c <= "ﬆ" else c for c in out)
 
 
 def main():
