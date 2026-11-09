@@ -39,7 +39,7 @@
 
 % ---------------------------------------------------------------- 0:20
 \maketitle
-\note{Good morning everyone. Today I will show what a second edge board actually adds when we split an ML intrusion detection system across two Jetson boards, and what it costs in detection. In eight minutes, I will share five key results.}
+\note{Good morning everyone. We have two small boards. We split an attack detector across them. I will show what we gain, and what we lose. I have five results.}
 
 % ---------------------------------------------------------------- 0:50
 % =====================================================================
@@ -71,7 +71,7 @@
       \end{exampleblock}
     \end{column}
   \end{columns}
-  \note{We see three big gaps in previous work: they only test on a single board, they rarely report energy together with latency, and offline results often have data leakage. Our goal is to address all three on a real two-board cluster.}
+  \note{Past work has three gaps. One: it uses only one board. Two: it does not report speed and energy together. Three: test data often leaks into training. We fix all three on two real boards.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35
@@ -92,7 +92,7 @@
           selected by our offline Spark ML evaluation under a strict
           leakage-free protocol.
   \end{enumerate}
-  \note{To be clear, we do not claim a new machine learning model. Our main contribution is the empirical measurement: how to place the workload, how much speedup we get, and what the trade-off in detection is.}
+  \note{We do not make a new model. All parts are standard. Our work is the measurement: where to put each part, how fast it gets, and what we lose.}
 \end{frame}
 
 % ---------------------------------------------------------------- 1:00
@@ -134,7 +134,7 @@
   {\tiny\textcolor{gray!55!black}{CICIDS2017: Sharafaldin et al., ICISSP 2018
   $\cdot$ Kafka: Kreps et al., NetDB 2011 $\cdot$ Spark: Zaharia et al.,
   HotCloud 2010.}}
-  \note{Here is our system. The host PC runs the background services. Board one runs a lightweight autoencoder gate to filter benign traffic. Board two runs the heavy PySpark classifier. Only suspicious flows pass to Board two via Kafka. Everything is monitored in real time using Grafana.}
+  \note{Here is our system. The PC runs Kafka, the database, and Grafana. Board one runs a small filter, we call it the gate. It passes about eleven percent of the traffic to board two. Board two runs the big classifier.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -165,7 +165,7 @@
       \end{block}
     \end{column}
   \end{columns}
-  \note{We measure end-to-end latency: from the moment a flow is sent until its final verdict is saved, including queueing time. Each test uses a fresh Kafka group so no old messages remain.}
+  \note{We test five setups. The key one is A1: two separate programs on one board. A uses two boards. We measure the time from sending a flow to getting the answer. All flows must finish within ten seconds.}
 \end{frame}
 
 % ---------------------------------------------------------------- 1:20
@@ -208,7 +208,7 @@
   \end{columns}
   \takeaway{\textbf{Splitting stages gives the biggest gain}: one board
   with two separate processes is the most energy-efficient choice; adding a second board provides extra headroom.}
-  \note{Look at the table: Single node only handles 2.5 flows per second. If we run the gate and classifier as two separate processes on the SAME board, capacity jumps 7 times to 17.8 flows per second, using only 0.32 Joules per flow. Adding a second board pushes it to 22.4 flows per second, but uses twice the energy. So the key insight: decoupling the pipeline gives the speedup, not just adding more hardware.}
+  \note{Look at the table. One board, one program: two and a half flows per second. One board, two programs: about eighteen. That is seven times faster, and it uses the least energy. Two boards: twenty-two, but twice the energy. So splitting the work matters most. More hardware helps less.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35
@@ -229,7 +229,7 @@
       the input path prevents system bottlenecks.
     \end{column}
   \end{columns}
-  \note{This Grafana screenshot shows the system at peak load. Notice the huge contrast: Board one uses only 1.3 percent CPU, while Board two reaches 94.5 percent. This extreme asymmetry is why splitting the stages is so effective.}
+  \note{Here is the live view. Board one uses one percent CPU. Board two uses ninety-five percent. The classifier does almost all the work.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35
@@ -266,7 +266,7 @@
   \end{columns}
   \takeaway{The capacity gain is paid for in recall: the gate is a
   \key{tunable trade-off} (operating curve in backup), not a free filter.}
-  \note{What is the trade-off? High throughput costs recall. Precision is 100 percent with zero false alarms. But recall drops to 69.5 percent. Notice that every missed attack was skipped by the gate; the classifier made zero errors on what it received. So the gate threshold directly controls this trade-off.}
+  \note{What do we lose? Precision is one hundred percent. No false alarms. But recall is about seventy percent. The gate drops some attacks. The classifier makes no mistakes. So the gate setting controls this trade-off.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:50
@@ -303,7 +303,7 @@
   \end{columns}
   \takeaway{Neither detection \emph{nor capacity} transfers: a new network
   needs a \key{recalibrated gate} and a \key{retrained classifier}.}
-  \note{When we test on another dataset, CSE-CIC-IDS2018, without retraining: capacity drops from 22 to 8 flows per second, and recall drops to under 1 percent. Why? Because normal traffic from a new network looks strange to the gate, sending 30 percent of flows to the classifier instead of 11. So for a new network, we must recalibrate the gate and retrain the classifier.}
+  \note{Now we test on the 2018 data, with no retraining. Two problems. One: the gate sends thirty percent of traffic, not eleven. So speed drops from twenty-two to eight. Two: the classifier misses almost all attacks. So for a new network, we must retrain both parts.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:45
@@ -331,7 +331,7 @@
   \takeaway{ONNX Runtime serves the same forest \num{$\approx$7{,}200$\times$}
   faster. Target for the next iteration: \key{train on Spark, serve with
   ONNX/TensorRT}.}
-  \note{We used PySpark for inference to match our distributed training pipeline. But on edge devices, the Spark JVM overhead is huge: taking 7.5 seconds per batch. Running the exact same model with ONNX Runtime is 7,200 times faster, at only 1.2 milliseconds. This clearly points to our future roadmap: train with Spark, but serve with ONNX or TensorRT.}
+  \note{We use Spark to match our training. But Spark is slow: about seven seconds for each call. With the same model, ONNX is about seven thousand times faster. So next, we train with Spark, and run with ONNX.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -366,7 +366,7 @@
   \vfill
   \centering
   \key{Thank you --- questions?}
-  \note{To summarize: First, decoupling the detection pipeline increases capacity by 7 to 9 times. Second, the trade-off is a 30 percent drop in recall at the gate. Third, cross-network deployment requires recalibrating the gate. And finally, lightweight serving engines like ONNX are critical for real-time edge IDS. Thank you for your attention, and I would be happy to answer your questions.}
+  \note{To sum up. One: splitting the work gives seven to nine times more speed. Two: the gate misses about thirty percent of attacks. Three: a new network needs retraining. Four: ONNX is much faster than Spark. Thank you. Questions are welcome.}
 \end{frame}
 
 % ---------------------------------------------------------------- 7:00
