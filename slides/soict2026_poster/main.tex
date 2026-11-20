@@ -74,6 +74,20 @@
 \noindent\begin{tikzpicture}[remember picture, overlay]
   \fill[accBlue] (current page.north west) rectangle ([yshift=-178mm]current page.north east);
   \fill[accRed] ([yshift=-178mm]current page.north west) rectangle ([yshift=-182mm]current page.north east);
+  % Footer: conference line and the organisers' logos, kept apart from the
+  % authors' affiliation logos in the header.
+  \fill[accBlue] (current page.south west) rectangle ([yshift=52mm]current page.south east);
+  \fill[accRed] ([yshift=52mm]current page.south west) rectangle ([yshift=56mm]current page.south east);
+  \node[anchor=west, text=white, align=left, font=\fontsize{24}{30}\selectfont]
+    at ([xshift=30mm, yshift=26mm]current page.south west)
+    {\textbf{SOICT 2026} --- The 15th International Symposium on Information\\
+     and Communication Technology \,·\, Ho Chi Minh City, Vietnam \,·\, 4--5 December 2026};
+  \node[anchor=east, fill=white, rounded corners=4mm, inner xsep=6mm, inner ysep=4mm,
+        font=\fontsize{19}{23}\selectfont, text=inkDark]
+    at ([xshift=-30mm, yshift=26mm]current page.south east)
+    {\begin{tabular}{@{}c@{}}Organized by\\[2mm]\includegraphics[height=30mm]{org_soict_hust.png}\end{tabular}%
+     \hspace{8mm}%
+     \begin{tabular}{@{}c@{}}Co-organized by\\[2mm]\includegraphics[height=30mm]{org_hcmus.png}\end{tabular}};
 \end{tikzpicture}%
 \vspace*{14mm}
 
@@ -144,7 +158,7 @@
 % Both columns get the same fixed height and spread their boxes with \vfill,
 % so their bottoms line up. Keep \colheight above the taller column's natural
 % height (see the POSTER line in the log) and below 1189 mm minus the header.
-\newlength\colheight\setlength\colheight{908mm}
+\newlength\colheight\setlength\colheight{876mm}
 \newsavebox\colL\newsavebox\colR
 \begin{lrbox}{\colL}%
 \begin{minipage}[t][\colheight][t]{381mm}\vspace{0pt}% top-align both columns
