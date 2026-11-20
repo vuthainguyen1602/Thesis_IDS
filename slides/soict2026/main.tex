@@ -210,7 +210,7 @@
     \end{column}
   \end{columns}
   \takeaway{\textbf{Splitting stages gives the biggest gain}: one board
-  with two separate processes is the most energy-efficient choice; adding a second board provides extra headroom.}
+  with two separate processes is the most energy-efficient choice, and a second board only adds headroom.}
   \note{Look at the table. One board, one program: two and a half flows per second. One board, two programs: about eighteen. That is seven times faster, and it uses the least energy. Two boards: twenty-two, but twice the energy. So splitting the work matters most. More hardware helps less.}
 \end{frame}
 
@@ -356,14 +356,14 @@
     \begin{column}{0.44\textwidth}
       \textbf{Limitations}
       \begin{itemize}\footnotesize
-        \item Two-node lab cluster over Wi-Fi; replayed traffic.
+        \item Two-node lab cluster over Wi-Fi, replayed traffic.
         \item No transfer to CSE-CIC-IDS2018 without retraining.
         \item Kafka and the database stay on a host PC.
-        \item GPU unused (CPU-only pipeline); evasion untested.
+        \item GPU unused (CPU-only pipeline), evasion untested.
       \end{itemize}
       \textbf{Next}
       \begin{itemize}\footnotesize
-        \item ONNX/TensorRT serving; live traffic; retraining under drift.
+        \item ONNX/TensorRT serving, live-traffic validation, retraining under drift.
       \end{itemize}
     \end{column}
   \end{columns}
