@@ -326,13 +326,13 @@
 \begin{frame}{KQ2 --- Học tổ hợp không vượt được mô hình đơn tốt nhất}
   \centering\small
   \fitwidth{%
-  \begin{tabular}{lccc}
+  \begin{tabular}{lcccc}
     \toprule
-    Trên SHAP Top-30 (cấu hình triển khai) & F1 & Huấn luyện (s) & Dung lượng (MB) \\
+    Trên SHAP Top-30 (cấu hình triển khai) & F1 & Huấn luyện (s) & Dự đoán (s) & Dung lượng (MB) \\
     \midrule
-    \textbf{XGBoost} (mô hình đơn) & \num{0,9970} & \num{1226} & --- \\
-    Soft Voting                    & 0,9967 & --- & 0,01 \\
-    Hybrid Bagging                 & 0,9966 & \bad{4909} & \bad{7,15} \\
+    \textbf{XGBoost} (mô hình đơn) & \num{0,9970} & \num{1226} & 7,1 & 2,37 \\
+    Soft Voting                    & 0,9967 & --- & --- & --- \\
+    Hybrid Bagging                 & 0,9966 & \bad{4909} & \bad{46,6} & \bad{7,15} \\
     \bottomrule
   \end{tabular}
   }
@@ -345,12 +345,12 @@
           hình đơn --- nó \emph{bù cho bộ đặc trưng kém}, không tạo thêm hiệu năng.
   \end{itemize}
   \takeaway{Trả lời \key{RQ2}: không có lợi thế đáng kể. Với thiết bị biên, mô
-  hình đơn thắng cả về F1 lẫn chi phí --- huấn luyện nhanh gấp 4 lần, mô hình
-  nhỏ hơn nhiều.}
+  hình đơn thắng cả về F1 lẫn chi phí --- huấn luyện nhanh gấp 4 lần, dự đoán
+  nhanh gấp 6,5 lần, mô hình nhẹ bằng một phần ba.}
   \note{Đây là bằng chứng cho RQ2, và là một kết quả âm tính --- nói thẳng ra
   thay vì né. Hybrid Bagging ghép Top-3 thuật toán có F1 cao nhất trên tập kiểm
-  định, có trọng số. Dung lượng XGBoost SHAP Top-30 trên cụm phân tán báo thiếu (0,003\,MB).
-  Huấn luyện lại ở chế độ đơn nút đo được 2,37\,MB. Slide sau sẽ cho thấy ngay cả chênh lệch
+  định, có trọng số. Dung lượng XGBoost SHAP Top-30 trên cụm phân tán báo thiếu (0,003\,MB),
+  nên 2,37\,MB là bản huấn luyện lại ở chế độ đơn nút (chú thích Bảng 4.3 trong luận văn). Slide sau sẽ cho thấy ngay cả chênh lệch
   giữa các cấu hình hàng đầu cũng không có ý nghĩa thực tiễn.}
 \end{frame}
 
@@ -457,7 +457,7 @@
   lưu lượng nền.}
 \end{frame}
 
-\begin{frame}{KQ5 --- Tổng quát hóa liên bộ dữ liệu: điểm số không chuyển được}
+\begin{frame}{KQ5 --- Liên bộ dữ liệu: điểm số không chuyển được, 1\% nhãn thì đủ}
   \begin{columns}[T]
     \begin{column}{0.46\textwidth}
       \centering\small
@@ -473,28 +473,48 @@
         \bottomrule
       \end{tabular}
       }
-      \\[0.25em]
-      \small
-      Trung bình 18 lượt chạy, trên tập đặc trưng chung đã loại rò rỉ.
+      \\[0.15em]
+      {\scriptsize 18 lượt; 2017$\rightarrow$2018 tách hai nhóm (11 / 7 lượt).}
+      \\[0.3em]
+      \fitwidth{%
+      \begin{tabular}{lcc}
+        \toprule
+        Khắc phục (F1) & 2017$\rightarrow$2018 & 2018$\rightarrow$2017 \\
+        \midrule
+        Không thích ứng          & 0,29 & 0,06 \\
+        Chuẩn hóa theo miền / CORAL & \bad{0,00} & \bad{0,00} \\
+        Nguồn $+$ 1\% nhãn đích  & 0,80 & 0,96 \\
+        \textbf{Chỉ 1\% nhãn đích} & \good{0,92} & \good{0,99} \\
+        \bottomrule
+      \end{tabular}
+      }
     \end{column}
-    \begin{column}{0.48\textwidth}
+    \begin{column}{0.50\textwidth}
       \begin{itemize}\small
-        \item Trong-miền ổn định \emph{cả hai} chiều --- liên bộ sụp: AUC-PR
-              \bad{1,00$\rightarrow$0,48} và \bad{0,97$\rightarrow$0,19}.
-        \item Recall 0,073 / 0,030: \key{không nhận ra} tấn công testbed kia
-              (khác CICFlowMeter, cấu hình mạng, công cụ tấn công).
-        \item 18 lượt, \key{hai chế độ rời nhau}: 11 lượt 0,029--0,085 và 7
-              lượt 0,185--0,301, trong khi AUC-PR lệch không đáng kể.
+        \item Liên bộ sụp: AUC-PR \bad{1,00$\rightarrow$0,48} và
+              \bad{0,97$\rightarrow$0,19}. Recall 0,073 / 0,030 --- \key{bỏ sót}
+              gần hết tấn công testbed kia.
+        \item Căn chỉnh không nhãn (chuẩn hóa, CORAL) đưa F1 \bad{về 0}: hai
+              miền khác nhau ở \emph{ranh giới quyết định}, không chỉ ở thang đo.
+        \item \key{$\approx$19 nghìn luồng có nhãn (1\%)} của mạng mới là đủ.
+              Gộp thêm dữ liệu cũ \bad{làm xấu đi} (0,92 $\rightarrow$ 0,80).
       \end{itemize}
     \end{column}
   \end{columns}
-  \takeaway{Điểm số trong-miền gần hoàn hảo --- \emph{kể cả khi đã loại rò
-  rỉ} --- \key{không chứng nhận} khả năng triển khai khi phân phối dịch chuyển.}
+  \takeaway{F1 trong-miền gần hoàn hảo --- \emph{kể cả khi đã loại rò rỉ} ---
+  \key{không chuyển} sang mạng khác. Sang mạng mới: gán nhãn $\sim$1\% tại chỗ
+  rồi huấn luyện lại từ đầu.}
   \note{Không làm nhẹ con số này. Nếu hội đồng hỏi vì sao F1 liên bộ dao động
   rộng: cụm luồng tấn công miền đích nằm sát ngưỡng 0,5 nên cả cụm lật cùng lúc,
-  tạo ra hai chế độ. Năm hạt giống chạy hai lượt: ba giữ chế độ, hai đổi chế độ
-  --- tức không phải do hạt giống. AUC-PR không khác biệt giữa hai chế độ nên đó là đại
-  lượng chính. Thống nhất với các nghiên cứu liên bộ trước đó.}
+  tạo ra hai nhóm rời nhau. Năm hạt giống chạy hai lượt: ba giữ nhóm, hai đổi nhóm
+  --- tức không phải do hạt giống. AUC-PR không khác biệt giữa hai nhóm (Welch
+  $|t|$ = 1,30) nên đó là đại lượng chính, và luận văn không báo cáo F1 trung
+  bình (0,1276 rơi vào khoảng trống, không lượt nào cho giá trị đó).
+  Bảng khắc phục lấy từ các lượt nhóm cao (Bảng 4.12, 4.13): CORAL nâng AUC-PR
+  chiều 2018$\rightarrow$2017 từ 0,18 lên 0,25 nhưng F1 vẫn 0, vì ngưỡng 0,5 học
+  từ miền nguồn không còn đúng. 1\% lấy từ tập huấn luyện miền đích, giữ tỷ lệ
+  tấn công tự nhiên: 19.276 và 18.011 luồng. Dữ liệu nguồn gộp vào (1,79 triệu
+  luồng) lấn át phần dữ liệu đích ít nhưng đúng phân phối.}
 \end{frame}
 
 % =====================================================================
@@ -510,29 +530,32 @@
            &       & (luồng/giây) & (giây)           & (\%)          & (J/dự đoán) \\
     \midrule
     Một nút, không cổng lọc       & 1 & 2,5  & 5,9 / 11,3 & --   & 3,04 \\
-    Một nút + cổng lọc            & 1 & $\approx$2,5  & 3,8 / 7,8  & 89,0 & 3,04 \\
+    Một nút + cổng lọc            & 1 & 2,0$^{*}$ & 3,8 / 7,8  & 89,0 & 3,04 \\
     B: Mở rộng ngang          & 2 & 3,3  & 4,1 / 8,2  & --   & 3,20 \\
-    C: Cụm Spark              & 2 & 9--17  & 0,7 / 5,2  & 88,6 & 1,15 \\
+    C: Cụm Spark              & 2 & $\geq$8,7$^{\dagger}$ & 0,7 / 5,2  & 88,6 & 1,15 \\
     A1: Tách, cùng một bo     & 1 & 17,8   & 0,6 / 5,3  & 89,0 & 0,32 \\
     \textbf{A: Tách pipeline} & 2 & \good{22,4} & 1,0 / 7,1 & 88,8 & \good{0,60} \\
     \bottomrule
   \end{tabular}
   }
-  \par\vspace{0.2em}
+  \par\vspace{0.1em}
+  {\raggedright\tiny\textcolor{gray!55!black}{\emph{Duy trì được}: mọi luồng có
+  kết quả trong 10\,giây; độ trễ tính từ lúc gửi, gồm cả xếp hàng.
+  $^{*}$Ở 3 luồng/giây cho 2,4--2,5 như một nút, trượt quy tắc 10\,giây ở một lần
+  lặp. $^{\dagger}$Cận dưới: ở 20 luồng/giây một lần lặp theo kịp (17,1).}\par}
   \raggedright\footnotesize
   \begin{itemize}
-    \item \emph{Duy trì được}: \key{mọi luồng} có kết quả trong 10\,giây. Độ
-          trễ tính từ lúc gửi, \key{gồm cả xếp hàng}.
     \item \good{A gấp 9 lần một nút} nhờ \emph{tách hai tầng thành hai tiến
-          trình}: chạy chung không nhanh hơn, tách trên cùng một bo (A1) đã gấp 7.
-    \item \bad{Cái giá}: phát lại trọn 10.000 luồng, precision 100\% nhưng recall
-          69,5\% (F1 0,82), \key{mọi luồng sót đều do cổng lọc}. p95 $\approx$7\,giây.
+          trình} --- tách trên cùng một bo (A1) đã gấp 7.
+    \item \bad{Cái giá}: precision 100\% nhưng recall 69,5\% (F1 0,82),
+          \key{mọi luồng sót do cổng lọc}. Trên IDS2018: recall \bad{0,8\%}
+          $\rightarrow$ \hyperlink{bk-edge2018}{\key{Q15}}.
   \end{itemize}
   \note{Đây là số đo lại (30/9) sau khi phát hiện cách đo cũ chỉ đếm dự đoán
   trong cửa sổ tải: số cũ 62,5 luồng/giây và 95,8\% bỏ qua thực chất là
   $1 - 2{,}6/62{,}5$, tức thông lượng bộ phân loại chia tổng số luồng. Lần đo
   mới theo dõi từng luồng đã gửi đến khi có kết quả. Không có cổng lọc, recall
-  thực đo 100\% (242 luồng tấn công, gộp mọi lượt chạy). Phát lại trọn 10.000 luồng (19/10): 1.055/1.518 luồng tấn công, 463 luồng sót đều do cổng lọc bỏ qua, không báo nhầm luồng benign nào. Phát lại CSE-CIC-IDS2018 qua cùng pipeline: cổng lọc chuyển tiếp 30\% thay vì 11\%, thông lượng còn khoảng 8 luồng/giây, recall 0,8\% (Bảng 4.22): mạng mới cần hiệu chỉnh cổng lọc và huấn luyện lại. Một nút + cổng lọc: quy tắc 10 giây xếp nó ở mức 2,0 chỉ vì một lần lặp mất 10,6 giây. Ở tốc độ gửi 3 luồng/giây, nó cho 2,4--2,5 như một nút. Cụm Spark: ở mức 20, một lần lặp theo kịp (17,1), lần kia thì không, nên chỉ biết khoảng 9--17. Năng lượng là công suất toàn bo chia tốc
+  thực đo 100\% (242 luồng tấn công, gộp mọi lượt chạy). Phát lại trọn 10.000 luồng (19/10): 1.055/1.518 luồng tấn công, 463 luồng sót đều do cổng lọc bỏ qua, không báo nhầm luồng benign nào. Phát lại CSE-CIC-IDS2018 qua cùng pipeline: cổng lọc chuyển tiếp 30\% thay vì 11\%, thông lượng còn khoảng 8 luồng/giây, recall 0,8\% (Bảng 4.22): mạng mới cần hiệu chỉnh cổng lọc và huấn luyện lại. Một nút + cổng lọc: quy tắc 10 giây xếp nó ở mức 2,0 chỉ vì một lần lặp mất 10,6 giây. Ở tốc độ gửi 3 luồng/giây, nó cho 2,4--2,5 như một nút. Cụm Spark: ở mức 20, một lần lặp theo kịp (17,1), lần kia thì không, nên luận văn ghi cận dưới 8,7 (mức 10 đạt cả hai lần). Năng lượng là công suất toàn bo chia tốc
   độ dự đoán. A1 đo bổ sung ngày 12/10, cùng bo, cùng mô hình, cùng tệp phát lại:
   bo thứ hai chỉ thêm khoảng một phần tư thông lượng, còn năng lượng mỗi dự đoán
   tăng gần gấp đôi.}
@@ -612,7 +635,8 @@
 \begin{frame}{Trả lời trực tiếp ba câu hỏi nghiên cứu}
   \begin{block}{RQ1 --- Cắt hơn 60\% đặc trưng có giữ được hiệu năng?}
     \good{Có.} SHAP Top-30 đạt F1 \num{0,9970} so với 0,9971 của baseline 77 đặc
-    trưng, giảm $\approx$73\% thời gian huấn luyện.
+    trưng (TOST: chênh $< 2{,}3\times10^{-4}$), giảm $\approx$73\% thời gian
+    huấn luyện.
   \end{block}
   \begin{block}{RQ2 --- Học tổ hợp có hơn mô hình đơn tốt nhất một cách đáng kể?}
     \bad{Không.} Trên SHAP Top-30, XGBoost đơn đạt \num{0,9970} còn Hybrid
@@ -637,23 +661,25 @@
   \begin{columns}[T]
     \begin{column}{0.49\textwidth}
       \textbf{Về phương pháp luận}
-      \begin{itemize}
+      \begin{itemize}\small
         \item \key{Quy trình đánh giá loại trừ rò rỉ}, khử trùng lặp
               \emph{tất định} ở mức đặc trưng.
-        \item \key{Kiểm định thống kê chặt chẽ}: hoán vị ghép cặp, khoảng tin
-              cậy Nadeau--Bengio.
-        \item \key{Đánh giá đa lớp và liên bộ dữ liệu} --- chỉ ra điều F1 nhị
-              phân che giấu.
+        \item \key{Kiểm định thống kê}: hoán vị ghép cặp, Nadeau--Bengio, TOST.
+        \item \key{Kết quả âm tính}: học tổ hợp không đáng chi phí.
+        \item \key{Đa lớp và liên bộ dữ liệu}: 1\% nhãn đích đưa F1
+              liên bộ lên 0,92 / 0,99.
       \end{itemize}
     \end{column}
     \begin{column}{0.49\textwidth}
       \textbf{Về hệ thống}
-      \begin{itemize}
-        \item \key{Pipeline IDS hoàn chỉnh trên Apache Spark}, từ tiền xử lý đến
-              suy luận thời gian thực.
+      \begin{itemize}\small
+        \item \key{Pipeline IDS trên Apache Spark}, từ tiền xử lý đến suy
+              luận.
         \item \key{Kiến trúc hai tầng trên cụm biên}: cổng lọc bất thường $+$ phân
               lớp PySpark, nối bằng Kafka.
-        \item \key{Đo đạc vận hành đầy đủ}, kể cả năng lượng mỗi luồng.
+        \item \key{Đo có tính hàng đợi}: thông lượng, độ trễ, năng lượng.
+        \item \key{Chi phí đồng nhất stack}: ONNX nhanh hơn PySpark
+              $\approx$7.200 lần.
       \end{itemize}
     \end{column}
   \end{columns}
@@ -667,29 +693,36 @@
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \textbf{Hạn chế}
-      \begin{itemize}
+      \begin{itemize}\small
         \item \textbf{Phân loại}: triển khai chính là nhị phân.
-        \item \textbf{Dữ liệu}: CICIDS2017 không có lưu lượng IoT đặc thù.
+        \item \textbf{Dữ liệu}: một cặp bộ (mẫu 20\% IDS2018), không có lưu
+              lượng IoT đặc thù.
         \item \textbf{Quy mô}: mới ở mức \emph{minh chứng khái niệm}, cụm 2 nút.
-        \item \textbf{Đối kháng}: chưa kiểm thử lưu lượng né tránh, và GPU còn bỏ
-              trống.
+        \item \textbf{Cổng lọc \& PySpark}: recall bị chặn ở 68--73\%, p95
+              5,2--11,3\,giây.
+        \item \textbf{Đối kháng}: chưa kiểm thử lưu lượng né tránh.
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
       \textbf{Hướng phát triển} --- ứng với từng hạn chế
-      \begin{itemize}
+      \begin{itemize}\small
         \item \key{Lớp tấn công hiếm}: cân bằng có chủ đích, kiến trúc phân tầng.
-        \item \key{Dữ liệu IoT chuyên biệt}: Bot-IoT, TON\_IoT, CIC-IoT-2023.
-        \item \key{ONNX/TensorRT}, khai thác GPU Jetson.
+        \item \key{Dữ liệu IoT chuyên biệt}: Bot-IoT, TON\_IoT, CIC-IoT-2023;
+              toàn bộ IDS2018.
+        \item \key{ONNX/TensorRT} trên GPU Jetson: rút độ trễ xuống mili giây.
         \item \key{Bền vững đối kháng}: hai bề mặt mới do cổng lọc tạo ra.
       \end{itemize}
     \end{column}
   \end{columns}
-  \note{Nêu hạn chế trước khi hội đồng nêu, mỗi hạn chế đi kèm hướng khắc phục
-  tương ứng. Chi tiết: bộ phân loại đa lớp thời gian thực chưa hoàn thiện; liên
-  bộ dữ liệu mới thử trên mẫu phân tầng CSE-CIC-IDS2018; cụm 2 nút 8\,GB chưa
-  phải quy mô terabyte; GPU khoảng 67 TOPS chưa dùng vì pipeline chỉ chạy CPU.
-  Bản hướng phát triển đầy đủ ở slide Q12.}
+  \note{Nêu hạn chế trước khi hội đồng nêu, theo đúng năm mục của Chương 5.
+  Chi tiết: bộ phân loại đa lớp thời gian thực chưa hoàn thiện; liên bộ dữ liệu
+  mới thử một cặp, mẫu phân tầng 20\% CSE-CIC-IDS2018, và F1 liên bộ không tất
+  định giữa các lượt nên phải báo cáo theo nhóm; cụm 2 nút 8\,GB chưa phải quy
+  mô terabyte; recall 68--73\% là mức cổng lọc chuyển tiếp ở quantile 0,995
+  (tùy chế độ), p95 5,2--11,3 giây ở mọi chế độ vì mỗi lô PySpark mất vài giây
+  --- hợp với cảnh báo gần thời gian thực, chưa phải chặn tức thời. GPU khoảng
+  67 TOPS chưa dùng vì pipeline chỉ chạy CPU. Bản hướng phát triển đầy đủ ở
+  slide Q12.}
 \end{frame}
 
 
@@ -806,6 +839,8 @@
               $\rightarrow$ \hyperlink{bk-portmodels}{\key{Ablation 8 thuật toán}}
         \item[\key{Q14}] Tăng kích thước lô có cứu được Spark?
               $\rightarrow$ \hyperlink{bk-batch}{\key{Quét kích thước lô}}
+        \item[\key{Q15}] Chạy trên mạng khác (IDS2018) thì sao?
+              $\rightarrow$ \hyperlink{bk-edge2018}{\key{Phát lại IDS2018}}
       \end{itemize}
     \end{column}
   \end{columns}
@@ -956,6 +991,10 @@
           phân phối $t$ --- do đó Nadeau--Bengio là căn cứ chính. Tăng $N$ với
           cross-validation lồng nhau là hướng củng cố tiếp theo.
   \end{itemize}
+  \note{Phép xếp hạng lại (F1 lệch $\le 7{,}4\times10^{-5}$, 25--26/30 đặc
+  trưng chọn lại) được báo cáo trong bài FAIR, không có trong quyển luận văn ---
+  nếu hội đồng hỏi số trang thì nói rõ điều này. Các ý còn lại khớp Chương 3--4:
+  MLP không có weightCol (Chương 3), khử trùng lặp đổi phân bố lớp, $p$ sàn $2/64$.}
 \end{frame}
 
 \begin{frame}[label=bk-rf]{Q7 --- Vì sao chọn Random Forest cho thiết bị biên?}
@@ -1165,6 +1204,37 @@
   toàn bộ 7 giây là chi phí cố định: JVM, lập kế hoạch, Py4J. Công suất hoạt
   động của Spark giữ 2,0--2,1\,W ở mọi lô. Năng lượng của ONNX dao động giữa
   các lượt đo đơn (0,04--0,11\,mJ/luồng), chỉ nên nói bậc độ lớn.}
+\end{frame}
+
+\begin{frame}[label=bk-edge2018]{Q15 --- Đưa hệ thống đã triển khai sang một mạng khác}
+  \centering\small
+  \fitwidth{%
+  \begin{tabular}{lcc}
+    \toprule
+    Chế độ tách pipeline, phát lại 10.000 luồng & CICIDS2017 & CSE-CIC-IDS2018 \\
+    \midrule
+    Cổng lọc chuyển tiếp (benign bị chuyển tiếp) & 11,0\% (0,6\%) & \bad{30,4\% (28,4\%)} \\
+    Thông lượng duy trì (luồng/giây)               & 22,4 & \bad{$\approx$8} \\
+    Luồng tấn công / phát hiện được                & 1.518 / 1.055 & 1.276 / 10 \\
+    Bỏ sót: do cổng lọc / do bộ phân loại          & 463 / 0 & 712 / 554 \\
+    Recall / F1 đầu cuối (precision 100\%)         & 69,5\% / 0,820 & \bad{0,8\% / 0,016} \\
+    Bộ phân loại chạy riêng, recall ngoại tuyến    & 99,8\% & \bad{1,8\%} \\
+    \bottomrule
+  \end{tabular}}
+  \\[0.4em]
+  \raggedright\small
+  \begin{itemize}
+    \item Cổng lọc hiệu chỉnh trên benign của 2017 chuyển tiếp \bad{gấp ba} lưu
+          lượng $\rightarrow$ bộ phân loại PySpark quá tải, thông lượng còn $\approx$8.
+    \item Chính bộ phân loại cũng bỏ sót gần hết tấn công 2018 --- khớp KQ5.
+  \end{itemize}
+  \takeaway{Mỗi mạng mới cần \key{hiệu chỉnh lại cổng lọc} và \key{huấn luyện
+  lại bộ phân loại} (Bảng 4.22).}
+  \note{Mô hình và cổng lọc giữ nguyên, huấn luyện trên CICIDS2017. 10.000 luồng
+  lấy từ tập kiểm tra đã khử trùng lặp của CSE-CIC-IDS2018 (12,8\% tấn công),
+  cột ánh xạ về tên của CICIDS2017. Lượt 1.250 giây ở 8 luồng/giây xả hết hàng
+  đợi sau 1,9 giây; ở 12 luồng/giây cả hai lần lặp xả quá hạn (18,5 và 28,9
+  giây). Hàng cuối chấm cùng rừng cây qua bản ONNX, dự đoán trùng PySpark.}
 \end{frame}
 
 \begin{frame}[label=bk-future]{Q12 --- Hướng phát triển chi tiết}
