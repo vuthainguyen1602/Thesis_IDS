@@ -965,10 +965,15 @@
 
 \begin{frame}[label=bk-heatmap]{Q5 --- Bản đồ nhiệt F1: phương pháp $\times$ thuật toán}
   \centering
-  \IfFileExists{../../results/ml_07_cross_method_comparison/f1_heatmap.png}
-    {\includegraphics[height=0.74\textheight, width=\textwidth, keepaspectratio]{f1_heatmap.png}}
-    {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}\texttt{f1\_heatmap.png}\vspace{1.5cm}}}}
-  \\[0.2em]\footnotesize Nhị phân, đã loại đặc trưng cổng. 8 thuật toán $+$ 2 mô hình học tổ hợp, $\times$ 4 phương pháp.
+  % plot_f1_heatmap.py: same results as results/ml_07/f1_heatmap.png, with
+  % every cell the thesis does not print greyed out.
+  \includegraphics[height=0.70\textheight, width=\textwidth, keepaspectratio]{img/f1_heatmap_vi.png}
+  \\[0.2em]\footnotesize Nhị phân, đã loại đặc trưng cổng. Mỗi số trên hình đều có trong luận
+  văn: Bảng 4.2, 4.3, 4.4 và phần thảo luận.
+  \note{Ô xám không phải là chưa chạy: pipeline có đủ 40 ô, nhưng luận văn chỉ
+  in F1 đủ 10 mô hình cho Baseline và các mô hình cây cho ba cấu hình giảm chiều.
+  Nếu hội đồng hỏi số của ô xám, trả lời là có trong kết quả chạy, không đưa vào
+  quyển. Ví dụ: Naive Bayes vẫn thấp nhất ở mọi cấu hình (0,27--0,36).}
 \end{frame}
 
 \begin{frame}[label=bk-threats]{Q6 --- Các yếu tố ảnh hưởng tính hợp lệ}
