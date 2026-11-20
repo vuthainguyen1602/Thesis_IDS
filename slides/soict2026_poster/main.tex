@@ -52,17 +52,21 @@
   boxrule=1.4mm, arc=4mm, left=6mm, right=6mm, top=3.5mm, bottom=3.5mm,
   fonttitle=\fontsize{36}{42}\selectfont\bfseries, coltitle=white,
   colbacktitle=accBlue, toptitle=2mm, bottomtitle=2mm,
-  title={#2}, before skip=0mm, after skip=0mm, #1}
+  title={#2}, before skip=0mm, after skip=0mm, halign=flush left, #1}
 
 \newtcolorbox{takeaway}{enhanced, colback=accGreen!10, colframe=accGreen!70!black,
   boxrule=1.2mm, arc=3mm, left=6mm, right=6mm, top=2.5mm, bottom=2.5mm,
-  before skip=5mm, after skip=0mm}
+  before skip=5mm, after skip=0mm, halign=flush left}
 
 \setlength{\parindent}{0pt}
 \setlength{\tabcolsep}{10pt}
 \pagestyle{empty}
 
 \begin{document}
+\special{pdf:docinfo<< /Title (A Distributed Real-Time Intrusion Detection System on a Jetson Orin Nano Super Edge Cluster using Kafka and PySpark -- SOICT 2026 poster) /Author (Thai Nguyen Vu, Bui Van Dung, Tri Nhut Do, Van Du Nguyen) >>}
+% Posters read better ragged-right and unhyphenated: justified narrow
+% columns produced split words ("ver-dict") and stretched gaps.
+\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000
 \bodysize
 \pagecolor{paper}
 
@@ -145,7 +149,7 @@
 \kpi{22.4}{flows/s sustained by pipeline split\\≈9× a single node (2.5)}{accBlue}\hspace{8mm}%
 \kpi{0.60\,J}{per verdict on two boards\\vs.\ 3.04\,J on a single node}{accGreen!80!black}\hspace{8mm}%
 \kpi{69.5\%}{recall at 100\% precision\\every miss is a gate skip}{accRed}\hspace{8mm}%
-\kpi{≈7{,}200×}{ONNX Runtime vs.\ PySpark\\same forest, same predictions}{accOrange}%
+\kpi{≈7{,}200×}{ONNX Runtime vs.\ PySpark, batch 10\\same forest, same predictions}{accOrange}%
 
 \vspace{9mm}
 
@@ -158,7 +162,7 @@
 % Both columns get the same fixed height and spread their boxes with \vfill,
 % so their bottoms line up. Keep \colheight above the taller column's natural
 % height (see the POSTER line in the log) and below 1189 mm minus the header.
-\newlength\colheight\setlength\colheight{902mm}
+\newlength\colheight\setlength\colheight{905mm}
 \newsavebox\colL\newsavebox\colR
 \begin{lrbox}{\colL}%
 \begin{minipage}[t][\colheight][t]{381mm}\vspace{0pt}% top-align both columns
@@ -225,7 +229,7 @@
   \key{leakage-aware} protocol: \texttt{destination\_port} removed, duplicate
   flows dropped before the split.
   \par\vspace{3mm}
-  {\centering\tabsize
+  \par\vspace{2mm}{\centering\tabsize
   \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l c c c@{}}
     \toprule
     Feature set & Features & XGBoost F1 & RF F1 \\
@@ -235,7 +239,7 @@
     RF-importance Top-30     & 30 & 0.9922 & 0.9879 \\
     PCA $k$=40               & 40 & 0.9939 & 0.9837 \\
     \bottomrule
-  \end{tabular*}}\par}
+  \end{tabular*}}\par}\vspace{2.5mm}
   \vspace{3mm}
   Deployed: \key{Random Forest on SHAP Top-30} (test F1 0.9959), a native
   Spark ML estimator that loads on ARM64 without XGBoost's native libraries.
@@ -254,7 +258,7 @@
           \key{A1} split on one board; \key{B} horizontal; \key{C} Spark cluster.
     \item \textbf{Every flow is followed from send to verdict}, queueing
           included. \key{Sustained capacity} = highest rate at which every flow
-          of a 45\,s window gets its verdict within 10\,s. Two runs per rate.
+          of a 45\,s window gets its verdict within 10\,s of the window's end. Two runs per rate.
   \end{itemize}
 \end{sect}
 
@@ -263,7 +267,7 @@
 \begin{sect}{Result 4 --- The price of one unified stack}
   The deployed forest on the classifier board, batch 10, identical predictions:
   \par\vspace{3mm}
-  {\centering\tabsize
+  \par\vspace{2mm}{\centering\tabsize
   \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l c c c@{}}
     \toprule
     Engine & Flows/s & Batch p95 (ms) & Active mJ / inference \\
@@ -272,7 +276,7 @@
     NumPy              & 54.8 & 194 & 11.3 \\
     \textbf{ONNX Runtime} & \good{10{,}092} & \good{1.2} & \good{0.087} \\
     \bottomrule
-  \end{tabular*}}\par}
+  \end{tabular*}}\par}\vspace{2.5mm}
   \vspace{3mm}
   A PySpark call costs a fixed 7.1--7.4\,s from batch 10 to 1{,}000: the cost
   is per call, not per tree. \key{Train on Spark, serve with ONNX/TensorRT.}
@@ -284,7 +288,7 @@
 \begin{minipage}[t][\colheight][t]{381mm}\vspace{0pt}% top-align both columns
 % ---------------------------------------------------------------------
 \begin{sect}{Result 1 --- Decoupling the stages pays, not the second board}
-  {\centering\tabsize
+  \par\vspace{2mm}{\centering\tabsize
   \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l c c c c@{}}
     \toprule
     Mode & Boards & Flows/s & e2e p50 / p95 (s) & J / verdict \\
@@ -296,7 +300,7 @@
     A1: Split, one board  & 1 & \good{17.8} & 0.6 / 5.3 & \good{0.32} \\
     \textbf{A: Pipeline split} & 2 & \good{22.4} & 1.0 / 7.1 & 0.60 \\
     \bottomrule
-  \end{tabular*}}\par}
+  \end{tabular*}}\par}\vspace{2.5mm}
   \vspace{1mm}
   {\capsize \textsuperscript{*}2.4--2.5 verdicts/s at 3\,flows/s, like the single node
   without gate. \textsuperscript{†}Lower bound: at 20\,flows/s one of two repeats kept
@@ -317,7 +321,7 @@
 \vfill
 % ---------------------------------------------------------------------
 \begin{sect}{Result 2 --- What the gate costs, end to end}
-  {\centering\tabsize
+  \par\vspace{2mm}{\centering\tabsize
   \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l r r c c c@{}}
     \toprule
     Mode & Attacks & Missed: gate / clf & FP & Recall & F1 \\
@@ -328,7 +332,7 @@
     Single node + gate   & 200 & 55 / 0 & 0 & 72.5\% & 0.841 \\
     Gate off (single, B) & 242 & -- / 0 & 0 & 100\% & 1.000 \\
     \bottomrule
-  \end{tabular*}}\par}
+  \end{tabular*}}\par}\vspace{2.5mm}
   \vspace{3mm}
   \begin{minipage}[c]{0.56\linewidth}
     \includegraphics[width=\linewidth]{gate_operating_points.pdf}
@@ -347,7 +351,7 @@
 \vfill
 % ---------------------------------------------------------------------
 \begin{sect}{Result 3 --- Another network: CSE-CIC-IDS2018}
-  {\centering\tabsize
+  \par\vspace{2mm}{\centering\tabsize
   \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l c c@{}}
     \toprule
     Replayed flows (10{,}000 each, once) & CICIDS2017 & CSE-CIC-IDS2018 \\
@@ -359,7 +363,7 @@
     End-to-end recall / F1        & 69.5\% / 0.820 & \bad{0.8\% / 0.016} \\
     Classifier alone, recall      & 99.8\% & 1.8\% \\
     \bottomrule
-  \end{tabular*}}\par}
+  \end{tabular*}}\par}\vspace{2.5mm}
   \vspace{3mm}
   Models trained on CICIDS2017, kept unchanged. The gate forwards three times
   as many flows, and the classifier itself misses almost every 2018 attack.
