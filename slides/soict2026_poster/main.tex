@@ -38,7 +38,7 @@
 \newcommand{\good}[1]{\textbf{\textcolor{accGreen!80!black}{#1}}}
 \newcommand{\bad}[1]{\textbf{\textcolor{accRed}{#1}}}
 
-\graphicspath{{../../papers/soict2026/manuscript/figures/}}
+\graphicspath{{../../papers/soict2026/manuscript/figures/}{img/}}
 
 % Body text: 30 pt reads from about 1.5 m; tables and captions a step down.
 \newcommand{\bodysize}{\fontsize{24}{30}\selectfont}
@@ -72,8 +72,8 @@
 \newsavebox\topPart
 \setbox\topPart=\vbox{\hsize=841mm
 \noindent\begin{tikzpicture}[remember picture, overlay]
-  \fill[accBlue] (current page.north west) rectangle ([yshift=-166mm]current page.north east);
-  \fill[accRed] ([yshift=-166mm]current page.north west) rectangle ([yshift=-170mm]current page.north east);
+  \fill[accBlue] (current page.north west) rectangle ([yshift=-178mm]current page.north east);
+  \fill[accRed] ([yshift=-178mm]current page.north west) rectangle ([yshift=-182mm]current page.north east);
 \end{tikzpicture}%
 \vspace*{14mm}
 
@@ -86,11 +86,23 @@
   {\fontsize{38}{46}\selectfont \textbf{Thai Nguyen Vu}\textsuperscript{1} \quad Bui Van Dung\textsuperscript{2,3} \quad
    Tri Nhut Do\textsuperscript{2,3} \quad Van Du Nguyen\textsuperscript{4}\par}
   \vspace{5mm}
-  {\fontsize{24}{31}\selectfont
+  \begin{minipage}[c]{405mm}
+  {\fontsize{22}{29}\selectfont\raggedright
    \textsuperscript{1}Campus in Ho Chi Minh City, University of Transport and Communications, Ho Chi Minh City, Vietnam\\
-   \textsuperscript{2}Vietnam National University, Ho Chi Minh City, Vietnam \quad
+   \textsuperscript{2}Vietnam National University, Ho Chi Minh City, Vietnam\\
    \textsuperscript{3}University of Information Technology, Ho Chi Minh City, Vietnam\\
    \textsuperscript{4}Faculty of Information Technology, Nong Lam University, Ho Chi Minh City, Vietnam\par}
+  \end{minipage}%
+  \hfill
+  % Affiliation logos in affiliation order, on one white card so each reads
+  % against its own (white) background.
+  \begin{tikzpicture}[baseline=(card.center)]
+    \node[fill=white, rounded corners=4mm, inner xsep=6mm, inner ysep=5mm] (card) {%
+      \includegraphics[height=36mm]{logo_utc.png}\hspace{7mm}%
+      \includegraphics[height=34mm]{logo_vnuhcm.png}\hspace{7mm}%
+      \includegraphics[height=34mm]{logo_uit.png}\hspace{7mm}%
+      \includegraphics[height=36mm]{logo_nlu.png}};
+  \end{tikzpicture}%
 \end{minipage}%
 \hfill
 \begin{minipage}[t]{115mm}
@@ -132,7 +144,7 @@
 % Both columns get the same fixed height and spread their boxes with \vfill,
 % so their bottoms line up. Keep \colheight above the taller column's natural
 % height (see the POSTER line in the log) and below 1189 mm minus the header.
-\newlength\colheight\setlength\colheight{920mm}
+\newlength\colheight\setlength\colheight{908mm}
 \newsavebox\colL\newsavebox\colR
 \begin{lrbox}{\colL}%
 \begin{minipage}[t][\colheight][t]{381mm}\vspace{0pt}% top-align both columns
