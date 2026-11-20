@@ -413,14 +413,13 @@
 
 \begin{frame}{KQ4 --- Đánh giá đa lớp: F1 nhị phân che giấu điều quan trọng}
   \begin{columns}[c]
-    \begin{column}{0.40\textwidth}
+    \begin{column}{0.47\textwidth}
       \centering
-      \IfFileExists{../../results/ml_09_multiclass_eval/confusion_matrix.png}
-        {\includegraphics[width=0.98\textwidth]{confusion_matrix.png}}
-        {\fbox{\parbox{0.8\textwidth}{\centering\vspace{1.2cm}
-          \texttt{confusion\_matrix.png}\vspace{1.2cm}}}}
+      % Slide view of the thesis confusion matrix (same counts, Hình 4.5):
+      % plot_weak_classes.py, one 100% bar per class.
+      \includegraphics[width=\textwidth]{img/weak_classes_vi.png}
     \end{column}
-    \begin{column}{0.58\textwidth}
+    \begin{column}{0.51\textwidth}
       \centering\footnotesize
       \fitwidth{%
       \begin{tabular}{lccc}
@@ -449,7 +448,7 @@
       \end{itemize}
     \end{column}
   \end{columns}
-  \note{81/111 mẫu XSS bị đoán thành Web Brute Force, 27\% Brute Force lọt
+  \note{Biểu đồ vẽ lại từ đúng số đếm của ma trận nhầm lẫn ở Hình 4.5 trong luận văn, chỉ giữ các lớp yếu cộng DoS Hulk để đối chứng, vì ma trận 15 lớp chiếu lên không đọc được. 81/111 mẫu XSS bị đoán thành Web Brute Force, 27\% Brute Force lọt
   thành Benign. Ba cơ chế: mất cân bằng cực đoan (6--311 mẫu so với 380 nghìn benign);
   loại \texttt{destination\_port} tác động mạnh nhất lên web attack --- mất lối tắt cổng
   80, luồng HTTP ngắn trông như duyệt web bình thường, nên recall 0,027 báo cáo
@@ -809,7 +808,7 @@
       \vspace{0.2em}
       \textbf{Kết quả offline}
       \begin{itemize}
-        \item[\key{Q5}] So sánh đầy đủ 8 thuật toán $\times$ 4 phương pháp
+        \item[\key{Q5}] So sánh đầy đủ 8 thuật toán $+$ 2 tổ hợp $\times$ 4 phương pháp
               $\rightarrow$ \hyperlink{bk-heatmap}{\key{Bản đồ nhiệt F1}}
         \item[\key{Q6}] Độ tin cậy, giới hạn kết luận
               $\rightarrow$ \hyperlink{bk-threats}{\key{Tính hợp lệ}}
@@ -969,7 +968,7 @@
   \IfFileExists{../../results/ml_07_cross_method_comparison/f1_heatmap.png}
     {\includegraphics[height=0.74\textheight, width=\textwidth, keepaspectratio]{f1_heatmap.png}}
     {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}\texttt{f1\_heatmap.png}\vspace{1.5cm}}}}
-  \\[0.2em]\footnotesize Nhị phân, đã loại đặc trưng cổng. 8 thuật toán $\times$ 4 phương pháp.
+  \\[0.2em]\footnotesize Nhị phân, đã loại đặc trưng cổng. 8 thuật toán $+$ 2 mô hình học tổ hợp, $\times$ 4 phương pháp.
 \end{frame}
 
 \begin{frame}[label=bk-threats]{Q6 --- Các yếu tố ảnh hưởng tính hợp lệ}
