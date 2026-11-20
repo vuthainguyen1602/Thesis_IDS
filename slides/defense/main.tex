@@ -975,9 +975,7 @@
   \begin{itemize}\small
     \item \textbf{Nội tại.} Xếp hạng RF/SHAP lấy từ tập huấn luyện gốc và giữ
           cố định qua các lần lấy mẫu lại --- nhất quán với thiết kế ``cấu hình
-          cố định trước'', nhưng có thể gây rò rỉ nhẹ ở phần xếp hạng. Xếp hạng
-          lại trong hai trong sáu lần lấy mẫu chỉ làm F1 lệch
-          $\le 7{,}4\times10^{-5}$, và 25--26/30 đặc trưng vẫn được chọn lại.
+          cố định trước'', nhưng có thể gây rò rỉ nhẹ ở phần xếp hạng.
           MLP không được gán trọng số lớp (Spark ML không hỗ trợ).
     \item \textbf{Ngoại tại.} CICIDS2017 (2017) có thể không phản ánh lưu lượng
           hiện tại. Các bộ dữ liệu NIDS chuẩn đều có hạn chế chất lượng đã ghi
@@ -990,9 +988,10 @@
           phân phối $t$ --- do đó Nadeau--Bengio là căn cứ chính. Tăng $N$ với
           cross-validation lồng nhau là hướng củng cố tiếp theo.
   \end{itemize}
-  \note{Phép xếp hạng lại (F1 lệch $\le 7{,}4\times10^{-5}$, 25--26/30 đặc
-  trưng chọn lại) được báo cáo trong bài FAIR, không có trong quyển luận văn ---
-  nếu hội đồng hỏi số trang thì nói rõ điều này. Các ý còn lại khớp Chương 3--4:
+  \note{Nếu hội đồng hỏi rò rỉ ở phần xếp hạng lớn đến đâu: bài FAIR (không
+  phải quyển luận văn) báo cáo phép xếp hạng lại trong hai trong sáu lần lấy
+  mẫu, F1 lệch $\le 7{,}4\times10^{-5}$ và 25--26/30 đặc trưng vẫn được chọn
+  lại. Nói rõ nguồn là bài FAIR. Các ý còn lại khớp Chương 3--4:
   MLP không có weightCol (Chương 3), khử trùng lặp đổi phân bố lớp, $p$ sàn $2/64$.}
 \end{frame}
 
@@ -1051,7 +1050,7 @@
         \footnotesize
         2$\times$ Jetson Orin Nano Super: CPU 6 nhân Arm Cortex-A78AE, GPU
         Ampere $\approx$67 TOPS, 8\,GB LPDDR5, SSD NVMe 256\,GB.\\[0.3em]
-        PySpark 3.4.1, Kafka 3.5, LAN Wi-Fi.\\[0.3em]
+        PySpark 3.4.1, Apache Kafka, LAN Wi-Fi.\\[0.3em]
         Tải: phát lại CICIDS2017 ở 100 luồng/giây.\\[0.3em]
         $\geq$3 lần lặp, lưu lượng khởi động \emph{loại khỏi} cửa sổ đo.\\[0.3em]
         Năng lượng: \texttt{tegrastats} --- KQ6 toàn bo mạch, KQ7 phần hoạt động.
