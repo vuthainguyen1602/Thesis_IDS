@@ -28,11 +28,12 @@
 }
 
 \title{A Distributed Real-Time Intrusion Detection System on a Jetson Orin Nano Super Edge Cluster using Kafka and PySpark}
-\author{\textbf{Thai Nguyen Vu}\inst{1} \and Bui Van Dung\inst{2} \and Tri Nhut Do\inst{2} \and Van Du Nguyen\inst{3}}
+\author{\textbf{Thai Nguyen Vu}\inst{1} \and Bui Van Dung\inst{2,3} \and Tri Nhut Do\inst{2,3} \and Van Du Nguyen\inst{4}}
 \institute{\scriptsize
            \inst{1}Campus in Ho Chi Minh City, University of Transport and Communications, Ho Chi Minh City, Vietnam \\
-           \inst{2}University of Information Technology, VNU-HCM, Ho Chi Minh City, Vietnam \\
-           \inst{3}Faculty of Information Technology, Nong Lam University, Ho Chi Minh City, Vietnam}
+           \inst{2}Vietnam National University, Ho Chi Minh City, Vietnam \\
+           \inst{3}University of Information Technology, Ho Chi Minh City, Vietnam \\
+           \inst{4}Faculty of Information Technology, Nong Lam University, Ho Chi Minh City, Vietnam}
 \date{SOICT 2026}
 
 \begin{document}
@@ -55,9 +56,9 @@
 
       \textbf{What the literature does not tell us}
       \begin{enumerate}
-        \item Everything is measured on a \bad{single device}.
-        \item Throughput, latency and \bad{energy} are never reported together.
-        \item Offline scores come from \bad{leaky protocols}.
+        \item Recent edge IDS are measured on a \bad{single device}.
+        \item Throughput, latency and \bad{energy} are rarely reported together.
+        \item Offline scores can be inflated by \bad{leaky protocols}.
       \end{enumerate}
     \end{column}
     \begin{column}{0.42\textwidth}
@@ -71,7 +72,7 @@
       \end{exampleblock}
     \end{column}
   \end{columns}
-  \note{Past work has three gaps. One: it uses only one board. Two: it does not report speed and energy together. Three: test data often leaks into training. We fix all three on two real boards.}
+  \note{Past work has three gaps. One: it uses only one board. Two: it does not report speed and energy together. Three: offline scores can be too high when test data leaks into training. We fix all three on two real boards.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35
@@ -81,16 +82,16 @@
   \vspace{0.3em}
   \begin{enumerate}\small
     \item A \key{placement study} of a two-stage IDS on a two-board Jetson
-          cluster: single node, pipeline split on one and on two boards,
-          horizontal Kafka scaling, Spark standalone cluster.
+          cluster: single node with and without the gate, pipeline split on
+          one and on two boards, horizontal Kafka scaling, Spark standalone
+          cluster.
     \item An \key{end-to-end evaluation}: sustained capacity, latency with
           queueing, energy per verdict, and \key{precision / recall / F1 after
           the gate} --- on CICIDS2017 and on CSE-CIC-IDS2018 replay.
     \item A \key{same-model engine baseline}: PySpark vs.\ NumPy vs.\ ONNX
           Runtime on the deployed forest.
-    \item \key{Leakage-free model selection}: the deployed model is
-          selected by our offline Spark ML evaluation under a strict
-          leakage-free protocol.
+    \item \key{Open, reproducible scripts} tied to a leakage-aware Spark ML
+          training pipeline: the deployed model is the one validated offline.
   \end{enumerate}
   \note{We do not make a new model. All parts are standard. Our work is the measurement: where to put each part, how fast it gets, and what we lose.}
 \end{frame}
@@ -183,9 +184,9 @@
         Mode & Flows/s & e2e p95 (s) & J / verdict \\
         \midrule
         Single node         & 2.5            & 11.3          & 3.04 \\
-        Single node + gate  & $\approx$2.5   & 7.8           & 3.04 \\
+        Single node + gate  & 2.0$^{*}$      & 7.8           & 3.04 \\
         B: Horizontal       & 3.3            & 8.2           & 3.20 \\
-        C: Spark cluster    & 9--17          & 5.2           & 1.15 \\
+        C: Spark cluster    & $\geq$8.7$^{\dagger}$ & 5.2       & 1.15 \\
         A1: Split, one board & \num{17.8}    & 5.3           & \num{0.32} \\
         \textbf{A: Split}   & \num{22.4}     & \num{7.1}     & \num{0.60} \\
         \bottomrule
@@ -195,6 +196,8 @@
       \raggedright\scriptsize
       \textbf{Flows/s}: sustained, every flow done within 10\,s.
       \textbf{e2e p95}: send to verdict, queueing included.
+      $^{*}$2.4--2.5 at 3\,flows/s, one repeat drained in 10.6\,s.
+      $^{\dagger}$Lower bound: at 20\,flows/s one repeat kept up (17.1).
     \end{column}
     \begin{column}{0.39\textwidth}
       \begin{itemize}\small
@@ -297,7 +300,8 @@
         \item The gate flags new normal traffic as anomalous: the classifier
               gets \bad{3$\times$ more traffic}.
         \item The classifier itself misses almost every 2018 attack.
-        \item Offline: 1\% labelled target flows restore F1 to 0.92.
+        \item Offline: 1\% labelled target flows restore F1 to 0.92 and
+              0.99 (2017$\rightarrow$2018, 2018$\rightarrow$2017).
       \end{itemize}
     \end{column}
   \end{columns}
@@ -431,13 +435,15 @@
 \begin{frame}{Backup: the gate is an operating curve, not a point}
   \centering
   \IfFileExists{../../results/ml_08_anomaly_gate/gate_operating_points.png}
-    {\includegraphics[height=0.68\textheight, width=\textwidth, keepaspectratio]{gate_operating_points.png}}
+    {\includegraphics[height=0.60\textheight, width=\textwidth, keepaspectratio]{gate_operating_points.png}}
     {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
       \texttt{gate\_operating\_points.png}\vspace{1.5cm}}}}
   \\[0.2em]
   \footnotesize Attack recall (left) and false-positive rate (right) vs.\
   gate-skip ratio. Raising the skip ratio offloads more Spark work and costs
-  recall. The operator chooses the point.
+  recall. Deployed quantile 0.995: 68.1\% of attacks forwarded, 0.49\% FPR,
+  89.4\% of flows skipped. On the classifier's 30 SHAP features only, the same
+  gate forwards just 44.8\% of attacks.
 \end{frame}
 
 \begin{frame}{Backup: which model, and why}
