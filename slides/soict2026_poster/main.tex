@@ -253,12 +253,12 @@
           Cortex-A78AE, 8\,GB LPDDR5, ≈67\,TOPS GPU), host PC, Wi-Fi LAN.
           PySpark 3.4.1, Kafka 3.5.
     \item \textbf{Workload:} 10{,}000 CICIDS2017 test flows (15.2\% attacks)
-          and 10{,}000 CSE-CIC-IDS2018 flows; energy via \texttt{tegrastats}.
-    \item \textbf{Modes:} single node (gate off/on); \key{A} pipeline split;
-          \key{A1} split on one board; \key{B} horizontal; \key{C} Spark cluster.
+          and 10{,}000 CSE-CIC-IDS2018 flows.
+    \item \textbf{Modes:} single node (gate off/on), \key{A} pipeline split,
+          \key{A1} split on one board, \key{B} horizontal, \key{C} Spark cluster.
     \item \textbf{Every flow is followed from send to verdict}, queueing
           included. \key{Sustained capacity} = highest rate at which every flow
-          of a 45\,s window gets its verdict within 10\,s of the window's end. Two runs per rate.
+          of a 45\,s window gets its verdict within 10\,s of the window's end. Two runs per rate, energy from \texttt{tegrastats}.
   \end{itemize}
 \end{sect}
 
@@ -340,7 +340,7 @@
   \begin{minipage}[c]{0.42\linewidth}\raggedright
     \begin{itemize}
       \item \good{Precision 100\%}: no false alarm on 8{,}483 benign flows.
-      \item All 463 misses were \bad{skipped by the gate}; the classifier
+      \item All 463 misses were \bad{skipped by the gate}. The classifier
             made no error.
       \item A \key{tunable trade-off}: at quantile 0.995 the gate skips
             89.4\% of flows, forwards 68.1\% of attacks.
@@ -380,12 +380,12 @@
 \begin{sect}[colframe=inkDark, colbacktitle=inkDark]{Conclusion}
   \begin{itemize}
     \item \key{Decoupling} gate and classifier gives 7--9× capacity
-          at lower energy per verdict; the price is \bad{recall}, set by the gate.
+          at lower energy per verdict. The price is \bad{recall}, set by the gate.
     \item One board running the split is the \good{most efficient} choice
-          (17.8\,flows/s, 0.32\,J); a second board buys headroom.
-    \item \textbf{Limitations:} two-node lab cluster over Wi-Fi, replayed
-          traffic; Kafka and databases stay on the host PC; GPU unused;
-          evasive traffic untested.
+          (17.8\,flows/s, 0.32\,J). A second board buys headroom.
+    \item \textbf{Limitations:} a two-node lab cluster over Wi-Fi with
+          replayed traffic, Kafka and databases on the host PC, an unused GPU,
+          and untested evasive traffic.
     \item \textbf{Next:} ONNX/TensorRT serving, live-traffic validation,
           federated retraining under drift.
   \end{itemize}
