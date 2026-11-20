@@ -22,6 +22,9 @@ and `.pptx` (one full-bleed 200 dpi image; the organisers asked for both formats
 The two columns sit in a zero-height holder so TeX cannot break the page; the log
 line `POSTER top=… colL=… colR=…` gives the real heights, and `\colheight` must
 stay between the taller column and the space left under the header.
+`soict2026_poster/measure.sh` prints the columns' natural heights (fixed 8 mm
+gaps instead of `\vfill`), which is what to compare against `\colheight`
+after changing text or font sizes.
 
 ## Building
 

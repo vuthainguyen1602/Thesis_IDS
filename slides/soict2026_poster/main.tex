@@ -41,25 +41,25 @@
 \graphicspath{{../../papers/soict2026/manuscript/figures/}{img/}}
 
 % Body text: 30 pt reads from about 1.5 m; tables and captions a step down.
-\newcommand{\bodysize}{\fontsize{24}{30}\selectfont}
-\newcommand{\tabsize}{\fontsize{21}{26}\selectfont}
-\newcommand{\capsize}{\fontsize{19}{23}\selectfont}
+\newcommand{\bodysize}{\fontsize{28}{34}\selectfont}
+\newcommand{\tabsize}{\fontsize{26}{31}\selectfont}
+\newcommand{\capsize}{\fontsize{21}{25}\selectfont}
 
 \setlist[itemize]{leftmargin=1.1em, itemsep=0.15em, topsep=0.3em, label={\textcolor{accBlue}{\raisebox{0.12ex}{\scalebox{0.7}{$\blacksquare$}}}}}
 \setlist[enumerate]{leftmargin=1.4em, itemsep=0.15em, topsep=0.3em, label={\textbf{\textcolor{accBlue}{\arabic*.}}}}
 
 \newtcolorbox{sect}[2][]{enhanced, colback=white, colframe=accBlue,
-  boxrule=1.6mm, arc=5mm, left=8mm, right=8mm, top=6mm, bottom=6mm,
-  fonttitle=\fontsize{33}{40}\selectfont\bfseries, coltitle=white,
-  colbacktitle=accBlue, toptitle=3mm, bottomtitle=3mm,
+  boxrule=1.4mm, arc=4mm, left=6mm, right=6mm, top=3.5mm, bottom=3.5mm,
+  fonttitle=\fontsize{36}{42}\selectfont\bfseries, coltitle=white,
+  colbacktitle=accBlue, toptitle=2mm, bottomtitle=2mm,
   title={#2}, before skip=0mm, after skip=0mm, #1}
 
 \newtcolorbox{takeaway}{enhanced, colback=accGreen!10, colframe=accGreen!70!black,
-  boxrule=1.2mm, arc=4mm, left=8mm, right=8mm, top=4mm, bottom=4mm,
+  boxrule=1.2mm, arc=3mm, left=6mm, right=6mm, top=2.5mm, bottom=2.5mm,
   before skip=5mm, after skip=0mm}
 
 \setlength{\parindent}{0pt}
-\setlength{\tabcolsep}{9pt}
+\setlength{\tabcolsep}{10pt}
 \pagestyle{empty}
 
 \begin{document}
@@ -129,16 +129,16 @@
 \end{minipage}%
 \hspace*{30mm}
 
-\vspace{14mm}
+\vspace{10mm}
 
 % =====================================================================
 % KEY NUMBERS
 % =====================================================================
 \newcommand{\kpi}[3]{%
-  \begin{tcolorbox}[enhanced, width=184mm, height=78mm, valign=center, halign=center,
+  \begin{tcolorbox}[enhanced, width=184mm, height=58mm, valign=center, halign=center,
     colback=white, colframe=#3, boxrule=2mm, arc=6mm, left=4mm, right=4mm, nobeforeafter, box align=top]
     {\fontsize{66}{72}\selectfont\bfseries\textcolor{#3}{#1}\par}
-    \vspace{4mm}
+    \vspace{2mm}
     {\fontsize{22}{27}\selectfont #2\par}
   \end{tcolorbox}}
 \hspace*{30mm}%
@@ -147,7 +147,7 @@
 \kpi{69.5\%}{recall at 100\% precision\\every miss is a gate skip}{accRed}\hspace{8mm}%
 \kpi{≈7{,}200×}{ONNX Runtime vs.\ PySpark\\same forest, same predictions}{accOrange}%
 
-\vspace{12mm}
+\vspace{9mm}
 
 % =====================================================================
 % TWO COLUMNS
@@ -158,7 +158,7 @@
 % Both columns get the same fixed height and spread their boxes with \vfill,
 % so their bottoms line up. Keep \colheight above the taller column's natural
 % height (see the POSTER line in the log) and below 1189 mm minus the header.
-\newlength\colheight\setlength\colheight{876mm}
+\newlength\colheight\setlength\colheight{902mm}
 \newsavebox\colL\newsavebox\colR
 \begin{lrbox}{\colL}%
 \begin{minipage}[t][\colheight][t]{381mm}\vspace{0pt}% top-align both columns
@@ -208,7 +208,7 @@
     \draw[dsh] (j1.south) -- (out.north -| j1);
     \draw[dsh] (j2.south) -- (out.north -| j2);
   \end{tikzpicture}}
-  \par\vspace{6mm}\raggedright
+  \par\vspace{3mm}\raggedright
   \begin{itemize}
     \item Gate threshold: MSE quantile \textbf{0.995} of held-out benign
           validation flows, fixed \emph{before} evaluation, never tuned on the test set.
@@ -224,9 +224,9 @@
   Selected offline on a Spark cluster (two Jetson workers) under a
   \key{leakage-aware} protocol: \texttt{destination\_port} removed, duplicate
   flows dropped before the split.
-  \par\vspace{6mm}
+  \par\vspace{3mm}
   {\centering\tabsize
-  \adjustbox{max width=\linewidth}{\begin{tabular}{l c c c}
+  \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l c c c@{}}
     \toprule
     Feature set & Features & XGBoost F1 & RF F1 \\
     \midrule
@@ -235,8 +235,8 @@
     RF-importance Top-30     & 30 & 0.9922 & 0.9879 \\
     PCA $k$=40               & 40 & 0.9939 & 0.9837 \\
     \bottomrule
-  \end{tabular}}\par}
-  \vspace{6mm}
+  \end{tabular*}}\par}
+  \vspace{3mm}
   Deployed: \key{Random Forest on SHAP Top-30} (test F1 0.9959), a native
   Spark ML estimator that loads on ARM64 without XGBoost's native libraries.
 \end{sect}
@@ -262,9 +262,9 @@
 % ---------------------------------------------------------------------
 \begin{sect}{Result 4 --- The price of one unified stack}
   The deployed forest on the classifier board, batch 10, identical predictions:
-  \par\vspace{5mm}
+  \par\vspace{3mm}
   {\centering\tabsize
-  \adjustbox{max width=\linewidth}{\begin{tabular}{l c c c}
+  \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l c c c@{}}
     \toprule
     Engine & Flows/s & Batch p95 (ms) & Active mJ / inference \\
     \midrule
@@ -272,8 +272,8 @@
     NumPy              & 54.8 & 194 & 11.3 \\
     \textbf{ONNX Runtime} & \good{10{,}092} & \good{1.2} & \good{0.087} \\
     \bottomrule
-  \end{tabular}}\par}
-  \vspace{5mm}
+  \end{tabular*}}\par}
+  \vspace{3mm}
   A PySpark call costs a fixed 7.1--7.4\,s from batch 10 to 1{,}000: the cost
   is per call, not per tree. \key{Train on Spark, serve with ONNX/TensorRT.}
 \end{sect}
@@ -285,7 +285,7 @@
 % ---------------------------------------------------------------------
 \begin{sect}{Result 1 --- Decoupling the stages pays, not the second board}
   {\centering\tabsize
-  \adjustbox{max width=\linewidth}{\begin{tabular}{l c c c c}
+  \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l c c c c@{}}
     \toprule
     Mode & Boards & Flows/s & e2e p50 / p95 (s) & J / verdict \\
     \midrule
@@ -296,12 +296,12 @@
     A1: Split, one board  & 1 & \good{17.8} & 0.6 / 5.3 & \good{0.32} \\
     \textbf{A: Pipeline split} & 2 & \good{22.4} & 1.0 / 7.1 & 0.60 \\
     \bottomrule
-  \end{tabular}}\par}
-  \vspace{3mm}
+  \end{tabular*}}\par}
+  \vspace{1mm}
   {\capsize \textsuperscript{*}2.4--2.5 verdicts/s at 3\,flows/s, like the single node
   without gate. \textsuperscript{†}Lower bound: at 20\,flows/s one of two repeats kept
   up (17.1\,flows/s).\par}
-  \vspace{5mm}
+  \vspace{3mm}
   {\centering\includegraphics[width=\linewidth]{edge_capacity.pdf}\par}
   \vspace{3mm}
   \begin{itemize}
@@ -318,27 +318,28 @@
 % ---------------------------------------------------------------------
 \begin{sect}{Result 2 --- What the gate costs, end to end}
   {\centering\tabsize
-  \adjustbox{max width=\linewidth}{\begin{tabular}{l r r c c c}
+  \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l r r c c c@{}}
     \toprule
     Mode & Attacks & Missed: gate / clf & FP & Recall & F1 \\
     \midrule
     \textbf{A: full replay} & 1{,}518 & 463 / 0 & 0 & \bad{69.5\%} & 0.820 \\
     A1: split, one board & 882 & 278 / 0 & 0 & 68.5\% & 0.813 \\
     C: Spark cluster     & 381 & 115 / 0 & 0 & 69.8\% & 0.822 \\
+    Single node + gate   & 200 & 55 / 0 & 0 & 72.5\% & 0.841 \\
     Gate off (single, B) & 242 & -- / 0 & 0 & 100\% & 1.000 \\
     \bottomrule
-  \end{tabular}}\par}
-  \vspace{5mm}
-  \begin{minipage}[c]{0.50\linewidth}
+  \end{tabular*}}\par}
+  \vspace{3mm}
+  \begin{minipage}[c]{0.56\linewidth}
     \includegraphics[width=\linewidth]{gate_operating_points.pdf}
   \end{minipage}\hfill
-  \begin{minipage}[c]{0.47\linewidth}
+  \begin{minipage}[c]{0.42\linewidth}\raggedright
     \begin{itemize}
       \item \good{Precision 100\%}: no false alarm on 8{,}483 benign flows.
-      \item All 463 misses were \bad{skipped by the gate}; the classifier made
-            no error on what it received.
-      \item The gate is a \key{tunable trade-off}: at quantile 0.995 it skips
-            89.4\% of flows and forwards 68.1\% of attacks.
+      \item All 463 misses were \bad{skipped by the gate}; the classifier
+            made no error.
+      \item A \key{tunable trade-off}: at quantile 0.995 the gate skips
+            89.4\% of flows, forwards 68.1\% of attacks.
     \end{itemize}
   \end{minipage}
 \end{sect}
@@ -347,17 +348,19 @@
 % ---------------------------------------------------------------------
 \begin{sect}{Result 3 --- Another network: CSE-CIC-IDS2018}
   {\centering\tabsize
-  \adjustbox{max width=\linewidth}{\begin{tabular}{l c c}
+  \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l c c@{}}
     \toprule
     Replayed flows (10{,}000 each, once) & CICIDS2017 & CSE-CIC-IDS2018 \\
     \midrule
     Flows forwarded by the gate   & 11.0\% & \bad{30.4\%} \\
     Sustained capacity (flows/s)  & 22.4   & \bad{≈8} \\
+    Attack flows / detected       & 1{,}518 / 1{,}055 & 1{,}276 / \bad{10} \\
+    Missed: by gate / by classifier & 463 / 0 & 712 / 554 \\
     End-to-end recall / F1        & 69.5\% / 0.820 & \bad{0.8\% / 0.016} \\
     Classifier alone, recall      & 99.8\% & 1.8\% \\
     \bottomrule
-  \end{tabular}}\par}
-  \vspace{5mm}
+  \end{tabular*}}\par}
+  \vspace{3mm}
   Models trained on CICIDS2017, kept unchanged. The gate forwards three times
   as many flows, and the classifier itself misses almost every 2018 attack.
   Offline, 1\% labelled target flows restore F1 to \good{0.92} and \good{0.99}.
@@ -374,6 +377,8 @@
   \begin{itemize}
     \item \key{Decoupling} gate and classifier gives 7--9× capacity
           at lower energy per verdict; the price is \bad{recall}, set by the gate.
+    \item One board running the split is the \good{most efficient} choice
+          (17.8\,flows/s, 0.32\,J); a second board buys headroom.
     \item \textbf{Limitations:} two-node lab cluster over Wi-Fi, replayed
           traffic; Kafka and databases stay on the host PC; GPU unused;
           evasive traffic untested.
