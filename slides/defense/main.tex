@@ -473,7 +473,7 @@
       \end{tabular}
       }
       \\[0.15em]
-      {\scriptsize 18 lượt; 2017$\rightarrow$2018 tách hai nhóm (11 / 7 lượt).}
+      {\scriptsize 18 lượt chạy. Chiều 2017$\rightarrow$2018 tách hai nhóm (11 và 7 lượt).}
       \\[0.3em]
       \fitwidth{%
       \begin{tabular}{lcc}
@@ -539,7 +539,7 @@
   }
   \par\vspace{0.1em}
   {\raggedright\tiny\textcolor{gray!55!black}{\emph{Duy trì được}: mọi luồng có
-  kết quả trong 10\,giây; độ trễ tính từ lúc gửi, gồm cả xếp hàng.
+  kết quả trong vòng 10\,giây sau cửa sổ tải. Độ trễ tính từ lúc gửi, gồm cả xếp hàng.
   $^{*}$Ở 3 luồng/giây cho 2,4--2,5 như một nút, trượt quy tắc 10\,giây ở một lần
   lặp. $^{\dagger}$Cận dưới: ở 20 luồng/giây một lần lặp theo kịp (17,1).}\par}
   \raggedright\footnotesize
@@ -706,8 +706,8 @@
       \textbf{Hướng phát triển} --- ứng với từng hạn chế
       \begin{itemize}\small
         \item \key{Lớp tấn công hiếm}: cân bằng có chủ đích, kiến trúc phân tầng.
-        \item \key{Dữ liệu IoT chuyên biệt}: Bot-IoT, TON\_IoT, CIC-IoT-2023;
-              toàn bộ IDS2018.
+        \item \key{Dữ liệu IoT chuyên biệt}: Bot-IoT, TON\_IoT, CIC-IoT-2023
+              và toàn bộ IDS2018.
         \item \key{ONNX/TensorRT} trên GPU Jetson: rút độ trễ xuống mili giây.
         \item \key{Bền vững đối kháng}: hai bề mặt mới do cổng lọc tạo ra.
       \end{itemize}
@@ -852,7 +852,7 @@
       \begin{itemize}\small
         \item \textbf{Dữ liệu}: CICIDS2017, mở rộng sang CSE-CIC-IDS2018 cho
               thí nghiệm liên bộ dữ liệu.
-        \item \textbf{Công nghệ}: Spark Core/SQL/Streaming/MLlib; Kafka,
+        \item \textbf{Công nghệ}: Spark (Core, SQL, Streaming, MLlib), Kafka,
               PostgreSQL, InfluxDB, Grafana.
         \item \textbf{Bài toán}: nhị phân Benign/Attack (có bổ sung đánh giá đa
               lớp theo loại tấn công).
@@ -1231,7 +1231,7 @@
   \note{Mô hình và cổng lọc giữ nguyên, huấn luyện trên CICIDS2017. 10.000 luồng
   lấy từ tập kiểm tra đã khử trùng lặp của CSE-CIC-IDS2018 (12,8\% tấn công),
   cột ánh xạ về tên của CICIDS2017. Lượt 1.250 giây ở 8 luồng/giây xả hết hàng
-  đợi sau 1,9 giây; ở 12 luồng/giây cả hai lần lặp xả quá hạn (18,5 và 28,9
+  đợi sau 1,9 giây. Ở 12 luồng/giây, cả hai lần lặp đều xả quá hạn (18,5 và 28,9
   giây). Hàng cuối chấm cùng rừng cây qua bản ONNX, dự đoán trùng PySpark.}
 \end{frame}
 
@@ -1239,10 +1239,10 @@
   \begin{itemize}\small
     \item \textbf{Cải thiện độ nhạy cho lớp tấn công hiếm.} Xử lý mất cân bằng
           có chủ đích (undersampling/SMOTE áp dụng \emph{sau} khi chia tập),
-          focal loss, hạ ngưỡng quyết định theo lớp; \key{kiến trúc phân tầng} ---
+          focal loss, hạ ngưỡng quyết định theo lớp. \key{Kiến trúc phân tầng}
           tận dụng chính thiết kế hai tầng có cổng lọc: tầng nhị phân ở biên giữ recall
           tổng, còn bộ định danh loại chỉ huấn luyện trên \emph{luồng tấn công},
-          huấn luyện lại ngoại tuyến mà không đụng hệ thống đang chạy; thêm
+          huấn luyện lại ngoại tuyến mà không đụng hệ thống đang chạy. Thêm
           \key{đặc trưng chuỗi thời gian theo host} cho beaconing C\&C.
     \item \textbf{Kiểm chứng trên dữ liệu IoT chuyên biệt.} Dùng Bot-IoT, TON\_IoT,
           CIC-IoT-2023, và mở rộng thí nghiệm liên bộ dữ liệu lên toàn bộ
