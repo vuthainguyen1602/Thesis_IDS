@@ -33,6 +33,12 @@
 \definecolor{accRed}{HTML}{C1121F}
 \definecolor{inkDark}{HTML}{23373B}
 \definecolor{paper}{HTML}{F6F8FA}
+% Headline-number cards take the four affiliation logos' main colours, in
+% the logos' left-to-right order (sampled from img/logo_*.png).
+\definecolor{utcNavy}{HTML}{2A1258}
+\definecolor{vnuBlue}{HTML}{2490CC}
+\definecolor{uitBlue}{HTML}{2460FC}
+\definecolor{nluGreen}{HTML}{00903C}
 
 \newcommand{\key}[1]{\textbf{\textcolor{accBlue}{#1}}}
 \newcommand{\good}[1]{\textbf{\textcolor{accGreen!80!black}{#1}}}
@@ -146,10 +152,10 @@
     {\fontsize{22}{27}\selectfont #2\par}
   \end{tcolorbox}}
 \hspace*{30mm}%
-\kpi{22.4}{flows/s sustained by pipeline split\\≈9× a single node (2.5)}{accBlue}\hspace{8mm}%
-\kpi{0.60\,J}{per verdict on two boards\\vs.\ 3.04\,J on a single node}{accGreen!80!black}\hspace{8mm}%
-\kpi{69.5\%}{recall at 100\% precision\\every miss is a gate skip}{accRed}\hspace{8mm}%
-\kpi{≈7{,}200×}{ONNX Runtime vs.\ PySpark, batch 10\\same forest, same predictions}{accOrange}%
+\kpi{22.4}{flows/s sustained by pipeline split\\≈9× a single node (2.5)}{utcNavy}\hspace{8mm}%
+\kpi{0.60\,J}{per verdict on two boards\\vs.\ 3.04\,J on a single node}{vnuBlue}\hspace{8mm}%
+\kpi{69.5\%}{recall at 100\% precision\\every miss is a gate skip}{uitBlue}\hspace{8mm}%
+\kpi{≈7{,}200×}{ONNX Runtime vs.\ PySpark, batch 10\\same forest, same predictions}{nluGreen}%
 
 \vspace{9mm}
 
