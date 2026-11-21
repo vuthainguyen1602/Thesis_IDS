@@ -28,18 +28,19 @@
 }
 
 \title{A Distributed Real-Time Intrusion Detection System on a Jetson Orin Nano Super Edge Cluster using Kafka and PySpark}
-\author{\textbf{Thai Nguyen Vu}\inst{1} \and Bui Van Dung\inst{2} \and Tri Nhut Do\inst{2} \and Van Du Nguyen\inst{3}}
+\author{\textbf{Thai Nguyen Vu}\inst{1} \and Bui Van Dung\inst{2,3} \and Tri Nhut Do\inst{2,3} \and Van Du Nguyen\inst{4}}
 \institute{\scriptsize
            \inst{1}Campus in Ho Chi Minh City, University of Transport and Communications, Ho Chi Minh City, Vietnam \\
-           \inst{2}University of Information Technology, VNU-HCM, Ho Chi Minh City, Vietnam \\
-           \inst{3}Faculty of Information Technology, Nong Lam University, Ho Chi Minh City, Vietnam}
+           \inst{2}Vietnam National University, Ho Chi Minh City, Vietnam \\
+           \inst{3}University of Information Technology, Ho Chi Minh City, Vietnam \\
+           \inst{4}Faculty of Information Technology, Nong Lam University, Ho Chi Minh City, Vietnam}
 \date{SOICT 2026}
 
 \begin{document}
 
 % ---------------------------------------------------------------- 0:20
 \maketitle
-\note{Good morning everyone. Today I will show what a second edge board actually adds when we split an ML intrusion detection system across two Jetson boards, and what it costs in detection. In eight minutes, I will share five key results.}
+\note{Good morning everyone. We have two small boards. We split an attack detector across them. I will show what we gain, and what we lose. I have five results.}
 
 % ---------------------------------------------------------------- 0:50
 % =====================================================================
@@ -55,9 +56,9 @@
 
       \textbf{What the literature does not tell us}
       \begin{enumerate}
-        \item Everything is measured on a \bad{single device}.
-        \item Throughput, latency and \bad{energy} are never reported together.
-        \item Offline scores come from \bad{leaky protocols}.
+        \item Recent edge IDS are measured on a \bad{single device}.
+        \item Throughput, latency and \bad{energy} are rarely reported together.
+        \item Offline scores can be inflated by \bad{leaky protocols}.
       \end{enumerate}
     \end{column}
     \begin{column}{0.42\textwidth}
@@ -71,7 +72,7 @@
       \end{exampleblock}
     \end{column}
   \end{columns}
-  \note{We see three big gaps in previous work: they only test on a single board, they rarely report energy together with latency, and offline results often have data leakage. Our goal is to address all three on a real two-board cluster.}
+  \note{Past work has three gaps. One: it uses only one board. Two: it does not report speed and energy together. Three: offline scores can be too high when test data leaks into training. We fix all three on two real boards.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35
@@ -81,18 +82,18 @@
   \vspace{0.3em}
   \begin{enumerate}\small
     \item A \key{placement study} of a two-stage IDS on a two-board Jetson
-          cluster: single node, pipeline split on one and on two boards,
-          horizontal Kafka scaling, Spark standalone cluster.
+          cluster: single node with and without the gate, pipeline split on
+          one and on two boards, horizontal Kafka scaling, Spark standalone
+          cluster.
     \item An \key{end-to-end evaluation}: sustained capacity, latency with
           queueing, energy per verdict, and \key{precision / recall / F1 after
           the gate} --- on CICIDS2017 and on CSE-CIC-IDS2018 replay.
     \item A \key{same-model engine baseline}: PySpark vs.\ NumPy vs.\ ONNX
           Runtime on the deployed forest.
-    \item \key{Leakage-free model selection}: the deployed model is
-          selected by our offline Spark ML evaluation under a strict
-          leakage-free protocol.
+    \item \key{Open, reproducible scripts} tied to a leakage-aware Spark ML
+          training pipeline: the deployed model is the one validated offline.
   \end{enumerate}
-  \note{To be clear, we do not claim a new machine learning model. Our main contribution is the empirical measurement: how to place the workload, how much speedup we get, and what the trade-off in detection is.}
+  \note{We do not make a new model. All parts are standard. Our work is the measurement: where to put each part, how fast it gets, and what we lose.}
 \end{frame}
 
 % ---------------------------------------------------------------- 1:00
@@ -134,7 +135,7 @@
   {\tiny\textcolor{gray!55!black}{CICIDS2017: Sharafaldin et al., ICISSP 2018
   $\cdot$ Kafka: Kreps et al., NetDB 2011 $\cdot$ Spark: Zaharia et al.,
   HotCloud 2010.}}
-  \note{Here is our system. The host PC runs the background services. Board one runs a lightweight autoencoder gate to filter benign traffic. Board two runs the heavy PySpark classifier. Only suspicious flows pass to Board two via Kafka. Everything is monitored in real time using Grafana.}
+  \note{Here is our system. The PC runs Kafka, the database, and Grafana. Board one runs a small filter, we call it the gate. It passes about eleven percent of the traffic to board two. Board two runs the big classifier.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -165,7 +166,7 @@
       \end{block}
     \end{column}
   \end{columns}
-  \note{We measure end-to-end latency: from the moment a flow is sent until its final verdict is saved, including queueing time. Each test uses a fresh Kafka group so no old messages remain.}
+  \note{We test five setups. The key one is A1: two separate programs on one board. A uses two boards. We measure the time from sending a flow to getting the answer. All flows must finish within ten seconds.}
 \end{frame}
 
 % ---------------------------------------------------------------- 1:20
@@ -183,9 +184,9 @@
         Mode & Flows/s & e2e p95 (s) & J / verdict \\
         \midrule
         Single node         & 2.5            & 11.3          & 3.04 \\
-        Single node + gate  & $\approx$2.5   & 7.8           & 3.04 \\
+        Single node + gate  & 2.0$^{*}$      & 7.8           & 3.04 \\
         B: Horizontal       & 3.3            & 8.2           & 3.20 \\
-        C: Spark cluster    & 9--17          & 5.2           & 1.15 \\
+        C: Spark cluster    & $\geq$8.7$^{\dagger}$ & 5.2       & 1.15 \\
         A1: Split, one board & \num{17.8}    & 5.3           & \num{0.32} \\
         \textbf{A: Split}   & \num{22.4}     & \num{7.1}     & \num{0.60} \\
         \bottomrule
@@ -195,6 +196,8 @@
       \raggedright\scriptsize
       \textbf{Flows/s}: sustained, every flow done within 10\,s.
       \textbf{e2e p95}: send to verdict, queueing included.
+      $^{*}$2.4--2.5 at 3\,flows/s, one repeat drained in 10.6\,s.
+      $^{\dagger}$Lower bound: at 20\,flows/s one repeat kept up (17.1).
     \end{column}
     \begin{column}{0.39\textwidth}
       \begin{itemize}\small
@@ -207,8 +210,8 @@
     \end{column}
   \end{columns}
   \takeaway{\textbf{Splitting stages gives the biggest gain}: one board
-  with two separate processes is the most energy-efficient choice; adding a second board provides extra headroom.}
-  \note{Look at the table: Single node only handles 2.5 flows per second. If we run the gate and classifier as two separate processes on the SAME board, capacity jumps 7 times to 17.8 flows per second, using only 0.32 Joules per flow. Adding a second board pushes it to 22.4 flows per second, but uses twice the energy. So the key insight: decoupling the pipeline gives the speedup, not just adding more hardware.}
+  with two separate processes is the most energy-efficient choice, and a second board only adds headroom.}
+  \note{Look at the table. One board, one program: two and a half flows per second. One board, two programs: about eighteen. That is seven times faster, and it uses the least energy. Two boards: twenty-two, but twice the energy. So splitting the work matters most. More hardware helps less.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35
@@ -229,7 +232,7 @@
       the input path prevents system bottlenecks.
     \end{column}
   \end{columns}
-  \note{This Grafana screenshot shows the system at peak load. Notice the huge contrast: Board one uses only 1.3 percent CPU, while Board two reaches 94.5 percent. This extreme asymmetry is why splitting the stages is so effective.}
+  \note{Here is the live view. Board one uses one percent CPU. Board two uses ninety-five percent. The classifier does almost all the work.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:35
@@ -266,7 +269,7 @@
   \end{columns}
   \takeaway{The capacity gain is paid for in recall: the gate is a
   \key{tunable trade-off} (operating curve in backup), not a free filter.}
-  \note{What is the trade-off? High throughput costs recall. Precision is 100 percent with zero false alarms. But recall drops to 69.5 percent. Notice that every missed attack was skipped by the gate; the classifier made zero errors on what it received. So the gate threshold directly controls this trade-off.}
+  \note{What do we lose? Precision is one hundred percent. No false alarms. But recall is about seventy percent. The gate drops some attacks. The classifier makes no mistakes. So the gate setting controls this trade-off.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:50
@@ -297,13 +300,14 @@
         \item The gate flags new normal traffic as anomalous: the classifier
               gets \bad{3$\times$ more traffic}.
         \item The classifier itself misses almost every 2018 attack.
-        \item Offline: 1\% labelled target flows restore F1 to 0.92.
+        \item Offline: 1\% labelled target flows restore F1 to 0.92 and
+              0.99 (2017$\rightarrow$2018, 2018$\rightarrow$2017).
       \end{itemize}
     \end{column}
   \end{columns}
   \takeaway{Neither detection \emph{nor capacity} transfers: a new network
   needs a \key{recalibrated gate} and a \key{retrained classifier}.}
-  \note{When we test on another dataset, CSE-CIC-IDS2018, without retraining: capacity drops from 22 to 8 flows per second, and recall drops to under 1 percent. Why? Because normal traffic from a new network looks strange to the gate, sending 30 percent of flows to the classifier instead of 11. So for a new network, we must recalibrate the gate and retrain the classifier.}
+  \note{Now we test on the 2018 data, with no retraining. Two problems. One: the gate sends thirty percent of traffic, not eleven. So speed drops from twenty-two to eight. Two: the classifier misses almost all attacks. So for a new network, we must retrain both parts.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:45
@@ -331,7 +335,7 @@
   \takeaway{ONNX Runtime serves the same forest \num{$\approx$7{,}200$\times$}
   faster. Target for the next iteration: \key{train on Spark, serve with
   ONNX/TensorRT}.}
-  \note{We used PySpark for inference to match our distributed training pipeline. But on edge devices, the Spark JVM overhead is huge: taking 7.5 seconds per batch. Running the exact same model with ONNX Runtime is 7,200 times faster, at only 1.2 milliseconds. This clearly points to our future roadmap: train with Spark, but serve with ONNX or TensorRT.}
+  \note{We use Spark to match our training. But Spark is slow: about seven seconds for each call. With the same model, ONNX is about seven thousand times faster. So next, we train with Spark, and run with ONNX.}
 \end{frame}
 
 % ---------------------------------------------------------------- 0:40
@@ -352,21 +356,21 @@
     \begin{column}{0.44\textwidth}
       \textbf{Limitations}
       \begin{itemize}\footnotesize
-        \item Two-node lab cluster over Wi-Fi; replayed traffic.
+        \item Two-node lab cluster over Wi-Fi, replayed traffic.
         \item No transfer to CSE-CIC-IDS2018 without retraining.
         \item Kafka and the database stay on a host PC.
-        \item GPU unused (CPU-only pipeline); evasion untested.
+        \item GPU unused (CPU-only pipeline), evasion untested.
       \end{itemize}
       \textbf{Next}
       \begin{itemize}\footnotesize
-        \item ONNX/TensorRT serving; live traffic; retraining under drift.
+        \item ONNX/TensorRT serving, live-traffic validation, retraining under drift.
       \end{itemize}
     \end{column}
   \end{columns}
   \vfill
   \centering
   \key{Thank you --- questions?}
-  \note{To summarize: First, decoupling the detection pipeline increases capacity by 7 to 9 times. Second, the trade-off is a 30 percent drop in recall at the gate. Third, cross-network deployment requires recalibrating the gate. And finally, lightweight serving engines like ONNX are critical for real-time edge IDS. Thank you for your attention, and I would be happy to answer your questions.}
+  \note{To sum up. One: splitting the work gives seven to nine times more speed. Two: the gate misses about thirty percent of attacks. Three: a new network needs retraining. Four: ONNX is much faster than Spark. Thank you. Questions are welcome.}
 \end{frame}
 
 % ---------------------------------------------------------------- 7:00
@@ -431,13 +435,15 @@
 \begin{frame}{Backup: the gate is an operating curve, not a point}
   \centering
   \IfFileExists{../../results/ml_08_anomaly_gate/gate_operating_points.png}
-    {\includegraphics[height=0.68\textheight, width=\textwidth, keepaspectratio]{gate_operating_points.png}}
+    {\includegraphics[height=0.60\textheight, width=\textwidth, keepaspectratio]{gate_operating_points.png}}
     {\fbox{\parbox{0.7\textwidth}{\centering\vspace{1.5cm}
       \texttt{gate\_operating\_points.png}\vspace{1.5cm}}}}
   \\[0.2em]
   \footnotesize Attack recall (left) and false-positive rate (right) vs.\
   gate-skip ratio. Raising the skip ratio offloads more Spark work and costs
-  recall. The operator chooses the point.
+  recall. Deployed quantile 0.995: 68.1\% of attacks forwarded, 0.49\% FPR,
+  89.4\% of flows skipped. On the classifier's 30 SHAP features only, the same
+  gate forwards just 44.8\% of attacks.
 \end{frame}
 
 \begin{frame}{Backup: which model, and why}

@@ -12,7 +12,19 @@ Numbers must match the manuscripts in every deck.
 | `soict2026_vi/` | Vietnamese | ~12:30, detailed (14 talk slides + 3 section pages + references + 6 backup = 26 pages) | `output/pdfs/SOICT2026_slides_vi.pdf` |
 | `fair2026/` | English | 7 min (8 talk slides + 3 section pages + references + 5 backup = 19 pages) | `output/pdfs/FAIR2026_slides.pdf` |
 | `fair2026_vi/` | Vietnamese | ~10 min, detailed (outline + 11 talk slides + 3 section pages + references + 10 backup = 28 pages) | `output/pdfs/FAIR2026_slides_vi.pdf` |
-| `defense/` | Vietnamese | 15 min (16 talk slides + 5 section pages + title/outline/refs/thanks + backup index + 14 backup frames for 14 questions = 40 pages) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
+| `defense/` | Vietnamese | 15 min (16 talk slides + 5 section pages + title/outline/refs/thanks + backup index + 16 backup frames for 15 questions = 43 pages) | `output/pdfs/LuanVan_BaoVe_slides.pdf` |
+
+The SOICT 2026 **A0 poster** (portrait, 841 × 1189 mm) lives in
+`soict2026_poster/`. It is a single XeLaTeX page, not a Beamer deck, so
+`build_slides.sh` skips it: run `soict2026_poster/compile.sh`, which fails if the
+poster spills onto a second page and writes `output/pdfs/SOICT2026_poster.pdf`
+and `.pptx` (one full-bleed 200 dpi image; the organisers asked for both formats).
+The two columns sit in a zero-height holder so TeX cannot break the page; the log
+line `POSTER top=… colL=… colR=…` gives the real heights, and `\colheight` must
+stay between the taller column and the space left under the header.
+`soict2026_poster/measure.sh` prints the columns' natural heights (fixed 8 mm
+gaps instead of `\vfill`), which is what to compare against `\colheight`
+after changing text or font sizes.
 
 ## Building
 
