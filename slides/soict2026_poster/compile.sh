@@ -5,7 +5,9 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/../.." && pwd)"
 cd "$here"
-xelatex -interaction=nonstopmode main.tex >/dev/null || true
+# Two passes: the header/footer are TikZ overlays on "current page", whose
+# position comes from the .aux; one pass in a clean checkout drops the footer.
+for pass in 1 2; do xelatex -interaction=nonstopmode main.tex >/dev/null || true; done
 if grep -q '^! ' main.log; then grep -A3 '^! ' main.log; exit 1; fi
 pages=$(pdfinfo main.pdf | awk '/^Pages/{print $2}')
 [ "$pages" = 1 ] || { echo "poster spilled onto $pages pages" >&2; exit 1; }
