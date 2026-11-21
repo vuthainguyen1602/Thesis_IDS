@@ -282,22 +282,18 @@
 
 \vfill
 % ---------------------------------------------------------------------
-\begin{sect}{Result 4 --- The price of one unified stack}
-  The deployed forest on the classifier board, batch 10, identical predictions:
-  \par\vspace{3mm}
-  \par\vspace{2mm}{\centering\tabsize
-  \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l c c c@{}}
-    \toprule
-    Engine & Flows/s & Batch p95 (ms) & Active mJ / inference \\
-    \midrule
-    PySpark (deployed) & 1.4 & 7515 & 1506 \\
-    NumPy              & 54.8 & 194 & 11.3 \\
-    \textbf{ONNX Runtime} & \good{10{,}092} & \good{1.2} & \good{0.087} \\
-    \bottomrule
-  \end{tabular*}}\par}\vspace{2.5mm}
-  \vspace{3mm}
-  A PySpark call costs a fixed 7.1--7.4\,s from batch 10 to 1{,}000: the cost
-  is per call, not per tree. \key{Train on Spark, serve with ONNX/TensorRT.}
+\begin{sect}[colframe=hustRed, colbacktitle=hustRed]{Conclusion}
+  \begin{itemize}
+    \item \key{Decoupling} gate and classifier gives 7--9× capacity
+          at lower energy per verdict. The price is \bad{recall}, set by the gate.
+    \item One board running the split is the \good{most efficient} choice
+          (17.8\,flows/s, 0.32\,J). A second board buys headroom.
+    \item \textbf{Limitations:} a two-node lab cluster over Wi-Fi with
+          replayed traffic, Kafka and databases on the host PC, an unused GPU,
+          and untested evasive traffic.
+    \item \textbf{Next:} ONNX/TensorRT serving, live-traffic validation,
+          federated retraining under drift.
+  \end{itemize}
 \end{sect}
 \end{minipage}%
 \end{lrbox}%
@@ -392,21 +388,24 @@
   \end{takeaway}
 \end{sect}
 
-
 \vfill
 % ---------------------------------------------------------------------
-\begin{sect}[colframe=hustRed, colbacktitle=hustRed]{Conclusion}
-  \begin{itemize}
-    \item \key{Decoupling} gate and classifier gives 7--9× capacity
-          at lower energy per verdict. The price is \bad{recall}, set by the gate.
-    \item One board running the split is the \good{most efficient} choice
-          (17.8\,flows/s, 0.32\,J). A second board buys headroom.
-    \item \textbf{Limitations:} a two-node lab cluster over Wi-Fi with
-          replayed traffic, Kafka and databases on the host PC, an unused GPU,
-          and untested evasive traffic.
-    \item \textbf{Next:} ONNX/TensorRT serving, live-traffic validation,
-          federated retraining under drift.
-  \end{itemize}
+\begin{sect}{Result 4 --- The price of one unified stack}
+  The deployed forest on the classifier board, batch 10, identical predictions:
+  \par\vspace{3mm}
+  \par\vspace{2mm}{\centering\tabsize
+  \adjustbox{max width=\linewidth}{\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l c c c@{}}
+    \toprule
+    Engine & Flows/s & Batch p95 (ms) & Active mJ / inference \\
+    \midrule
+    PySpark (deployed) & 1.4 & 7515 & 1506 \\
+    NumPy              & 54.8 & 194 & 11.3 \\
+    \textbf{ONNX Runtime} & \good{10{,}092} & \good{1.2} & \good{0.087} \\
+    \bottomrule
+  \end{tabular*}}\par}\vspace{2.5mm}
+  \vspace{3mm}
+  A PySpark call costs a fixed 7.1--7.4\,s from batch 10 to 1{,}000: the cost
+  is per call, not per tree. \key{Train on Spark, serve with ONNX/TensorRT.}
 \end{sect}
 \end{minipage}%
 \end{lrbox}%
