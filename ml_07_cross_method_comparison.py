@@ -70,6 +70,15 @@ STAT_TOST_MARGIN = float(os.environ.get("IDS_TOST_MARGIN", "0.001"))
 # once-computed ranking borrows from the test side. Off by default: each such
 # split costs an extra full-feature XGBoost fit plus the selected-feature one.
 STAT_RERANK_SPLITS = int(os.environ.get("IDS_STAT_RERANK_SPLITS", "0"))
+# Optional overrides for re-running the paired track on a different pair or
+# model (e.g. the deployed Random Forest) without touching the default XGB
+# result: IDS_STAT_METHODS="Baseline (All Features)|SHAP Top-30",
+# IDS_STAT_MODEL="Random Forest", IDS_STAT_TAG="rf" -> outputs get a "_rf"
+# suffix so the CSV the thesis cites for XGB is never overwritten.
+STAT_METHODS = [m for m in os.environ.get("IDS_STAT_METHODS", "").split("|") if m]
+STAT_MODEL = os.environ.get("IDS_STAT_MODEL") or None
+STAT_TAG = os.environ.get("IDS_STAT_TAG", "")
+_STAT_SUFFIX = f"_{STAT_TAG}" if STAT_TAG else ""
 
 _META_ENSEMBLE_MARKERS = ("Bagging", "Ensemble", "Voting")
 
@@ -171,12 +180,20 @@ def _run_statistical_validity_track(
     # the p-value below is not conditioned on a test-set peek.
     sorted_methods = sorted(best_per_method.keys(), key=lambda m: best_per_method[m]["best_f1"], reverse=True)
     top_methods = sorted_methods[:2]
+    if STAT_METHODS:
+        unknown = [m for m in STAT_METHODS if m not in METHODS]
+        if len(STAT_METHODS) != 2 or unknown:
+            raise ValueError(f"IDS_STAT_METHODS needs exactly two known methods; got {STAT_METHODS}")
+        top_methods = STAT_METHODS
+        print(f"  [OVERRIDE] Tested pair fixed by IDS_STAT_METHODS: {top_methods}")
 
     # Resolve the (validation-selected, fixed before testing) model per method once.
     method_model = {
-        m: _trainable_model_name(m, best_per_method[m]["best_model"], all_method_results)
+        m: STAT_MODEL or _trainable_model_name(m, best_per_method[m]["best_model"], all_method_results)
         for m in top_methods
     }
+    if STAT_MODEL:
+        print(f"  [OVERRIDE] Model fixed by IDS_STAT_MODEL: {STAT_MODEL}")
 
     # method -> list of F1 across splits (index-aligned => paired across methods).
     method_split_f1 = {m: [] for m in top_methods}
@@ -306,7 +323,7 @@ def _run_statistical_validity_track(
 
     if rerank_rows:
         rr_df = pd.DataFrame(rerank_rows)
-        rr_path = os.path.join(output_dir, "statistical_validity_rerank.csv")
+        rr_path = os.path.join(output_dir, f"statistical_validity_rerank{_STAT_SUFFIX}.csv")
         rr_df.to_csv(rr_path, index=False)
         mean_delta = float(rr_df["delta_f1"].mean())
         print(f"\n[INFO] Ranking-step leakage over {len(rr_df)} split(s): mean F1 "
@@ -321,7 +338,7 @@ def _run_statistical_validity_track(
     stats_df["tost_pvalue"] = tost["p_tost"] if tost else None
     stats_df["tost_equivalent"] = tost["equivalent"] if tost else None
     stats_df["tost_min_margin"] = tost["min_margin"] if tost else None
-    stats_csv = os.path.join(output_dir, "statistical_validity_multiseed.csv")
+    stats_csv = os.path.join(output_dir, f"statistical_validity_multiseed{_STAT_SUFFIX}.csv")
     stats_df.to_csv(stats_csv, index=False)
     print(f"[INFO] Saved: {stats_csv}")
 
@@ -336,7 +353,7 @@ def _run_statistical_validity_track(
     plt.grid(alpha=0.3)
     plt.legend()
     plt.tight_layout()
-    stats_plot = os.path.join(output_dir, "multiseed_stability.png")
+    stats_plot = os.path.join(output_dir, f"multiseed_stability{_STAT_SUFFIX}.png")
     plt.savefig(stats_plot, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"[INFO] Saved: {stats_plot}")
@@ -543,7 +560,7 @@ if __name__ == "__main__":
                 "chart_paths": [stats_plot],
             }],
             title="IDS Thesis - Experiment 7: Statistical Validity (Resume)",
-            output_path=os.path.join(OUTPUT_DIR, "report_step5.html"),
+            output_path=os.path.join(OUTPUT_DIR, f"report_step5{_STAT_SUFFIX}.html"),
         )
         print(f"\n[INFO] Step 5 completed!")
         print(f"[INFO] Results exported to: {OUTPUT_DIR}")
