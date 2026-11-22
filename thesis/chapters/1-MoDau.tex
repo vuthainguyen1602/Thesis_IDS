@@ -67,7 +67,7 @@ Apache Spark, với khả năng xử lý dữ liệu phân tán và tốc độ 
 Luận văn được định hướng bởi ba câu hỏi nghiên cứu:
 \begin{itemize}
   \item \textbf{RQ1}: Việc giảm chiều/lựa chọn đặc trưng (RF Importance, \ac{shap}, \ac{pca}) có giữ được hiệu năng phát hiện gần với mức dùng toàn bộ đặc trưng hay không, khi số đặc trưng giảm hơn 60\%?
-  \item \textbf{RQ2}: Các mô hình học tổ hợp (\ac{el}) có mang lại lợi thế đáng kể so với mô hình đơn tốt nhất hay không, khi khác biệt được kiểm chứng bằng kiểm định thống kê thay vì so sánh một lần đo?
+  \item \textbf{RQ2}: Các mô hình học tổ hợp (\ac{el}) có mang lại lợi thế đáng kể so với mô hình đơn tốt nhất hay không, khi xét cả hiệu năng phát hiện lẫn chi phí huấn luyện, suy luận và dung lượng mô hình?
   \item \textbf{RQ3}: Một pipeline \ac{ids} dựa trên Spark có khả thi về thông lượng, độ trễ và năng lượng khi triển khai phân tán trên cụm thiết bị biên tài nguyên hạn chế (Jetson Orin Nano Super) hay không?
 \end{itemize}
 
@@ -88,7 +88,7 @@ Luận văn được định hướng bởi ba câu hỏi nghiên cứu:
   \item \textbf{Xây dựng quy trình xử lý và phát hiện xâm nhập khép kín trên dữ liệu \ac{iot}}: Từ bước tiền xử lý dữ liệu, trích xuất đặc trưng, huấn luyện mô hình đến đánh giá kết quả, đề tài đã thiết kế và hiện thực một quy trình phát hiện xâm nhập hoàn chỉnh có thể áp dụng cho các hệ thống thực tế.
   \item \textbf{Ứng dụng và đánh giá các thuật toán học máy trong môi trường phân tán}: Đề tài triển khai và so sánh hiệu quả của một số thuật toán học máy và mô hình học sâu MLP trên nền tảng Apache Spark MLlib (ngoài ra một autoencoder được dùng làm cổng lọc bất thường ở tầng biên), qua đó làm rõ ưu điểm và hạn chế của từng mô hình trong việc xử lý dữ liệu \ac{iot}.
   \item \textbf{Đánh giá hiệu năng hệ thống trong môi trường xử lý phân tán}: Ngoài độ chính xác của mô hình, đề tài còn phân tích hiệu năng xử lý (thời gian thực thi, khả năng mở rộng) của hệ thống nhằm khảo sát tính khả thi của giải pháp. Việc kiểm chứng được thực hiện ở mức minh chứng khái niệm (proof-of-concept) trên cụm thiết bị biên với bộ dữ liệu CICIDS2017, làm cơ sở cho việc mở rộng quy mô về sau.
-  \item \textbf{Quy trình đánh giá loại trừ rò rỉ dữ liệu và có kiểm định thống kê}: Đề tài nhận diện và loại bỏ các nguồn rò rỉ dữ liệu thường gặp trên CICIDS2017 (đặc trưng \texttt{destination\_port} rò rỉ nhãn, trùng lặp luồng ở mức đặc trưng), đồng thời áp dụng kiểm định ý nghĩa thống kê, giúp kết quả phản ánh đúng hiệu năng mô hình thay vì các con số bị thổi phồng.
+  \item \textbf{Quy trình đánh giá loại trừ rò rỉ dữ liệu và có kiểm định thống kê}: Đề tài nhận diện và loại bỏ các nguồn rò rỉ dữ liệu thường gặp trên CICIDS2017 (đặc trưng \texttt{destination\_port} rò rỉ nhãn, trùng lặp luồng ở mức đặc trưng), đồng thời kiểm định thống kê (kiểm định hoán vị ghép cặp và kiểm định tương đương) cho cặp cấu hình dẫn đầu, giúp kết quả phản ánh đúng hiệu năng mô hình thay vì các con số bị thổi phồng.
   \item \textbf{Đánh giá tổng quát hóa giữa hai bộ dữ liệu}: Đề tài huấn luyện trên CICIDS2017 rồi kiểm tra trên CSE-CIC-IDS2018 (và ngược lại), cho thấy hiệu năng gần hoàn hảo trên cùng bộ dữ liệu không chuyển sang bộ khác, và đo lượng nhãn của mạng mới cần có để khôi phục hiệu năng.
 \end{itemize}
 
